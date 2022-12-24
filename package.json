@@ -1,6 +1,6 @@
 {
-  "name": "maze-utils",
-  "version": "1.0.0",
+  "name": "@ajayyy/maze-utils",
+  "version": "1.0.1",
   "description": "Utilities for my browser extensions",
   "main": "lib/index.js",
   "dependencies": {

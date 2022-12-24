@@ -12,6 +12,7 @@
         "typeRoots": [ "node_modules/@types" ],
         "resolveJsonModule": true,
         "jsx": "react",
+        "declaration": true,
         "lib": [
             "es2019",
             "dom",
