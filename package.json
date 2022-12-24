@@ -1,12 +1,8 @@
 {
   "name": "@ajayyy/maze-utils",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Utilities for my browser extensions",
   "main": "lib/index.js",
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
   "devDependencies": {
     "eslint": "^8.24.0",
     "jest": "^29.1.2",
