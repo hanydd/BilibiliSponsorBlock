@@ -9,3 +9,4 @@ tmp/
 .DS_Store
 ci/data.json
 test-results
+lib
