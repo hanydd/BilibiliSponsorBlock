@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es6",
+        "noImplicitAny": false,
+        "strictNullChecks": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "sourceMap": true,
+        "outDir": "./lib",
+        "noEmitOnError": false,
+        "typeRoots": [ "node_modules/@types" ],
+        "resolveJsonModule": true,
+        "jsx": "react",
+        "lib": [
+            "es2019",
+            "dom",
+            "dom.iterable"
+        ]
+    }
+}
