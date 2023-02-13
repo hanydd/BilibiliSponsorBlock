@@ -26,8 +26,8 @@ export interface ChannelIDInfo {
 interface Listeners {
     videoIDChange: (videoID: VideoID) => void;
     channelIDChange: (channelIDInfo: ChannelIDInfo) => void;
-    videoElementChange: (newVideo: boolean, video: HTMLVideoElement | null) => void;
-    playerInit: () => void;
+    videoElementChange?: (newVideo: boolean, video: HTMLVideoElement | null) => void;
+    playerInit?: () => void;
     updatePlayerBar?: () => void;
     resetValues: () => void;
 }
@@ -272,7 +272,7 @@ export async function refreshVideoAttachments(): Promise<void> {
         videosSetup.push(video);
     }
 
-    listeners.videoElementChange(isNewVideo, video);
+    listeners.videoElementChange?.(isNewVideo, video);
 
     videoIDChange(getYouTubeVideoID());
 }
@@ -333,7 +333,7 @@ function addPageListeners(): void {
     // piped player init
     window.addEventListener("playerInit", () => {
         if (!document.querySelector('meta[property="og:title"][content="Piped"]')) return;
-        listeners.playerInit();
+        listeners.playerInit?.();
     });
     window.addEventListener("message", windowListenerHandler);
 }
