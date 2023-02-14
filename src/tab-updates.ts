@@ -17,8 +17,6 @@ function onNavigationApiAvailableChange(changes: {[key: string]: chrome.storage.
     }
 }
 
-
-
 export function setupTabUpdates<T extends SyncStorage, U extends LocalStorage>(config: ProtoConfig<T, U>) {
     // If Navigation API is not supported, then background has to inform content script about video change.
     // This happens on Safari, Firefox, and Chromium 101 (inclusive) and below.
