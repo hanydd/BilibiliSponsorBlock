@@ -221,6 +221,9 @@ export async function whitelistCheck() {
 
         // If found, continue on, it was set by the listener
     } catch (e) {
+        // try to get channelID from page-manager
+        const pageMangerChannelID = (document.querySelector("ytd-page-manager") as any)?.data?.playerResponse?.videoDetails?.channelId
+
         // Try fallback
         const channelIDFallback = (document.querySelector("a.ytd-video-owner-renderer") // YouTube
             ?? document.querySelector("a.ytp-title-channel-logo") // YouTube Embed
@@ -231,7 +234,7 @@ export async function whitelistCheck() {
         if (channelIDFallback) {
             channelIDInfo = {
                 status: ChannelIDStatus.Found,
-                id: channelIDFallback as ChannelID
+                id: (pageMangerChannelID ?? channelIDFallback) as ChannelID
             };
         } else {
             channelIDInfo = {
