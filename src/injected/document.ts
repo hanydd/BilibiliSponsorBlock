@@ -28,7 +28,11 @@ interface VideoData {
     isPremiere: boolean;
 }
 
-type WindowMessage = StartMessage | FinishMessage | AdMessage | VideoData;
+interface ThumbnailCreated {
+    type: "newThumbnails";
+}
+
+type WindowMessage = StartMessage | FinishMessage | AdMessage | VideoData | ThumbnailCreated;
 
 // global playerClient - too difficult to type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -95,4 +99,36 @@ export function init(): void {
     document.addEventListener("yt-player-updated", setupPlayerClient);
     document.addEventListener("yt-navigate-start", navigationStartSend);
     document.addEventListener("yt-navigate-finish", navigateFinishSend);
+
+    if (["m.youtube.com", "www.youtube.com", "www.youtube-nocookie.com", "music.youtube.com"].includes(window.location.host)) {
+        // If customElement.define() is native, we will be given a class constructor and should extend it.
+        // If it is not native, we will be given a function and should wrap it.
+        const isDefineNative = window.customElements.define.toString().indexOf("[native code]") !== -1
+        const realCustomElementDefine = window.customElements.define.bind(window.customElements);
+        window.customElements.define = (name: string, constructor: CustomElementConstructor, options: ElementDefinitionOptions) => {
+            let replacedConstructor: CallableFunction = constructor;
+            if (name === "ytd-thumbnail") {
+                if (isDefineNative) {
+                    class WrappedThumbnail extends constructor {
+                        constructor() {
+                            super();
+                            sendMessage({ type: "newThumbnails" })
+                        }
+                    }
+                    replacedConstructor = WrappedThumbnail;
+                } else {
+                    // based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new.target#new.target_using_reflect.construct
+                    // clearly marked as bad practice, but it works lol
+                    replacedConstructor = function () {
+                        constructor.call(this);
+                        sendMessage({ type: "newThumbnails" })
+                    };
+                    Object.setPrototypeOf(replacedConstructor.prototype, constructor.prototype);
+                    Object.setPrototypeOf(replacedConstructor, constructor);
+                }
+            }
+
+            realCustomElementDefine(name, replacedConstructor, options);
+        }
+    }
 }
