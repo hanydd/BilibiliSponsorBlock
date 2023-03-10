@@ -1,6 +1,7 @@
 import { waitFor } from ".";
 import { LocalStorage, ProtoConfig, SyncStorage } from "./config";
 import { isVisible, waitForElement } from "./dom";
+import { newThumbnails } from "./thumbnailManagement";
 
 export enum PageType {
     Unknown = "unknown",
@@ -21,6 +22,12 @@ export enum ChannelIDStatus {
 export interface ChannelIDInfo {
     id: ChannelID | null;
     status: ChannelIDStatus;
+}
+export interface ParsedVideoURL {
+    videoID: VideoID | null;
+    onInvidious: boolean;
+    onMobileYouTube: boolean;
+    callLater: boolean;
 }
 
 interface Listeners {
@@ -169,8 +176,32 @@ function getYouTubeVideoIDFromDocument(hideIcon = true, pageHint = PageType.Watc
     }
 }
 
+/**
+ * Parse with side effects
+ */
 function getYouTubeVideoIDFromURL(url: string): VideoID | null {
+    const result = parseYouTubeVideoIDFromURL(url);
+
+    if (result.callLater) {
+        // Call this later, in case this is an Invidious tab
+        waitFor(() => getConfig().isReady()).then(() => videoIDChange(getYouTubeVideoIDFromURL(url)));
+
+        return null;
+    }
+
+    onInvidious = result.onInvidious;
+    onMobileYouTube = result.onMobileYouTube;
+
+    return result.videoID;
+}
+
+/**
+ * Parse without side effects
+ */
+export function parseYouTubeVideoIDFromURL(url: string): ParsedVideoURL {
     if(url.startsWith("https://www.youtube.com/tv#/")) url = url.replace("#", "");
+    let onInvidious = false;
+    let onMobileYouTube = false;
 
     //Attempt to parse url
     let urlObject: URL | null = null;
@@ -178,7 +209,12 @@ function getYouTubeVideoIDFromURL(url: string): VideoID | null {
         urlObject = new URL(url);
     } catch (e) {
         console.error("[SB] Unable to parse URL: " + url);
-        return null;
+        return {
+            videoID: null,
+            onInvidious,
+            onMobileYouTube,
+            callLater: false
+        };
     }
 
     // Check if valid hostname
@@ -187,12 +223,12 @@ function getYouTubeVideoIDFromURL(url: string): VideoID | null {
     } else if (urlObject.host === "m.youtube.com") {
         onMobileYouTube = true;
     } else if (!["m.youtube.com", "www.youtube.com", "www.youtube-nocookie.com", "music.youtube.com"].includes(urlObject.host)) {
-        if (!getConfig().isReady()) {
-            // Call this later, in case this is an Invidious tab
-            waitFor(() => getConfig().isReady()).then(() => videoIDChange(getYouTubeVideoIDFromURL(url)));
-        }
-
-        return null;
+        return {
+            videoID: null,
+            onInvidious,
+            onMobileYouTube,
+            callLater: !getConfig().isReady() // Might be an Invidious tab
+        };
     } else {
         onInvidious = false;
     }
@@ -200,17 +236,38 @@ function getYouTubeVideoIDFromURL(url: string): VideoID | null {
     //Get ID from searchParam
     if (urlObject.searchParams.has("v") && ["/watch", "/watch/"].includes(urlObject.pathname) || urlObject.pathname.startsWith("/tv/watch")) {
         const id = urlObject.searchParams.get("v");
-        return id?.length == 11 ? id as VideoID : null;
+        return {
+            videoID: id?.length == 11 ? id as VideoID : null,
+            onInvidious,
+            onMobileYouTube,
+            callLater: false
+        };
     } else if (urlObject.pathname.startsWith("/embed/") || urlObject.pathname.startsWith("/shorts/")) {
         try {
             const id = urlObject.pathname.split("/")[2]
-            if (id?.length >= 11 ) return id.slice(0, 11) as VideoID;
+            if (id?.length >= 11 ) return {
+                videoID: id.slice(0, 11) as VideoID,
+                onInvidious,
+                onMobileYouTube,
+                callLater: false
+            };
         } catch (e) {
             console.error("[SB] Video ID not valid for " + url);
-            return null;
+            return {
+                videoID: null,
+                onInvidious,
+                onMobileYouTube,
+                callLater: false
+            };
         }
     }
-    return null;
+
+    return {
+        videoID: null,
+        onInvidious,
+        onMobileYouTube,
+        callLater: false
+    };
 }
 
 //checks if this channel is whitelisted, should be done only after the channelID has been loaded
@@ -311,6 +368,8 @@ function windowListenerHandler(event: MessageEvent): void {
         videoIDChange(data.videoID);
 
         isLivePremiere = data.isLive || data.isPremiere
+    } else if (dataType === "newThumbnails") {
+        newThumbnails();
     }
 }
 
