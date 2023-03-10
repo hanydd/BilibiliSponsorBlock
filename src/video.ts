@@ -1,6 +1,7 @@
 import { waitFor } from ".";
 import { LocalStorage, ProtoConfig, SyncStorage } from "./config";
 import { isVisible, waitForElement } from "./dom";
+import { newThumbnails } from "./thumbnailManagement";
 
 export enum PageType {
     Unknown = "unknown",
@@ -367,6 +368,8 @@ function windowListenerHandler(event: MessageEvent): void {
         videoIDChange(data.videoID);
 
         isLivePremiere = data.isLive || data.isPremiere
+    } else if (dataType === "newThumbnails") {
+        newThumbnails();
     }
 }
 

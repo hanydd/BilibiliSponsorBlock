@@ -2,12 +2,14 @@ export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 
 const handledThumbnails = new Set<HTMLElement>();
 let thumbnailListener: ThumbnailListener | null = null;
+let selector = "ytd-thumbnail";
 
-export function setThumbnailListener(listener: ThumbnailListener): void {
+export function setThumbnailListener(listener: ThumbnailListener, selector?: string): void {
     thumbnailListener = listener;
+    if (selector) this.selector = selector;
 }
 
-export function newThumbnails(selector: string): HTMLElement[] {
+export function newThumbnails(): HTMLElement[] {
     const thumbnails = document.querySelectorAll(selector) as NodeListOf<HTMLElement>;
     const newThumbnails: HTMLElement[] = [];
     for (const thumbnail of thumbnails) {
@@ -30,5 +32,6 @@ export function newThumbnails(selector: string): HTMLElement[] {
         }
     }
 
+    thumbnailListener?.(newThumbnails);
     return newThumbnails;
 }
