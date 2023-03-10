@@ -35,3 +35,7 @@ export function newThumbnails(): HTMLElement[] {
     thumbnailListener?.(newThumbnails);
     return newThumbnails;
 }
+
+export function updateAll(): void {
+    if (thumbnailListener) thumbnailListener([...handledThumbnails]);
+}
