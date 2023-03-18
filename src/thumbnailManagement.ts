@@ -1,16 +1,20 @@
+import { isOnInvidious } from "./video";
+
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 
 const handledThumbnails = new Set<HTMLElement>();
 let thumbnailListener: ThumbnailListener | null = null;
 let selector = "ytd-thumbnail";
+let invidiousSelector = "div.thumbnail";
 
-export function setThumbnailListener(listener: ThumbnailListener, selector?: string): void {
+export function setThumbnailListener(listener: ThumbnailListener, selectorParam?: string, invidiousSelectorParam?: string): void {
     thumbnailListener = listener;
-    if (selector) this.selector = selector;
+    if (selectorParam) selector = selectorParam;
+    if (invidiousSelectorParam) invidiousSelector = invidiousSelectorParam;
 }
 
 export function newThumbnails(): HTMLElement[] {
-    const thumbnails = document.querySelectorAll(selector) as NodeListOf<HTMLElement>;
+    const thumbnails = document.querySelectorAll(isOnInvidious() ? invidiousSelector : selector) as NodeListOf<HTMLElement>;
     const newThumbnails: HTMLElement[] = [];
     for (const thumbnail of thumbnails) {
         if (!handledThumbnails.has(thumbnail)) {
