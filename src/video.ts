@@ -51,7 +51,7 @@ let isAdPlaying = false;
 let isLivePremiere: boolean
 
 let videoID: VideoID | null = null;
-let onInvidious = false;
+let onInvidious: boolean | null = null;
 let onMobileYouTube = false;
 let pageType: PageType = PageType.Unknown;
 let channelIDInfo: ChannelIDInfo;
@@ -412,7 +412,7 @@ export function getVideoID(): VideoID | null {
     return videoID;
 }
 
-export function isOnInvidious(): boolean {
+export function isOnInvidious(): boolean | null {
     return onInvidious;
 }
 
