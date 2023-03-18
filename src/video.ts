@@ -30,13 +30,14 @@ export interface ParsedVideoURL {
     callLater: boolean;
 }
 
-interface Listeners {
+interface VideoModuleParams {
     videoIDChange: (videoID: VideoID) => void;
     channelIDChange: (channelIDInfo: ChannelIDInfo) => void;
     videoElementChange?: (newVideo: boolean, video: HTMLVideoElement | null) => void;
     playerInit?: () => void;
     updatePlayerBar?: () => void;
     resetValues: () => void;
+    documentScript: string;
 }
 
 let video: HTMLVideoElement | null = null;
@@ -56,16 +57,17 @@ let pageType: PageType = PageType.Unknown;
 let channelIDInfo: ChannelIDInfo;
 let waitingForChannelID = false;
 
-let listeners: Listeners = {
+let params: VideoModuleParams = {
     videoIDChange: () => {},
     channelIDChange: () => {},
     videoElementChange: () => {},
     playerInit: () => {},
-    resetValues: () => {}
+    resetValues: () => {},
+    documentScript: ""
 };
 let getConfig: () => ProtoConfig<SyncStorage, LocalStorage>;
-export function setupVideoModule(listenersParam: Listeners, config: () => ProtoConfig<SyncStorage, LocalStorage>) {
-    listeners = listenersParam;
+export function setupVideoModule(moduleParams: VideoModuleParams, config: () => ProtoConfig<SyncStorage, LocalStorage>) {
+    params = moduleParams;
     getConfig = config;
 
     // Direct Links after the config is loaded
@@ -125,13 +127,13 @@ async function videoIDChange(id: VideoID | null): Promise<boolean> {
     // Update whitelist data when the video data is loaded
     whitelistCheck();
 
-    listeners.videoIDChange(id);
+    params.videoIDChange(id);
 
     return true;
 }
 
 function resetValues() {
-    listeners.resetValues();
+    params.resetValues();
 
     videoID = null;
     pageType = PageType.Unknown;
@@ -302,7 +304,7 @@ export async function whitelistCheck() {
     }
 
     waitingForChannelID = false;
-    listeners.channelIDChange(channelIDInfo);
+    params.channelIDChange(channelIDInfo);
 }
 
 export function setupVideoMutationListener() {
@@ -332,7 +334,7 @@ export async function refreshVideoAttachments(): Promise<void> {
         videosSetup.push(video);
     }
 
-    listeners.videoElementChange?.(isNewVideo, video);
+    params.videoElementChange?.(isNewVideo, video);
 
     videoIDChange(getYouTubeVideoID());
 }
@@ -362,7 +364,7 @@ function windowListenerHandler(event: MessageEvent): void {
         if (isAdPlaying != data.playing) {
             isAdPlaying = data.playing
             
-            listeners.updatePlayerBar?.();
+            params.updatePlayerBar?.();
         }
     } else if (dataType === "data" && data.videoID) {
         videoIDChange(data.videoID);
@@ -380,14 +382,16 @@ function addPageListeners(): void {
         }
     };
 
-    // inject into document
-    const docScript = document.createElement("script");
-    docScript.id = "sponsorblock-document-script";
-    docScript.src = chrome.runtime.getURL("js/document.js");
-    // Not injected on invidious
-    const head = (document.head || document.documentElement);
-    if (head && document.getElementById("sponsorblock-document-script") === null) {
-        head.appendChild(docScript);
+    if (params.documentScript) {
+        // inject into document
+        const docScript = document.createElement("script");
+        docScript.id = "sponsorblock-document-script";
+        docScript.innerHTML = params.documentScript;
+        // Not injected on invidious
+        const head = (document.head || document.documentElement);
+        if (head && document.getElementById("sponsorblock-document-script") === null) {
+            head.appendChild(docScript);
+        }
     }
 
     document.addEventListener("yt-navigate-start", resetValues);
@@ -395,7 +399,7 @@ function addPageListeners(): void {
     // piped player init
     window.addEventListener("playerInit", () => {
         if (!document.querySelector('meta[property="og:title"][content="Piped"]')) return;
-        listeners.playerInit?.();
+        params.playerInit?.();
     });
     window.addEventListener("message", windowListenerHandler);
 }
