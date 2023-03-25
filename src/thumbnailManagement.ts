@@ -1,3 +1,4 @@
+import { waitFor } from ".";
 import { isOnInvidious } from "./video";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
@@ -7,10 +8,31 @@ let thumbnailListener: ThumbnailListener | null = null;
 let selector = "ytd-thumbnail";
 let invidiousSelector = "div.thumbnail";
 
-export function setThumbnailListener(listener: ThumbnailListener, selectorParam?: string, invidiousSelectorParam?: string): void {
+export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad: () => void,
+        configReady: () => boolean, selectorParam?: string,
+            invidiousSelectorParam?: string): void {
     thumbnailListener = listener;
     if (selectorParam) selector = selectorParam;
     if (invidiousSelectorParam) invidiousSelector = invidiousSelectorParam;
+
+    const onLoad = () => {
+        onInitialLoad?.();
+
+        // Label thumbnails on load if on Invidious (wait for variable initialization before checking)
+        waitFor(() => isOnInvidious() !== null).then(() => {
+            if (isOnInvidious()) newThumbnails();
+        });
+    };
+
+    if (document.readyState === "complete") {
+        onLoad();
+    } else {
+        window.addEventListener("load", onLoad);
+    }
+
+    waitFor(() => configReady(), 5000, 10).then(() => {
+        newThumbnails();
+    });
 }
 
 export function newThumbnails(): HTMLElement[] {
