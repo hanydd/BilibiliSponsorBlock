@@ -42,6 +42,12 @@ export function setupBackgroundRequestProxy() {
                     status: response.status,
                     ok: response.ok
                 });
+            }).catch(() => {
+                callback({
+                    responseText: "",
+                    status: -1,
+                    ok: false
+                });
             });
 
             return true;
@@ -52,7 +58,7 @@ export function setupBackgroundRequestProxy() {
 }
 
 export function sendRequestToCustomServer(type: string, url: string, data = {}): Promise<FetchResponse> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         // Ask the background script to do the work
         chrome.runtime.sendMessage({
             message: "sendRequest",
@@ -60,7 +66,11 @@ export function sendRequestToCustomServer(type: string, url: string, data = {}):
             url,
             data
         }, (response) => {
-            resolve(response);
+            if (response.status !== -1) {
+                resolve(response);
+            } else {
+                reject(response);
+            }
         });
     });
 }
