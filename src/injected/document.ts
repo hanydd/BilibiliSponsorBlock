@@ -28,11 +28,12 @@ interface VideoData {
     isPremiere: boolean;
 }
 
-interface ThumbnailCreated {
-    type: "newThumbnails";
+interface ElementCreated {
+    type: "newElement";
+    name: string;
 }
 
-type WindowMessage = StartMessage | FinishMessage | AdMessage | VideoData | ThumbnailCreated;
+type WindowMessage = StartMessage | FinishMessage | AdMessage | VideoData | ElementCreated;
 
 // global playerClient - too difficult to type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -95,7 +96,7 @@ function sendVideoData(): void {
     }
 }
 
-export function init(): void {
+export function init(elementsToListenFor: string[] = ["ytd-thumbnail"]): void {
     document.addEventListener("yt-player-updated", setupPlayerClient);
     document.addEventListener("yt-navigate-start", navigationStartSend);
     document.addEventListener("yt-navigate-finish", navigateFinishSend);
@@ -107,12 +108,12 @@ export function init(): void {
         const realCustomElementDefine = window.customElements.define.bind(window.customElements);
         window.customElements.define = (name: string, constructor: CustomElementConstructor, options: ElementDefinitionOptions) => {
             let replacedConstructor: CallableFunction = constructor;
-            if (name === "ytd-thumbnail") {
+            if (elementsToListenFor.includes(name)) {
                 if (isDefineNative) {
                     class WrappedThumbnail extends constructor {
                         constructor() {
                             super();
-                            sendMessage({ type: "newThumbnails" })
+                            sendMessage({ type: "newElement", name })
                         }
                     }
                     replacedConstructor = WrappedThumbnail;
@@ -121,7 +122,7 @@ export function init(): void {
                     // clearly marked as bad practice, but it works lol
                     replacedConstructor = function () {
                         constructor.call(this);
-                        sendMessage({ type: "newThumbnails" })
+                        sendMessage({ type: "newElement", name })
                     };
                     Object.setPrototypeOf(replacedConstructor.prototype, constructor.prototype);
                     Object.setPrototypeOf(replacedConstructor, constructor);

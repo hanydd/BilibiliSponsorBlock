@@ -37,6 +37,7 @@ interface VideoModuleParams {
     playerInit?: () => void;
     updatePlayerBar?: () => void;
     resetValues: () => void;
+    windowListenerHandler: (event: MessageEvent) => void;
     documentScript: string;
 }
 
@@ -63,6 +64,7 @@ let params: VideoModuleParams = {
     videoElementChange: () => {},
     playerInit: () => {},
     resetValues: () => {},
+    windowListenerHandler: () => {},
     documentScript: ""
 };
 let getConfig: () => ProtoConfig<SyncStorage, LocalStorage>;
@@ -370,9 +372,11 @@ function windowListenerHandler(event: MessageEvent): void {
         videoIDChange(data.videoID);
 
         isLivePremiere = data.isLive || data.isPremiere
-    } else if (dataType === "newThumbnails") {
+    } else if (dataType === "newElement" && data.name === "ytd-thumbnail") {
         newThumbnails();
     }
+
+    params.windowListenerHandler?.(event);
 }
 
 function addPageListeners(): void {
