@@ -1,6 +1,6 @@
 {
   "name": "@ajayyy/maze-utils",
-  "version": "1.1.13",
+  "version": "1.1.14",
   "description": "Utilities for my browser extensions",
   "main": "lib/index.js",
   "devDependencies": {
@@ -19,7 +19,7 @@
     "test": "npx jest",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "build": "tsc",
+    "build": "tsc && sed -i \"s+\\\"version-number-replaced-by-compiler\\\"+$(jq '.version' package.json)+g\" ./lib/*.js",
     "watch": "npm run build && tsc -w",
     "prepare" : "npm run build"
   },

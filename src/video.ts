@@ -3,6 +3,8 @@ import { LocalStorage, ProtoConfig, SyncStorage } from "./config";
 import { isVisible, waitForElement } from "./dom";
 import { newThumbnails } from "./thumbnailManagement";
 
+const version = "version-number-replaced-by-compiler"
+
 export enum PageType {
     Unknown = "unknown",
     Shorts = "shorts",
@@ -390,10 +392,15 @@ function addPageListeners(): void {
         // inject into document
         const docScript = document.createElement("script");
         docScript.id = "sponsorblock-document-script";
+        // docScript.setAttribute("version", version)
         docScript.innerHTML = params.documentScript;
         // Not injected on invidious
         const head = (document.head || document.documentElement);
-        if (head && document.getElementById("sponsorblock-document-script") === null) {
+        const existingScript = document.getElementById("sponsorblock-document-script");
+        const existingScriptVersion = existingScript?.getAttribute("version");
+        if (head && (!existingScript || versionHigher(version, existingScriptVersion ?? ""))) {
+            if (existingScript) existingScript.remove();
+
             head.appendChild(docScript);
         }
     }
@@ -406,6 +413,25 @@ function addPageListeners(): void {
         params.playerInit?.();
     });
     window.addEventListener("message", windowListenerHandler);
+}
+
+function versionHigher(newVersion: string, oldVersion: string): boolean {
+    const newVersionParts = newVersion.split(".");
+    const oldVersionParts = oldVersion.split(".");
+    if (newVersionParts.length !== oldVersionParts.length) return true;
+
+    for (let i = 0; i < newVersionParts.length; i++) {
+        const newVersionPart = parseInt(newVersionParts[i]);
+        const oldVersionPart = parseInt(oldVersionParts[i]);
+
+        if (newVersionPart > oldVersionPart) {
+            return true;
+        } else if (newVersionPart < oldVersionPart) {
+            return false;
+        }
+    }
+
+    return false;
 }
 
 export function getVideo(): HTMLVideoElement | null {
