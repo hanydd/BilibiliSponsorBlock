@@ -40,6 +40,7 @@ type WindowMessage = StartMessage | FinishMessage | AdMessage | VideoData | Elem
 let playerClient: any;
 let lastVideo = "";
 const id = "sponsorblock";
+const elementsToListenFor = ["ytd-thumbnail"];
 
 const sendMessage = (message: WindowMessage): void => {
     window.postMessage({ source: id, ...message }, "/");
@@ -96,7 +97,9 @@ function sendVideoData(): void {
     }
 }
 
-export function init(elementsToListenFor: string[] = ["ytd-thumbnail"]): void {
+// WARNING: Putting any parameters here will not work because SponsorBlock and the clickbait extension share document scripts
+// Only one will exist on the page at a time
+export function init(): void {
     document.addEventListener("yt-player-updated", setupPlayerClient);
     document.addEventListener("yt-navigate-start", navigationStartSend);
     document.addEventListener("yt-navigate-finish", navigateFinishSend);
