@@ -33,7 +33,14 @@ interface ElementCreated {
     name: string;
 }
 
-type WindowMessage = StartMessage | FinishMessage | AdMessage | VideoData | ElementCreated;
+interface VideoIDsLoadedCreated {
+    type: "videoIDsLoaded";
+    videoIDs: string[];
+}
+
+type WindowMessage = StartMessage | FinishMessage | AdMessage | VideoData | ElementCreated | VideoIDsLoadedCreated;
+
+declare const ytInitialData: Record<string, string> | undefined;
 
 // global playerClient - too difficult to type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,6 +48,15 @@ let playerClient: any;
 let lastVideo = "";
 const id = "sponsorblock";
 const elementsToListenFor = ["ytd-thumbnail"];
+
+// From BlockTube https://github.com/amitbl/blocktube/blob/9dc6dcee1847e592989103b0968092eb04f04b78/src/scripts/seed.js#L52-L58
+const fetchUrlsToRead = [
+    "/youtubei/v1/search",
+    "/youtubei/v1/guide",
+    "/youtubei/v1/browse",
+    "/youtubei/v1/next",
+    "/youtubei/v1/player"
+];
 
 const sendMessage = (message: WindowMessage): void => {
     window.postMessage({ source: id, ...message }, "/");
@@ -97,6 +113,27 @@ function sendVideoData(): void {
     }
 }
 
+function onNewVideoIds(data: Record<string, unknown>) {
+    sendMessage({
+        type: "videoIDsLoaded",
+        videoIDs: Array.from(findAllVideoIds(data))
+    });
+}
+
+function findAllVideoIds(data: Record<string, unknown>): Set<string> {
+    const videoIds: Set<string> = new Set();
+    
+    for (const key in data) {
+        if (key === "videoId") {
+            videoIds.add(data[key] as string);
+        } else if (typeof(data[key]) === "object") {
+            findAllVideoIds(data[key] as Record<string, unknown>).forEach(id => videoIds.add(id));
+        }
+    }
+
+    return videoIds;
+}
+
 // WARNING: Putting any parameters here will not work because SponsorBlock and the clickbait extension share document scripts
 // Only one will exist on the page at a time
 export function init(): void {
@@ -134,5 +171,41 @@ export function init(): void {
 
             realCustomElementDefine(name, replacedConstructor, options);
         }
+    }
+
+    // Hijack fetch to know when new videoIDs are loaded
+    const browserFetch = window.fetch;
+    window.fetch = (resource, init=undefined) => {
+        if (!(resource instanceof Request) || !fetchUrlsToRead.some(u => resource.url.includes(u))) {
+            return browserFetch(resource, init);
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
+        return new Promise(async (resolve, reject) => {
+            try {
+                const response = await browserFetch(resource, init=init);
+                //   const url = new URL(resource.url);
+                const json = await response.json();
+
+                // A new response has to be made because the body can only be read once
+                resolve(new Response(JSON.stringify(json), response));
+
+                onNewVideoIds(json);
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+
+    if (typeof(ytInitialData) !== "undefined") {
+        onNewVideoIds(ytInitialData);
+    } else {
+        // Wait until it is loaded in
+        const waitingInterval = setInterval(() => {
+            if (typeof(ytInitialData) !== "undefined") {
+                onNewVideoIds(ytInitialData);
+                clearInterval(waitingInterval);
+            }
+        }, 1);
     }
 }

@@ -40,6 +40,7 @@ interface VideoModuleParams {
     updatePlayerBar?: () => void;
     resetValues: () => void;
     windowListenerHandler: (event: MessageEvent) => void;
+    newVideosLoaded?: (videoIDs: VideoID[]) => void; // Used to pre-cache data for videos
     documentScript: string;
 }
 
@@ -67,6 +68,7 @@ let params: VideoModuleParams = {
     playerInit: () => {},
     resetValues: () => {},
     windowListenerHandler: () => {},
+    newVideosLoaded: () => {},
     documentScript: ""
 };
 let getConfig: () => ProtoConfig<SyncStorage, LocalStorage>;
@@ -376,6 +378,8 @@ function windowListenerHandler(event: MessageEvent): void {
         isLivePremiere = data.isLive || data.isPremiere
     } else if (dataType === "newElement" && data.name === "ytd-thumbnail") {
         newThumbnails();
+    } else if (dataType === "videoIDsLoaded") {
+        params.newVideosLoaded?.(data.videoIDs);
     }
 
     params.windowListenerHandler?.(event);
