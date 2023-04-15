@@ -58,6 +58,15 @@ const fetchUrlsToRead = [
     "/youtubei/v1/player"
 ];
 
+// To not get update data for the current videoID, that is already
+// collected using other methods
+const ytInfoKeysToIgnore = [
+    "videoDetails",
+    "videoPrimaryInfoRenderer",
+    "videoSecondaryInfoRenderer",
+    "currentVideoEndpoint"
+];
+
 const sendMessage = (message: WindowMessage): void => {
     window.postMessage({ source: id, ...message }, "/");
 }
@@ -126,7 +135,7 @@ function findAllVideoIds(data: Record<string, unknown>): Set<string> {
     for (const key in data) {
         if (key === "videoId") {
             videoIds.add(data[key] as string);
-        } else if (typeof(data[key]) === "object") {
+        } else if (typeof(data[key]) === "object" && !ytInfoKeysToIgnore.includes(key)) {
             findAllVideoIds(data[key] as Record<string, unknown>).forEach(id => videoIds.add(id));
         }
     }
