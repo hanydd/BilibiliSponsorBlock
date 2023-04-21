@@ -33,3 +33,23 @@ export function objectToURI<T>(url: string, data: T, includeQuestionMark: boolea
 
     return url;
 }
+
+export class PromiseTimeoutError<T> extends Error {
+    promise?: Promise<T>;
+
+    constructor(promise?: Promise<T>) {
+        super("Promise timed out");
+
+        this.promise = promise;
+    }
+}
+
+export function timeoutPomise<T>(timeout?: number): Promise<T> {
+    return new Promise((resolve, reject) => {
+        if (timeout) {
+            setTimeout(() => {
+                reject(new PromiseTimeoutError());
+            }, timeout);
+        }
+    });
+}
