@@ -396,7 +396,7 @@ function addPageListeners(): void {
         // inject into document
         const docScript = document.createElement("script");
         docScript.id = "sponsorblock-document-script";
-        // docScript.setAttribute("version", version)
+        docScript.setAttribute("version", version)
         docScript.innerHTML = params.documentScript;
         // Not injected on invidious
         const head = (document.head || document.documentElement);
@@ -419,7 +419,7 @@ function addPageListeners(): void {
     window.addEventListener("message", windowListenerHandler);
 }
 
-function versionHigher(newVersion: string, oldVersion: string): boolean {
+export function versionHigher(newVersion: string, oldVersion: string): boolean {
     const newVersionParts = newVersion.split(".");
     const oldVersionParts = oldVersion.split(".");
     if (newVersionParts.length !== oldVersionParts.length) return true;
