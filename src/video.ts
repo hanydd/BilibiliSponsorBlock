@@ -39,7 +39,7 @@ interface VideoModuleParams {
     playerInit?: () => void;
     updatePlayerBar?: () => void;
     resetValues: () => void;
-    windowListenerHandler: (event: MessageEvent) => void;
+    windowListenerHandler?: (event: MessageEvent) => void;
     newVideosLoaded?: (videoIDs: VideoID[]) => void; // Used to pre-cache data for videos
     documentScript: string;
 }
