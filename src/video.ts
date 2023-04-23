@@ -100,6 +100,8 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
             config().forceLocalUpdate("navigationApiAvailable");
         }
     });
+
+    setupVideoMutationListener();
 }
 
 export async function checkIfNewVideoID(): Promise<boolean> {
@@ -313,20 +315,22 @@ export async function whitelistCheck() {
     params.channelIDChange(channelIDInfo);
 }
 
-export function setupVideoMutationListener() {
-    const videoContainer = document.querySelector(".html5-video-container");
-    if (!videoContainer || videoMutationObserver !== null || onInvidious) return;
+function setupVideoMutationListener() {
+    if (videoMutationObserver !== null && !onInvidious) {
+        const videoContainer = document.querySelector(".html5-video-container");
+        if (!videoContainer) return;
 
-    videoMutationObserver = new MutationObserver(refreshVideoAttachments);
+        videoMutationObserver = new MutationObserver(refreshVideoAttachments);
 
-    videoMutationObserver.observe(videoContainer, {
-        attributes: true,
-        childList: true,
-        subtree: true
-    });
+        videoMutationObserver.observe(videoContainer, {
+            attributes: true,
+            childList: true,
+            subtree: true
+        });
+    }
 }
 
-export async function refreshVideoAttachments(): Promise<void> {
+async function refreshVideoAttachments(): Promise<void> {
     if (waitingForNewVideo) return;
 
     waitingForNewVideo = true;
@@ -341,6 +345,7 @@ export async function refreshVideoAttachments(): Promise<void> {
     }
 
     params.videoElementChange?.(isNewVideo, video);
+    setupVideoMutationListener();
 
     videoIDChange(getYouTubeVideoID());
 }
@@ -439,6 +444,12 @@ export function versionHigher(newVersion: string, oldVersion: string): boolean {
 }
 
 export function getVideo(): HTMLVideoElement | null {
+    setupVideoMutationListener();
+
+    if (!isVisible(video)) {
+        void refreshVideoAttachments();
+    }
+
     return video;
 }
 

@@ -1,5 +1,6 @@
 export function isVisible(element: HTMLElement | null): boolean {
-    return !!element && element.offsetWidth > 0 && element.offsetHeight > 0;
+    return !!element && element.offsetWidth > 0 && element.offsetHeight > 0 
+        && document.elementFromPoint(element.getBoundingClientRect().left, element.getBoundingClientRect().top) === element;
 }
 
 export function findValidElementFromSelector(selectors: string[]): HTMLElement | null {
