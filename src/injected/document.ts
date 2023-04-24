@@ -143,9 +143,23 @@ function findAllVideoIds(data: Record<string, unknown>): Set<string> {
     return videoIds;
 }
 
+const savedSetup = {
+    browserFetch: null as ((input: RequestInfo | URL, init?: RequestInit | undefined) => Promise<Response>) | null,
+    customElementDefine: null as ((name: string, constructor: CustomElementConstructor, options?: ElementDefinitionOptions | undefined) => void) | null,
+    waitingInterval: null as NodeJS.Timer | null
+};
+
 // WARNING: Putting any parameters here will not work because SponsorBlock and the clickbait extension share document scripts
 // Only one will exist on the page at a time
 export function init(): void {
+    // Should it teardown an old copy of the script, to replace it if it is a newer version (two extensions installed at once)
+    const shouldTearDown = document.querySelector("#sponsorblock-document-script")?.getAttribute("teardown") === "true";
+    if (shouldTearDown) {
+        window["teardownCB"]?.();
+    }
+
+    window["teardownCB"] = teardown;
+
     document.addEventListener("yt-player-updated", setupPlayerClient);
     document.addEventListener("yt-navigate-start", navigationStartSend);
     document.addEventListener("yt-navigate-finish", navigateFinishSend);
@@ -153,8 +167,9 @@ export function init(): void {
     if (["m.youtube.com", "www.youtube.com", "www.youtube-nocookie.com", "music.youtube.com"].includes(window.location.host)) {
         // If customElement.define() is native, we will be given a class constructor and should extend it.
         // If it is not native, we will be given a function and should wrap it.
-        const isDefineNative = window.customElements.define.toString().indexOf("[native code]") !== -1
+        const isDefineNative = window.customElements.define.toString().indexOf("[native code]") !== -1;
         const realCustomElementDefine = window.customElements.define.bind(window.customElements);
+        savedSetup.customElementDefine = realCustomElementDefine;
         window.customElements.define = (name: string, constructor: CustomElementConstructor, options: ElementDefinitionOptions) => {
             let replacedConstructor: CallableFunction = constructor;
             if (elementsToListenFor.includes(name)) {
@@ -184,6 +199,7 @@ export function init(): void {
 
     // Hijack fetch to know when new videoIDs are loaded
     const browserFetch = window.fetch;
+    savedSetup.browserFetch = browserFetch;
     window.fetch = (resource, init=undefined) => {
         if (!(resource instanceof Request) || !fetchUrlsToRead.some(u => resource.url.includes(u))) {
             return browserFetch(resource, init);
@@ -194,10 +210,10 @@ export function init(): void {
             try {
                 const response = await browserFetch(resource, init=init);
                 //   const url = new URL(resource.url);
-                const json = await response.json();
+                const json = await response!.json();
 
                 // A new response has to be made because the body can only be read once
-                resolve(new Response(JSON.stringify(json), response));
+                resolve(new Response(JSON.stringify(json), response!));
 
                 onNewVideoIds(json);
             } catch (e) {
@@ -216,5 +232,27 @@ export function init(): void {
                 clearInterval(waitingInterval);
             }
         }, 1);
+
+        savedSetup.waitingInterval = waitingInterval;
     }
+}
+
+function teardown() {
+    document.removeEventListener("yt-player-updated", setupPlayerClient);
+    document.removeEventListener("yt-navigate-start", navigationStartSend);
+    document.removeEventListener("yt-navigate-finish", navigateFinishSend);
+
+    if (savedSetup.browserFetch) {
+        window.fetch = savedSetup.browserFetch;
+    }
+
+    if (savedSetup.customElementDefine) {
+        window.customElements.define = savedSetup.customElementDefine;
+    }
+
+    if (savedSetup.waitingInterval) {
+        clearInterval(savedSetup.waitingInterval);
+    }
+
+    window["teardownCB"] = null;
 }

@@ -408,7 +408,10 @@ function addPageListeners(): void {
         const existingScript = document.getElementById("sponsorblock-document-script");
         const existingScriptVersion = existingScript?.getAttribute("version");
         if (head && (!existingScript || versionHigher(version, existingScriptVersion ?? ""))) {
-            if (existingScript) existingScript.remove();
+            if (existingScript) {
+                docScript.setAttribute("teardown", "true");
+                existingScript.remove();
+            }
 
             head.appendChild(docScript);
         }
