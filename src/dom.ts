@@ -1,6 +1,18 @@
 export function isVisible(element: HTMLElement | null): boolean {
-    return !!element && element.offsetWidth > 0 && element.offsetHeight > 0 
-        && document.elementFromPoint(element.getBoundingClientRect().left, element.getBoundingClientRect().top) === element;
+    if (!element || element.offsetWidth === 0 || element.offsetHeight === 0) {
+        return false;
+    }
+
+    // Special case for when a video is first loaded, and the main video element is technically hidden
+    if (element.tagName === "VIDEO" 
+            && element.classList.contains("html5-main-video") 
+            && document.querySelectorAll("video").length === 1) {
+        return true;
+    }
+
+    const boundingRect = element?.getBoundingClientRect();
+    const elementAtPoint = document.elementFromPoint(boundingRect.left, boundingRect.top);
+    return elementAtPoint === element || (!!elementAtPoint && element.contains(elementAtPoint));
 }
 
 export function findValidElementFromSelector(selectors: string[]): HTMLElement | null {

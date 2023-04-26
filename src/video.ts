@@ -316,7 +316,7 @@ export async function whitelistCheck() {
 }
 
 function setupVideoMutationListener() {
-    if (videoMutationObserver !== null && !onInvidious) {
+    if (videoMutationObserver === null && !onInvidious) {
         const videoContainer = document.querySelector(".html5-video-container");
         if (!videoContainer) return;
 
