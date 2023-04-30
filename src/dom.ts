@@ -12,7 +12,20 @@ export function isVisible(element: HTMLElement | null): boolean {
 
     const boundingRect = element?.getBoundingClientRect();
     const elementAtPoint = document.elementFromPoint(boundingRect.left, boundingRect.top);
-    return elementAtPoint === element || (!!elementAtPoint && element.contains(elementAtPoint));
+
+    if (elementAtPoint === element || (!!elementAtPoint && element.contains(elementAtPoint))) {
+        return true;
+    }
+
+    // Hover previews will have their controls appear on top, go back to the nearest player
+    // to make sure this is the correct element.
+    // If a hover preview is inactive, it will instead have the thumbnail as the top element, which
+    // is at a different tree to the video player, so it will properly return false for this.
+    if (element.tagName === "VIDEO") {
+        return !!elementAtPoint?.closest(".html5-video-player")?.contains(element);
+    }
+
+    return false;
 }
 
 export function findValidElementFromSelector(selectors: string[]): HTMLElement | null {
@@ -103,6 +116,6 @@ function setupWaitingMutationListener(): void {
     }
 }
 
-function getElement(selector: string, visibleCheck: boolean) {
-    return visibleCheck ? findValidElement(document.querySelectorAll(selector)) : document.querySelector(selector);
+export function getElement(selector: string, visibleCheck: boolean) {
+    return visibleCheck ? findValidElement(document.querySelectorAll(selector)) : document.querySelector(selector) as HTMLElement;
 }

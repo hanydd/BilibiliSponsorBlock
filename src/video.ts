@@ -1,6 +1,6 @@
 import { waitFor } from ".";
 import { LocalStorage, ProtoConfig, SyncStorage } from "./config";
-import { isVisible, waitForElement } from "./dom";
+import { getElement, isVisible, waitForElement } from "./dom";
 import { newThumbnails } from "./thumbnailManagement";
 
 const version = "version-number-replaced-by-compiler"
@@ -46,6 +46,7 @@ interface VideoModuleParams {
 
 let video: HTMLVideoElement | null = null;
 let videoMutationObserver: MutationObserver | null = null;
+let videoMutationListenerElement: HTMLElement | null = null;
 // What videos have run through setup so far
 const videosSetup: HTMLVideoElement[] = [];
 let waitingForNewVideo = false;
@@ -316,11 +317,13 @@ export async function whitelistCheck() {
 }
 
 function setupVideoMutationListener() {
-    if (videoMutationObserver === null && !onInvidious) {
-        const videoContainer = document.querySelector(".html5-video-container");
+    if (!onInvidious && (videoMutationObserver === null || !isVisible(videoMutationListenerElement))) {
+        const videoContainer = getElement(".html5-video-container", true);
         if (!videoContainer) return;
 
+        if (videoMutationObserver) videoMutationObserver.disconnect();
         videoMutationObserver = new MutationObserver(refreshVideoAttachments);
+        videoMutationListenerElement = videoContainer;
 
         videoMutationObserver.observe(videoContainer, {
             attributes: true,
