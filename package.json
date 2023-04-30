@@ -1,6 +1,6 @@
 {
   "name": "@ajayyy/maze-utils",
-  "version": "1.1.23",
+  "version": "1.1.24",
   "description": "Utilities for my browser extensions",
   "main": "lib/index.js",
   "devDependencies": {
