@@ -53,3 +53,11 @@ export function timeoutPomise<T>(timeout?: number): Promise<T> {
         }
     });
 }
+
+/**
+* web-extensions
+*/
+export function isFirefoxOrSafari(): boolean {
+    // @ts-ignore
+    return typeof(browser) !== "undefined";
+}
