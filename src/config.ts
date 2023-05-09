@@ -14,11 +14,11 @@ interface StorageObjects<T, U> {
 export type StorageChangesObject = { [key: string]: chrome.storage.StorageChange };
 
 export type Keybind = {
-    key: string;
-    code?: string;
-    ctrl?: boolean;
-    alt?: boolean;
-    shift?: boolean;
+    key: string | null;
+    code?: string | null;
+    ctrl?: boolean | null;
+    alt?: boolean | null;
+    shift?: boolean | null;
 }
 
 export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
