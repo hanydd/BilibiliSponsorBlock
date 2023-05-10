@@ -235,6 +235,13 @@ export function init(): void {
 
         savedSetup.waitingInterval = waitingInterval;
     }
+
+    // Detect incompatible user script
+    setTimeout(() => {
+        if (setInterval.toString().includes("console.log(SCRIPTID, 'original interval:', interval, location.href)")) {
+            alert("Warning: You hae the user script \"YouTube CPU Tamer\". This causes performance issues with SponsorBlock, and does not actually improve CPU performance. Please uninstall this user script.")
+        }
+    }, 1000);
 }
 
 function teardown() {
