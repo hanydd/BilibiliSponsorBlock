@@ -41,3 +41,24 @@ export function getFormattedTime(seconds: number, precise?: boolean): string | n
 
     return formatted;
 }
+
+/**
+ * Gets the error message in a nice string
+ * 
+ * @param {int} statusCode 
+ * @returns {string} errorMessage
+ */
+export function getErrorMessage(statusCode: number, responseText: string): string {
+    const postFix = ((responseText && !(responseText.includes(`cf-wrapper`) || responseText.includes("<!DOCTYPE html>"))) ? "\n\n" + responseText : "");
+    // display response body for 4xx
+    if([400, 429, 409, 0].includes(statusCode)) {
+        return chrome.i18n.getMessage(statusCode + "") + " " + chrome.i18n.getMessage("errorCode") + statusCode + postFix;
+    } else if (statusCode >= 500 && statusCode <= 599) {
+        // 503 == 502
+        if (statusCode == 503) statusCode = 502;
+        return chrome.i18n.getMessage(statusCode + "") + " " + chrome.i18n.getMessage("errorCode") + statusCode
+        + "\n\n" + chrome.i18n.getMessage("statusReminder");
+    } else {
+        return chrome.i18n.getMessage("connectionError") + statusCode + postFix;
+    }
+}
