@@ -5,7 +5,7 @@ export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 
 const handledThumbnails = new Set<HTMLElement>();
 let thumbnailListener: ThumbnailListener | null = null;
-let selector = "ytd-thumbnail";
+let selector = "ytd-thumbnail, ytd-playlist-thumbnail";
 let invidiousSelector = "div.thumbnail";
 
 export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad: () => void,
