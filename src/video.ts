@@ -124,6 +124,11 @@ async function videoIDChange(id: VideoID | null): Promise<boolean> {
     //if the id has not changed return unless the video element has changed
     if (videoID === id && (isVisible(video) || !video)) return false;
 
+    // Make sure the video is still visible
+    if (!isVisible(video)) {
+        refreshVideoAttachments();
+    }
+
     resetValues();
     videoID = id;
 
