@@ -3,7 +3,8 @@ import { isOnInvidious } from "./video";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 
-const handledThumbnails = new Set<HTMLElement>();
+const handledThumbnails = new Map<HTMLElement, MutationObserver>();
+let lastGarbageCollection = 0;
 let thumbnailListener: ThumbnailListener | null = null;
 let selector = "ytd-thumbnail, ytd-playlist-thumbnail";
 let invidiousSelector = "div.thumbnail";
@@ -36,14 +37,14 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
 }
 
 export function newThumbnails(): HTMLElement[] {
+    const notNewThumbnails = handledThumbnails.keys();
+
     const thumbnails = document.querySelectorAll(isOnInvidious() ? invidiousSelector : selector) as NodeListOf<HTMLElement>;
     const newThumbnails: HTMLElement[] = [];
     for (const thumbnail of thumbnails) {
         if (!handledThumbnails.has(thumbnail)) {
-            handledThumbnails.add(thumbnail);
-
             newThumbnails.push(thumbnail);
-
+            
             const observer = new MutationObserver((mutations) => {
                 for (const mutation of mutations) {
                     if (mutation.type === "attributes" && mutation.attributeName === "href") {
@@ -52,6 +53,7 @@ export function newThumbnails(): HTMLElement[] {
                     }
                 }
             });
+            handledThumbnails.set(thumbnail, observer);
 
             const link = thumbnail.querySelector("ytd-thumbnail a");
             if (link) observer.observe(link, { attributes: true });
@@ -59,9 +61,22 @@ export function newThumbnails(): HTMLElement[] {
     }
 
     thumbnailListener?.(newThumbnails);
+
+    if (performance.now() - lastGarbageCollection > 5000) {
+        // Clear old ones (some will come back if they are still on the page)
+        // But are handled by happening to be when new ones are added too
+        for (const thumbnail of notNewThumbnails) {
+            const observer = handledThumbnails.get(thumbnail);
+            if (!document.body.contains(thumbnail)) {
+                observer?.disconnect();
+                handledThumbnails.delete(thumbnail);
+            }
+        }
+    }
+
     return newThumbnails;
 }
 
 export function updateAll(): void {
-    if (thumbnailListener) thumbnailListener([...handledThumbnails]);
+    if (thumbnailListener) thumbnailListener([...handledThumbnails.keys()]);
 }
