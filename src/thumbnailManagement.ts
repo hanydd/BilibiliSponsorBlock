@@ -66,8 +66,8 @@ export function newThumbnails(): HTMLElement[] {
         // Clear old ones (some will come back if they are still on the page)
         // But are handled by happening to be when new ones are added too
         for (const thumbnail of notNewThumbnails) {
-            const observer = handledThumbnails.get(thumbnail);
             if (!document.body.contains(thumbnail)) {
+                const observer = handledThumbnails.get(thumbnail);
                 observer?.disconnect();
                 handledThumbnails.delete(thumbnail);
             }
