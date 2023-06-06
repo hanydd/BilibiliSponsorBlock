@@ -53,7 +53,6 @@ declare const ytInitialData: Record<string, string> | undefined;
 let playerClient: any;
 let lastVideo = "";
 const id = "sponsorblock";
-const fromClient = "sponsorblock-extension";
 const elementsToListenFor = ["ytd-thumbnail"];
 
 // From BlockTube https://github.com/amitbl/blocktube/blob/9dc6dcee1847e592989103b0968092eb04f04b78/src/scripts/seed.js#L52-L58
@@ -82,6 +81,7 @@ function setupPlayerClient(e: CustomEvent): void {
     const oldPlayerClient = playerClient;
     playerClient = e.detail;
     sendVideoData();
+    console.log("player change event", playerClient.getVideoData())
     
     if (oldPlayerClient) {
         return; // No need to setup listeners
