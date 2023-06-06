@@ -12,7 +12,8 @@ export function isVisible(element: HTMLElement | null): boolean {
 
     const boundingRect = element?.getBoundingClientRect();
     const elementAtPoint = document.elementFromPoint(boundingRect.left + boundingRect.width / 2,
-        boundingRect.top + boundingRect.height / 2);
+        boundingRect.top + boundingRect.height / 2)
+        || document.elementFromPoint(boundingRect.left, boundingRect.top);
 
     if (elementAtPoint === element || (!!elementAtPoint && element.contains(elementAtPoint))) {
         return true;

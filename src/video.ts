@@ -425,7 +425,6 @@ function addPageListeners(): void {
         }
     }
 
-    document.addEventListener("yt-navigate-start", resetValues);
     document.addEventListener("yt-navigate-finish", refreshListners);
     // piped player init
     window.addEventListener("playerInit", () => {

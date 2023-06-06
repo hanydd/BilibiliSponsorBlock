@@ -38,7 +38,13 @@ interface VideoIDsLoadedCreated {
     videoIDs: string[];
 }
 
-type WindowMessage = StartMessage | FinishMessage | AdMessage | VideoData | ElementCreated | VideoIDsLoadedCreated;
+interface TitleChange {
+    type: "titleChange";
+    title: string;
+    nodeName: string;
+}
+
+type WindowMessage = StartMessage | FinishMessage | AdMessage | VideoData | ElementCreated | VideoIDsLoadedCreated | TitleChange;
 
 declare const ytInitialData: Record<string, string> | undefined;
 
@@ -47,6 +53,7 @@ declare const ytInitialData: Record<string, string> | undefined;
 let playerClient: any;
 let lastVideo = "";
 const id = "sponsorblock";
+const fromClient = "sponsorblock-extension";
 const elementsToListenFor = ["ytd-thumbnail"];
 
 // From BlockTube https://github.com/amitbl/blocktube/blob/9dc6dcee1847e592989103b0968092eb04f04b78/src/scripts/seed.js#L52-L58
@@ -72,11 +79,13 @@ const sendMessage = (message: WindowMessage): void => {
 }
 
 function setupPlayerClient(e: CustomEvent): void {
-    if (playerClient) return; // early exit if already defined
-    
+    const oldPlayerClient = playerClient;
     playerClient = e.detail;
-    sendVideoData(); // send playerData after setup
-
+    sendVideoData();
+    
+    if (oldPlayerClient) {
+        return; // No need to setup listeners
+    }
     e.detail.addEventListener('onAdStart', () => sendMessage({ type: "ad", playing: true } as AdMessage));
     e.detail.addEventListener('onAdFinish', () => sendMessage({ type: "ad", playing: false } as AdMessage));
 }
@@ -111,6 +120,10 @@ function navigateFinishSend(event: CustomEvent): void {
     if (videoDetails) {
         sendMessage({ channelID: videoDetails.channelId, channelTitle: videoDetails.author, ...navigationParser(event) } as FinishMessage);
     }
+}
+
+function titleChangeSend(event: CustomEvent): void {
+    sendMessage({ type: "titleChange", title: event.detail, nodeName: (event.target as HTMLElement)?.nodeName } as TitleChange);
 }
 
 function sendVideoData(): void {
@@ -163,6 +176,7 @@ export function init(): void {
     document.addEventListener("yt-player-updated", setupPlayerClient);
     document.addEventListener("yt-navigate-start", navigationStartSend);
     document.addEventListener("yt-navigate-finish", navigateFinishSend);
+    document.addEventListener("yt-update-title", titleChangeSend);
 
     if (["m.youtube.com", "www.youtube.com", "www.youtube-nocookie.com", "music.youtube.com"].includes(window.location.host)) {
         // If customElement.define() is native, we will be given a class constructor and should extend it.
