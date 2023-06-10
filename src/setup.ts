@@ -1,9 +1,10 @@
 export function generateUserID(length = 36): string {
     const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let result = "";
-    if (window.crypto && window.crypto.getRandomValues) {
+    const cryptoFuncs = typeof window === "undefined" ? crypto : window.crypto;
+    if (cryptoFuncs && cryptoFuncs.getRandomValues) {
             const values = new Uint32Array(length);
-            window.crypto.getRandomValues(values);
+            cryptoFuncs.getRandomValues(values);
             for (let i = 0; i < length; i++) {
                     result += charset[values[i] % charset.length];
             }

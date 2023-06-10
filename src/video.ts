@@ -2,6 +2,7 @@ import { waitFor } from ".";
 import { LocalStorage, ProtoConfig, SyncStorage } from "./config";
 import { getElement, isVisible, waitForElement } from "./dom";
 import { newThumbnails } from "./thumbnailManagement";
+import { versionHigher } from "./versionHigher";
 
 const version = "version-number-replaced-by-compiler"
 
@@ -432,25 +433,6 @@ function addPageListeners(): void {
         params.playerInit?.();
     });
     window.addEventListener("message", windowListenerHandler);
-}
-
-export function versionHigher(newVersion: string, oldVersion: string): boolean {
-    const newVersionParts = newVersion.split(".");
-    const oldVersionParts = oldVersion.split(".");
-    if (newVersionParts.length !== oldVersionParts.length) return true;
-
-    for (let i = 0; i < newVersionParts.length; i++) {
-        const newVersionPart = parseInt(newVersionParts[i]);
-        const oldVersionPart = parseInt(oldVersionParts[i]);
-
-        if (newVersionPart > oldVersionPart) {
-            return true;
-        } else if (newVersionPart < oldVersionPart) {
-            return false;
-        }
-    }
-
-    return false;
 }
 
 export function getVideo(): HTMLVideoElement | null {

@@ -1,4 +1,4 @@
-import { versionHigher } from '../src/video';
+import { versionHigher } from '../src/versionHigher';
 
 test('versionHigher', () => {
     expect(versionHigher('1.0.0', '1.0.0')).toBe(false);

@@ -3,7 +3,10 @@
   This script is used to get the details from the page and make them available for the content script by being injected directly into the page
 */
 
+import { versionHigher } from "../versionHigher";
 import { PageType } from "../video";
+
+const version = "version-number-replaced-by-compiler"
 
 interface StartMessage {
     type: "navigation";
@@ -155,12 +158,25 @@ const savedSetup = {
 // Only one will exist on the page at a time
 export function init(): void {
     // Should it teardown an old copy of the script, to replace it if it is a newer version (two extensions installed at once)
-    const shouldTearDown = document.querySelector("#sponsorblock-document-script")?.getAttribute("teardown") === "true";
-    if (shouldTearDown) {
+    const shouldTearDown = document.querySelector("#sponsorblock-document-script")?.getAttribute?.("teardown") === "true";
+    const versionBetter = (window["versionCB"] && 
+        (!window["versionCB"] || versionHigher(version, window["versionCB"])));
+    if (shouldTearDown || versionBetter) {
         window["teardownCB"]?.();
+    } else if (window["versionCB"] && !versionHigher(version, window["versionCB"])) {
+        // Leave the other script be then
+        return;
     }
 
+    window["versionCB"] = version;
     window["teardownCB"] = teardown;
+
+    // For compatibility with older versions of the document script;
+    const fakeDocScript = document.createElement("div");
+    fakeDocScript.id = "sponsorblock-document-script";
+    fakeDocScript.setAttribute("version", version)
+    const head = (document.head || document.documentElement);
+    head.appendChild(fakeDocScript);
 
     document.addEventListener("yt-player-updated", setupPlayerClient);
     document.addEventListener("yt-navigate-start", navigationStartSend);
