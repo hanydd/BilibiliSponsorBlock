@@ -365,6 +365,10 @@ function windowListenerHandler(event: MessageEvent): void {
 
     if (data.source !== "sponsorblock" || document?.URL?.includes("youtube.com/clip/")) return;
 
+    if (dataType === "navigation") {
+        newThumbnails();
+    }
+
     if (dataType === "navigation" && data.videoID) {
         pageType = data.pageType;
 

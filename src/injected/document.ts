@@ -115,6 +115,11 @@ function navigateFinishSend(event: CustomEvent): void {
     const videoDetails = event.detail?.response?.playerResponse?.videoDetails;
     if (videoDetails) {
         sendMessage({ channelID: videoDetails.channelId, channelTitle: videoDetails.author, ...navigationParser(event) } as FinishMessage);
+    } else {
+        const message = navigationParser(event) as StartMessage;
+        if (message) {
+            sendMessage(message);
+        }
     }
 }
 
