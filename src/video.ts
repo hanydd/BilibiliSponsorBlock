@@ -394,7 +394,7 @@ function windowListenerHandler(event: MessageEvent): void {
         videoIDChange(data.videoID);
 
         isLivePremiere = data.isLive || data.isPremiere
-    } else if (dataType === "newElement" && data.name === "ytd-thumbnail") {
+    } else if (dataType === "newElement") {
         newThumbnails();
     } else if (dataType === "videoIDsLoaded") {
         params.newVideosLoaded?.(data.videoIDs);

@@ -50,7 +50,7 @@ declare const ytInitialData: Record<string, string> | undefined;
 let playerClient: any;
 let lastVideo = "";
 const id = "sponsorblock";
-const elementsToListenFor = ["ytd-thumbnail"];
+const elementsToListenFor = ["ytd-thumbnail", "ytd-playlist-thumbnail"];
 
 // From BlockTube https://github.com/amitbl/blocktube/blob/9dc6dcee1847e592989103b0968092eb04f04b78/src/scripts/seed.js#L52-L58
 const fetchUrlsToRead = [
