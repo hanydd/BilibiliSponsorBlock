@@ -322,9 +322,24 @@ export async function whitelistCheck() {
     params.channelIDChange(channelIDInfo);
 }
 
+let lastMutationListenerCheck = 0;
+let checkTimeout: NodeJS.Timeout | null = null;
 function setupVideoMutationListener() {
-    if (!onInvidious && (videoMutationObserver === null || !isVisible(videoMutationListenerElement))) {
-        const videoContainer = getElement(".html5-video-container", true);
+    if (!onInvidious 
+            && (videoMutationObserver === null || !isVisible(videoMutationListenerElement!.parentElement))) {
+
+        // Delay it if it was checked recently
+        if (checkTimeout) clearTimeout(checkTimeout);
+        if (Date.now() - lastMutationListenerCheck < 2000) {
+            checkTimeout = setTimeout(setupVideoMutationListener, Math.max(1000, Date.now() - lastMutationListenerCheck));
+            return;
+        }
+
+        lastMutationListenerCheck = Date.now();
+        const mainVideoObject = getElement("#movie_player", true);
+        if (!mainVideoObject) return;
+
+        const videoContainer = mainVideoObject.querySelector(".html5-video-container") as HTMLElement;
         if (!videoContainer) return;
 
         if (videoMutationObserver) videoMutationObserver.disconnect();

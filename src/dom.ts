@@ -15,6 +15,12 @@ export function isVisible(element: HTMLElement | null): boolean {
         boundingRect.top + boundingRect.height / 2)
         || document.elementFromPoint(boundingRect.left, boundingRect.top);
 
+    if (!elementAtPoint 
+            && element.id === "movie_player"
+            && boundingRect.top < 0) {
+        return true;
+    }
+
     if (elementAtPoint === element || (!!elementAtPoint && element.contains(elementAtPoint))) {
         return true;
     }
