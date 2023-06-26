@@ -419,7 +419,7 @@ function windowListenerHandler(event: MessageEvent): void {
 }
 
 function addPageListeners(): void {
-    const refreshListners = () => {
+    const refreshListeners = () => {
         if (!isVisible(video)) {
             refreshVideoAttachments();
         }
@@ -445,7 +445,7 @@ function addPageListeners(): void {
         }
     }
 
-    document.addEventListener("yt-navigate-finish", refreshListners);
+    document.addEventListener("yt-navigate-finish", refreshListeners);
     // piped player init
     window.addEventListener("playerInit", () => {
         if (!document.querySelector('meta[property="og:title"][content="Piped"]')) return;
