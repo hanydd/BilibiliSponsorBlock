@@ -45,6 +45,8 @@ interface VideoModuleParams {
     documentScript: string;
 }
 
+let YOUTUBE_HOSTS = ["m.youtube.com", "www.youtube.com", "www.youtube-nocookie.com", "music.youtube.com"];
+
 let video: HTMLVideoElement | null = null;
 let videoMutationObserver: MutationObserver | null = null;
 let videoMutationListenerElement: HTMLElement | null = null;
@@ -81,10 +83,13 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     // Direct Links after the config is loaded
     waitFor(() => getConfig().isReady(), 1000, 1).then(() => videoIDChange(getYouTubeVideoID()));
 
-    // wait for hover preview to appear, and refresh attachments if ever found
-    waitForElement(".ytp-inline-preview-ui").then(() => refreshVideoAttachments());
-    waitForElement("a.ytp-title-link[data-sessionlink='feature=player-title']")
-    .then(() => videoIDChange(getYouTubeVideoID()));
+    if (YOUTUBE_HOSTS.includes(location.host)) {
+        // Can't use onInvidious at this point, the configuration might not be ready.
+        // Wait for hover preview to appear, and refresh attachments if ever found
+        waitForElement(".ytp-inline-preview-ui").then(() => refreshVideoAttachments());
+        waitForElement("a.ytp-title-link[data-sessionlink='feature=player-title']")
+        .then(() => videoIDChange(getYouTubeVideoID()));
+    }
 
     addPageListeners();
 
@@ -239,7 +244,7 @@ export function parseYouTubeVideoIDFromURL(url: string): ParsedVideoURL {
         onInvidious = true;
     } else if (urlObject.host === "m.youtube.com") {
         onMobileYouTube = true;
-    } else if (!["m.youtube.com", "www.youtube.com", "www.youtube-nocookie.com", "music.youtube.com"].includes(urlObject.host)) {
+    } else if (!YOUTUBE_HOSTS.includes(urlObject.host)) {
         return {
             videoID: null,
             onInvidious,
