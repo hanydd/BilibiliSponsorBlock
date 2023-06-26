@@ -62,7 +62,14 @@ let waitingElements: { selector: string; visibleCheck: boolean; callback: (eleme
 
 /* Uses a mutation observer to wait asynchronously */
 export async function waitForElement(selector: string, visibleCheck = false): Promise<Element> {
-    return await new Promise((resolve) => {
+    function f(resolve: (e: Element) => void) {
+        if (!document.body) {
+            window.addEventListener("DOMContentLoaded", () => {
+                f(resolve);
+            });
+            return;
+        }
+
         const initialElement = getElement(selector, visibleCheck);
         if (initialElement) {
             resolve(initialElement);
@@ -77,16 +84,11 @@ export async function waitForElement(selector: string, visibleCheck = false): Pr
 
         if (!creatingWaitingMutationObserver) {
             creatingWaitingMutationObserver = true;
-
-            if (document.body) {
-                setupWaitingMutationListener();
-            } else {
-                window.addEventListener("DOMContentLoaded", () => {
-                    setupWaitingMutationListener();
-                });
-            }
+            setupWaitingMutationListener();
         }
-    });
+    }
+
+    return await new Promise(f);
 }
 
 function setupWaitingMutationListener(): void {
