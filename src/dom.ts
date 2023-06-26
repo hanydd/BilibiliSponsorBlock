@@ -4,8 +4,8 @@ export function isVisible(element: HTMLElement | null): boolean {
     }
 
     // Special case for when a video is first loaded, and the main video element is technically hidden
-    if (element.tagName === "VIDEO" 
-            && element.classList.contains("html5-main-video") 
+    if (element.tagName === "VIDEO"
+            && (element.id === "player" || element.id === "player_html5_api" || element.classList.contains("html5-main-video"))
             && document.querySelectorAll("video").length === 1) {
         return true;
     }
