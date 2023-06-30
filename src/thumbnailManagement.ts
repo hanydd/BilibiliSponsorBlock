@@ -20,7 +20,7 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
         onInitialLoad?.();
 
         // Label thumbnails on load if on Invidious (wait for variable initialization before checking)
-        waitFor(() => isOnInvidious() !== null).then(() => {
+        void waitFor(() => isOnInvidious() !== null).then(() => {
             if (isOnInvidious()) newThumbnails();
         });
     };
@@ -31,7 +31,7 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
         window.addEventListener("load", onLoad);
     }
 
-    waitFor(() => configReady(), 5000, 10).then(() => {
+    void waitFor(() => configReady(), 5000, 10).then(() => {
         newThumbnails();
     });
 }
@@ -72,6 +72,8 @@ export function newThumbnails(): HTMLElement[] {
                 handledThumbnails.delete(thumbnail);
             }
         }
+
+        lastGarbageCollection = performance.now();
     }
 
     return newThumbnails;

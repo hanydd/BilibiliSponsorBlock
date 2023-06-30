@@ -26,7 +26,8 @@
         "react/prop-types": [2, { "ignore": ["children"] }],
         "@typescript-eslint/member-delimiter-style": "warn",
         "require-await": "warn",
-        "@typescript-eslint/no-non-null-assertion": "off"
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-this-alias": "off"
     },
     "settings": {
         "react": {
