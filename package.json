@@ -3,8 +3,13 @@
   "version": "1.1.37",
   "description": "Utilities for my browser extensions",
   "main": "lib/index.js",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
   "devDependencies": {
     "@types/chrome": "^0.0.199",
+    "@types/react": "^18.0.21",
     "@types/jest": "^29.5.1",
     "eslint": "^8.24.0",
     "jest": "^29.1.2",
@@ -20,7 +25,7 @@
     "test": "npx jest",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "build": "tsc && sed -i \"s+\\\"version-number-replaced-by-compiler\\\"+$(jq '.version' package.json)+g\" ./lib/*.js ./lib/injected/*.js",
+    "build": "tsc",
     "watch": "npm run build && tsc -w",
     "prepare": "npm run build"
   },

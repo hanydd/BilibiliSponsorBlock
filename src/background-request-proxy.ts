@@ -13,7 +13,8 @@ export interface FetchResponse {
  * @param address The address to add to the SponsorBlock server address
  * @param callback
  */
-export async function sendRealRequestToCustomServer(type: string, url: string, data: {} | null = {}) {
+export async function sendRealRequestToCustomServer(type: string, url: string,
+        data: Record<string, unknown> | null = {}) {
     // If GET, convert JSON to parameters
     if (type.toLowerCase() === "get") {
         url = objectToURI(url, data, true);

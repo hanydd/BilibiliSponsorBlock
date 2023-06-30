@@ -5,8 +5,7 @@
 
 import { versionHigher } from "../versionHigher";
 import { PageType } from "../video";
-
-const version = "version-number-replaced-by-compiler"
+import { version } from "../version.json";
 
 interface StartMessage {
     type: "navigation";
