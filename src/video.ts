@@ -81,7 +81,6 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     void waitFor(() => getConfig().isReady(), 1000, 1).then(() => videoIDChange(getYouTubeVideoID()));
 
     // wait for hover preview to appear, and refresh attachments if ever found
-    void waitForElement(".ytp-inline-preview-ui").then(() => refreshVideoAttachments());
     void waitForElement("a.ytp-title-link[data-sessionlink='feature=player-title']")
     .then(() => videoIDChange(getYouTubeVideoID()));
 
