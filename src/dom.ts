@@ -91,9 +91,31 @@ export async function waitForElement(selector: string, visibleCheck = false): Pr
 
 function setupWaitingMutationListener(): void {
     if (!waitingMutationObserver) {
-        const checkForObjects = () => {
+        const checkForObjects = (mutations?: MutationRecord[]) => {
             const foundSelectors: string[] = [];
             for (const { selector, visibleCheck, callback } of waitingElements) {
+                if (mutations) {
+                    let found = false;
+                    for (const mutation of mutations) {
+                        if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+                            for (const node of mutation.addedNodes) {
+                                if (node instanceof HTMLElement && node.matches(selector)) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (found) {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!found) {
+                        continue;
+                    }
+                }
+
                 const element = getElement(selector, visibleCheck);
                 if (element) {
                     callback(element);

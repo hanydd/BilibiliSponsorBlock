@@ -36,14 +36,31 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
     });
 }
 
-export function newThumbnails(): HTMLElement[] {
+let lastThumbnailCheck = 0;
+let thumbnailCheckTimeout: NodeJS.Timer | null = null;
+
+export function newThumbnails() {
+    if (performance.now() - lastThumbnailCheck < 50 || thumbnailCheckTimeout) {
+        if (thumbnailCheckTimeout) {
+            return;
+        } else {
+            thumbnailCheckTimeout = setTimeout(() => {
+                thumbnailCheckTimeout = null;
+                newThumbnails();
+            }, 50);
+            return;
+        }
+    }
+
+    lastThumbnailCheck = performance.now();
+
     const notNewThumbnails = handledThumbnails.keys();
 
     const thumbnails = document.querySelectorAll(isOnInvidious() ? invidiousSelector : selector) as NodeListOf<HTMLElement>;
-    const newThumbnails: HTMLElement[] = [];
+    const newThumbnailsFound: HTMLElement[] = [];
     for (const thumbnail of thumbnails) {
         if (!handledThumbnails.has(thumbnail)) {
-            newThumbnails.push(thumbnail);
+            newThumbnailsFound.push(thumbnail);
             
             const observer = new MutationObserver((mutations) => {
                 for (const mutation of mutations) {
@@ -60,7 +77,7 @@ export function newThumbnails(): HTMLElement[] {
         }
     }
 
-    thumbnailListener?.(newThumbnails);
+    thumbnailListener?.(newThumbnailsFound);
 
     if (performance.now() - lastGarbageCollection > 5000) {
         // Clear old ones (some will come back if they are still on the page)
@@ -75,8 +92,6 @@ export function newThumbnails(): HTMLElement[] {
 
         lastGarbageCollection = performance.now();
     }
-
-    return newThumbnails;
 }
 
 export function updateAll(): void {
