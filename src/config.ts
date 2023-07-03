@@ -157,7 +157,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
         })]);
     }
     
-    async setupConfig(migrateOldSyncFormats: (config: SyncStorage) => void): Promise<StorageObjects<T, U>> {
+    async setupConfig(migrateOldSyncFormats: (config: T) => void): Promise<StorageObjects<T, U>> {
         if (typeof(chrome) === "undefined") return null as unknown as StorageObjects<T, U>;
     
         await this.fetchConfig();
