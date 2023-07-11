@@ -233,7 +233,7 @@ export function parseYouTubeVideoIDFromURL(url: string): ParsedVideoURL {
     }
 
     // Check if valid hostname
-    if (getConfig().isReady() && getConfig().config!.invidiousInstances.includes(urlObject.host.split(":")[0])) {
+    if (getConfig().isReady() && getConfig().config!.invidiousInstances.includes(urlObject.hostname)) {
         onInvidious = true;
     } else if (urlObject.host === "m.youtube.com") {
         onMobileYouTube = true;
