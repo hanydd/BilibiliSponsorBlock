@@ -1,4 +1,5 @@
 import { objectToURI } from ".";
+import { getHash } from "./hash";
 
 export interface FetchResponse {
     responseText: string;
@@ -48,6 +49,16 @@ export function setupBackgroundRequestProxy() {
                     responseText: "",
                     status: -1,
                     ok: false
+                });
+            });
+
+            return true;
+        }
+
+        if (request.message === "getHash") {
+            getHash(request.value, request.times).then(callback).catch((e) => {
+                callback({
+                    error: e?.message
                 });
             });
 
