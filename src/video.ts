@@ -4,6 +4,7 @@ import { getElement, isVisible, waitForElement } from "./dom";
 import { newThumbnails } from "./thumbnailManagement";
 import { versionHigher } from "./versionHigher";
 import { version } from "./version.json";
+import { YT_DOMAINS } from "./const";
 
 export enum PageType {
     Unknown = "unknown",
@@ -233,20 +234,20 @@ export function parseYouTubeVideoIDFromURL(url: string): ParsedVideoURL {
     }
 
     // Check if valid hostname
-    if (getConfig().isReady() && getConfig().config!.invidiousInstances.includes(urlObject.hostname)) {
-        onInvidious = true;
-    } else if (urlObject.host === "m.youtube.com") {
-        onMobileYouTube = true;
-    } else if (!["m.youtube.com", "www.youtube.com", "www.youtube-nocookie.com", "music.youtube.com"].includes(urlObject.host)) {
-        return {
-            videoID: null,
-            onInvidious,
-            onMobileYouTube,
-            callLater: !getConfig().isReady() // Might be an Invidious tab
-        };
-    } else {
+    if (YT_DOMAINS.includes(urlObject.host)) {
+        // on YouTube
+        if (urlObject.host === "m.youtube.com") onMobileYouTube = true;
         onInvidious = false;
-    }
+      } else if (getConfig().isReady() && getConfig().config!.invidiousInstances.includes(urlObject.hostname)) {
+          onInvidious = true;
+      } else { // fail to invidious
+          return {
+              videoID: null,
+              onInvidious,
+              onMobileYouTube,
+              callLater: !getConfig().isReady() // Might be an Invidious tab
+          };
+      }
 
     //Get ID from searchParam
     if (urlObject.searchParams.has("v") && ["/watch", "/watch/"].includes(urlObject.pathname) || urlObject.pathname.startsWith("/tv/watch")) {

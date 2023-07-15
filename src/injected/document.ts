@@ -6,6 +6,7 @@
 import { versionHigher } from "../versionHigher";
 import { PageType } from "../video";
 import { version } from "../version.json";
+import { YT_DOMAINS } from "../const";
 
 interface StartMessage {
     type: "navigation";
@@ -186,7 +187,7 @@ export function init(): void {
     document.addEventListener("yt-navigate-start", navigationStartSend);
     document.addEventListener("yt-navigate-finish", navigateFinishSend);
 
-    if (["m.youtube.com", "www.youtube.com", "www.youtube-nocookie.com", "music.youtube.com"].includes(window.location.host)) {
+    if (YT_DOMAINS.includes(window.location.host)) {
         // If customElement.define() is native, we will be given a class constructor and should extend it.
         // If it is not native, we will be given a function and should wrap it.
         const isDefineNative = window.customElements.define.toString().indexOf("[native code]") !== -1;
