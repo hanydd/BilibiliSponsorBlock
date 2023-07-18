@@ -34,6 +34,13 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
     void waitFor(() => configReady(), 5000, 10).then(() => {
         newThumbnails();
     });
+
+    document.addEventListener("fullscreenchange", () => {
+        // Fix thumbnails sometimes dispearing after being in fullscreen for a while
+        setTimeout(() => {
+            newThumbnails();
+        }, 100);
+    })
 }
 
 let lastThumbnailCheck = 0;
