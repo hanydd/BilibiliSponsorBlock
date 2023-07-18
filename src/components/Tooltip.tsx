@@ -5,7 +5,8 @@ import { isFirefoxOrSafari } from "..";
 import { isSafari } from "../config";
 
 export interface TooltipProps {
-    text?: string; 
+    text?: string;
+    textBoxes?: string[];
     link?: string;
     linkOnClick?: () => void;
     referenceNode: HTMLElement;
@@ -26,6 +27,8 @@ export interface TooltipProps {
     containerAbsolute?: boolean;
     buttons?: ButtonListener[];
     elements?: JSX.Element[];
+    buttonsAtBottom?: boolean;
+    textBoxMaxHeight?: string;
 }
 
 export class GenericTooltip {
@@ -50,6 +53,9 @@ export class GenericTooltip {
         props.containerAbsolute ??= false;
         props.center ??= false;
         props.elements ??= [];
+        props.buttonsAtBottom ??= false;
+        props.textBoxes ??= [];
+        props.textBoxMaxHeight ??= "inherit";
         this.text = props.text;
 
         this.container = document.createElement('div');
@@ -91,7 +97,9 @@ export class GenericTooltip {
                     (props.opacity === 1 ? " sbSolid" : "") +
                     ` ${props.extraClass}`}>
                 <div style={{
-                    marginBottom: props.innerBottomMargin
+                    marginBottom: props.innerBottomMargin,
+                    maxHeight: props.textBoxMaxHeight,
+                    overflowY: "auto"
                 }}>
                     {props.showLogo ? 
                         <img className="sponsorSkipLogo sponsorSkipObject"
@@ -117,10 +125,20 @@ export class GenericTooltip {
                         </span>
                     : null}
 
+                    {props.textBoxes ? props.textBoxes.map((text, index) => (
+                        <div key={index}
+                            className={`sponsorSkipObject${!props.showLogo ? ` sponsorSkipObjectFirst` : ``}`}>
+                            {text || String.fromCharCode(8203)} {/* Zero width space */}
+                        </div>
+                    )) : null}
+
                     {props.elements}
 
-                    {this.getButtons(props.buttons)}
+                    {!props.buttonsAtBottom && this.getButtons(props.buttons, props.buttonsAtBottom)}
                 </div>
+
+                {props.buttonsAtBottom && this.getButtons(props.buttons, props.buttonsAtBottom)}
+
                 {props.showGotIt ?
                     <button className="sponsorSkipObject sponsorSkipNoticeButton"
                         style ={{float: "right" }}
@@ -133,13 +151,19 @@ export class GenericTooltip {
         )
     }
 
-    getButtons(buttons?: ButtonListener[]): JSX.Element[] {
+    getButtons(buttons: ButtonListener[] | undefined, buttonsAtBottom: boolean): JSX.Element[] {
         if (buttons) {
             const result: JSX.Element[] = [];
+
+            const style: React.CSSProperties = {};
+            if (buttonsAtBottom) {
+                style.float = "right";
+            }
 
             for (const button of buttons) {
                 result.push(
                     <button className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
+                            style={style}
                             key={button.name}
                             onClick={(e) => button.listener(e)}>
 
