@@ -1,4 +1,6 @@
 import { waitFor } from ".";
+import { onMobile } from "./pageInfo";
+import { getThumbnailLink, getThumbnailSelectors } from "./thumbnail-selectors";
 import { isOnInvidious } from "./video";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
@@ -6,7 +8,7 @@ export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 const handledThumbnails = new Map<HTMLElement, MutationObserver>();
 let lastGarbageCollection = 0;
 let thumbnailListener: ThumbnailListener | null = null;
-let selector = "ytd-thumbnail, ytd-playlist-thumbnail";
+let selector = getThumbnailSelectors();
 let invidiousSelector = "div.thumbnail";
 
 export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad: () => void,
@@ -35,12 +37,17 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
         newThumbnails();
     });
 
-    document.addEventListener("fullscreenchange", () => {
-        // Fix thumbnails sometimes dispearing after being in fullscreen for a while
-        setTimeout(() => {
-            newThumbnails();
-        }, 100);
-    })
+    if (onMobile()) {
+        window.addEventListener("updateui", () => mobileNewThumbnailHandler());
+        window.addEventListener("state-navigateend", () => mobileNewThumbnailHandler());
+    } else {
+        document.addEventListener("fullscreenchange", () => {
+            // Fix thumbnails sometimes dispearing after being in fullscreen for a while
+            setTimeout(() => {
+                newThumbnails();
+            }, 100);
+        });
+    }
 }
 
 let lastThumbnailCheck = 0;
@@ -79,7 +86,7 @@ export function newThumbnails() {
             });
             handledThumbnails.set(thumbnail, observer);
 
-            const link = thumbnail.querySelector("ytd-thumbnail a");
+            const link = getThumbnailLink(thumbnail);
             if (link) observer.observe(link, { attributes: true });
         }
     }
@@ -103,4 +110,24 @@ export function newThumbnails() {
 
 export function updateAll(): void {
     if (thumbnailListener) thumbnailListener([...handledThumbnails.keys()]);
+}
+
+
+const mobileCheckTimes = [100, 200, 300, 400, 500, 750, 1000, 1500, 2500, 5000, 10000];
+let mobileTimeout: NodeJS.Timer | null = null;
+
+/**
+ * Will check multiple times up to 5 seconds in the future
+ */
+function mobileNewThumbnailHandler(index = 0) {
+    if (index >= mobileCheckTimes.length) return;
+    if (mobileTimeout) clearTimeout(mobileTimeout);
+
+    const timeout = mobileCheckTimes[index] - (index > 0 ? mobileCheckTimes[index - 1] : 0);
+    mobileTimeout = setTimeout(() => {
+        newThumbnails();
+        mobileNewThumbnailHandler(index + 1);
+    }, timeout);
+
+    newThumbnails();
 }

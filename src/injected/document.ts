@@ -7,6 +7,8 @@ import { versionHigher } from "../versionHigher";
 import { PageType } from "../video";
 import { version } from "../version.json";
 import { YT_DOMAINS } from "../const";
+import { getThumbnailElements } from "../thumbnail-selectors";
+import { onMobile } from "../pageInfo";
 
 interface StartMessage {
     type: "navigation";
@@ -50,7 +52,7 @@ declare const ytInitialData: Record<string, string> | undefined;
 let playerClient: any;
 let lastVideo = "";
 const id = "sponsorblock";
-const elementsToListenFor = ["ytd-thumbnail", "ytd-playlist-thumbnail"];
+const elementsToListenFor = getThumbnailElements();
 
 // From BlockTube https://github.com/amitbl/blocktube/blob/9dc6dcee1847e592989103b0968092eb04f04b78/src/scripts/seed.js#L52-L58
 const fetchUrlsToRead = [
@@ -112,7 +114,7 @@ function navigationStartSend(event: CustomEvent): void {
 
 function navigateFinishSend(event: CustomEvent): void {
     sendVideoData(); // arrived at new video, send video data
-    const videoDetails = event.detail?.response?.playerResponse?.videoDetails;
+    const videoDetails = (event.detail?.data ?? event.detail)?.response?.playerResponse?.videoDetails;
     if (videoDetails) {
         sendMessage({ channelID: videoDetails.channelId, channelTitle: videoDetails.author, ...navigationParser(event) } as FinishMessage);
     } else {
@@ -187,7 +189,11 @@ export function init(): void {
     document.addEventListener("yt-navigate-start", navigationStartSend);
     document.addEventListener("yt-navigate-finish", navigateFinishSend);
 
-    if (YT_DOMAINS.includes(window.location.host)) {
+    if (onMobile()) {
+        window.addEventListener("state-navigateend", navigateFinishSend);
+    }
+
+    if (YT_DOMAINS.includes(window.location.host) && !onMobile()) {
         // If customElement.define() is native, we will be given a class constructor and should extend it.
         // If it is not native, we will be given a function and should wrap it.
         const isDefineNative = window.customElements.define.toString().indexOf("[native code]") !== -1;
@@ -271,6 +277,10 @@ function teardown() {
     document.removeEventListener("yt-player-updated", setupPlayerClient);
     document.removeEventListener("yt-navigate-start", navigationStartSend);
     document.removeEventListener("yt-navigate-finish", navigateFinishSend);
+
+    if (onMobile()) {
+        window.removeEventListener("state-navigateend", navigateFinishSend);
+    }
 
     if (savedSetup.browserFetch) {
         window.fetch = savedSetup.browserFetch;
