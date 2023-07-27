@@ -9,6 +9,7 @@ import { version } from "../version.json";
 import { YT_DOMAINS } from "../const";
 import { getThumbnailElements } from "../thumbnail-selectors";
 import { onMobile } from "../pageInfo";
+import { resetLastArtworkSrc, resetMediaSessionThumbnail, setMediaSessionInfo } from "./mediaSession";
 
 interface StartMessage {
     type: "navigation";
@@ -155,6 +156,18 @@ function findAllVideoIds(data: Record<string, unknown>): Set<string> {
     return videoIds;
 }
 
+function windowMessageListener(message: MessageEvent) {
+    if (message.data?.source) {
+        if (message.data?.source === "dearrow-media-session") {
+            setMediaSessionInfo(message.data.data);
+        } else if (message.data?.source === "dearrow-reset-media-session-thumbnail") {
+            resetMediaSessionThumbnail();
+        } else if (message.data?.source === "sb-reset-media-session-link") {
+            resetLastArtworkSrc();
+        }
+    }
+}
+
 const savedSetup = {
     browserFetch: null as ((input: RequestInfo | URL, init?: RequestInit | undefined) => Promise<Response>) | null,
     customElementDefine: null as ((name: string, constructor: CustomElementConstructor, options?: ElementDefinitionOptions | undefined) => void) | null,
@@ -251,6 +264,8 @@ export function init(): void {
         });
     }
 
+    window.addEventListener("message", windowMessageListener);
+
     if (typeof(ytInitialData) !== "undefined") {
         onNewVideoIds(ytInitialData);
     } else {
@@ -293,6 +308,8 @@ function teardown() {
     if (savedSetup.waitingInterval) {
         clearInterval(savedSetup.waitingInterval);
     }
+
+    window.removeEventListener("message", windowMessageListener);
 
     window["teardownCB"] = null;
 }

@@ -158,6 +158,12 @@ function resetValues() {
     isLivePremiere = false;
 
     isAdPlaying = false;
+
+    // Reset the last media session link
+    window.postMessage({
+        type: "sb-reset-media-session-link",
+        videoID: null
+    }, "/");
 }
 
 export function getYouTubeVideoID(url?: string): VideoID | null {
