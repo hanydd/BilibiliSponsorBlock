@@ -1,4 +1,5 @@
 import { waitFor } from ".";
+import { addCleanupListener } from "./cleanup";
 import { onMobile } from "./pageInfo";
 import { getThumbnailLink, getThumbnailSelectors } from "./thumbnail-selectors";
 import { isOnInvidious } from "./video";
@@ -38,16 +39,35 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
     });
 
     if (onMobile()) {
-        window.addEventListener("updateui", () => mobileNewThumbnailHandler());
-        window.addEventListener("state-navigateend", () => mobileNewThumbnailHandler());
+        const eventListener = () => mobileNewThumbnailHandler()
+        window.addEventListener("updateui", eventListener);
+        window.addEventListener("state-navigateend", eventListener);
+
+        addCleanupListener(() => {
+            window.removeEventListener("updateui", eventListener);
+            window.removeEventListener("state-navigateend", eventListener);
+        });
     } else {
-        document.addEventListener("fullscreenchange", () => {
+        const fullscreenListener = () => {
             // Fix thumbnails sometimes dispearing after being in fullscreen for a while
             setTimeout(() => {
                 newThumbnails();
             }, 100);
+        };
+        document.addEventListener("fullscreenchange", fullscreenListener);
+
+        addCleanupListener(() => {
+            document.removeEventListener("fullscreenchange", fullscreenListener);
         });
     }
+
+    addCleanupListener(() => {
+        for (const handledThumbnail of handledThumbnails) {
+            handledThumbnail[1].disconnect();
+        }
+
+        handledThumbnails.clear();
+    });
 }
 
 let lastThumbnailCheck = 0;
@@ -111,7 +131,6 @@ export function newThumbnails() {
 export function updateAll(): void {
     if (thumbnailListener) thumbnailListener([...handledThumbnails.keys()]);
 }
-
 
 const mobileCheckTimes = [100, 200, 300, 400, 500, 750, 1000, 1500, 2500, 5000, 10000];
 let mobileTimeout: NodeJS.Timer | null = null;

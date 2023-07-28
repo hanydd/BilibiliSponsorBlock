@@ -5,6 +5,7 @@ import { newThumbnails } from "./thumbnailManagement";
 import { versionHigher } from "./versionHigher";
 import { version } from "./version.json";
 import { YT_DOMAINS } from "./const";
+import { addCleanupListener, setupCleanupListener } from "./cleanup";
 
 export enum PageType {
     Unknown = "unknown",
@@ -78,6 +79,8 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     params = moduleParams;
     getConfig = config;
 
+    setupCleanupListener();
+
     // Direct Links after the config is loaded
     void waitFor(() => getConfig().isReady(), 1000, 1).then(() => videoIDChange(getYouTubeVideoID()));
 
@@ -91,8 +94,13 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     const navigationApiAvailable = "navigation" in window;
     if (navigationApiAvailable) {
         // TODO: Remove type cast once type declarations are updated
-        (window as unknown as { navigation: EventTarget }).navigation.addEventListener("navigate", (e) =>
-            void videoIDChange(getYouTubeVideoID((e as unknown as Record<string, Record<string, string>>).destination.url)));
+        const navigationListener = (e) =>
+            void videoIDChange(getYouTubeVideoID((e as unknown as Record<string, Record<string, string>>).destination.url));
+        (window as unknown as { navigation: EventTarget }).navigation.addEventListener("navigate", navigationListener);
+
+        addCleanupListener(() => {
+            (window as unknown as { navigation: EventTarget }).navigation.removeEventListener("navigate", navigationListener);
+        });
     }
     // Record availability of Navigation API
     void waitFor(() => config().local !== null).then(() => {
@@ -103,6 +111,13 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     });
 
     setupVideoMutationListener();
+
+    addCleanupListener(() => {
+        if (videoMutationObserver) {
+            videoMutationObserver.disconnect();
+            videoMutationObserver = null;
+        }
+    });
 }
 
 export async function checkIfNewVideoID(): Promise<boolean> {
@@ -454,11 +469,18 @@ function addPageListeners(): void {
 
     document.addEventListener("yt-navigate-finish", refreshListners);
     // piped player init
-    window.addEventListener("playerInit", () => {
+    const playerInitListener = () => {
         if (!document.querySelector('meta[property="og:title"][content="Piped"]')) return;
         params.playerInit?.();
-    });
+    };
+    window.addEventListener("playerInit", playerInitListener);
     window.addEventListener("message", windowListenerHandler);
+
+    addCleanupListener(() => {
+        document.removeEventListener("yt-navigate-finish", refreshListners);
+        window.removeEventListener("playerInit", playerInitListener);
+        window.removeEventListener("message", windowListenerHandler);
+    });
 }
 
 export function getVideo(): HTMLVideoElement | null {

@@ -147,8 +147,10 @@ function setupWaitingMutationListener(): void {
 
                     const element = visibleCheck ? findValidElement(possibleElements) : possibleElements[0] as HTMLElement;
                     if (element) {
-                        for (const callback of callbacks) {
-                            callback(element);
+                        if (chrome.runtime?.id) {
+                            for (const callback of callbacks) {
+                                callback(element);
+                            }
                         }
 
                         foundSelectors.push(selector);
