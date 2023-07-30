@@ -57,23 +57,32 @@ export async function injectUpdatedScripts() {
             populate: true
         }, (windows) => {
             for (const window of windows) {
-                for (const tab of window.tabs) {
-                    for (const script of chrome.runtime.getManifest().content_scripts) {
-                        if (tab.url && script.matches.some((match) => 
-                                tab.url.match(match
-                                        .replace(/\//g, "\\/")
-                                        .replace(/\./g, "\\.")
-                                        .replace(/\*/g, ".*")))) {
-                            for (const file of script.js) {
-                                chrome.tabs.executeScript(tab.id, {
-                                    file
-                                });
-                            }
-
-                            for (const file of script.css) {
-                                chrome.tabs.insertCSS(tab.id, {
-                                    file
-                                });
+                if (window.tabs) {
+                    for (const tab of window.tabs) {
+                        const scripts = chrome.runtime.getManifest().content_scripts;
+                        if (scripts) {
+                            for (const script of scripts) {
+                                if (tab.url && script.matches?.some?.((match) => 
+                                        tab.url!.match(match
+                                                .replace(/\//g, "\\/")
+                                                .replace(/\./g, "\\.")
+                                                .replace(/\*/g, ".*")))) {
+                                    if (script.js) {
+                                        for (const file of script.js) {
+                                            void chrome.tabs.executeScript(tab.id!, {
+                                                file
+                                            });
+                                        }
+                                    }
+        
+                                    if (script.css) {
+                                        for (const file of script.css) {
+                                            void chrome.tabs.insertCSS(tab.id!, {
+                                                file
+                                            });
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
