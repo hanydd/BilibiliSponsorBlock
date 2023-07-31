@@ -47,18 +47,6 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
             window.removeEventListener("updateui", eventListener);
             window.removeEventListener("state-navigateend", eventListener);
         });
-    } else {
-        const fullscreenListener = () => {
-            // Fix thumbnails sometimes dispearing after being in fullscreen for a while
-            setTimeout(() => {
-                newThumbnails();
-            }, 100);
-        };
-        document.addEventListener("fullscreenchange", fullscreenListener);
-
-        addCleanupListener(() => {
-            document.removeEventListener("fullscreenchange", fullscreenListener);
-        });
     }
 
     addCleanupListener(() => {
