@@ -2,10 +2,9 @@ import { waitFor } from ".";
 import { LocalStorage, ProtoConfig, SyncStorage } from "./config";
 import { getElement, isVisible, waitForElement } from "./dom";
 import { newThumbnails } from "./thumbnailManagement";
-import { versionHigher } from "./versionHigher";
-import { version } from "./version.json";
 import { YT_DOMAINS } from "./const";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
+import { injectScript } from "./scriptInjector";
 
 export enum PageType {
     Unknown = "unknown",
@@ -448,23 +447,7 @@ function addPageListeners(): void {
     };
 
     if (params.documentScript) {
-        // inject into document
-        const docScript = document.createElement("script");
-        docScript.id = "sponsorblock-document-script";
-        docScript.setAttribute("version", version)
-        docScript.innerHTML = params.documentScript;
-        // Not injected on invidious
-        const head = (document.head || document.documentElement);
-        const existingScript = document.getElementById("sponsorblock-document-script");
-        const existingScriptVersion = existingScript?.getAttribute("version");
-        if (head && (!existingScript || versionHigher(version, existingScriptVersion ?? ""))) {
-            if (existingScript) {
-                docScript.setAttribute("teardown", "true");
-                existingScript.remove();
-            }
-
-            head.appendChild(docScript);
-        }
+        injectScript(params.documentScript);
     }
 
     document.addEventListener("yt-navigate-finish", refreshListners);
