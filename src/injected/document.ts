@@ -247,6 +247,13 @@ export function init(): void {
             return browserFetch(resource, init);
         }
 
+        if (resource.url.includes("/youtubei/v1/next")) {
+            // Scrolling for more recommended videos
+            setTimeout(() => sendMessage({ type: "newElement", name: "" }), 1000);
+            setTimeout(() => sendMessage({ type: "newElement", name: "" }), 2500);
+            setTimeout(() => sendMessage({ type: "newElement", name: "" }), 8000);
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
