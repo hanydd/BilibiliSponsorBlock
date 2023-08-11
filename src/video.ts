@@ -83,9 +83,11 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     // Direct Links after the config is loaded
     void waitFor(() => getConfig().isReady(), 1000, 1).then(() => videoIDChange(getYouTubeVideoID()));
 
-    // wait for hover preview to appear, and refresh attachments if ever found
-    void waitForElement("a.ytp-title-link[data-sessionlink='feature=player-title']")
-    .then(() => videoIDChange(getYouTubeVideoID()));
+    // Can't use onInvidious at this point, the configuration might not be ready.
+    if (YT_DOMAINS.includes(location.host)) {
+        void waitForElement("a.ytp-title-link[data-sessionlink='feature=player-title']")
+        .then(() => videoIDChange(getYouTubeVideoID()));
+    }
 
     addPageListeners();
 
@@ -258,16 +260,16 @@ export function parseYouTubeVideoIDFromURL(url: string): ParsedVideoURL {
         // on YouTube
         if (urlObject.host === "m.youtube.com") onMobileYouTube = true;
         onInvidious = false;
-      } else if (getConfig().isReady() && getConfig().config!.invidiousInstances.includes(urlObject.hostname)) {
-          onInvidious = true;
-      } else { // fail to invidious
-          return {
-              videoID: null,
-              onInvidious,
-              onMobileYouTube,
-              callLater: !getConfig().isReady() // Might be an Invidious tab
-          };
-      }
+    } else if (getConfig().isReady() && getConfig().config!.invidiousInstances.includes(urlObject.hostname)) {
+        onInvidious = true;
+    } else { // fail to invidious
+        return {
+            videoID: null,
+            onInvidious,
+            onMobileYouTube,
+            callLater: !getConfig().isReady() // Might be an Invidious tab
+        };
+    }
 
     //Get ID from searchParam
     if (urlObject.searchParams.has("v") && ["/watch", "/watch/"].includes(urlObject.pathname) || urlObject.pathname.startsWith("/tv/watch")) {
@@ -440,7 +442,7 @@ function windowListenerHandler(event: MessageEvent): void {
 }
 
 function addPageListeners(): void {
-    const refreshListners = () => {
+    const refreshListeners = () => {
         if (!isVisible(video)) {
             void refreshVideoAttachments();
         }
@@ -450,7 +452,7 @@ function addPageListeners(): void {
         injectScript(params.documentScript);
     }
 
-    document.addEventListener("yt-navigate-finish", refreshListners);
+    document.addEventListener("yt-navigate-finish", refreshListeners);
     // piped player init
     const playerInitListener = () => {
         if (!document.querySelector('meta[property="og:title"][content="Piped"]')) return;
@@ -460,7 +462,7 @@ function addPageListeners(): void {
     window.addEventListener("message", windowListenerHandler);
 
     addCleanupListener(() => {
-        document.removeEventListener("yt-navigate-finish", refreshListners);
+        document.removeEventListener("yt-navigate-finish", refreshListeners);
         window.removeEventListener("playerInit", playerInitListener);
         window.removeEventListener("message", windowListenerHandler);
     });
