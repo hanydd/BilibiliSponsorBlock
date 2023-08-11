@@ -2,9 +2,9 @@ import { waitFor } from ".";
 import { LocalStorage, ProtoConfig, SyncStorage } from "./config";
 import { getElement, isVisible, waitForElement } from "./dom";
 import { newThumbnails } from "./thumbnailManagement";
-import { versionHigher } from "./versionHigher";
-
-const version = "version-number-replaced-by-compiler"
+import { YT_DOMAINS } from "./const";
+import { addCleanupListener, setupCleanupListener } from "./cleanup";
+import { injectScript } from "./scriptInjector";
 
 export enum PageType {
     Unknown = "unknown",
@@ -66,13 +66,13 @@ let channelIDInfo: ChannelIDInfo;
 let waitingForChannelID = false;
 
 let params: VideoModuleParams = {
-    videoIDChange: () => {},
-    channelIDChange: () => {},
-    videoElementChange: () => {},
-    playerInit: () => {},
-    resetValues: () => {},
-    windowListenerHandler: () => {},
-    newVideosLoaded: () => {},
+    videoIDChange: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    channelIDChange: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    videoElementChange: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    playerInit: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    resetValues: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    windowListenerHandler: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+    newVideosLoaded: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     documentScript: ""
 };
 let getConfig: () => ProtoConfig<SyncStorage, LocalStorage>;
@@ -80,14 +80,14 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     params = moduleParams;
     getConfig = config;
 
-    // Direct Links after the config is loaded
-    waitFor(() => getConfig().isReady(), 1000, 1).then(() => videoIDChange(getYouTubeVideoID()));
+    setupCleanupListener();
 
+    // Direct Links after the config is loaded
+    void waitFor(() => getConfig().isReady(), 1000, 1).then(() => videoIDChange(getYouTubeVideoID()));
+
+    // Can't use onInvidious at this point, the configuration might not be ready.
     if (YOUTUBE_HOSTS.includes(location.host)) {
-        // Can't use onInvidious at this point, the configuration might not be ready.
-        // Wait for hover preview to appear, and refresh attachments if ever found
-        waitForElement(".ytp-inline-preview-ui").then(() => refreshVideoAttachments());
-        waitForElement("a.ytp-title-link[data-sessionlink='feature=player-title']")
+        void waitForElement("a.ytp-title-link[data-sessionlink='feature=player-title']")
         .then(() => videoIDChange(getYouTubeVideoID()));
     }
 
@@ -97,11 +97,16 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     const navigationApiAvailable = "navigation" in window;
     if (navigationApiAvailable) {
         // TODO: Remove type cast once type declarations are updated
-        (window as unknown as { navigation: EventTarget }).navigation.addEventListener("navigate", (e) =>
-            videoIDChange(getYouTubeVideoID((e as unknown as Record<string, Record<string, string>>).destination.url)));
+        const navigationListener = (e) =>
+            void videoIDChange(getYouTubeVideoID((e as unknown as Record<string, Record<string, string>>).destination.url));
+        (window as unknown as { navigation: EventTarget }).navigation.addEventListener("navigate", navigationListener);
+
+        addCleanupListener(() => {
+            (window as unknown as { navigation: EventTarget }).navigation.removeEventListener("navigate", navigationListener);
+        });
     }
     // Record availability of Navigation API
-    waitFor(() => config().local !== null).then(() => {
+    void waitFor(() => config().local !== null).then(() => {
         if (config().local!.navigationApiAvailable !== navigationApiAvailable) {
             config().local!.navigationApiAvailable = navigationApiAvailable;
             config().forceLocalUpdate("navigationApiAvailable");
@@ -109,6 +114,13 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     });
 
     setupVideoMutationListener();
+
+    addCleanupListener(() => {
+        if (videoMutationObserver) {
+            videoMutationObserver.disconnect();
+            videoMutationObserver = null;
+        }
+    });
 }
 
 export async function checkIfNewVideoID(): Promise<boolean> {
@@ -132,7 +144,7 @@ async function videoIDChange(id: VideoID | null): Promise<boolean> {
 
     // Make sure the video is still visible
     if (!isVisible(video)) {
-        refreshVideoAttachments();
+        void refreshVideoAttachments();
     }
 
     resetValues();
@@ -145,7 +157,7 @@ async function videoIDChange(id: VideoID | null): Promise<boolean> {
     await waitFor(() => getConfig().isReady(), 5000, 1);
 
     // Update whitelist data when the video data is loaded
-    whitelistCheck();
+    void whitelistCheck();
 
     params.videoIDChange(id);
 
@@ -164,6 +176,12 @@ function resetValues() {
     isLivePremiere = false;
 
     isAdPlaying = false;
+
+    // Reset the last media session link
+    window.postMessage({
+        type: "sb-reset-media-session-link",
+        videoID: null
+    }, "/");
 }
 
 export function getYouTubeVideoID(url?: string): VideoID | null {
@@ -206,7 +224,7 @@ function getYouTubeVideoIDFromURL(url: string): VideoID | null {
 
     if (result.callLater) {
         // Call this later, in case this is an Invidious tab
-        waitFor(() => getConfig().isReady()).then(() => videoIDChange(getYouTubeVideoIDFromURL(url)));
+        void waitFor(() => getConfig().isReady()).then(() => videoIDChange(getYouTubeVideoIDFromURL(url)));
 
         return null;
     }
@@ -244,7 +262,7 @@ export function parseYouTubeVideoIDFromURL(url: string): ParsedVideoURL {
         onInvidious = true;
     } else if (urlObject.host === "m.youtube.com") {
         onMobileYouTube = true;
-    } else if (!YOUTUBE_HOSTS.includes(urlObject.host)) {
+    } else if (!["m.youtube.com", "www.youtube.com", "www.youtube-nocookie.com", "music.youtube.com"].includes(urlObject.host)) {
         return {
             videoID: null,
             onInvidious,
@@ -301,6 +319,7 @@ export async function whitelistCheck() {
         // If found, continue on, it was set by the listener
     } catch (e) {
         // try to get channelID from page-manager
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const pageMangerChannelID = (document.querySelector("ytd-page-manager") as any)?.data?.playerResponse?.videoDetails?.channelId
 
         // Try fallback
@@ -348,6 +367,7 @@ function setupVideoMutationListener() {
         if (!videoContainer) return;
 
         if (videoMutationObserver) videoMutationObserver.disconnect();
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         videoMutationObserver = new MutationObserver(refreshVideoAttachments);
         videoMutationListenerElement = videoContainer;
 
@@ -376,7 +396,7 @@ async function refreshVideoAttachments(): Promise<void> {
     params.videoElementChange?.(isNewVideo, video);
     setupVideoMutationListener();
 
-    videoIDChange(getYouTubeVideoID());
+    void videoIDChange(getYouTubeVideoID());
 }
 
 function windowListenerHandler(event: MessageEvent): void {
@@ -399,11 +419,11 @@ function windowListenerHandler(event: MessageEvent): void {
             };
 
             if (!waitingForChannelID) {
-                whitelistCheck();
+                void whitelistCheck();
             }
         }
 
-        videoIDChange(data.videoID);
+        void videoIDChange(data.videoID);
     } else if (dataType === "ad") {
         if (isAdPlaying != data.playing) {
             isAdPlaying = data.playing
@@ -411,7 +431,7 @@ function windowListenerHandler(event: MessageEvent): void {
             params.updatePlayerBar?.();
         }
     } else if (dataType === "data" && data.videoID) {
-        videoIDChange(data.videoID);
+        void videoIDChange(data.videoID);
 
         isLivePremiere = data.isLive || data.isPremiere
     } else if (dataType === "newElement") {
@@ -426,37 +446,28 @@ function windowListenerHandler(event: MessageEvent): void {
 function addPageListeners(): void {
     const refreshListeners = () => {
         if (!isVisible(video)) {
-            refreshVideoAttachments();
+            void refreshVideoAttachments();
         }
     };
 
     if (params.documentScript) {
-        // inject into document
-        const docScript = document.createElement("script");
-        docScript.id = "sponsorblock-document-script";
-        docScript.setAttribute("version", version)
-        docScript.innerHTML = params.documentScript;
-        // Not injected on invidious
-        const head = (document.head || document.documentElement);
-        const existingScript = document.getElementById("sponsorblock-document-script");
-        const existingScriptVersion = existingScript?.getAttribute("version");
-        if (head && (!existingScript || versionHigher(version, existingScriptVersion ?? ""))) {
-            if (existingScript) {
-                docScript.setAttribute("teardown", "true");
-                existingScript.remove();
-            }
-
-            head.appendChild(docScript);
-        }
+        injectScript(params.documentScript);
     }
 
     document.addEventListener("yt-navigate-finish", refreshListeners);
     // piped player init
-    window.addEventListener("playerInit", () => {
+    const playerInitListener = () => {
         if (!document.querySelector('meta[property="og:title"][content="Piped"]')) return;
         params.playerInit?.();
-    });
+    };
+    window.addEventListener("playerInit", playerInitListener);
     window.addEventListener("message", windowListenerHandler);
+
+    addCleanupListener(() => {
+        document.removeEventListener("yt-navigate-finish", refreshListeners);
+        window.removeEventListener("playerInit", playerInitListener);
+        window.removeEventListener("message", windowListenerHandler);
+    });
 }
 
 export function getVideo(): HTMLVideoElement | null {

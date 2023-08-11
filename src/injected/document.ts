@@ -5,8 +5,11 @@
 
 import { versionHigher } from "../versionHigher";
 import { PageType } from "../video";
-
-const version = "version-number-replaced-by-compiler"
+import { version } from "../version.json";
+import { YT_DOMAINS } from "../const";
+import { getThumbnailElements } from "../thumbnail-selectors";
+import { onMobile } from "../pageInfo";
+import { resetLastArtworkSrc, resetMediaSessionThumbnail, setMediaSessionInfo } from "./mediaSession";
 
 interface StartMessage {
     type: "navigation";
@@ -50,7 +53,7 @@ declare const ytInitialData: Record<string, string> | undefined;
 let playerClient: any;
 let lastVideo = "";
 const id = "sponsorblock";
-const elementsToListenFor = ["ytd-thumbnail", "ytd-playlist-thumbnail"];
+const elementsToListenFor = getThumbnailElements();
 
 // From BlockTube https://github.com/amitbl/blocktube/blob/9dc6dcee1847e592989103b0968092eb04f04b78/src/scripts/seed.js#L52-L58
 const fetchUrlsToRead = [
@@ -112,7 +115,7 @@ function navigationStartSend(event: CustomEvent): void {
 
 function navigateFinishSend(event: CustomEvent): void {
     sendVideoData(); // arrived at new video, send video data
-    const videoDetails = event.detail?.response?.playerResponse?.videoDetails;
+    const videoDetails = (event.detail?.data ?? event.detail)?.response?.playerResponse?.videoDetails;
     if (videoDetails) {
         sendMessage({ channelID: videoDetails.channelId, channelTitle: videoDetails.author, ...navigationParser(event) } as FinishMessage);
     } else {
@@ -153,6 +156,18 @@ function findAllVideoIds(data: Record<string, unknown>): Set<string> {
     return videoIds;
 }
 
+function windowMessageListener(message: MessageEvent) {
+    if (message.data?.source) {
+        if (message.data?.source === "dearrow-media-session") {
+            setMediaSessionInfo(message.data.data);
+        } else if (message.data?.source === "dearrow-reset-media-session-thumbnail") {
+            resetMediaSessionThumbnail();
+        } else if (message.data?.source === "sb-reset-media-session-link") {
+            resetLastArtworkSrc();
+        }
+    }
+}
+
 const savedSetup = {
     browserFetch: null as ((input: RequestInfo | URL, init?: RequestInit | undefined) => Promise<Response>) | null,
     customElementDefine: null as ((name: string, constructor: CustomElementConstructor, options?: ElementDefinitionOptions | undefined) => void) | null,
@@ -187,7 +202,11 @@ export function init(): void {
     document.addEventListener("yt-navigate-start", navigationStartSend);
     document.addEventListener("yt-navigate-finish", navigateFinishSend);
 
-    if (["m.youtube.com", "www.youtube.com", "www.youtube-nocookie.com", "music.youtube.com"].includes(window.location.host)) {
+    if (onMobile()) {
+        window.addEventListener("state-navigateend", navigateFinishSend);
+    }
+
+    if (YT_DOMAINS.includes(window.location.host) && !onMobile()) {
         // If customElement.define() is native, we will be given a class constructor and should extend it.
         // If it is not native, we will be given a function and should wrap it.
         const isDefineNative = window.customElements.define.toString().indexOf("[native code]") !== -1;
@@ -228,6 +247,13 @@ export function init(): void {
             return browserFetch(resource, init);
         }
 
+        if (resource.url.includes("/youtubei/v1/next")) {
+            // Scrolling for more recommended videos
+            setTimeout(() => sendMessage({ type: "newElement", name: "" }), 1000);
+            setTimeout(() => sendMessage({ type: "newElement", name: "" }), 2500);
+            setTimeout(() => sendMessage({ type: "newElement", name: "" }), 8000);
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
@@ -244,6 +270,8 @@ export function init(): void {
             }
         });
     }
+
+    window.addEventListener("message", windowMessageListener);
 
     if (typeof(ytInitialData) !== "undefined") {
         onNewVideoIds(ytInitialData);
@@ -272,6 +300,10 @@ function teardown() {
     document.removeEventListener("yt-navigate-start", navigationStartSend);
     document.removeEventListener("yt-navigate-finish", navigateFinishSend);
 
+    if (onMobile()) {
+        window.removeEventListener("state-navigateend", navigateFinishSend);
+    }
+
     if (savedSetup.browserFetch) {
         window.fetch = savedSetup.browserFetch;
     }
@@ -283,6 +315,8 @@ function teardown() {
     if (savedSetup.waitingInterval) {
         clearInterval(savedSetup.waitingInterval);
     }
+
+    window.removeEventListener("message", windowMessageListener);
 
     window["teardownCB"] = null;
 }

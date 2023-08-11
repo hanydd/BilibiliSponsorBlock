@@ -1,13 +1,17 @@
 export function isVisible(element: HTMLElement | null): boolean {
-    if (!element || element.offsetWidth === 0 || element.offsetHeight === 0) {
+    if (!element) {
         return false;
     }
 
     // Special case for when a video is first loaded, and the main video element is technically hidden
-    if (element.tagName === "VIDEO"
-            && (element.id === "player" || element.id === "player_html5_api" || element.classList.contains("html5-main-video"))
-            && document.querySelectorAll("video").length === 1) {
+    if (element.tagName === "VIDEO" 
+        && (element.classList.contains("html5-main-video") || element.id === "player" || element.id === "player_html5_api")
+        && document.querySelectorAll("video").length === 1) {
         return true;
+    }
+    
+    if (element.offsetWidth === 0 || element.offsetHeight === 0) {
+        return false;
     }
 
     const boundingRect = element?.getBoundingClientRect();
@@ -55,10 +59,17 @@ function findValidElementFromGenerator<T>(objects: T[] | NodeListOf<HTMLElement>
     return null;
 }
 
+interface WaitingElement {
+    selector: string;
+    visibleCheck: boolean;
+    callbacks: Array<(element: Element) => void>;
+    elements?: NodeListOf<HTMLElement>;
+}
+
 /* Used for waitForElement */
 let creatingWaitingMutationObserver = false;
 let waitingMutationObserver: MutationObserver | null = null;
-let waitingElements: { selector: string; visibleCheck: boolean; callback: (element: Element) => void }[] = [];
+let waitingElements: WaitingElement[] = [];
 
 /* Uses a mutation observer to wait asynchronously */
 export async function waitForElement(selector: string, visibleCheck = false): Promise<Element> {
@@ -76,11 +87,18 @@ export async function waitForElement(selector: string, visibleCheck = false): Pr
             return;
         }
 
-        waitingElements.push({
-            selector,
-            visibleCheck,
-            callback: resolve
-        });
+        const existingWaitingElement = waitingElements.find((waitingElement) => waitingElement.selector === selector 
+            && waitingElement.visibleCheck === visibleCheck);
+
+        if (existingWaitingElement) {
+            existingWaitingElement.callbacks.push(resolve);
+        } else {
+            waitingElements.push({
+                selector,
+                visibleCheck,
+                callbacks: [resolve]
+            });
+        }
 
         if (!creatingWaitingMutationObserver) {
             creatingWaitingMutationObserver = true;
@@ -93,13 +111,56 @@ export async function waitForElement(selector: string, visibleCheck = false): Pr
 
 function setupWaitingMutationListener(): void {
     if (!waitingMutationObserver) {
-        const checkForObjects = () => {
+        const checkForObjects = (mutations?: MutationRecord[]) => {
             const foundSelectors: string[] = [];
-            for (const { selector, visibleCheck, callback } of waitingElements) {
-                const element = getElement(selector, visibleCheck);
-                if (element) {
-                    callback(element);
-                    foundSelectors.push(selector);
+            for (const waitingElement of waitingElements) {
+                const { selector, visibleCheck, callbacks } = waitingElement;
+
+                let updatePossibleElements = true;
+                if (mutations) {
+                    let found = false;
+                    for (const mutation of mutations) {
+                        if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+                            if (mutation.target instanceof HTMLElement 
+                                    && (mutation.target.matches(selector) || mutation.target.querySelector(selector))) {
+                                found = true;
+                                break;
+                            }
+
+                            for (const node of mutation.addedNodes) {
+                                if (node instanceof HTMLElement 
+                                        && (node.matches(selector) || node.querySelector(selector))) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (found) {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!found) {
+                        updatePossibleElements = false;
+                    }
+                }
+
+                const possibleElements: NodeListOf<HTMLElement> | undefined =
+                    updatePossibleElements ? document.querySelectorAll(selector) : waitingElement.elements;
+                if (possibleElements && possibleElements.length > 0) {
+                    waitingElement.elements = possibleElements;
+
+                    const element = visibleCheck ? findValidElement(possibleElements) : possibleElements[0] as HTMLElement;
+                    if (element) {
+                        if (chrome.runtime?.id) {
+                            for (const callback of callbacks) {
+                                callback(element);
+                            }
+                        }
+
+                        foundSelectors.push(selector);
+                    }
                 }
             }
 

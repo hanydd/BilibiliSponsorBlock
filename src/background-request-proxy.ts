@@ -1,4 +1,5 @@
 import { objectToURI } from ".";
+import { getHash } from "./hash";
 
 export interface FetchResponse {
     responseText: string;
@@ -13,7 +14,8 @@ export interface FetchResponse {
  * @param address The address to add to the SponsorBlock server address
  * @param callback
  */
-export async function sendRealRequestToCustomServer(type: string, url: string, data: {} | null = {}) {
+export async function sendRealRequestToCustomServer(type: string, url: string,
+        data: Record<string, unknown> | null = {}) {
     // If GET, convert JSON to parameters
     if (type.toLowerCase() === "get") {
         url = objectToURI(url, data, true);
@@ -47,6 +49,16 @@ export function setupBackgroundRequestProxy() {
                     responseText: "",
                     status: -1,
                     ok: false
+                });
+            });
+
+            return true;
+        }
+
+        if (request.message === "getHash") {
+            getHash(request.value, request.times).then(callback).catch((e) => {
+                callback({
+                    error: e?.message
                 });
             });
 

@@ -9,7 +9,10 @@
         "sourceMap": true,
         "outDir": "./lib",
         "noEmitOnError": false,
-        "typeRoots": [ "node_modules/@types" ],
+        "typeRoots": [ "./node_modules/@types" ],
+        "paths": {
+            "react": [ "./node_modules/@types/react" ]
+        },
         "resolveJsonModule": true,
         "jsx": "react",
         "declaration": true,
@@ -20,6 +23,9 @@
         ]
     },
     "include": [
-        "src/**/*"
+        "./src/**/*"
     ],
+    "exclude": [
+        "../node_modules/*",
+    ]
 }

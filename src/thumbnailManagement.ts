@@ -1,4 +1,7 @@
 import { waitFor } from ".";
+import { addCleanupListener } from "./cleanup";
+import { onMobile } from "./pageInfo";
+import { getThumbnailLink, getThumbnailSelectors } from "./thumbnail-selectors";
 import { isOnInvidious } from "./video";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
@@ -6,7 +9,7 @@ export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 const handledThumbnails = new Map<HTMLElement, MutationObserver>();
 let lastGarbageCollection = 0;
 let thumbnailListener: ThumbnailListener | null = null;
-let selector = "ytd-thumbnail, ytd-playlist-thumbnail";
+let selector = getThumbnailSelectors();
 let invidiousSelector = "div.thumbnail";
 
 export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad: () => void,
@@ -20,7 +23,7 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
         onInitialLoad?.();
 
         // Label thumbnails on load if on Invidious (wait for variable initialization before checking)
-        waitFor(() => isOnInvidious() !== null).then(() => {
+        void waitFor(() => isOnInvidious() !== null).then(() => {
             if (isOnInvidious()) newThumbnails();
         });
     };
@@ -31,19 +34,55 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
         window.addEventListener("load", onLoad);
     }
 
-    waitFor(() => configReady(), 5000, 10).then(() => {
+    void waitFor(() => configReady(), 5000, 10).then(() => {
         newThumbnails();
+    });
+
+    if (onMobile()) {
+        const eventListener = () => mobileNewThumbnailHandler()
+        window.addEventListener("updateui", eventListener);
+        window.addEventListener("state-navigateend", eventListener);
+
+        addCleanupListener(() => {
+            window.removeEventListener("updateui", eventListener);
+            window.removeEventListener("state-navigateend", eventListener);
+        });
+    }
+
+    addCleanupListener(() => {
+        for (const handledThumbnail of handledThumbnails) {
+            handledThumbnail[1].disconnect();
+        }
+
+        handledThumbnails.clear();
     });
 }
 
-export function newThumbnails(): HTMLElement[] {
+let lastThumbnailCheck = 0;
+let thumbnailCheckTimeout: NodeJS.Timer | null = null;
+
+export function newThumbnails() {
+    if (performance.now() - lastThumbnailCheck < 50 || thumbnailCheckTimeout) {
+        if (thumbnailCheckTimeout) {
+            return;
+        } else {
+            thumbnailCheckTimeout = setTimeout(() => {
+                thumbnailCheckTimeout = null;
+                newThumbnails();
+            }, 50);
+            return;
+        }
+    }
+
+    lastThumbnailCheck = performance.now();
+
     const notNewThumbnails = handledThumbnails.keys();
 
     const thumbnails = document.querySelectorAll(isOnInvidious() ? invidiousSelector : selector) as NodeListOf<HTMLElement>;
-    const newThumbnails: HTMLElement[] = [];
+    const newThumbnailsFound: HTMLElement[] = [];
     for (const thumbnail of thumbnails) {
         if (!handledThumbnails.has(thumbnail)) {
-            newThumbnails.push(thumbnail);
+            newThumbnailsFound.push(thumbnail);
             
             const observer = new MutationObserver((mutations) => {
                 for (const mutation of mutations) {
@@ -55,12 +94,12 @@ export function newThumbnails(): HTMLElement[] {
             });
             handledThumbnails.set(thumbnail, observer);
 
-            const link = thumbnail.querySelector("ytd-thumbnail a");
+            const link = getThumbnailLink(thumbnail);
             if (link) observer.observe(link, { attributes: true });
         }
     }
 
-    thumbnailListener?.(newThumbnails);
+    thumbnailListener?.(newThumbnailsFound);
 
     if (performance.now() - lastGarbageCollection > 5000) {
         // Clear old ones (some will come back if they are still on the page)
@@ -72,11 +111,30 @@ export function newThumbnails(): HTMLElement[] {
                 handledThumbnails.delete(thumbnail);
             }
         }
-    }
 
-    return newThumbnails;
+        lastGarbageCollection = performance.now();
+    }
 }
 
 export function updateAll(): void {
     if (thumbnailListener) thumbnailListener([...handledThumbnails.keys()]);
+}
+
+const mobileCheckTimes = [100, 200, 300, 400, 500, 750, 1000, 1500, 2500, 5000, 10000];
+let mobileTimeout: NodeJS.Timer | null = null;
+
+/**
+ * Will check multiple times up to 5 seconds in the future
+ */
+function mobileNewThumbnailHandler(index = 0) {
+    if (index >= mobileCheckTimes.length) return;
+    if (mobileTimeout) clearTimeout(mobileTimeout);
+
+    const timeout = mobileCheckTimes[index] - (index > 0 ? mobileCheckTimes[index - 1] : 0);
+    mobileTimeout = setTimeout(() => {
+        newThumbnails();
+        mobileNewThumbnailHandler(index + 1);
+    }, timeout);
+
+    newThumbnails();
 }

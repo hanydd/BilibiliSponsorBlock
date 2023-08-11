@@ -35,7 +35,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
         this.syncDefaults = syncDefaults;
         this.localDefaults = localDefaults;
 
-        this.setupConfig(migrateOldSyncFormats).then((result) => {
+        void this.setupConfig(migrateOldSyncFormats).then((result) => {
             this.config = result?.sync;
             this.local = result?.local;
         });
@@ -67,7 +67,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             set<K extends keyof SyncStorage>(obj: SyncStorage, prop: K, value: SyncStorage[K]) {
                 self.cachedSyncConfig![prop] = value;
     
-                chrome.storage.sync.set({
+                void chrome.storage.sync.set({
                     [prop]: value
                 });
     
@@ -81,7 +81,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             },
     
             deleteProperty(obj: SyncStorage, prop: keyof SyncStorage) {
-                chrome.storage.sync.remove(<string> prop);
+                void chrome.storage.sync.remove(<string> prop);
     
                 return true;
             }
@@ -92,7 +92,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             set<K extends keyof LocalStorage>(obj: LocalStorage, prop: K, value: LocalStorage[K]) {
                 self.cachedLocalStorage![prop] = value;
     
-                chrome.storage.local.set({
+                void chrome.storage.local.set({
                     [prop]: value
                 });
     
@@ -106,7 +106,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             },
     
             deleteProperty(obj: LocalStorage, prop: keyof LocalStorage) {
-                chrome.storage.local.remove(<string> prop);
+                void chrome.storage.local.remove(<string> prop);
     
                 return true;
             }
@@ -132,13 +132,13 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             }
         }
     
-        chrome.storage.sync.set({
+        void  chrome.storage.sync.set({
             [prop]: value
         });
     }
     
     forceLocalUpdate(prop: string): void {
-        chrome.storage.local.set({
+        void chrome.storage.local.set({
             [prop]: this.cachedLocalStorage![prop]
         });
     }
@@ -157,7 +157,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
         })]);
     }
     
-    async setupConfig(migrateOldSyncFormats: (config: SyncStorage) => void): Promise<StorageObjects<T, U>> {
+    async setupConfig(migrateOldSyncFormats: (config: T) => void): Promise<StorageObjects<T, U>> {
         if (typeof(chrome) === "undefined") return null as unknown as StorageObjects<T, U>;
     
         await this.fetchConfig();
