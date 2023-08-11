@@ -45,8 +45,6 @@ interface VideoModuleParams {
     documentScript: string;
 }
 
-let YOUTUBE_HOSTS = ["m.youtube.com", "www.youtube.com", "www.youtube-nocookie.com", "music.youtube.com"];
-
 let video: HTMLVideoElement | null = null;
 let videoMutationObserver: MutationObserver | null = null;
 let videoMutationListenerElement: HTMLElement | null = null;
@@ -86,7 +84,7 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     void waitFor(() => getConfig().isReady(), 1000, 1).then(() => videoIDChange(getYouTubeVideoID()));
 
     // Can't use onInvidious at this point, the configuration might not be ready.
-    if (YOUTUBE_HOSTS.includes(location.host)) {
+    if (YT_DOMAINS.includes(location.host)) {
         void waitForElement("a.ytp-title-link[data-sessionlink='feature=player-title']")
         .then(() => videoIDChange(getYouTubeVideoID()));
     }
@@ -258,19 +256,19 @@ export function parseYouTubeVideoIDFromURL(url: string): ParsedVideoURL {
     }
 
     // Check if valid hostname
-    if (getConfig().isReady() && getConfig().config!.invidiousInstances.includes(urlObject.host)) {
+    if (YT_DOMAINS.includes(urlObject.host)) {
+        // on YouTube
+        if (urlObject.host === "m.youtube.com") onMobileYouTube = true;
+        onInvidious = false;
+    } else if (getConfig().isReady() && getConfig().config!.invidiousInstances.includes(urlObject.hostname)) {
         onInvidious = true;
-    } else if (urlObject.host === "m.youtube.com") {
-        onMobileYouTube = true;
-    } else if (!["m.youtube.com", "www.youtube.com", "www.youtube-nocookie.com", "music.youtube.com"].includes(urlObject.host)) {
+    } else { // fail to invidious
         return {
             videoID: null,
             onInvidious,
             onMobileYouTube,
             callLater: !getConfig().isReady() // Might be an Invidious tab
         };
-    } else {
-        onInvidious = false;
     }
 
     //Get ID from searchParam
