@@ -1,3 +1,5 @@
+import { chromeP } from "./browserApi";
+
 const cleanupListeners: (() => void)[] = [];
 export function addCleanupListener(listener: () => void) {
     cleanupListeners.push(listener);
@@ -41,17 +43,17 @@ export interface InjectedScript {
 
 export async function injectUpdatedScripts(extraScripts: InjectedScript[] = []) {
     const scripts = extraScripts.concat(chrome.runtime.getManifest().content_scripts || []);
-    if (chrome.runtime.getManifest().manifest_version === 3) {
+    if ("scripting" in chrome) {
         for (const cs of scripts) {
-            for (const tab of await chrome.tabs.query({url: cs.matches})) {
+            for (const tab of await chromeP.tabs.query({url: cs.matches})) {
                 if (cs.css && cs.css.length > 0) {
-                    await chrome.scripting.insertCSS({
+                    await chromeP.scripting.insertCSS({
                         target: {tabId: tab.id!},
                         files: cs.css || [],
                     })
                 }
     
-                await chrome.scripting.executeScript({
+                await chromeP.scripting.executeScript({
                     target: {tabId: tab.id!},
                     files: cs.js || [],
                     

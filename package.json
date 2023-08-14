@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.0.199",
+    "@types/firefox-webext-browser": "^111.0.1",
     "@types/react": "^18.0.21",
     "@types/jest": "^29.5.1",
     "eslint": "^8.24.0",
