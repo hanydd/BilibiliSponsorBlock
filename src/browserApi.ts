@@ -1,1 +1,1 @@
-export const chromeP = typeof(browser) === "undefined" ? chrome : browser;
+export const chromeP = typeof(browser) === "undefined" ? (typeof(chrome) !== "undefined" ? chrome : null as unknown as typeof chrome) : browser;
