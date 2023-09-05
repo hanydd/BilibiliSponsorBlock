@@ -471,7 +471,8 @@ function addPageListeners(): void {
 export function getVideo(): HTMLVideoElement | null {
     setupVideoMutationListener();
 
-    if (!isVisible(video)) {
+    if (!isVisible(video)
+            || (onMobileYouTube && video && isNaN(video.duration))) {
         void refreshVideoAttachments();
     }
 
