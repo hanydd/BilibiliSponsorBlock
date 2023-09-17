@@ -468,11 +468,14 @@ function addPageListeners(): void {
     });
 }
 
+let lastRefresh = 0;
 export function getVideo(): HTMLVideoElement | null {
     setupVideoMutationListener();
 
-    if (!isVisible(video)
-            || (onMobileYouTube && video && isNaN(video.duration))) {
+    if ((!isVisible(video)
+            || (onMobileYouTube && video && isNaN(video.duration)))
+            && Date.now() - lastRefresh > 500) {
+        lastRefresh = Date.now();
         void refreshVideoAttachments();
     }
 
