@@ -237,7 +237,8 @@ function getYouTubeVideoIDFromURL(url: string): VideoID | null {
  * Parse without side effects
  */
 export function parseYouTubeVideoIDFromURL(url: string): ParsedVideoURL {
-    if(url.startsWith("https://www.youtube.com/tv#/")) url = url.replace("#", "");
+    if (url.startsWith("https://www.youtube.com/tv#/")) url = url.replace("#", "");
+    if (url.startsWith("https://www.youtube.com/tv?")) url = url.replace(/\?[^#]+#/, "");
     let onInvidious = false;
     let onMobileYouTube = false;
 
