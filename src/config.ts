@@ -227,11 +227,11 @@ export function keybindToString(keybind: Keybind): string {
 
     let ret = "";
     if (keybind.ctrl)
-        ret += "Ctrl+";
+        ret += "Ctrl + ";
     if (keybind.alt)
-        ret += "Alt+";
+        ret += "Alt + ";
     if (keybind.shift)
-        ret += "Shift+";
+        ret += "Shift + ";
 
     return ret += formatKey(keybind.key);
 }
