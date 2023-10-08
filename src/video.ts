@@ -86,6 +86,7 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     // Can't use onInvidious at this point, the configuration might not be ready.
     if (YT_DOMAINS.includes(location.host)) {
         void waitForElement("a.ytp-title-link[data-sessionlink='feature=player-title']")
+        .then((e) => waitFor(() => e.getAttribute("href")))
         .then(() => videoIDChange(getYouTubeVideoID()));
     }
 
