@@ -200,7 +200,7 @@ export function getYouTubeVideoID(url?: string): VideoID | null {
 }
 
 function getYouTubeVideoIDFromDocument(hideIcon = true, pageHint = PageType.Watch): VideoID | null {
-    const selector = "a.ytp-title-link[data-sessionlink='feature=player-title']";
+    const selector = "a.ytp-title-link[data-sessionlink='feature=player-title']:not(.cbCustomTitle)";
     // get ID from document (channel trailer / embedded playlist)
     const element = pageHint === PageType.Embed ? document.querySelector(selector)
         : video?.parentElement?.parentElement?.querySelector(selector);
