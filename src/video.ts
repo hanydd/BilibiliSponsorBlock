@@ -45,6 +45,8 @@ interface VideoModuleParams {
     documentScript: string;
 }
 
+const embedTitleSelector = "a.ytp-title-link[data-sessionlink='feature=player-title']:not(.cbCustomTitle)";
+
 let video: HTMLVideoElement | null = null;
 let videoMutationObserver: MutationObserver | null = null;
 let videoMutationListenerElement: HTMLElement | null = null;
@@ -85,9 +87,9 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
 
     // Can't use onInvidious at this point, the configuration might not be ready.
     if (YT_DOMAINS.includes(location.host)) {
-        void waitForElement("a.ytp-title-link[data-sessionlink='feature=player-title']")
-        .then((e) => waitFor(() => e.getAttribute("href")))
-        .then(() => videoIDChange(getYouTubeVideoID()));
+        void waitForElement(embedTitleSelector)
+            .then((e) => waitFor(() => e.getAttribute("href")))
+            .then(() => videoIDChange(getYouTubeVideoID()));
     }
 
     addPageListeners();
@@ -200,10 +202,9 @@ export function getYouTubeVideoID(url?: string): VideoID | null {
 }
 
 function getYouTubeVideoIDFromDocument(hideIcon = true, pageHint = PageType.Watch): VideoID | null {
-    const selector = "a.ytp-title-link[data-sessionlink='feature=player-title']:not(.cbCustomTitle)";
     // get ID from document (channel trailer / embedded playlist)
-    const element = pageHint === PageType.Embed ? document.querySelector(selector)
-        : video?.parentElement?.parentElement?.querySelector(selector);
+    const element = pageHint === PageType.Embed ? document.querySelector(embedTitleSelector)
+        : video?.parentElement?.parentElement?.querySelector(embedTitleSelector);
     const videoURL = element?.getAttribute("href");
     if (videoURL) {
         onInvidious = hideIcon;
@@ -379,6 +380,10 @@ function setupVideoMutationListener() {
     }
 }
 
+// Used only for embeds to wait until the url changes
+let embedLastUrl = "";
+let waitingForEmbed = false;
+
 async function refreshVideoAttachments(): Promise<void> {
     if (waitingForNewVideo) return;
 
@@ -396,7 +401,23 @@ async function refreshVideoAttachments(): Promise<void> {
     params.videoElementChange?.(isNewVideo, video);
     setupVideoMutationListener();
 
-    void videoIDChange(getYouTubeVideoID());
+    if (document.URL.includes("/embed/")) {
+        if (waitingForEmbed) {
+            return;
+        }
+        waitingForEmbed = true;
+
+        const waiting = waitForElement(embedTitleSelector)
+            .then((e) => waitFor(() => e, undefined, undefined, (e) => e.getAttribute("href") !== embedLastUrl 
+                && !!e.getAttribute("href") && !!e.textContent));
+
+        void waiting.catch(() => waitingForEmbed = false);
+        void waiting.then((e) => embedLastUrl = e.getAttribute("href")!)
+            .then(() => waitingForEmbed = false)
+            .then(() => videoIDChange(getYouTubeVideoID()));
+    } else {
+        void videoIDChange(getYouTubeVideoID());
+    }
 }
 
 function windowListenerHandler(event: MessageEvent): void {
