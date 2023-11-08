@@ -19,6 +19,7 @@ export interface TooltipProps {
     timeout?: number;
     opacity?: number;
     displayTriangle?: boolean;
+    topTriangle?: boolean;
     extraClass?: string;
     showLogo?: boolean;
     showGotIt?: boolean;
@@ -45,7 +46,8 @@ export class GenericTooltip {
         props.rightOffset ??= "inherit";
         props.innerBottomMargin ??= "0px";
         props.opacity ??= 0.7;
-        props.displayTriangle ??= true;
+        props.displayTriangle ??= !props.topTriangle;
+        props.topTriangle ??= false;
         props.extraClass ??= "";
         props.showLogo ??= true;
         props.showGotIt ??= true;
@@ -93,7 +95,8 @@ export class GenericTooltip {
                     margin: props.center ? "auto" : undefined
                 }}
                 className={"sponsorBlockTooltip" +
-                    (props.displayTriangle ? " sbTriangle" : "") +
+                    (props.displayTriangle || props.topTriangle ? " sbTriangle" : "") +
+                    (props.topTriangle ? " sbTopTriangle" : "") +
                     (props.opacity === 1 ? " sbSolid" : "") +
                     ` ${props.extraClass}`}>
                 <div style={{
@@ -108,7 +111,7 @@ export class GenericTooltip {
                     : null}
                     {this.text ? 
                         <span className={`sponsorSkipObject${!props.showLogo ? ` sponsorSkipObjectFirst` : ``}`}>
-                            {this.text + (props.link ? ". " : "")}
+                            {this.getTextElements(this.text + (props.link ? ". " : ""))}
                             {props.link ? 
                                 <a style={{textDecoration: "underline"}} 
                                         target="_blank"
@@ -118,7 +121,7 @@ export class GenericTooltip {
                                 </a> 
                             : (props.linkOnClick ? 
                                 <a style={{textDecoration: "underline", marginLeft: "5px", cursor: "pointer"}} 
-                                        onClick={props.linkOnClick}>
+                                        onClick={props.linkOnClick} onAuxClick={props.linkOnClick}>
                                     {chrome.i18n.getMessage("LearnMore")}
                                 </a> 
                             : null)}
@@ -149,6 +152,24 @@ export class GenericTooltip {
                 : null}
             </div>
         )
+    }
+
+    private getTextElements(text: string): JSX.Element[] {
+        if (!text.includes("\n")) return [<>{text}</>];
+
+        const result: JSX.Element[] = [];
+
+        for (const line of text.split("\n")) {
+            result.push(
+                <div style={{
+                    padding: "5px"
+                }}>
+                    {line}
+                </div>
+            );
+        }
+
+        return result;
     }
 
     getButtons(buttons: ButtonListener[] | undefined, buttonsAtBottom: boolean): JSX.Element[] {
