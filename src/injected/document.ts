@@ -207,6 +207,11 @@ export function init(): void {
     }
 
     if (YT_DOMAINS.includes(window.location.host) && !onMobile()) {
+        if (!window.customElements) {
+            // Old versions of Chrome that don't support "world" option for content scripts
+            alert("Your browser is out of date and is not supported by DeArrow. Please update your browser to use DeArrow.");
+        }
+
         // If customElement.define() is native, we will be given a class constructor and should extend it.
         // If it is not native, we will be given a function and should wrap it.
         const isDefineNative = window.customElements.define.toString().indexOf("[native code]") !== -1;
