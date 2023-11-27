@@ -9,6 +9,7 @@ export interface TooltipProps {
     textBoxes?: string[];
     link?: string;
     linkOnClick?: () => void;
+    secondButtonOnClick?: () => void;
     referenceNode: HTMLElement;
     prependElement?: HTMLElement; // Element to append before
     bottomOffset?: string;
@@ -23,6 +24,7 @@ export interface TooltipProps {
     extraClass?: string;
     showLogo?: boolean;
     showGotIt?: boolean;
+    secondButtonText?: string;
     center?: boolean;
     positionRealtive?: boolean;
     containerAbsolute?: boolean;
@@ -150,6 +152,17 @@ export class GenericTooltip {
                         {chrome.i18n.getMessage("GotIt")}
                     </button>
                 : null}
+
+                {
+                    props.secondButtonText ?
+                        <button className="sponsorSkipObject sponsorSkipNoticeButton"
+                            style ={{float: "right" }}
+                            onClick={() => props.secondButtonOnClick?.()}>
+
+                            {props.secondButtonText}
+                        </button>
+                    : null
+                }
             </div>
         )
     }
