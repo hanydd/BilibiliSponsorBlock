@@ -32,10 +32,13 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
     cachedLocalStorage: U | null = null;
     config: T | null = null;
     local: U | null = null;
+    inDeArrow = false;
 
-    constructor (syncDefaults: T, localDefaults: U, migrateOldSyncFormats: (config: T) => void) {
+    constructor (syncDefaults: T, localDefaults: U,
+            migrateOldSyncFormats: (config: T) => void, inDeArrow = false) {
         this.syncDefaults = syncDefaults;
         this.localDefaults = localDefaults;
+        this.inDeArrow = inDeArrow;
 
         void this.setupConfig(migrateOldSyncFormats).then((result) => {
             this.config = result?.sync;
@@ -153,9 +156,11 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
                 if (this.cachedSyncConfig === undefined) {
                     this.cachedSyncConfig = {} as T;
 
-                    if (window.location.href.includes("options.html")) {
+                    if (this.inDeArrow 
+                            || window.location.href.includes("options.html")) {
                         alert(`${chrome.i18n.getMessage("syncDisabledWarning")}${
-                            isFirefoxOrSafari() && !isSafari() ? ` ${chrome.i18n.getMessage("syncDisabledFirefoxSuggestions")}` : ``}`);
+                            this.inDeArrow ? `\n\n${chrome.i18n.getMessage("syncDisabledWarningDeArrow")}` : ``}${
+                            isFirefoxOrSafari() && !isSafari() ? `\n\n${chrome.i18n.getMessage("syncDisabledFirefoxSuggestions")}` : ``}`);
                     }
                 }
 
