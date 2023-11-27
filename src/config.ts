@@ -1,3 +1,5 @@
+import { isFirefoxOrSafari } from ".";
+
 export interface SyncStorage {
     invidiousInstances: string[];
 }
@@ -147,6 +149,16 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
         await Promise.all([new Promise<void>((resolve) => {
             chrome.storage.sync.get(null, (items) => {
                 this.cachedSyncConfig = <T> <unknown> items;
+
+                if (this.cachedSyncConfig === undefined) {
+                    this.cachedSyncConfig = {} as T;
+
+                    if (window.location.href.includes("options.html")) {
+                        alert(`${chrome.i18n.getMessage("syncDisabledWarning")}${
+                            isFirefoxOrSafari() && !isSafari() ? ` ${chrome.i18n.getMessage("syncDisabledFirefoxSuggestions")}` : ``}`);
+                    }
+                }
+
                 resolve();
             });
         }), new Promise<void>((resolve) => {
