@@ -51,7 +51,7 @@ export function getFormattedTime(seconds: number, precise?: boolean): string | n
 export function getErrorMessage(statusCode: number, responseText: string): string {
     const postFix = ((responseText && !(responseText.includes(`cf-wrapper`) || responseText.includes("<!DOCTYPE html>"))) ? "\n\n" + responseText : "");
     // display response body for 4xx
-    if([400, 429, 409, 0].includes(statusCode)) {
+    if([400, 409, 0].includes(statusCode)) {
         return chrome.i18n.getMessage(statusCode + "") + " " + chrome.i18n.getMessage("errorCode") + statusCode + postFix;
     } else if (statusCode >= 500 && statusCode <= 599) {
         // 503 == 502
