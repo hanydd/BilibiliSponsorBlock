@@ -126,25 +126,20 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
     
     forceSyncUpdate(prop: string): void {
         const value = this.cachedSyncConfig![prop];
-        if (prop === "unsubmittedSegments") {
-            // Early to be safe
-            if (JSON.stringify(value).length + prop.length > 8000) {
-                for (const key in value) {
-                    if (!value[key] || value[key].length <= 0) {
-                        delete value[key];
-                    }
-                }
-            }
-        }
-    
-        void  chrome.storage.sync.set({
+        void chrome.storage.sync.set({
             [prop]: value
         });
     }
     
     forceLocalUpdate(prop: string): void {
+        const value = this.cachedSyncConfig![prop];
+
         void chrome.storage.local.set({
-            [prop]: this.cachedLocalStorage![prop]
+            [prop]: value
+        }, () => {
+            if (chrome.runtime.lastError) {
+                alert(chrome.i18n.getMessage("storageFull"));
+            }
         });
     }
     
