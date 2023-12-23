@@ -43,6 +43,7 @@ interface VideoModuleParams {
     windowListenerHandler?: (event: MessageEvent) => void;
     newVideosLoaded?: (videoIDs: VideoID[]) => void; // Used to pre-cache data for videos
     documentScript: string;
+    allowClipPage?: boolean;
 }
 
 const embedTitleSelector = "a.ytp-title-link[data-sessionlink='feature=player-title']:not(.cbCustomTitle)";
@@ -73,7 +74,8 @@ let params: VideoModuleParams = {
     resetValues: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     windowListenerHandler: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     newVideosLoaded: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-    documentScript: ""
+    documentScript: "",
+    allowClipPage: false
 };
 let getConfig: () => ProtoConfig<SyncStorage, LocalStorage>;
 export function setupVideoModule(moduleParams: VideoModuleParams, config: () => ProtoConfig<SyncStorage, LocalStorage>) {
@@ -139,7 +141,11 @@ export async function checkVideoIDChange(): Promise<boolean> {
 
 async function videoIDChange(id: VideoID | null): Promise<boolean> {
     // don't switch to invalid value
-    if (!id && videoID && !document?.URL?.includes("youtube.com/clip/")) return false;
+    if (!id && videoID &&
+            (params.allowClipPage || !document?.URL?.includes("youtube.com/clip/"))) {
+        return false;
+    }
+
     //if the id has not changed return unless the video element has changed
     if (videoID === id && (isVisible(video) || !video)) return false;
 
@@ -190,7 +196,7 @@ export function getYouTubeVideoID(url?: string): VideoID | null {
     // pageType shortcut
     if (pageType === PageType.Channel) return getYouTubeVideoIDFromDocument();
     // clips should never skip, going from clip to full video has no indications.
-    if (url.includes("youtube.com/clip/")) return null;
+    if (!params.allowClipPage && url.includes("youtube.com/clip/")) return null;
     // skip to document and don't hide if on /embed/
     if (url.includes("/embed/") && url.includes("youtube.com")) return getYouTubeVideoIDFromDocument(false, PageType.Embed);
     // skip to URL if matches youtube watch or invidious or matches youtube pattern
@@ -424,7 +430,8 @@ function windowListenerHandler(event: MessageEvent): void {
     const data = event.data;
     const dataType = data.type;
 
-    if (data.source !== "sponsorblock" || document?.URL?.includes("youtube.com/clip/")) return;
+    if (data.source !== "sponsorblock"
+        || (!params.allowClipPage && document?.URL?.includes("youtube.com/clip/"))) return;
 
     if (dataType === "navigation") {
         newThumbnails();
