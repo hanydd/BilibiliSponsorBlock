@@ -1,7 +1,6 @@
-export const YT_DOMAINS = [
-  "m.youtube.com",
-  "www.youtube.com",
-  "www.youtube-nocookie.com",
-  "music.youtube.com",
-  "www.youtubekids.com"
+export const BILI_DOMAINS = [
+  "m.bilibili.com",
+  "www.bilibili.com",
+  "t.bilibili.com",
+  "live.bilibili.com",
 ]

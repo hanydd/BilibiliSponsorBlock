@@ -6,7 +6,7 @@
 import { versionHigher } from "../versionHigher";
 import { PageType } from "../video";
 import { version } from "../version.json";
-import { YT_DOMAINS } from "../const";
+import { BILI_DOMAINS } from "../const";
 import { getThumbnailElements } from "../thumbnail-selectors";
 import { onMobile } from "../pageInfo";
 import { resetLastArtworkSrc, resetMediaSessionThumbnail, setMediaSessionInfo } from "./mediaSession";
@@ -206,7 +206,7 @@ export function init(): void {
         window.addEventListener("state-navigateend", navigateFinishSend);
     }
 
-    if (YT_DOMAINS.includes(window.location.host) && !onMobile()) {
+    if (BILI_DOMAINS.includes(window.location.host) && !onMobile()) {
         if (!window.customElements) {
             // Old versions of Chrome that don't support "world" option for content scripts
             alert("Your browser is out of date and is not supported by DeArrow. Please update your browser to use DeArrow.");
