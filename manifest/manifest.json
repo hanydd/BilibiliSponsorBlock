@@ -1,6 +1,6 @@
 {
     "name": "__MSG_fullName__",
-    "short_name": "SponsorBlock",
+    "short_name": "SponsorBlockBili",
     "version": "5.4.28",
     "default_locale": "en",
     "description": "__MSG_Description__",
@@ -8,8 +8,7 @@
     "content_scripts": [{
         "run_at": "document_start",
         "matches": [
-            "https://*.youtube.com/*",
-            "https://www.youtube-nocookie.com/embed/*"
+            "https://*.bilibili.com/*"
         ],
         "all_frames": true,
         "js": [

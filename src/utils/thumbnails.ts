@@ -1,4 +1,4 @@
-import { isOnInvidious, parseYouTubeVideoIDFromURL } from "../../maze-utils/src/video";
+import { isOnInvidious, parseBilibiliVideoIDFromURL } from "../../maze-utils/src/video";
 import Config from "../config";
 import { getVideoLabel } from "./videoLabels";
 import { setThumbnailListener } from "../../maze-utils/src/thumbnailManagement";
@@ -15,7 +15,7 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
     
     const link = (isOnInvidious() ? thumbnail.parentElement : thumbnail.querySelector("#thumbnail")) as HTMLAnchorElement
     if (!link || link.nodeName !== "A" || !link.href) return null; // no link found
-    const videoID = parseYouTubeVideoIDFromURL(link.href)?.videoID;
+    const videoID = parseBilibiliVideoIDFromURL(link.href)?.videoID;
     if (!videoID) {
         hideThumbnailLabel(thumbnail);
         return null;

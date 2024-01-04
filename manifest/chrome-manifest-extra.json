@@ -7,6 +7,6 @@
     "persistent": false
   },
   "permissions": [
-    "https://*.youtube.com/*"
+    "https://*.bilibili.com/*"
   ]
 }
