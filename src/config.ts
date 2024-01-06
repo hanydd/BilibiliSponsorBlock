@@ -132,7 +132,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
     }
     
     forceLocalUpdate(prop: string): void {
-        const value = this.cachedSyncConfig![prop];
+        const value = this.cachedLocalStorage![prop];
 
         void chrome.storage.local.set({
             [prop]: value
