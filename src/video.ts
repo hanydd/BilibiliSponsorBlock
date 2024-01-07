@@ -354,10 +354,10 @@ function setupVideoMutationListener() {
         }
 
         lastMutationListenerCheck = Date.now();
-        const mainVideoObject = getElement("#movie_player", true);
+        const mainVideoObject = getElement("#bilibili-player", true);
         if (!mainVideoObject) return;
 
-        const videoContainer = mainVideoObject.querySelector(".html5-video-container") as HTMLElement;
+        const videoContainer = mainVideoObject.querySelector(".bpx-player-video-wrap") as HTMLElement;
         if (!videoContainer) return;
 
         if (videoMutationObserver) videoMutationObserver.disconnect();
