@@ -56,7 +56,7 @@
     "url": "git+https://github.com/ajayyy/maze-utils.git"
   },
   "author": "Ajay Ramachandran",
-  "license": "LGPL-3.0-or-later",
+  "license": "GPL-3.0",
   "private": true,
   "files": [
     "lib/**/*"
