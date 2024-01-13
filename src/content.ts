@@ -483,33 +483,11 @@ function createPreviewBar(): void {
     if (previewBar !== null) return;
 
     const progressElementOptions = [{
-            // For mobile YouTube
-            selector: ".progress-bar-background",
-            isVisibleCheck: true
-        }, {
-            // For new mobile YouTube (#1287)
-            selector: ".progress-bar-line",
-            isVisibleCheck: true
-        }, {
+        // TODO: Add support for mobile (not really needed)
+        // TODO: Add support for invidiou sites
             // For Desktop YouTube
-            selector: ".ytp-progress-bar",
+            selector: ".bpx-player-progress-schedule-wrap",
             isVisibleCheck: true
-        }, {
-            // For Desktop YouTube
-            selector: ".no-model.cue-range-marker",
-            isVisibleCheck: true
-        }, {
-            // For Invidious/VideoJS
-            selector: ".vjs-progress-holder",
-            isVisibleCheck: false
-        }, {
-            // For Youtube Music and YTKids
-            // there are two sliders, one for volume and one for progress - both called #progressContainer
-            selector: "#progress-bar>#sliderContainer>div>#sliderBar>#progressContainer",
-        }, {
-            // For piped
-            selector: ".shaka-ad-markers",
-            isVisibleCheck: false
         }
     ];
 
