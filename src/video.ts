@@ -305,36 +305,28 @@ export function parseBilibiliVideoIDFromURL(url: string): ParsedVideoURL {
 // }
 
 //checks if this channel is whitelisted, should be done only after the channelID has been loaded
-export async function whitelistCheck() {
-    try {
-        waitingForChannelID = true;
-        await waitFor(() => channelIDInfo.status === ChannelIDStatus.Found, 6000, 20);
+export function whitelistCheck() {
+    // TODO: find a route event in Bilibli
 
-        // If found, continue on, it was set by the listener
-    } catch (e) {
-        // try to get channelID from page-manager
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const pageMangerChannelID = (document.querySelector("ytd-page-manager") as any)?.data?.playerResponse?.videoDetails?.channelId
+    // Try fallback
+    const channelIDFallback = document.querySelector("a.up-name") // Bilibili watch page
+        // TODO: more types of pages?
+        // ?? document.querySelector("a.ytp-title-channel-logo") // YouTube Embed
+            ?.getAttribute("href")?.match(/(?:space\.bilibili\.com\/)([1-9][0-9]{0,11})/)?.[1];
 
-        // Try fallback
-        const channelIDFallback = (document.querySelector("a.ytd-video-owner-renderer") // YouTube
-            ?? document.querySelector("a.ytp-title-channel-logo") // YouTube Embed
-            ?? document.querySelector(".channel-profile #channel-name")?.parentElement?.parentElement // Invidious
-            ?? document.querySelector("a.slim-owner-icon-and-title")) // Mobile YouTube
-                ?.getAttribute("href")?.match(/\/(?:(?:channel|c|user|)\/|@)(UC[a-zA-Z0-9_-]{22}|[a-zA-Z0-9_-]+)/)?.[1];
-
-        if (channelIDFallback) {
-            channelIDInfo = {
-                status: ChannelIDStatus.Found,
-                id: (pageMangerChannelID ?? channelIDFallback) as ChannelID
-            };
-        } else {
-            channelIDInfo = {
-                status: ChannelIDStatus.Failed,
-                id: null
-            };
-        }
+    if (channelIDFallback) {
+        channelIDInfo = {
+            status: ChannelIDStatus.Found,
+            // id: (pageMangerChannelID ?? channelIDFallback) as ChannelID
+            id: (channelIDFallback) as ChannelID
+        };
+    } else {
+        channelIDInfo = {
+            status: ChannelIDStatus.Failed,
+            id: null
+        };
     }
+    // }
 
     waitingForChannelID = false;
     params.channelIDChange(channelIDInfo);
