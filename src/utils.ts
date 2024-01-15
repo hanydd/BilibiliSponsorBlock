@@ -240,16 +240,7 @@ export default class Utils {
 
     findReferenceNode(): HTMLElement {
         const selectors = [
-            "#player-container-id", // Mobile YouTube
-            "#movie_player",
-            ".html5-video-player", // May 2023 Card-Based YouTube Layout
-            "#c4-player", // Channel Trailer
-            "#player-container", // Preview on hover
-            "#main-panel.ytmusic-player-page", // YouTube music
-            "#player-container .video-js", // Invidious
-            ".main-video-section > .video-container", // Cloudtube
-            ".shaka-video-container", // Piped
-            "#player-container.ytk-player", // YT Kids
+            ".bpx-player-video-area" // bilibili video
         ];
 
         let referenceNode = findValidElementFromSelector(selectors)

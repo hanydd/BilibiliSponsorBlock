@@ -241,6 +241,8 @@ div:hover > .sponsorBlockChapterBar {
 
 	bottom: 100px;
 	right: 10px;
+
+	line-height: normal;
 }
 
 .sponsorSkipNoticeParent, .sponsorSkipNotice {

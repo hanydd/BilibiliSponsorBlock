@@ -6,11 +6,11 @@
 }
 
 .sponsorSkipNoticeParent, .sponsorSkipNotice {
-	border-spacing: var(--skip-notice-border-horizontal) var(--skip-notice-border-vertical);
+	border-spacing: var(--skip-notice-border-horizontal) var(--skip-notice-border-vertical) !important;
 	padding-left: var(--skip-notice-padding);
 	padding-right: var(--skip-notice-padding);
 
-	border-collapse: unset;
+	border-collapse: separate !important;
 }
 
 .sponsorSkipNoticeParent {
