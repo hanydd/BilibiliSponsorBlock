@@ -1748,7 +1748,7 @@ function createButton(baseID: string, title: string, callback: () => void, image
     newButton.draggable = isDraggable;
     newButton.id = baseID + "Button";
     newButton.classList.add("playerButton");
-    newButton.classList.add("ytp-button");
+    newButton.classList.add("bpx-player-ctrl-btn");
     newButton.setAttribute("title", chrome.i18n.getMessage(title));
     newButton.addEventListener("click", () => {
         callback();
@@ -1758,7 +1758,7 @@ function createButton(baseID: string, title: string, callback: () => void, image
     const newButtonImage = document.createElement("img");
     newButton.draggable = isDraggable;
     newButtonImage.id = baseID + "Image";
-    newButtonImage.className = "playerButtonImage";
+    newButtonImage.className = "playerButtonImage bpx-player-ctrl-btn-icon";
     newButtonImage.src = chrome.extension.getURL("icons/" + imageName);
 
     // Append image to button

@@ -3,14 +3,9 @@ import { getFormattedTimeToSeconds } from "../../maze-utils/src/formating";
 
 export function getControls(): HTMLElement {
     const controlsSelectors = [
-        // YouTube
-        ".ytp-right-controls",
-        // Mobile YouTube
-        ".player-controls-top",
-        // Invidious/videojs video element's controls element
-        ".vjs-control-bar",
-        // Piped shaka player
-        ".shaka-bottom-controls"
+        // Bilibili
+        ".bpx-player-control-bottom-right"
+        //TODO: Support mobile site
     ];
 
     for (const controlsSelector of controlsSelectors) {

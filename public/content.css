@@ -140,15 +140,17 @@ div:hover > .sponsorBlockChapterBar {
 }
 
 .playerButtonImage {
-	height: 60%;
-	top: 0;
-	bottom: 0;
-	display: block;
-	margin: auto;
+	height: 22px;
+	vertical-align: middle;
 }
 
 .playerButton {
-	vertical-align: top;
+	border: 0;
+	background: none;
+}
+
+.playerButton:last-of-type {
+	margin-right: 6px;
 }
 
 .playerButton.sbhidden:not(.autoHiding) {
