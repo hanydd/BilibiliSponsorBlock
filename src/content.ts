@@ -485,9 +485,10 @@ function createPreviewBar(): void {
     const progressElementOptions = [{
         // TODO: Add support for mobile (not really needed)
         // TODO: Add support for invidiou sites
-            // For Desktop YouTube
-            selector: ".bpx-player-progress-schedule-wrap",
-            isVisibleCheck: true
+        
+        // For Desktop Bilibili
+        selector: ".bpx-player-progress-schedule-wrap",
+        isVisibleCheck: true
         }
     ];
 
@@ -496,6 +497,7 @@ function createPreviewBar(): void {
         const el = option.isVisibleCheck ? findValidElement(allElements) : allElements[0];
 
         if (el) {
+            console.log("createPreviewBar parent node: ", el)
             const chapterVote = new ChapterVote(voteAsync);
             previewBar = new PreviewBar(el, isOnMobileYouTube(), isOnInvidious(), chapterVote, () => importExistingChapters(true));
 
@@ -1069,13 +1071,15 @@ async function sponsorsLookup(keepOldSubmissions = true) {
 
     if (response?.ok) {
         const receivedSegments: SponsorTime[] = JSON.parse(response.responseText)
-                    ?.filter((video) => video.videoID === getVideoID())
+        // TODO: Revert temporary test data
+                    // ?.filter((video) => video.videoID === getVideoID())
                     ?.map((video) => video.segments)?.[0]
                     ?.map((segment) => ({
                         ...segment,
                         source: SponsorSourceType.Server
                     }))
                     ?.sort((a, b) => a.segment[0] - b.segment[0]);
+        console.log("sponsor lookup", receivedSegments)
         if (receivedSegments && receivedSegments.length) {
             sponsorDataFound = true;
 
@@ -1319,6 +1323,8 @@ function updatePreviewBar(): void {
     const hashParams = getHashParams();
     const requiredSegment = hashParams?.requiredSegment as SegmentUUID || undefined;
     const previewBarSegments: PreviewBarSegment[] = [];
+    //TODO: remove temp console output
+    console.log("update preview bar, sponsorTimes:", sponsorTimes)
     if (sponsorTimes) {
         sponsorTimes.forEach((segment) => {
             if (segment.hidden !== SponsorHideType.Visible) return;

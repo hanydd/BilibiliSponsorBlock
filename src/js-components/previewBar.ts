@@ -83,7 +83,7 @@ class PreviewBar {
         this.createElement(parent);
         this.createChapterMutationObservers();
 
-        this.setupHoverText();
+        // this.setupHoverText();
     }
 
     setupHoverText(): void {

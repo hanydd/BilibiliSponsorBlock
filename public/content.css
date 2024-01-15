@@ -21,7 +21,7 @@
 
 	height: 100%;
 	transform: scaleY(0.6) translateY(-30%) translateY(1.5px);
-	z-index: 42;
+	z-index: 1;
 
 	transition: transform .1s cubic-bezier(0,0,0.2,1);
 }
