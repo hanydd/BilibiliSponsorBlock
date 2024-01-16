@@ -46,7 +46,7 @@ interface VideoModuleParams {
     allowClipPage?: boolean;
 }
 
-const embedTitleSelector = "a.ytp-title-link[data-sessionlink='feature=player-title']:not(.cbCustomTitle)";
+const embedTitleSelector = "h1.video-title";
 
 let video: HTMLVideoElement | null = null;
 let videoMutationObserver: MutationObserver | null = null;
@@ -88,10 +88,9 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     void waitFor(() => getConfig().isReady(), 1000, 1).then(() => videoIDChange(getBilibiliVideoID()));
 
     // Can't use onInvidious at this point, the configuration might not be ready.
+    //TODO: What does this wait for?
     if (BILI_DOMAINS.includes(location.host)) {
-        void waitForElement(embedTitleSelector)
-            .then((e) => waitFor(() => e.getAttribute("href")))
-            .then(() => videoIDChange(getBilibiliVideoID()));
+        void waitForElement(embedTitleSelector).then(() => videoIDChange(getBilibiliVideoID()));
     }
 
     addPageListeners();
