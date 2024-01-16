@@ -1,5 +1,5 @@
 import { waitFor } from ".";
-import { LocalStorage, ProtoConfig, SyncStorage } from "./config";
+import { LocalStorage, ProtoConfig, SyncStorage, isSafari } from "./config";
 import { getElement, isVisible, waitForElement } from "./dom";
 import { newThumbnails } from "./thumbnailManagement";
 import { YT_DOMAINS } from "./const";
@@ -394,7 +394,9 @@ async function refreshVideoAttachments(): Promise<void> {
     if (waitingForNewVideo) return;
 
     waitingForNewVideo = true;
-    const newVideo = await waitForElement("video", true) as HTMLVideoElement;
+    // Compatibility for Vinegar extension
+    const newVideo = (isSafari() && document.querySelector('video[vinegared="true"]') as HTMLVideoElement) 
+        || await waitForElement("video", true) as HTMLVideoElement;
     waitingForNewVideo = false;
 
     video = newVideo;
