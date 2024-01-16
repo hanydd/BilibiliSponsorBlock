@@ -82,11 +82,15 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
         if (currentSegmentCount > this.lastSegmentCount) {
             this.lastSegmentCount = currentSegmentCount;
 
-            const scrollElement = this.noticeRef.current.getElement().current.querySelector("#sponsorSkipNoticeMiddleRowSubmissionNotice");
-            scrollElement.scrollTo({
-                top: scrollElement.scrollHeight + 1000
-            });
+            this.scrollToBottom();
         }
+    }
+
+    scrollToBottom() {
+        const scrollElement = this.noticeRef.current.getElement().current.querySelector("#sponsorSkipNoticeMiddleRowSubmissionNotice");
+        scrollElement.scrollTo({
+            top: scrollElement.scrollHeight + 1000
+        });
     }
 
     render(): React.ReactElement {
@@ -238,7 +242,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
         sponsorTimesSubmitting = sponsorTimesSubmitting.sort((a, b) => a.segment[0] - b.segment[0]);
 
         Config.local.unsubmittedSegments[this.props.contentContainer().sponsorVideoID] = sponsorTimesSubmitting;
-        Config.forceSyncUpdate("unsubmittedSegments");
+        Config.forceLocalUpdate("unsubmittedSegments");
 
         this.forceUpdate();
     }

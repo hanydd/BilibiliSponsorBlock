@@ -35,7 +35,7 @@ import { openWarningDialog } from "./utils/warnings";
 import { isFirefoxOrSafari, waitFor } from "../maze-utils/src";
 import { getErrorMessage, getFormattedTime } from "../maze-utils/src/formating";
 import { getChannelIDInfo, getVideo, getIsAdPlaying, getIsLivePremiere, setIsAdPlaying, checkVideoIDChange, getVideoID, getBilibiliVideoID, setupVideoModule, checkIfNewVideoID, isOnInvidious, isOnMobileYouTube } from "../maze-utils/src/video";
-import { Keybind, StorageChangesObject, isSafari, keybindEquals } from "../maze-utils/src/config";
+import { Keybind, StorageChangesObject, isSafari, keybindEquals, keybindToString } from "../maze-utils/src/config";
 import { findValidElement } from "../maze-utils/src/dom"
 import { getHash, HashedValue } from "../maze-utils/src/hash";
 import { generateUserID } from "../maze-utils/src/setup";
@@ -47,6 +47,8 @@ import { cleanPage } from "./utils/pageCleaner";
 import { addCleanupListener } from "../maze-utils/src/cleanup";
 import { hideDeArrowPromotion, tryShowingDeArrowPromotion } from "./dearrowPromotion";
 import { asyncRequestToServer } from "./utils/requests";
+import { isMobileControlsOpen } from "./utils/mobileUtils";
+import { defaultPreviewTime } from "./utils/constants";
 
 cleanPage();
 
@@ -76,6 +78,7 @@ let activeSkipKeybindElement: ToggleSkippable = null;
 let retryFetchTimeout: NodeJS.Timeout = null;
 let shownSegmentFailedToFetchWarning = false;
 let selectedSegment: SegmentUUID | null = null;
+let previewedSegment = false;
 
 // JSON video info
 let videoInfo: VideoInfo = null;
@@ -308,7 +311,7 @@ function messageListener(request: Message, sender: unknown, sendResponse: (respo
 
             if (addedSegments) {
                 Config.local.unsubmittedSegments[getVideoID()] = sponsorTimesSubmitting;
-                Config.forceSyncUpdate("unsubmittedSegments");
+                Config.forceLocalUpdate("unsubmittedSegments");
 
                 updateEditButtonsOnPlayer();
                 updateSponsorTimesSubmitting(false);
@@ -370,6 +373,7 @@ function resetValues() {
     lastCheckTime = 0;
     lastCheckVideoTime = -1;
     retryCount = 0;
+    previewedSegment = false;
 
     sponsorTimes = [];
     existingChaptersImported = false;
@@ -457,16 +461,13 @@ function handleMobileControlsMutations(): void {
     skipButtonControlBar?.updateMobileControls();
 
     if (previewBar !== null) {
-        if (document.body.contains(previewBar.container)) {
-            const progressBarBackground = document.querySelector<HTMLElement>(".progress-bar-background");
-
-            if (progressBarBackground !== null) {
-                updatePreviewBarPositionMobile(progressBarBackground);
-            }
+        if (!previewBar.parent.contains(previewBar.container) && isMobileControlsOpen()) {
+            previewBar.createElement();
+            updatePreviewBar();
 
             return;
-        } else {
-            // The container does not exist anymore, remove that old preview bar
+        } else if (!previewBar.parent.isConnected) {
+            // The parent does not exist anymore, remove that old preview bar
             previewBar.remove();
             previewBar = null;
         }
@@ -1296,15 +1297,6 @@ function startSkipScheduleCheckingForStartSponsors() {
     }
 }
 
-/**
- * This function is required on mobile YouTube and will keep getting called whenever the preview bar disapears
- */
-function updatePreviewBarPositionMobile(parent: HTMLElement) {
-    if (document.getElementById("previewbar") === null) {
-        previewBar.createElement(parent);
-    }
-}
-
 function selectSegment(UUID: SegmentUUID): void {
     selectedSegment = UUID;
     updatePreviewBar();
@@ -1573,6 +1565,7 @@ function getStartTimes(sponsorTimes: SponsorTime[], includeIntersectingSegments:
  * @param time
  */
 function previewTime(time: number, unpause = true) {
+    previewedSegment = true;
     getVideo().currentTime = time;
 
     // Unpause the video if needed
@@ -1909,7 +1902,7 @@ function startOrEndTimingNewSegment() {
 
     // Save the newly created segment
     Config.local.unsubmittedSegments[getVideoID()] = sponsorTimesSubmitting;
-    Config.forceSyncUpdate("unsubmittedSegments");
+    Config.forceLocalUpdate("unsubmittedSegments");
 
     // Make sure they know if someone has already submitted something it while they were watching
     sponsorsLookup();
@@ -1947,7 +1940,7 @@ function cancelCreatingSegment() {
             sponsorTimesSubmitting = [];
             delete Config.local.unsubmittedSegments[getVideoID()];
         }
-        Config.forceSyncUpdate("unsubmittedSegments");
+        Config.forceLocalUpdate("unsubmittedSegments");
     }
 
     updateEditButtonsOnPlayer();
@@ -2096,7 +2089,7 @@ function clearSponsorTimes() {
 
         //clear the sponsor times
         delete Config.local.unsubmittedSegments[currentVideoID];
-        Config.forceSyncUpdate("unsubmittedSegments");
+        Config.forceLocalUpdate("unsubmittedSegments");
 
         //clear sponsor times submitting
         sponsorTimesSubmitting = [];
@@ -2224,7 +2217,16 @@ function openSubmissionMenu() {
     if (sponsorTimesSubmitting !== undefined && sponsorTimesSubmitting.length > 0) {
         submissionNotice = new SubmissionNotice(skipNoticeContentContainer, sendSubmitMessage);
     }
+}
 
+function previewRecentSegment() {
+    if (sponsorTimesSubmitting !== undefined && sponsorTimesSubmitting.length > 0) {
+        previewTime(sponsorTimesSubmitting[sponsorTimesSubmitting.length - 1].segment[0] - defaultPreviewTime);
+        
+        if (submissionNotice) {
+            submissionNotice.scrollToBottom();
+        }
+    }
 }
 
 function submitSegments() {
@@ -2247,6 +2249,11 @@ async function sendSubmitMessage() {
         return;
     }
 
+    if (!previewedSegment) {
+        alert(`${chrome.i18n.getMessage("previewSegmentRequired")} ${keybindToString(Config.config.previewKeybind)}`);
+        return;
+    }
+
     // Add loading animation
     playerButtons.submit.image.src = chrome.extension.getURL("icons/PlayerUploadIconSponsorBlocker.svg");
     const stopAnimation = AnimationUtils.applyLoadingAnimation(playerButtons.submit.button, 1, () => updateEditButtonsOnPlayer());
@@ -2260,7 +2267,7 @@ async function sendSubmitMessage() {
 
     //update sponsorTimes
     Config.local.unsubmittedSegments[getVideoID()] = sponsorTimesSubmitting;
-    Config.forceSyncUpdate("unsubmittedSegments");
+    Config.forceLocalUpdate("unsubmittedSegments");
 
     // Check to see if any of the submissions are below the minimum duration set
     if (Config.config.minDuration > 0) {
@@ -2288,7 +2295,7 @@ async function sendSubmitMessage() {
 
         // Remove segments from storage since they've already been submitted
         delete Config.local.unsubmittedSegments[getVideoID()];
-        Config.forceSyncUpdate("unsubmittedSegments");
+        Config.forceLocalUpdate("unsubmittedSegments");
 
         const newSegments = sponsorTimesSubmitting;
         try {
@@ -2356,16 +2363,10 @@ function getSegmentsMessage(sponsorTimes: SponsorTime[]): string {
 }
 
 function updateActiveSegment(currentTime: number): void {
-    const activeSegments = previewBar?.updateChapterText(sponsorTimes, sponsorTimesSubmitting, currentTime);
     chrome.runtime.sendMessage({
         message: "time",
         time: currentTime
     });
-
-    const chapterSegments = activeSegments?.filter((segment) => segment.actionType === ActionType.Chapter);
-    if (chapterSegments?.length > 0) {
-        sendTelemetryAndCount(chapterSegments, 0, true);
-    }
 }
 
 function nextChapter(): void {
@@ -2444,6 +2445,7 @@ function hotkeyListener(e: KeyboardEvent): void {
     const closeSkipNoticeKey = Config.config.closeSkipNoticeKeybind;
     const startSponsorKey = Config.config.startSponsorKeybind;
     const submitKey = Config.config.actuallySubmitKeybind;
+    const previewKey = Config.config.previewKeybind;
     const openSubmissionMenuKey = Config.config.submitKeybind;
     const nextChapterKey = Config.config.nextChapterKeybind;
     const previousChapterKey = Config.config.previousChapterKeybind;
@@ -2474,6 +2476,9 @@ function hotkeyListener(e: KeyboardEvent): void {
         return;
     } else if (keybindEquals(key, openSubmissionMenuKey)) {
         openSubmissionMenu();
+        return;
+    } else if (keybindEquals(key, previewKey)) {
+        previewRecentSegment();
         return;
     } else if (keybindEquals(key, nextChapterKey)) {
         if (sponsorTimes.length > 0) e.stopPropagation();
@@ -2594,7 +2599,7 @@ function checkForPreloadedSegment() {
 
     if (pushed) {
         Config.local.unsubmittedSegments[getVideoID()] = sponsorTimesSubmitting;
-        Config.forceSyncUpdate("unsubmittedSegments");
+        Config.forceLocalUpdate("unsubmittedSegments");
     }
 }
 
