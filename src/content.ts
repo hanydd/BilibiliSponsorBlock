@@ -1998,7 +1998,7 @@ function openInfoMenu() {
 
     const frame = document.createElement("iframe");
     frame.width = "374";
-    frame.height = "500";
+    frame.height = "650";
     frame.style.borderRadius = "6px";
     frame.addEventListener("load", async () => {
         frame.contentWindow.postMessage("", "*");
@@ -2046,15 +2046,15 @@ function openInfoMenu() {
 
     const parentNodeOptions = [{
         // Bilibili
-        selector: ".right-container-inner",
-        hasChildCheck: true
+        selector: ".up-panel-container", // append inside avatar container to avoid z-index issue
+        hasChildCheck: true,
     }];
     for (const option of parentNodeOptions) {
         const allElements = document.querySelectorAll(option.selector) as NodeListOf<HTMLElement>;
         const el = option.hasChildCheck ? elemHasChild(allElements) : allElements[0];
 
         if (el) {
-            if (option.hasChildCheck) el.insertBefore(popup, el.firstChild.nextSibling);
+            if (option.hasChildCheck) el.appendChild(popup);
             break;
         }
     }
