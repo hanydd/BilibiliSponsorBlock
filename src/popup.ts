@@ -70,7 +70,7 @@ class MessageHandler {
 let allowPopup = window === window.top;
 window.addEventListener("message", async (e): Promise<void> => {
     if (e.source !== window.parent) return;
-    if (e.origin.endsWith('.youtube.com')) {
+    if (e.origin.endsWith('.bilibili.com')) {
         allowPopup = true;
 
         if (e.data && e.data?.type === "style") {
