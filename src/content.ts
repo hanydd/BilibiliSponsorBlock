@@ -1999,7 +1999,7 @@ function openInfoMenu() {
     const frame = document.createElement("iframe");
     frame.width = "374";
     frame.height = "500";
-    frame.style.borderRadius = "12px";
+    frame.style.borderRadius = "6px";
     frame.addEventListener("load", async () => {
         frame.contentWindow.postMessage("", "*");
 
@@ -2045,19 +2045,16 @@ function openInfoMenu() {
     }
 
     const parentNodeOptions = [{
-        // YouTube
-        selector: "#secondary-inner",
+        // Bilibili
+        selector: ".right-container-inner",
         hasChildCheck: true
-    }, {
-        // old youtube theme
-        selector: "#watch7-sidebar-contents",
     }];
     for (const option of parentNodeOptions) {
         const allElements = document.querySelectorAll(option.selector) as NodeListOf<HTMLElement>;
         const el = option.hasChildCheck ? elemHasChild(allElements) : allElements[0];
 
         if (el) {
-            if (option.hasChildCheck) el.insertBefore(popup, el.firstChild);
+            if (option.hasChildCheck) el.insertBefore(popup, el.firstChild.nextSibling);
             break;
         }
     }
