@@ -304,11 +304,12 @@ export function parseBilibiliVideoIDFromURL(url: string): ParsedVideoURL {
 // }
 
 //checks if this channel is whitelisted, should be done only after the channelID has been loaded
-export function whitelistCheck() {
+export async function whitelistCheck() {
     // TODO: find a route event in Bilibli
 
     // Try fallback
-    const channelIDFallback = document.querySelector("a.up-name") // Bilibili watch page
+    const channelNameCard = await waitForElement("a.up-name"); // Bilibili watch page
+    const channelIDFallback = channelNameCard
         // TODO: more types of pages?
         // ?? document.querySelector("a.ytp-title-channel-logo") // YouTube Embed
             ?.getAttribute("href")?.match(/(?:space\.bilibili\.com\/)([1-9][0-9]{0,11})/)?.[1];
