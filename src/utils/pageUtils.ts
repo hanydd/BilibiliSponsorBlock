@@ -20,7 +20,7 @@ export function getControls(): HTMLElement {
 }
 
 export function isInPreviewPlayer(element: Element): boolean {
-    return !!element.closest("#inline-preview-player");
+    return !!element.closest(".v-recommend-inline-player");
 }
 
 export function isVisible(element: HTMLElement): boolean {
