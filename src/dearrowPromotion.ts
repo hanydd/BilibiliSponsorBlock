@@ -1,5 +1,5 @@
 import { waitFor } from "../maze-utils/src";
-import { getYouTubeTitleNode } from "../maze-utils/src/elements";
+import { getBilibiliTitleNode } from "../maze-utils/src/elements";
 import { getHash } from "../maze-utils/src/hash";
 import { getVideoID, isOnInvidious, isOnMobileYouTube } from "../maze-utils/src/video";
 import Config from "./config";
@@ -22,7 +22,7 @@ export async function tryShowingDeArrowPromotion() {
 
             if (!await isDeArrowInstalled()) {
                 try {
-                    const element = await waitFor(() => getYouTubeTitleNode(), 5000, 500, (e) => isVisible(e)) as HTMLElement;
+                    const element = await waitFor(() => getBilibiliTitleNode(), 5000, 500, (e) => isVisible(e)) as HTMLElement;
                     if (element && element.innerText && badTitle(element.innerText)) {
                         const hashPrefix = (await getHash(getVideoID(), 1)).slice(0, 4);
                         const deArrowData = await asyncRequestToServer("GET", "/api/branding/" + hashPrefix);

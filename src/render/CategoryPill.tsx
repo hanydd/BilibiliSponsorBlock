@@ -6,7 +6,7 @@ import { VoteResponse } from "../messageTypes";
 import { Category, SegmentUUID, SponsorTime } from "../types";
 import { Tooltip } from "./Tooltip";
 import { waitFor } from "../../maze-utils/src";
-import { getYouTubeTitleNode } from "../../maze-utils/src/elements";
+import { getBilibiliTitleNode } from "../../maze-utils/src/elements";
 import { addCleanupListener } from "../../maze-utils/src/cleanup";
 
 const id = "categoryPill";
@@ -44,7 +44,7 @@ export class CategoryPill {
 
     private async attachToPageInternal(): Promise<void> {
         const referenceNode = 
-            await waitFor(() => getYouTubeTitleNode());
+            await waitFor(() => getBilibiliTitleNode());
 
         if (referenceNode && !referenceNode.contains(this.container)) {
             if (!this.container) {
