@@ -308,7 +308,10 @@ export async function whitelistCheck() {
     // TODO: find a route event in Bilibli
 
     // Try fallback
-    const channelNameCard = await waitForElement("a.up-name"); // Bilibili watch page
+    // Bilibili watch page
+    const channelNameCard = await Promise.race([
+        waitForElement("div.membersinfo-upcard > a.avatar"), // collab video with multiple up 
+        waitForElement("a.up-name")]);
     const channelIDFallback = channelNameCard
         // TODO: more types of pages?
         // ?? document.querySelector("a.ytp-title-channel-logo") // YouTube Embed
