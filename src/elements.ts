@@ -1,8 +1,7 @@
-export function getYouTubeTitleNodeSelector(): string {
-    // New YouTube Title, YouTube, Mobile YouTube, Invidious
-    return "#title h1, .ytd-video-primary-info-renderer.title, .slim-video-information-title, #player-container + .h-box > h1";
+export function getBilibiliTitleNodeSelector(): string {
+    return ".video-info-container h1"; // bilibili
 }
 
-export function getYouTubeTitleNode(): HTMLElement {
-    return document.querySelector(getYouTubeTitleNodeSelector()) as HTMLElement;
+export function getBilibiliTitleNode(): HTMLElement {
+    return document.querySelector(getBilibiliTitleNodeSelector()) as HTMLElement;
 }
