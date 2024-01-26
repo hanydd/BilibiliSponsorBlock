@@ -2553,8 +2553,7 @@ function showTimeWithoutSkips(skippedDuration: number): void {
     }
 
     // Video player time display
-    const displayClass = ".bpx-player-ctrl-time-label"
-    const display = document.querySelector(displayClass);
+    const display = document.querySelector(".bpx-player-ctrl-time-label") as HTMLDivElement;
     if (!display) return;
 
     const durationID = "sponsorBlockDurationAfterSkips";
@@ -2569,7 +2568,14 @@ function showTimeWithoutSkips(skippedDuration: number): void {
 
     const durationAfterSkips = getFormattedTime(getVideo()?.duration - skippedDuration);
 
-    duration.innerText = (durationAfterSkips == null || skippedDuration <= 0) ? "" : " (" + durationAfterSkips + ")";
+    if (durationAfterSkips != null && skippedDuration > 0) {
+        duration.innerText = " (" + durationAfterSkips + ")";
+
+        // some hacks to change the min-width of the time control area,
+        // so it won't overlap with chapters on the right
+        display.style.width = "auto";
+        display.parentElement.style.minWidth = `${display.clientWidth - 11}px`;
+    }
 }
 
 function checkForPreloadedSegment() {
