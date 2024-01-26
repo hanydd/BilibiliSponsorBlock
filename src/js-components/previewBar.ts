@@ -11,7 +11,6 @@ import { ActionType, Category, SegmentContainer, SponsorHideType, SponsorSourceT
 import { partition } from "../utils/arrayUtils";
 import { DEFAULT_CATEGORY, shortCategoryName } from "../utils/categoryUtils";
 import { normalizeChapterName } from "../utils/exporter";
-import { getFormattedTimeToSeconds } from "../../maze-utils/src/formating";
 import { findValidElement } from "../../maze-utils/src/dom";
 import { addCleanupListener } from "../../maze-utils/src/cleanup";
 
@@ -125,34 +124,11 @@ class PreviewBar {
             mouseOnSeekBar = false;
         });
 
-        const observer = new MutationObserver((mutations) => {
-            if (!mouseOnSeekBar || !this.categoryTooltip || !this.categoryTooltipContainer) return;
+        seekBar.addEventListener("mousemove", (e: MouseEvent) => {
+            if (!mouseOnSeekBar || !this.categoryTooltip || !this.categoryTooltipContainer || !chrome.runtime?.id) return;
 
-            // Only care about mutations to time tooltip
-            if (!mutations.some((mutation) => (mutation.target as HTMLElement).classList.contains("ytp-tooltip-text"))) {
-                return;
-            }
-
-            const tooltipTextElements = tooltipTextWrapper.querySelectorAll(".ytp-tooltip-text");
-            let timeInSeconds: number | null = null;
-            let noYoutubeChapters = false;
-
-            for (const tooltipTextElement of tooltipTextElements) {
-                if (tooltipTextElement.classList.contains('ytp-tooltip-text-no-title')) noYoutubeChapters = true;
-
-                const tooltipText = tooltipTextElement.textContent;
-                if (tooltipText === null || tooltipText.length === 0) continue;
-
-                timeInSeconds = getFormattedTimeToSeconds(tooltipText);
-
-                if (timeInSeconds !== null) break;
-            }
-
-            if (timeInSeconds === null) {
-                originalTooltip.style.removeProperty("display");
-
-                return;
-            }
+            let noYoutubeChapters = !!tooltipTextWrapper.querySelector(".ytp-tooltip-text.ytp-tooltip-text-no-title");
+            const timeInSeconds = this.decimalToTime((e.clientX - seekBar.getBoundingClientRect().x) / seekBar.clientWidth);
 
             // Find the segment at that location, using the shortest if multiple found
             const [normalSegments, chapterSegments] =
@@ -197,15 +173,6 @@ class PreviewBar {
                 this.categoryTooltip.style.textAlign = titleTooltip.style.textAlign;
                 this.chapterTooltip.style.textAlign = titleTooltip.style.textAlign;
             }
-        });
-
-        observer.observe(tooltipTextWrapper, {
-            childList: true,
-            subtree: true,
-        });
-
-        addCleanupListener(() => {
-            observer.disconnect();
         });
     }
 
@@ -307,6 +274,7 @@ class PreviewBar {
             return (b[1] - b[0]) - (a[1] - a[0]);
         });
         for (const segment of sortedSegments) {
+            if (segment.actionType === ActionType.Chapter) continue;
             const bar = this.createBar(segment);
 
             this.container.appendChild(bar);
@@ -346,7 +314,7 @@ class PreviewBar {
         bar.style.left = this.timeToPercentage(startTime);
 
         if (duration > 0) {
-            bar.style.right = this.timeToPercentage(this.videoDuration - endTime);
+            bar.style.right = this.timeToRightPercentage(endTime);
         }
         if (this.chapterFilter(barSegment) && segment[1] < this.videoDuration) {
             bar.style.marginRight = `${this.chapterMargin}px`;
@@ -919,7 +887,22 @@ class PreviewBar {
         return `${this.timeToDecimal(time) * 100}%`
     }
 
+    timeToRightPercentage(time: number): string {
+        return `${(1 - this.timeToDecimal(time)) * 100}%`
+    }
+
     timeToDecimal(time: number): number {
+        return this.decimalTimeConverter(time, true);
+    }
+
+    decimalToTime(decimal: number): number {
+        return this.decimalTimeConverter(decimal, false);
+    }
+
+    /**
+     * Decimal to time or time to decimal
+     */
+    decimalTimeConverter(value: number, isTime: boolean): number {
         if (this.originalChapterBarBlocks?.length > 1 && this.existingChapters.length === this.originalChapterBarBlocks?.length) {
             // Parent element to still work when display: none
             const totalPixels = this.originalChapterBar.parentElement.clientWidth;
@@ -929,8 +912,9 @@ class PreviewBar {
                 const chapterElement = this.originalChapterBarBlocks[i];
                 const widthPixels = parseFloat(chapterElement.style.width.replace("px", ""));
 
-                if (time >= this.existingChapters[i].segment[1]) {
-                    const marginPixels = chapterElement.style.marginRight ? parseFloat(chapterElement.style.marginRight.replace("px", "")) : 0;
+                const marginPixels = chapterElement.style.marginRight ? parseFloat(chapterElement.style.marginRight.replace("px", "")) : 0;
+                if ((isTime && value >= this.existingChapters[i].segment[1])
+                        || (!isTime && value >= (pixelOffset + widthPixels + marginPixels) / totalPixels)) {
                     pixelOffset += widthPixels + marginPixels;
                     lastCheckedChapter = i;
                 } else {
@@ -944,13 +928,22 @@ class PreviewBar {
                 const latestWidth = parseFloat(this.originalChapterBarBlocks[lastCheckedChapter + 1].style.width.replace("px", ""));
                 const latestChapterDuration = latestChapter.segment[1] - latestChapter.segment[0];
 
-                const percentageInCurrentChapter = (time - latestChapter.segment[0]) / latestChapterDuration;
-                const sizeOfCurrentChapter = latestWidth / totalPixels;
-                return Math.min(1, ((pixelOffset / totalPixels) + (percentageInCurrentChapter * sizeOfCurrentChapter)));
+                if (isTime) {
+                    const percentageInCurrentChapter = (value - latestChapter.segment[0]) / latestChapterDuration;
+                    const sizeOfCurrentChapter = latestWidth / totalPixels;
+                    return Math.min(1, ((pixelOffset / totalPixels) + (percentageInCurrentChapter * sizeOfCurrentChapter)));
+                } else {
+                    const percentageInCurrentChapter = (value * totalPixels - pixelOffset) / latestWidth;
+                    return Math.max(0, latestChapter.segment[0] + (percentageInCurrentChapter * latestChapterDuration));
+                }
             }
         }
 
-        return Math.min(1, time / this.videoDuration);
+        if (isTime) {
+            return Math.min(1, value / this.videoDuration);
+        } else {
+            return Math.max(0, value * this.videoDuration);
+        }
     }
 
     /*

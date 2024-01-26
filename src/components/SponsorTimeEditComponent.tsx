@@ -34,7 +34,7 @@ export interface SponsorTimeEditState {
     chapterNameSelectorHovering: boolean;
 }
 
-const categoryNamesGrams: string[] = [].concat(...CompileConfig.categoryList.filter((name) => name !== "chapter")
+const categoryNamesGrams: string[] = [].concat(...CompileConfig.categoryList.filter((name) => !["chapter", "intro"].includes(name))
     .map((name) => chrome.i18n.getMessage("category_" + name).split(/\/|\s|-/)));
 
 class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, SponsorTimeEditState> {
@@ -81,13 +81,15 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
 
     componentDidMount(): void {
         // Prevent inputs from triggering key events
-        document.getElementById("sponsorTimeEditContainer" + this.idSuffix).addEventListener('keydown', function (event) {
-            event.stopPropagation();
+        document.getElementById("sponsorTimeEditContainer" + this.idSuffix).addEventListener('keydown', (e) => {
+            e.stopPropagation();
         });
 
         // Prevent scrolling while changing times
-        document.getElementById("sponsorTimesContainer" + this.idSuffix).addEventListener('wheel', function (event) {
-            event.preventDefault();
+        document.getElementById("sponsorTimesContainer" + this.idSuffix).addEventListener('wheel', (e) => {
+            if (this.state.editing) {
+                e.preventDefault();
+            }
         }, {passive: false});
 
         // Add as a config listener
@@ -221,7 +223,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                         target="_blank" rel="noreferrer">
                         <img id={"sponsorTimeCategoriesHelpButton" + this.idSuffix}
                             className="helpButton"
-                            src={chrome.extension.getURL("icons/help.svg")}
+                            src={chrome.runtime.getURL("icons/help.svg")}
                             title={chrome.i18n.getMessage("categoryGuidelines")} />
                     </a>
                 </div>

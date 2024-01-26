@@ -69,6 +69,13 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
         this.videoObserver.observe(this.contentContainer().v, {
             attributes: true
         });
+
+        // Prevent zooming while changing times
+        document.getElementById("sponsorSkipNoticeMiddleRow" + this.state.idSuffix).addEventListener('wheel', function (event) {
+            if (event.ctrlKey) {
+                event.preventDefault();
+            }
+        }, {passive: false});
     }
 
     componentWillUnmount(): void {
@@ -100,7 +107,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                 onClick={() => this.sortSegments()}
                 title={chrome.i18n.getMessage("sortSegments")}
                 key="sortButton"
-                src={chrome.extension.getURL("icons/sort.svg")}>
+                src={chrome.runtime.getURL("icons/sort.svg")}>
             </img>;
         const exportButton = 
             <img id={"sponsorSkipExportButton" + this.state.idSuffix} 
@@ -108,7 +115,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                 onClick={() => this.exportSegments()}
                 title={chrome.i18n.getMessage("exportSegments")}
                 key="exportButton"
-                src={chrome.extension.getURL("icons/export.svg")}>
+                src={chrome.runtime.getURL("icons/export.svg")}>
             </img>;
         return (
             <NoticeComponent noticeTitle={this.state.noticeTitle}
