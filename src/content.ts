@@ -486,7 +486,7 @@ function createPreviewBar(): void {
     const progressElementOptions = [{
         // TODO: Add support for mobile (not really needed)
         // TODO: Add support for invidiou sites
-        
+
         // For Desktop Bilibili
         selector: ".bpx-player-progress-schedule-wrap",
         isVisibleCheck: true
@@ -572,7 +572,7 @@ async function startSponsorSchedule(includeIntersectingSegments = false, current
 
     updateActiveSegment(currentTime);
 
-    if (getVideo().paused 
+    if (getVideo().paused
         || (getVideo().currentTime >= getVideo().duration - 0.01 && getVideo().duration > 1)) return;
     const skipInfo = getNextSkipIndex(currentTime, includeIntersectingSegments, includeNonIntersectingSegments);
 
@@ -881,17 +881,17 @@ function setupVideoListeners() {
                         clearInterval(playbackRateCheckInterval);
                         return;
                     }
-    
+
                     if (getVideo().playbackRate !== lastPlaybackSpeed) {
                         lastPlaybackSpeed = getVideo().playbackRate;
-    
+
                         rateChangeListener();
                     }
                 }, 2000);
             }
         };
         getVideo().addEventListener('playing', playingListener);
-        
+
         const seekingListener = () => {
             lastKnownVideoTime.fromPause = false;
 
@@ -918,7 +918,7 @@ function setupVideoListeners() {
             }
         };
         getVideo().addEventListener('seeking', seekingListener);
-        
+
         const stoppedPlayback = () => {
             // Reset lastCheckVideoTime
             lastCheckVideoTime = -1;
@@ -1383,9 +1383,9 @@ function videoElementChange(newVideo: boolean): void {
             setupSkipButtonControlBar();
             setupCategoryPill();
         }
-    
+
         checkPreviewbarState();
-    
+
         // Incase the page is still transitioning, check again in a few seconds
         setTimeout(checkPreviewbarState, 100);
         setTimeout(checkPreviewbarState, 1000);
@@ -2226,7 +2226,7 @@ function openSubmissionMenu() {
 function previewRecentSegment() {
     if (sponsorTimesSubmitting !== undefined && sponsorTimesSubmitting.length > 0) {
         previewTime(sponsorTimesSubmitting[sponsorTimesSubmitting.length - 1].segment[0] - defaultPreviewTime);
-        
+
         if (submissionNotice) {
             submissionNotice.scrollToBottom();
         }
@@ -2253,9 +2253,9 @@ async function sendSubmitMessage() {
         return;
     }
 
-    if (!previewedSegment 
-            && !sponsorTimesSubmitting.every((segment) => 
-                [ActionType.Full, ActionType.Chapter, ActionType.Poi].includes(segment.actionType) 
+    if (!previewedSegment
+            && !sponsorTimesSubmitting.every((segment) =>
+                [ActionType.Full, ActionType.Chapter, ActionType.Poi].includes(segment.actionType)
                     || segment.segment[1] >= getVideo()?.duration)) {
         alert(`${chrome.i18n.getMessage("previewSegmentRequired")} ${keybindToString(Config.config.previewKeybind)}`);
         return;
@@ -2552,12 +2552,9 @@ function showTimeWithoutSkips(skippedDuration: number): void {
         skippedDuration = 0;
     }
 
-    // YouTube player time display
-    const displayClass =
-        isOnInvidious()     ? "vjs-duration" :
-        isOnMobileYouTube() ? "ytm-time-display" :
-                              "ytp-time-display.notranslate";
-    const display = document.querySelector(`.${displayClass}`);
+    // Video player time display
+    const displayClass = ".bpx-player-ctrl-time-label"
+    const display = document.querySelector(displayClass);
     if (!display) return;
 
     const durationID = "sponsorBlockDurationAfterSkips";
@@ -2567,8 +2564,6 @@ function showTimeWithoutSkips(skippedDuration: number): void {
     if (duration === null) {
         duration = document.createElement('span');
         duration.id = durationID;
-        if (!isOnInvidious()) duration.classList.add(displayClass);
-
         display.appendChild(duration);
     }
 
