@@ -82,7 +82,7 @@ class PreviewBar {
         this.createElement(parent);
         this.createChapterMutationObservers();
 
-        // this.setupHoverText();
+        this.setupHoverText();
     }
 
     setupHoverText(): void {
@@ -94,24 +94,27 @@ class PreviewBar {
 
         // Create label placeholder
         this.categoryTooltip = document.createElement("div");
-        this.categoryTooltip.className = "ytp-tooltip-title sponsorCategoryTooltip";
+        this.categoryTooltip.id = "sponsorTooltip";
+        this.categoryTooltip.className = "bpx-player-progress-preview-time sponsorCategoryTooltip";
         this.chapterTooltip = document.createElement("div");
-        this.chapterTooltip.className = "ytp-tooltip-title sponsorCategoryTooltip";
+        this.chapterTooltip.id = "sponsorTooltip";
+        this.chapterTooltip.className = "bpx-player-progress-preview-time sponsorCategoryTooltip";
 
         // global chaper tooltip or duration tooltip
-        const tooltipTextWrapper = document.querySelector(".ytp-tooltip-text-wrapper") ?? document.querySelector("#progress-bar-container.ytk-player > #hover-time-info");
-        const originalTooltip = tooltipTextWrapper.querySelector(".ytp-tooltip-title:not(.sponsorCategoryTooltip)") as HTMLElement;
-        if (!tooltipTextWrapper || !tooltipTextWrapper.parentElement) return;
+        this.categoryTooltipContainer =  document.querySelector(".bpx-player-progress-area .bpx-player-progress-wrap .bpx-player-progress-popup");
+        const tooltipTextWrapper = this.categoryTooltipContainer.querySelector(".bpx-player-progress-preview");
+        const biliChapterWrapper = this.categoryTooltipContainer.querySelector(".bpx-player-progress-hotspot");
+        if (!this.categoryTooltipContainer || !tooltipTextWrapper) return;
 
-        // Grab the tooltip from the text wrapper as the tooltip doesn't have its classes on init
-        this.categoryTooltipContainer = tooltipTextWrapper.parentElement;
-        const titleTooltip = tooltipTextWrapper.querySelector(".ytp-tooltip-title") as HTMLElement;
-        if (!this.categoryTooltipContainer || !titleTooltip) return;
+        if (biliChapterWrapper) {
+            biliChapterWrapper.after(this.categoryTooltip);
+            biliChapterWrapper.after(this.chapterTooltip);
+        } else {
+            tooltipTextWrapper.after(this.categoryTooltip);
+            tooltipTextWrapper.after(this.chapterTooltip);
+        }
 
-        tooltipTextWrapper.insertBefore(this.categoryTooltip, titleTooltip.nextSibling);
-        tooltipTextWrapper.insertBefore(this.chapterTooltip, titleTooltip.nextSibling);
-
-        const seekBar = document.querySelector(".ytp-progress-bar-container");
+        const seekBar = document.querySelector(".bpx-player-progress-wrap");
         if (!seekBar) return;
 
         let mouseOnSeekBar = false;
@@ -127,7 +130,6 @@ class PreviewBar {
         seekBar.addEventListener("mousemove", (e: MouseEvent) => {
             if (!mouseOnSeekBar || !this.categoryTooltip || !this.categoryTooltipContainer || !chrome.runtime?.id) return;
 
-            let noYoutubeChapters = !!tooltipTextWrapper.querySelector(".ytp-tooltip-text.ytp-tooltip-text-no-title");
             const timeInSeconds = this.decimalToTime((e.clientX - seekBar.getBoundingClientRect().x) / seekBar.clientWidth);
 
             // Find the segment at that location, using the shortest if multiple found
@@ -141,38 +143,28 @@ class PreviewBar {
                 secondarySegment = this.getSmallestSegment(timeInSeconds, chapterSegments.filter((s) => s !== secondarySegment));
             }
 
-            if (mainSegment === null && secondarySegment === null) {
-                this.categoryTooltipContainer.classList.remove(TOOLTIP_VISIBLE_CLASS);
-                originalTooltip.style.removeProperty("display");
-            } else {
-                this.categoryTooltipContainer.classList.add(TOOLTIP_VISIBLE_CLASS);
-                if (mainSegment !== null && secondarySegment !== null) {
-                    this.categoryTooltipContainer.classList.add("sponsorTwoTooltips");
-                } else {
-                    this.categoryTooltipContainer.classList.remove("sponsorTwoTooltips");
-                }
+            // if (mainSegment === null && secondarySegment === null) {
+            //     this.categoryTooltipContainer.classList.remove(TOOLTIP_VISIBLE_CLASS);
+            //     originalTooltip.style.removeProperty("display");
+            // } else {
+            //     this.categoryTooltipContainer.classList.add(TOOLTIP_VISIBLE_CLASS);
+            //     if (mainSegment !== null && secondarySegment !== null) {
+            //         this.categoryTooltipContainer.classList.add("sponsorTwoTooltips");
+            //     } else {
+            //         this.categoryTooltipContainer.classList.remove("sponsorTwoTooltips");
+            //     }
 
-                this.setTooltipTitle(mainSegment, this.categoryTooltip);
-                this.setTooltipTitle(secondarySegment, this.chapterTooltip);
+            this.setTooltipTitle(mainSegment, this.categoryTooltip);
+            this.setTooltipTitle(secondarySegment, this.chapterTooltip);
 
-                if (normalizeChapterName(originalTooltip.textContent) === normalizeChapterName(this.categoryTooltip.textContent)
-                        || normalizeChapterName(originalTooltip.textContent) === normalizeChapterName(this.chapterTooltip.textContent)) {
-                    if (originalTooltip.style.display !== "none") originalTooltip.style.display = "none";
-                    noYoutubeChapters = true;
-                } else if (originalTooltip.style.display === "none") {
-                    originalTooltip.style.removeProperty("display");
-                }
-
-                // Used to prevent overlapping
-                this.categoryTooltip.classList.toggle("ytp-tooltip-text-no-title", noYoutubeChapters);
-                this.chapterTooltip.classList.toggle("ytp-tooltip-text-no-title", noYoutubeChapters);
-
-                // To prevent offset issue
-                this.categoryTooltip.style.right = titleTooltip.style.right;
-                this.chapterTooltip.style.right = titleTooltip.style.right;
-                this.categoryTooltip.style.textAlign = titleTooltip.style.textAlign;
-                this.chapterTooltip.style.textAlign = titleTooltip.style.textAlign;
-            }
+                // if (normalizeChapterName(originalTooltip.textContent) === normalizeChapterName(this.categoryTooltip.textContent)
+                //         || normalizeChapterName(originalTooltip.textContent) === normalizeChapterName(this.chapterTooltip.textContent)) {
+                //     if (originalTooltip.style.display !== "none") originalTooltip.style.display = "none";
+                //     noYoutubeChapters = true;
+                // } else if (originalTooltip.style.display === "none") {
+                //     originalTooltip.style.removeProperty("display");
+                // }
+            // }
         });
     }
 
@@ -753,7 +745,7 @@ class PreviewBar {
             if (chaptersContainer) {
                 chaptersContainer.querySelector(".sponsorChapterText")?.remove();
                 const chapterTitle = chaptersContainer.querySelector(".ytp-chapter-title-content") as HTMLDivElement;
-    
+
                 chapterTitle.style.removeProperty("display");
                 chaptersContainer.classList.remove("sponsorblock-chapter-visible");
             }
@@ -836,7 +828,7 @@ class PreviewBar {
 
                 chapterTitle.style.removeProperty("display");
                 chaptersContainer.classList.remove("sponsorblock-chapter-visible");
-                
+
                 this.chapterVote.setVisibility(false);
             }
         }

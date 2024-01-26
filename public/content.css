@@ -62,8 +62,13 @@ div:hover > #previewbar.sbNotInvidious {
 
 /* Preview Bar page hacks */
 
-.ytp-tooltip:not(.sponsorCategoryTooltipVisible) .sponsorCategoryTooltip {
-	display: none !important;
+#sponsorTooltip.sponsorCategoryTooltip {
+	position: relative;
+	display: block;
+	text-align: center;
+
+	height: 20px;
+	border-radius: 0;
 }
 
 .ytp-tooltip.sponsorCategoryTooltipVisible {
