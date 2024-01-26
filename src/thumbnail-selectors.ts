@@ -1,9 +1,9 @@
-import { onMobile } from "../../maze-utils/src/pageInfo";
+import { onMobile } from "./pageInfo";
 
 export function getThumbnailElements() {
     if (!onMobile()) {
         return [
-            "ytd-thumbnail", 
+            "ytd-thumbnail",
             "ytd-playlist-thumbnail"
         ];
     } else {
