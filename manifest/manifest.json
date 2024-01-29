@@ -2,7 +2,7 @@
     "name": "__MSG_fullName__",
     "short_name": "SponsorBlockBili",
     "version": "5.5.3",
-    "default_locale": "en",
+    "default_locale": "zh_CN",
     "description": "__MSG_Description__",
     "homepage_url": "https://sponsor.ajay.app",
     "content_scripts": [{
@@ -129,7 +129,7 @@
                 "size": 1024
             }
         ]
-    }, 
+    },
     "background": {
         "scripts":[
         "./js/background.js"
@@ -149,4 +149,4 @@
         "open_in_tab": true
     },
     "manifest_version": 2
-}  
+}
