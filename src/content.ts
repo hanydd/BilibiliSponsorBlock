@@ -1072,8 +1072,7 @@ async function sponsorsLookup(keepOldSubmissions = true) {
 
     if (response?.ok) {
         const receivedSegments: SponsorTime[] = JSON.parse(response.responseText)
-        // TODO: Revert temporary test data
-                    // ?.filter((video) => video.videoID === getVideoID())
+                    ?.filter((video) => video.videoID === getVideoID())
                     ?.map((video) => video.segments)?.[0]
                     ?.map((segment) => ({
                         ...segment,
