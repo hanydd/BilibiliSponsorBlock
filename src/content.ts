@@ -2567,13 +2567,19 @@ function showTimeWithoutSkips(skippedDuration: number): void {
 
     const durationAfterSkips = getFormattedTime(getVideo()?.duration - skippedDuration);
 
-    if (durationAfterSkips != null && skippedDuration > 0) {
-        duration.innerText = " (" + durationAfterSkips + ")";
-
+    const refreshDurationTextWidth = () => {
         // some hacks to change the min-width of the time control area,
         // so it won't overlap with chapters on the right
         display.style.width = "auto";
         display.parentElement.style.minWidth = `${display.clientWidth - 11}px`;
+    }
+
+    if (durationAfterSkips != null && skippedDuration > 0) {
+        duration.innerText = " (" + durationAfterSkips + ")";
+
+        refreshDurationTextWidth();
+        // re-calculate text position after entering and exiting full screen
+        window.addEventListener("fullscreenchange", refreshDurationTextWidth);
     }
 }
 
