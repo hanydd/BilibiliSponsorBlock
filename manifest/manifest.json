@@ -1,7 +1,7 @@
 {
     "name": "__MSG_fullName__",
     "short_name": "SponsorBlockBili",
-    "version": "5.5.3",
+    "version": "5.5.4",
     "default_locale": "zh_CN",
     "description": "__MSG_Description__",
     "homepage_url": "https://sponsor.ajay.app",
