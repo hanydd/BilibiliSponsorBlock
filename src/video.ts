@@ -255,7 +255,7 @@ export function parseBilibiliVideoIDFromURL(url: string): ParsedVideoURL {
         // on Bilibili
         if (urlObject.host === "m.bilibili.com") onMobileBilibili = true;
         onInvidious = false;
-    } else if (getConfig().isReady() && getConfig().config!.invidiousInstances.includes(urlObject.hostname)) {
+    } else if (getConfig().isReady() && getConfig().config!.invidiousInstances?.includes(urlObject.hostname)) {
         // TODO: any invidious bilibili sites?
         onInvidious = true;
     } else { // fail to invidious
@@ -380,6 +380,8 @@ async function refreshVideoAttachments(): Promise<void> {
     const newVideo = (isSafari() && document.querySelector('video[vinegared="true"]') as HTMLVideoElement) 
         || await waitForElement("video", true) as HTMLVideoElement;
     waitingForNewVideo = false;
+
+    if (video === newVideo) return;
 
     video = newVideo;
     const isNewVideo = !videosSetup.includes(video);

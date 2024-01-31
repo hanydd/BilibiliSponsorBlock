@@ -1,4 +1,4 @@
-export function isVisible(element: HTMLElement | null): boolean {
+export function isVisible(element: HTMLElement | null, ignoreWidth = false): boolean {
     if (!element) {
         return false;
     }
@@ -10,7 +10,7 @@ export function isVisible(element: HTMLElement | null): boolean {
         return true;
     }
     
-    if (element.offsetWidth === 0 || element.offsetHeight === 0) {
+    if (element.offsetHeight === 0 || (element.offsetWidth === 0 && !ignoreWidth)) {
         return false;
     }
 
@@ -25,7 +25,9 @@ export function isVisible(element: HTMLElement | null): boolean {
         return true;
     }
 
-    if (elementAtPoint === element || (!!elementAtPoint && element.contains(elementAtPoint))) {
+    if (elementAtPoint === element 
+            || (!!elementAtPoint && element.contains(elementAtPoint))
+            || (!!elementAtPoint && elementAtPoint.contains(element))) {
         return true;
     }
 
@@ -40,18 +42,18 @@ export function isVisible(element: HTMLElement | null): boolean {
     return false;
 }
 
-export function findValidElementFromSelector(selectors: string[]): HTMLElement | null {
-    return findValidElementFromGenerator(selectors, (selector) => document.querySelector(selector));
+export function findValidElementFromSelector(selectors: string[], ignoreWidth = false): HTMLElement | null {
+    return findValidElementFromGenerator(selectors, ignoreWidth, (selector) => document.querySelector(selector));
 }
 
-export function findValidElement(elements: HTMLElement[] | NodeListOf<HTMLElement>): HTMLElement | null {
-    return findValidElementFromGenerator(elements);
+export function findValidElement(elements: HTMLElement[] | NodeListOf<HTMLElement>, ignoreWidth = false): HTMLElement | null {
+    return findValidElementFromGenerator(elements, ignoreWidth);
 }
 
-function findValidElementFromGenerator<T>(objects: T[] | NodeListOf<HTMLElement>, generator?: (obj: T) => HTMLElement | null): HTMLElement | null {
+function findValidElementFromGenerator<T>(objects: T[] | NodeListOf<HTMLElement>, ignoreWidth = false, generator?: (obj: T) => HTMLElement | null): HTMLElement | null {
     for (const obj of objects) {
         const element = generator ? generator(obj as T) : obj as HTMLElement;
-        if (element && isVisible(element)) {
+        if (element && isVisible(element, ignoreWidth)) {
             return element;
         }
     }
@@ -62,6 +64,7 @@ function findValidElementFromGenerator<T>(objects: T[] | NodeListOf<HTMLElement>
 interface WaitingElement {
     selector: string;
     visibleCheck: boolean;
+    ignoreWidth: boolean;
     callbacks: Array<(element: Element) => void>;
     elements?: NodeListOf<HTMLElement>;
 }
@@ -72,9 +75,9 @@ let waitingMutationObserver: MutationObserver | null = null;
 let waitingElements: WaitingElement[] = [];
 
 /* Uses a mutation observer to wait asynchronously */
-export async function waitForElement(selector: string, visibleCheck = false): Promise<Element> {
+export async function waitForElement(selector: string, visibleCheck = false, ignoreWidth = false): Promise<Element> {
     return await new Promise((resolve) => {
-        const initialElement = getElement(selector, visibleCheck);
+        const initialElement = getElement(selector, visibleCheck, ignoreWidth);
         if (initialElement) {
             resolve(initialElement);
             return;
@@ -89,6 +92,7 @@ export async function waitForElement(selector: string, visibleCheck = false): Pr
             waitingElements.push({
                 selector,
                 visibleCheck,
+                ignoreWidth,
                 callbacks: [resolve]
             });
         }
@@ -112,7 +116,7 @@ function setupWaitingMutationListener(): void {
         const checkForObjects = (mutations?: MutationRecord[]) => {
             const foundSelectors: string[] = [];
             for (const waitingElement of waitingElements) {
-                const { selector, visibleCheck, callbacks } = waitingElement;
+                const { selector, visibleCheck, ignoreWidth, callbacks } = waitingElement;
 
                 let updatePossibleElements = true;
                 if (mutations) {
@@ -149,7 +153,7 @@ function setupWaitingMutationListener(): void {
                 if (possibleElements && possibleElements.length > 0) {
                     waitingElement.elements = possibleElements;
 
-                    const element = visibleCheck ? findValidElement(possibleElements) : possibleElements[0] as HTMLElement;
+                    const element = visibleCheck ? findValidElement(possibleElements, ignoreWidth) : possibleElements[0] as HTMLElement;
                     if (element) {
                         if (chrome.runtime?.id) {
                             for (const callback of callbacks) {
@@ -185,6 +189,6 @@ function setupWaitingMutationListener(): void {
     }
 }
 
-export function getElement(selector: string, visibleCheck: boolean) {
-    return visibleCheck ? findValidElement(document.querySelectorAll(selector)) : document.querySelector(selector) as HTMLElement;
+export function getElement(selector: string, visibleCheck: boolean, ignoreWidth = false) {
+    return visibleCheck ? findValidElement(document.querySelectorAll(selector), ignoreWidth) : document.querySelector(selector) as HTMLElement;
 }
