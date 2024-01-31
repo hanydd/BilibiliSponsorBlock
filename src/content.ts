@@ -28,7 +28,7 @@ import { getControls, getExistingChapters, getHashParams, isPlayingPlaylist, isV
 import { CategoryPill } from "./render/CategoryPill";
 import { AnimationUtils } from "../maze-utils/src/animationUtils";
 import { GenericUtils } from "./utils/genericUtils";
-import { logDebug, logWarn } from "./utils/logger";
+import { logDebug } from "./utils/logger";
 import { importTimes } from "./utils/exporter";
 import { ChapterVote } from "./render/ChapterVote";
 import { openWarningDialog } from "./utils/warnings";
@@ -45,7 +45,6 @@ import * as documentScript from "../dist/js/document.js";
 import { runCompatibilityChecks } from "./utils/compatibility";
 import { cleanPage } from "./utils/pageCleaner";
 import { addCleanupListener } from "../maze-utils/src/cleanup";
-import { hideDeArrowPromotion, tryShowingDeArrowPromotion } from "./dearrowPromotion";
 import { asyncRequestToServer } from "./utils/requests";
 import { isMobileControlsOpen } from "./utils/mobileUtils";
 import { defaultPreviewTime } from "./utils/constants";
@@ -407,8 +406,6 @@ function resetValues() {
     for (let i = 0; i < skipNotices.length; i++) {
         skipNotices.pop()?.close();
     }
-
-    hideDeArrowPromotion();
 }
 
 function videoIDChange(): void {
@@ -449,8 +446,6 @@ function videoIDChange(): void {
     // Clear unsubmitted segments from the previous video
     sponsorTimesSubmitting = [];
     updateSponsorTimesSubmitting();
-
-    tryShowingDeArrowPromotion().catch(logWarn);
 }
 
 function handleMobileControlsMutations(): void {
