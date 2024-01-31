@@ -12,9 +12,9 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
         hideThumbnailLabel(thumbnail);
         return null;
     }
-    
-    const link = (isOnInvidious() ? thumbnail.parentElement : thumbnail.querySelector("#thumbnail")) as HTMLAnchorElement
-    if (!link || link.nodeName !== "A" || !link.href) return null; // no link found
+
+    const link = (isOnInvidious() ? thumbnail.parentElement : thumbnail.querySelector("a")) as HTMLAnchorElement
+    if (!link || !link.href) return null; // no link found
     const videoID = parseBilibiliVideoIDFromURL(link.href)?.videoID;
     if (!videoID) {
         hideThumbnailLabel(thumbnail);
@@ -39,7 +39,7 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
 
 function getOldThumbnailLabel(thumbnail: HTMLImageElement): HTMLElement | null {
     return thumbnail.querySelector(".sponsorThumbnailLabel") as HTMLElement | null;
-}   
+}
 
 function hideThumbnailLabel(thumbnail: HTMLImageElement): void {
     const oldLabel = getOldThumbnailLabel(thumbnail);
@@ -71,6 +71,7 @@ function createOrGetThumbnail(thumbnail: HTMLImageElement): { overlay: HTMLEleme
 
     const icon = createSBIconElement();
     const text = document.createElement("span");
+    thumbnail.style.position = "relative";
     overlay.appendChild(icon);
     overlay.appendChild(text);
     thumbnail.appendChild(overlay);
