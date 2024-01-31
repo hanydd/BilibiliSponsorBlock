@@ -1,7 +1,6 @@
 import { waitFor } from ".";
 import { addCleanupListener } from "./cleanup";
-import { onMobile } from "./pageInfo";
-import { getThumbnailLink, getThumbnailSelectors } from "./thumbnail-selectors";
+import { getThumbnailContainerElements, getThumbnailLink, getThumbnailSelectors } from "./thumbnail-selectors";
 import { isOnInvidious } from "./video";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
@@ -26,6 +25,17 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
         void waitFor(() => isOnInvidious() !== null).then(() => {
             if (isOnInvidious()) newThumbnails();
         });
+
+        // listen to container child changes
+        // TODO: add cleanup code
+        void waitFor(() => document.querySelector(getThumbnailContainerElements())).then((thumbnailContainer) => {
+            newThumbnails(); // fire thumbnail check once when the container is loaded
+            if (!thumbnailContainer) return;
+            const observer = new MutationObserver(() => {
+                newThumbnails();
+            });
+            observer.observe(thumbnailContainer, { childList: true, subtree: true })
+        })
     };
 
     if (document.readyState === "complete") {
@@ -37,17 +47,6 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
     void waitFor(() => configReady(), 5000, 10).then(() => {
         newThumbnails();
     });
-
-    if (onMobile()) {
-        const eventListener = () => mobileNewThumbnailHandler()
-        window.addEventListener("updateui", eventListener);
-        window.addEventListener("state-navigateend", eventListener);
-
-        addCleanupListener(() => {
-            window.removeEventListener("updateui", eventListener);
-            window.removeEventListener("state-navigateend", eventListener);
-        });
-    }
 
     addCleanupListener(() => {
         for (const handledThumbnail of handledThumbnails) {
@@ -83,7 +82,7 @@ export function newThumbnails() {
     for (const thumbnail of thumbnails) {
         if (!handledThumbnails.has(thumbnail)) {
             newThumbnailsFound.push(thumbnail);
-            
+
             const observer = new MutationObserver((mutations) => {
                 for (const mutation of mutations) {
                     if (mutation.type === "attributes" && mutation.attributeName === "href") {
@@ -118,23 +117,4 @@ export function newThumbnails() {
 
 export function updateAll(): void {
     if (thumbnailListener) thumbnailListener([...handledThumbnails.keys()]);
-}
-
-const mobileCheckTimes = [100, 200, 300, 400, 500, 750, 1000, 1500, 2500, 5000, 10000];
-let mobileTimeout: NodeJS.Timer | null = null;
-
-/**
- * Will check multiple times up to 5 seconds in the future
- */
-function mobileNewThumbnailHandler(index = 0) {
-    if (index >= mobileCheckTimes.length) return;
-    if (mobileTimeout) clearTimeout(mobileTimeout);
-
-    const timeout = mobileCheckTimes[index] - (index > 0 ? mobileCheckTimes[index - 1] : 0);
-    mobileTimeout = setTimeout(() => {
-        newThumbnails();
-        mobileNewThumbnailHandler(index + 1);
-    }, timeout);
-
-    newThumbnails();
 }

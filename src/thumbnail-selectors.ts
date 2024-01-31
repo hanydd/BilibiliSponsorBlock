@@ -1,50 +1,31 @@
-import { onMobile } from "./pageInfo";
-
 export function getThumbnailElements() {
-    if (!onMobile()) {
-        return [
-            "ytd-thumbnail",
-            "ytd-playlist-thumbnail"
-        ];
-    } else {
-        return [
-            ".media-item-thumbnail-container",
-            ".video-thumbnail-container-compact",
-            "ytm-thumbnail-cover",
-            ".video-thumbnail-container-vertical",
-            "ytm-hero-playlist-thumbnail-renderer"
-        ];
-    }
+    return [
+        ".bili-video-card", // main page
+        ".video-page-card-small", // recommendation on player page
+        ".s-space .small-item", // user space page
+        ".bili-dyn-content", // dynamic page feed
+    ];
+}
+
+export function getThumbnailContainerElements() {
+    return ".recommended-container_floor-aside .container," // main page
+        +  "#reco_list," // recommendation on player page
+        +  ".s-space," // user space page
+        +  ".bili-dyn-list"; // dynamic page feed
 }
 
 export function getThumbnailImageSelectors() {
-    if (!onMobile()) {
-        return "ytd-thumbnail:not([hidden]) img, ytd-playlist-thumbnail yt-image:not(.blurred-image) img";
-    } else {
-        return "img.video-thumbnail-img, img.amsterdam-playlist-thumbnail";
-    }
+    return "ytd-thumbnail:not([hidden]) img, ytd-playlist-thumbnail yt-image:not(.blurred-image) img";
 }
 
 export function getThumbnailLink(thumbnail: HTMLElement): HTMLElement | null {
-    if (!onMobile()) {
-        return thumbnail.querySelector(getThumbnailSelectors(" a"));
-    } else {
-        return thumbnail.querySelector([
-            "a.media-item-thumbnail-container",
-            "ytm-channel-featured-video-renderer a",
-            "a.compact-media-item-image",
-            "a.reel-item-endpoint",
-            ".amsterdam-playlist-thumbnail-wrapper a"
-        ].join(", "));
-    }
+    return thumbnail.querySelector(getThumbnailSelectors(" a"));
+
 }
 
 export function getThumbnailBoxSelectors() {
-    if (!onMobile()) {
-        return getThumbnailSelectors(":not([hidden])");
-    } else {
-        return ".media-item-thumbnail-container";
-    }
+    return getThumbnailSelectors(":not([hidden])");
+
 }
 
 export function getThumbnailSelectors(additionalSelectors = "") {

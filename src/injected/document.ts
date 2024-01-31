@@ -81,7 +81,7 @@ function setupPlayerClient(e: CustomEvent): void {
     const oldPlayerClient = playerClient;
     playerClient = e.detail;
     sendVideoData();
-    
+
     if (oldPlayerClient) {
         return; // No need to setup listeners
     }
@@ -96,7 +96,7 @@ function navigationParser(event: CustomEvent): StartMessage | null {
         if (pageType === "shorts" || pageType === "watch") {
             const endpoint = event.detail.endpoint
             if (!endpoint) return null;
-            
+
             result.videoID = (pageType === "shorts" ? endpoint.reelWatchEndpoint : endpoint.watchEndpoint).videoId;
         }
 
@@ -144,7 +144,7 @@ function onNewVideoIds(data: Record<string, unknown>) {
 
 function findAllVideoIds(data: Record<string, unknown>): Set<string> {
     const videoIds: Set<string> = new Set();
-    
+
     for (const key in data) {
         if (key === "videoId") {
             videoIds.add(data[key] as string);
@@ -176,10 +176,12 @@ const savedSetup = {
 
 // WARNING: Putting any parameters here will not work because SponsorBlock and the clickbait extension share document scripts
 // Only one will exist on the page at a time
+
+// TODO: rewrite with bilibili api.
 export function init(): void {
     // Should it teardown an old copy of the script, to replace it if it is a newer version (two extensions installed at once)
     const shouldTearDown = document.querySelector("#sponsorblock-document-script")?.getAttribute?.("teardown") === "true";
-    const versionBetter = (window["versionCB"] && 
+    const versionBetter = (window["versionCB"] &&
         (!window["versionCB"] || versionHigher(version, window["versionCB"])));
     if (shouldTearDown || versionBetter) {
         window["teardownCB"]?.();
