@@ -399,6 +399,8 @@ async function refreshVideoAttachments(): Promise<void> {
         || await waitForElement("video", true) as HTMLVideoElement;
     waitingForNewVideo = false;
 
+    if (video === newVideo) return;
+
     video = newVideo;
     const isNewVideo = !videosSetup.includes(video);
 
