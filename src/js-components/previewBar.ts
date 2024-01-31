@@ -10,7 +10,7 @@ import { ChapterVote } from "../render/ChapterVote";
 import { ActionType, Category, SegmentContainer, SponsorHideType, SponsorSourceType, SponsorTime } from "../types";
 import { partition } from "../utils/arrayUtils";
 import { DEFAULT_CATEGORY, shortCategoryName } from "../utils/categoryUtils";
-import { normalizeChapterName } from "../utils/exporter";
+// import { normalizeChapterName } from "../utils/exporter";
 import { findValidElement } from "../../maze-utils/src/dom";
 import { addCleanupListener } from "../../maze-utils/src/cleanup";
 
