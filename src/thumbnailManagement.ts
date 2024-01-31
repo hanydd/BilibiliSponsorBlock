@@ -8,6 +8,7 @@ export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 const handledThumbnails = new Map<HTMLElement, MutationObserver>();
 let lastGarbageCollection = 0;
 let thumbnailListener: ThumbnailListener | null = null;
+let thumbnailContainerObserver: MutationObserver | null = null;
 let selector = getThumbnailSelectors();
 let invidiousSelector = "div.thumbnail";
 
@@ -27,14 +28,11 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
         });
 
         // listen to container child changes
-        // TODO: add cleanup code
         void waitFor(() => document.querySelector(getThumbnailContainerElements())).then((thumbnailContainer) => {
             newThumbnails(); // fire thumbnail check once when the container is loaded
             if (!thumbnailContainer) return;
-            const observer = new MutationObserver(() => {
-                newThumbnails();
-            });
-            observer.observe(thumbnailContainer, { childList: true, subtree: true })
+            thumbnailContainerObserver ??= new MutationObserver(() => newThumbnails());
+            thumbnailContainerObserver.observe(thumbnailContainer, { childList: true, subtree: true })
         })
     };
 
@@ -49,6 +47,7 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
     });
 
     addCleanupListener(() => {
+        thumbnailContainerObserver?.disconnect();
         for (const handledThumbnail of handledThumbnails) {
             handledThumbnail[1].disconnect();
         }
