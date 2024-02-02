@@ -1,7 +1,6 @@
 import { waitFor } from ".";
 import { addCleanupListener } from "./cleanup";
 import { getThumbnailContainerElements, getThumbnailLink, getThumbnailSelectors } from "./thumbnail-selectors";
-import { isOnInvidious } from "./video";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 
@@ -10,22 +9,14 @@ let lastGarbageCollection = 0;
 let thumbnailListener: ThumbnailListener | null = null;
 let thumbnailContainerObserver: MutationObserver | null = null;
 let selector = getThumbnailSelectors();
-let invidiousSelector = "div.thumbnail";
 
 export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad: () => void,
-        configReady: () => boolean, selectorParam?: string,
-            invidiousSelectorParam?: string): void {
+        configReady: () => boolean, selectorParam?: string): void {
     thumbnailListener = listener;
     if (selectorParam) selector = selectorParam;
-    if (invidiousSelectorParam) invidiousSelector = invidiousSelectorParam;
 
     const onLoad = () => {
         onInitialLoad?.();
-
-        // Label thumbnails on load if on Invidious (wait for variable initialization before checking)
-        void waitFor(() => isOnInvidious() !== null).then(() => {
-            if (isOnInvidious()) newThumbnails();
-        });
 
         // listen to container child changes
         void waitFor(() => document.querySelector(getThumbnailContainerElements())).then((thumbnailContainer) => {
@@ -76,7 +67,7 @@ export function newThumbnails() {
 
     const notNewThumbnails = handledThumbnails.keys();
 
-    const thumbnails = document.querySelectorAll(isOnInvidious() ? invidiousSelector : selector) as NodeListOf<HTMLElement>;
+    const thumbnails = document.querySelectorAll(selector) as NodeListOf<HTMLElement>;
     const newThumbnailsFound: HTMLElement[] = [];
     for (const thumbnail of thumbnails) {
         if (!handledThumbnails.has(thumbnail)) {

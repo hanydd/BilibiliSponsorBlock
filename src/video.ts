@@ -28,8 +28,6 @@ export interface ChannelIDInfo {
 }
 export interface ParsedVideoURL {
     videoID: VideoID | null;
-    onInvidious: boolean;
-    onMobileBilibili: boolean;
     callLater: boolean;
 }
 
@@ -55,13 +53,10 @@ let videoMutationListenerElement: HTMLElement | null = null;
 const videosSetup: HTMLVideoElement[] = [];
 let waitingForNewVideo = false;
 
-let isAdPlaying = false;
 // if video is live or premiere
 let isLivePremiere: boolean
 
 let videoID: VideoID | null = null;
-let onInvidious: boolean | null = null;
-let onMobile = false;
 let pageType: PageType = PageType.Unknown;
 let channelIDInfo: ChannelIDInfo;
 let waitingForChannelID = false;
@@ -134,7 +129,7 @@ export async function checkIfNewVideoID(): Promise<boolean> {
 
 export async function checkVideoIDChange(): Promise<boolean> {
     const id = getBilibiliVideoID();
-    
+
     return await videoIDChange(id);
 }
 
@@ -181,8 +176,6 @@ function resetValues() {
     };
     isLivePremiere = false;
 
-    isAdPlaying = false;
-
     // Reset the last media session link
     window.postMessage({
         type: "sb-reset-media-session-link",
@@ -208,7 +201,7 @@ function resetValues() {
 
 export function getBilibiliVideoID(url?: string): VideoID | null {
     url ||= document?.URL;
-    
+
     // video page
     if (url.includes("bilibili.com/video")) return getBilibiliVideoIDFromURL(url)
     return null
@@ -222,10 +215,6 @@ function getBilibiliVideoIDFromURL(url: string): VideoID | null {
 
         return null;
     }
-
-    onInvidious = result.onInvidious;
-    onMobile = result.onMobileBilibili;
-
     return result.videoID;
 }
 
@@ -233,9 +222,6 @@ function getBilibiliVideoIDFromURL(url: string): VideoID | null {
  * Parse without side effects
  */
 export function parseBilibiliVideoIDFromURL(url: string): ParsedVideoURL {
-    let onInvidious = false;
-    let onMobileBilibili = false;
-
     //Attempt to parse url
     let urlObject: URL | null = null;
     try {
@@ -244,25 +230,14 @@ export function parseBilibiliVideoIDFromURL(url: string): ParsedVideoURL {
         console.error("[SB] Unable to parse URL: " + url);
         return {
             videoID: null,
-            onInvidious,
-            onMobileBilibili: onMobileBilibili,
             callLater: false
         };
     }
 
     // Check if valid hostname
-    if (BILI_DOMAINS.includes(urlObject.host)) {
-        // on Bilibili
-        if (urlObject.host === "m.bilibili.com") onMobileBilibili = true;
-        onInvidious = false;
-    } else if (getConfig().isReady() && getConfig().config!.invidiousInstances?.includes(urlObject.hostname)) {
-        // TODO: any invidious bilibili sites?
-        onInvidious = true;
-    } else { // fail to invidious
+    if (!BILI_DOMAINS.includes(urlObject.host)) {
         return {
             videoID: null,
-            onInvidious,
-            onMobileBilibili: onMobileBilibili,
             callLater: !getConfig().isReady() // Might be an Invidious tab
         };
     }
@@ -273,16 +248,12 @@ export function parseBilibiliVideoIDFromURL(url: string): ParsedVideoURL {
         const id = urlObject.pathname.replace("/video/", "").replace("/", "");
         return {
             videoID: (id?.length == 12 && id?.startsWith("BV")) ? id as VideoID : null,
-            onInvidious,
-            onMobileBilibili: onMobileBilibili,
             callLater: false
         };
     }
 
     return {
         videoID: null,
-        onInvidious,
-        onMobileBilibili: onMobileBilibili,
         callLater: false
     };
 }
@@ -310,7 +281,7 @@ export async function whitelistCheck() {
     // Try fallback
     // Bilibili watch page
     const channelNameCard = await Promise.race([
-        waitForElement("div.membersinfo-upcard > a.avatar"), // collab video with multiple up 
+        waitForElement("div.membersinfo-upcard > a.avatar"), // collab video with multiple up
         waitForElement("a.up-name")]);
     const channelIDFallback = channelNameCard
         // TODO: more types of pages?
@@ -338,8 +309,7 @@ export async function whitelistCheck() {
 let lastMutationListenerCheck = 0;
 let checkTimeout: NodeJS.Timeout | null = null;
 function setupVideoMutationListener() {
-    if (!onInvidious 
-            && (videoMutationObserver === null || !isVisible(videoMutationListenerElement!.parentElement))) {
+    if (videoMutationObserver === null || !isVisible(videoMutationListenerElement!.parentElement)) {
 
         // Delay it if it was checked recently
         if (checkTimeout) clearTimeout(checkTimeout);
@@ -377,7 +347,7 @@ async function refreshVideoAttachments(): Promise<void> {
 
     waitingForNewVideo = true;
     // Compatibility for Vinegar extension
-    const newVideo = (isSafari() && document.querySelector('video[vinegared="true"]') as HTMLVideoElement) 
+    const newVideo = (isSafari() && document.querySelector('video[vinegared="true"]') as HTMLVideoElement)
         || await waitForElement("video", true) as HTMLVideoElement;
     waitingForNewVideo = false;
 
@@ -400,7 +370,7 @@ async function refreshVideoAttachments(): Promise<void> {
         waitingForEmbed = true;
 
         const waiting = waitForElement(embedTitleSelector)
-            .then((e) => waitFor(() => e, undefined, undefined, (e) => e.getAttribute("href") !== embedLastUrl 
+            .then((e) => waitFor(() => e, undefined, undefined, (e) => e.getAttribute("href") !== embedLastUrl
                 && !!e.getAttribute("href") && !!e.textContent));
 
         void waiting.catch(() => waitingForEmbed = false);
@@ -438,12 +408,6 @@ function windowListenerHandler(event: MessageEvent): void {
         }
 
         void videoIDChange(data.videoID);
-    } else if (dataType === "ad") {
-        if (isAdPlaying != data.playing) {
-            isAdPlaying = data.playing
-            
-            params.updatePlayerBar?.();
-        }
     } else if (dataType === "data" && data.videoID) {
         void videoIDChange(data.videoID);
 
@@ -488,9 +452,7 @@ let lastRefresh = 0;
 export function getVideo(): HTMLVideoElement | null {
     setupVideoMutationListener();
 
-    if ((!isVisible(video)
-            || (onMobile && video && isNaN(video.duration)))
-            && Date.now() - lastRefresh > 500) {
+    if (!isVisible(video) && Date.now() - lastRefresh > 500) {
         lastRefresh = Date.now();
         void refreshVideoAttachments();
     }
@@ -502,28 +464,12 @@ export function getVideoID(): VideoID | null {
     return videoID;
 }
 
-export function isOnInvidious(): boolean | null {
-    return onInvidious;
-}
-
-export function isOnMobileYouTube(): boolean {
-    return onMobile;
-}
-
 export function getWaitingForChannelID(): boolean {
     return waitingForChannelID;
 }
 
 export function getChannelIDInfo(): ChannelIDInfo {
     return channelIDInfo;
-}
-
-export function getIsAdPlaying(): boolean {
-    return isAdPlaying;
-}
-
-export function setIsAdPlaying(value: boolean): void {
-    isAdPlaying = value;
 }
 
 export function getIsLivePremiere(): boolean {

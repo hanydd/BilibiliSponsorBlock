@@ -8,7 +8,6 @@ import { PageType } from "../video";
 import { version } from "../version.json";
 import { BILI_DOMAINS } from "../const";
 import { getThumbnailElements } from "../thumbnail-selectors";
-import { onMobile } from "../pageInfo";
 import { resetLastArtworkSrc, resetMediaSessionThumbnail, setMediaSessionInfo } from "./mediaSession";
 
 interface StartMessage {
@@ -20,11 +19,6 @@ interface StartMessage {
 interface FinishMessage extends StartMessage {
     channelID: string;
     channelTitle: string;
-}
-
-interface AdMessage {
-    type: "ad";
-    playing: boolean;
 }
 
 interface VideoData {
@@ -44,7 +38,7 @@ interface VideoIDsLoadedCreated {
     videoIDs: string[];
 }
 
-type WindowMessage = StartMessage | FinishMessage | AdMessage | VideoData | ElementCreated | VideoIDsLoadedCreated;
+type WindowMessage = StartMessage | FinishMessage | VideoData | ElementCreated | VideoIDsLoadedCreated;
 
 declare const ytInitialData: Record<string, string> | undefined;
 
@@ -85,8 +79,6 @@ function setupPlayerClient(e: CustomEvent): void {
     if (oldPlayerClient) {
         return; // No need to setup listeners
     }
-    e.detail.addEventListener('onAdStart', () => sendMessage({ type: "ad", playing: true } as AdMessage));
-    e.detail.addEventListener('onAdFinish', () => sendMessage({ type: "ad", playing: false } as AdMessage));
 }
 
 function navigationParser(event: CustomEvent): StartMessage | null {
@@ -204,11 +196,7 @@ export function init(): void {
     document.addEventListener("yt-navigate-start", navigationStartSend);
     document.addEventListener("yt-navigate-finish", navigateFinishSend);
 
-    if (onMobile()) {
-        window.addEventListener("state-navigateend", navigateFinishSend);
-    }
-
-    if (BILI_DOMAINS.includes(window.location.host) && !onMobile()) {
+    if (BILI_DOMAINS.includes(window.location.host)) {
         if (!window.customElements) {
             // Old versions of Chrome that don't support "world" option for content scripts
             alert("Your browser is out of date and is not supported by DeArrow. Please update your browser to use DeArrow.");
@@ -306,10 +294,6 @@ function teardown() {
     document.removeEventListener("yt-player-updated", setupPlayerClient);
     document.removeEventListener("yt-navigate-start", navigationStartSend);
     document.removeEventListener("yt-navigate-finish", navigateFinishSend);
-
-    if (onMobile()) {
-        window.removeEventListener("state-navigateend", navigateFinishSend);
-    }
 
     if (savedSetup.browserFetch) {
         window.fetch = savedSetup.browserFetch;
