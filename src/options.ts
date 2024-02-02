@@ -90,7 +90,7 @@ async function init() {
                 const closeButton = deArrowPromotion.querySelector(".close-button");
                 closeButton.addEventListener("click", (e) => {
                     e.preventDefault();
-                    
+
                     deArrowPromotion.classList.add("hidden");
                     Config.config.showDeArrowPromotion = false;
                     Config.config.showDeArrowInSettings = false;
@@ -134,13 +134,6 @@ async function init() {
                 if (optionResult != undefined)
                     checkbox.checked =  reverse ? !optionResult : optionResult;
 
-                // See if anything extra should be run first time
-                switch (option) {
-                    case "supportInvidious":
-                        invidiousInit(checkbox, option);
-                        break;
-                }
-
                 // Add click listener
                 checkbox.addEventListener("click", async () => {
                     // Confirm if required
@@ -154,9 +147,6 @@ async function init() {
 
                     // See if anything extra must be run
                     switch (option) {
-                        case "supportInvidious":
-                            invidiousOnClick(checkbox, option);
-                            break;
                         case "disableAutoSkip":
                             if (!checkbox.checked) {
                                 // Enable the notice
@@ -482,8 +472,6 @@ function invidiousInstanceAddInit(element: HTMLElement, option: string) {
             const checkbox = <HTMLInputElement> document.querySelector("#support-invidious input");
             checkbox.checked = true;
 
-            invidiousOnClick(checkbox, "supportInvidious");
-
             resetButton.classList.remove("hidden");
 
             // Hide this section again
@@ -506,33 +494,6 @@ function invidiousInstanceAddInit(element: HTMLElement, option: string) {
             resetButton.classList.add("hidden");
         }
     });
-}
-
-/**
- * Run when the invidious button is being initialized
- *
- * @param checkbox
- * @param option
- */
-function invidiousInit(checkbox: HTMLInputElement, option: string) {
-    utils.containsInvidiousPermission().then((result) => {
-        if (result != checkbox.checked) {
-            Config.config[option] = result;
-
-            checkbox.checked = result;
-        }
-    });
-}
-
-/**
- * Run whenever the invidious checkbox is clicked
- *
- * @param checkbox
- * @param option
- */
-async function invidiousOnClick(checkbox: HTMLInputElement, option: string): Promise<void> {
-    const enabled = await utils.applyInvidiousPermissions(checkbox.checked, option);
-    checkbox.checked = enabled;
 }
 
 /**
@@ -623,13 +584,6 @@ async function setTextOption(option: string, element: HTMLElement, value: string
                         } else {
                             Config.config[key] = newConfig[key];
                         }
-                    }
-
-                    if (optionType !== "local" && newConfig.supportInvidious) {
-                        const checkbox = <HTMLInputElement> document.querySelector("#support-invidious > div > label > input");
-
-                        checkbox.checked = true;
-                        await invidiousOnClick(checkbox, "supportInvidious");
                     }
 
                     window.location.reload();

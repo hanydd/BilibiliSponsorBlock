@@ -4,7 +4,7 @@ export function runCompatibilityChecks() {
     if (Config.config.showZoomToFillError2 && document.URL.includes("watch?v=")) {
         setTimeout(() => {
             const zoomToFill = document.querySelector(".zoomtofillBtn");
-    
+
             if (zoomToFill) {
                 alert(chrome.i18n.getMessage("zoomToFillUnsupported"));
             }

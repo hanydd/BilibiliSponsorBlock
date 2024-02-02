@@ -19,10 +19,8 @@ export class CategoryPill {
     lastState: CategoryPillState;
 
     mutationObserver?: MutationObserver;
-    onMobileYouTube: boolean;
-    onInvidious: boolean;
     vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>;
-    
+
     constructor() {
         this.ref = React.createRef();
 
@@ -33,17 +31,14 @@ export class CategoryPill {
         });
     }
 
-    async attachToPage(onMobileYouTube: boolean, onInvidious: boolean,
-            vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>): Promise<void> {
-        this.onMobileYouTube = onMobileYouTube;
-        this.onInvidious = onInvidious;
+    async attachToPage(vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>): Promise<void> {
         this.vote = vote;
 
         this.attachToPageInternal();
     }
 
     private async attachToPageInternal(): Promise<void> {
-        const referenceNode = 
+        const referenceNode =
             await waitFor(() => getBilibiliTitleNode());
 
         if (referenceNode && !referenceNode.contains(this.container)) {
@@ -54,28 +49,11 @@ export class CategoryPill {
 
                 this.root = createRoot(this.container);
                 this.ref = React.createRef();
-                this.root.render(<CategoryPillComponent 
+                this.root.render(<CategoryPillComponent
                         ref={this.ref}
-                        vote={this.vote} 
-                        showTextByDefault={!this.onMobileYouTube}
-                        showTooltipOnClick={this.onMobileYouTube} />);
-
-                if (this.onMobileYouTube) {
-                    if (this.mutationObserver) {
-                        this.mutationObserver.disconnect();
-                    }
-                    
-                    this.mutationObserver = new MutationObserver((changes) => {
-                        if (changes.some((change) => change.removedNodes.length > 0)) {
-                            this.attachToPageInternal();
-                        }
-                    });
-    
-                    this.mutationObserver.observe(referenceNode, { 
-                        childList: true,
-                        subtree: true
-                    });
-                }
+                        vote={this.vote}
+                        showTextByDefault={true}
+                        showTooltipOnClick={false} />);
             }
 
             if (this.lastState) {
@@ -137,10 +115,6 @@ export class CategoryPill {
                     });
                 }
             }
-        }
-
-        if (this.onMobileYouTube && !document.contains(this.container)) {
-            this.attachToPageInternal();
         }
     }
 }

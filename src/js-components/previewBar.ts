@@ -145,7 +145,6 @@ class PreviewBar {
      */
     createElement(parent?: HTMLElement): void {
         if (parent) this.parent = parent;
-        this.container.classList.add("sbNotInvidious");
         this.parent.prepend(this.container);
     }
 

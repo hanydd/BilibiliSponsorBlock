@@ -165,10 +165,6 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
 
     render(): React.ReactElement {
         const noticeStyle: React.CSSProperties = { }
-        if (this.contentContainer().onMobileYouTube) {
-            noticeStyle.bottom = "4em";
-            noticeStyle.transform = "scale(0.8) translate(10%, 10%)";
-        }
 
         // If it started out as smaller, always keep the
         // skip button there
@@ -178,7 +174,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         ) : null;
 
         return (
-            <NoticeComponent 
+            <NoticeComponent
                 noticeTitle={this.state.noticeTitle}
                 amountOfPreviousNotices={this.amountOfPreviousNotices}
                 showInSecondSlot={this.showInSecondSlot}
@@ -189,7 +185,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 timed={true}
                 maxCountdownTime={this.state.maxCountdownTime}
                 style={noticeStyle}
-                biggerCloseButton={this.contentContainer().onMobileYouTube}
+                biggerCloseButton={false}
                 ref={this.noticeRef}
                 closeListener={() => this.closeListener()}
                 smaller={this.state.smaller}
@@ -359,10 +355,6 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 color: ([SkipNoticeAction.Unskip0, SkipNoticeAction.Unskip1].includes(this.state.actionState))
                     ? this.selectedColor : this.unselectedColor
             };
-            if (this.contentContainer().onMobileYouTube) {
-                style.padding = "20px";
-                style.minWidth = "100px";
-            }
 
             return (
                 <span className="sponsorSkipNoticeUnskipSection">
@@ -390,7 +382,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                         onClick={() => this.performAction(i)}
                         autoFocus={i == 0}
                         key={"submission" + i + this.segments[i].category + this.idSuffix}>
-                    {`${(i + 1)}. ${chrome.i18n.getMessage("category_" + 
+                    {`${(i + 1)}. ${chrome.i18n.getMessage("category_" +
                         this.segments[i].category)} (${getFormattedTime(this.segments[i].segment[0])})`}
                 </button>
             );

@@ -5,7 +5,6 @@ export function getControls(): HTMLElement {
     const controlsSelectors = [
         // Bilibili
         ".bpx-player-control-bottom-right"
-        //TODO: Support mobile site
     ];
 
     for (const controlsSelector of controlsSelectors) {

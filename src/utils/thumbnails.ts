@@ -1,4 +1,4 @@
-import { isOnInvidious, parseBilibiliVideoIDFromURL } from "../../maze-utils/src/video";
+import { parseBilibiliVideoIDFromURL } from "../../maze-utils/src/video";
 import Config from "../config";
 import { getVideoLabel } from "./videoLabels";
 import { setThumbnailListener } from "../../maze-utils/src/thumbnailManagement";
@@ -13,7 +13,7 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
         return null;
     }
 
-    const link = (isOnInvidious() ? thumbnail.parentElement : thumbnail.querySelector("a")) as HTMLAnchorElement
+    const link = thumbnail.querySelector("a") as HTMLAnchorElement
     if (!link || !link.href) return null; // no link found
     const videoID = parseBilibiliVideoIDFromURL(link.href)?.videoID;
     if (!videoID) {

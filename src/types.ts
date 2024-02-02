@@ -14,7 +14,6 @@ export interface ContentContainer {
         sponsorVideoID;
         reskipSponsorTime: (segment: SponsorTime, forceSeek?: boolean) => void;
         updatePreviewBar: () => void;
-        onMobileYouTube: boolean;
         sponsorSubmissionNotice: SubmissionNotice;
         resetSponsorSubmissionNotice: (callRef?: boolean) => void;
         updateEditButtonsOnPlayer: () => void;
@@ -201,10 +200,10 @@ export interface ChannelIDInfo {
 }
 
 export interface SkipToTimeParams {
-    v: HTMLVideoElement; 
-    skipTime: number[]; 
-    skippingSegments: SponsorTime[]; 
-    openNotice: boolean; 
+    v: HTMLVideoElement;
+    skipTime: number[];
+    skippingSegments: SponsorTime[];
+    openNotice: boolean;
     forceAutoSkip?: boolean;
     unskipTime?: number;
 }

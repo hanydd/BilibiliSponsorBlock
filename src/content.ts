@@ -34,7 +34,7 @@ import { ChapterVote } from "./render/ChapterVote";
 import { openWarningDialog } from "./utils/warnings";
 import { isFirefoxOrSafari, waitFor } from "../maze-utils/src";
 import { getErrorMessage, getFormattedTime } from "../maze-utils/src/formating";
-import { getChannelIDInfo, getVideo, getIsAdPlaying, getIsLivePremiere, setIsAdPlaying, checkVideoIDChange, getVideoID, getBilibiliVideoID, setupVideoModule, checkIfNewVideoID, isOnInvidious, isOnMobileYouTube } from "../maze-utils/src/video";
+import { getChannelIDInfo, getVideo, getIsLivePremiere, checkVideoIDChange, getVideoID, getBilibiliVideoID, setupVideoModule, checkIfNewVideoID } from "../maze-utils/src/video";
 import { Keybind, StorageChangesObject, isSafari, keybindEquals, keybindToString } from "../maze-utils/src/config";
 import { findValidElement } from "../maze-utils/src/dom"
 import { getHash, HashedValue } from "../maze-utils/src/hash";
@@ -46,7 +46,6 @@ import { runCompatibilityChecks } from "./utils/compatibility";
 import { cleanPage } from "./utils/pageCleaner";
 import { addCleanupListener } from "../maze-utils/src/cleanup";
 import { asyncRequestToServer } from "./utils/requests";
-import { isMobileControlsOpen } from "./utils/mobileUtils";
 import { defaultPreviewTime } from "./utils/constants";
 
 cleanPage();
@@ -181,7 +180,6 @@ const skipNoticeContentContainer: ContentContainer = () => ({
     sponsorVideoID: getVideoID(),
     reskipSponsorTime,
     updatePreviewBar,
-    onMobileYouTube: isOnMobileYouTube(),
     sponsorSubmissionNotice: submissionNotice,
     resetSponsorSubmissionNotice,
     updateEditButtonsOnPlayer,
@@ -219,7 +217,6 @@ function messageListener(request: Message, sender: unknown, sendResponse: (respo
                 status: lastResponseStatus,
                 sponsorTimes: sponsorTimes,
                 time: getVideo().currentTime,
-                onMobileYouTube: isOnMobileYouTube()
             });
 
             if (!request.updating && popupInitialised && document.getElementById("sponsorBlockPopupContainer") != null) {
@@ -411,24 +408,7 @@ function resetValues() {
 function videoIDChange(): void {
     //setup the preview bar
     if (previewBar === null) {
-        if (isOnMobileYouTube()) {
-            // Mobile YouTube workaround
-            const observer = new MutationObserver(handleMobileControlsMutations);
-            let controlsContainer = null;
-
-            utils.wait(() => {
-                controlsContainer = document.getElementById("player-control-container")
-                return controlsContainer !== null
-            }).then(() => {
-                observer.observe(document.getElementById("player-control-container"), {
-                    attributes: true,
-                    childList: true,
-                    subtree: true
-                });
-            }).catch();
-        } else {
-            utils.wait(getControls).then(createPreviewBar);
-        }
+        utils.wait(getControls).then(createPreviewBar);
     }
 
     // Notify the popup about the video change
@@ -448,30 +428,6 @@ function videoIDChange(): void {
     updateSponsorTimesSubmitting();
 }
 
-function handleMobileControlsMutations(): void {
-    if (!chrome.runtime?.id) return;
-
-    updateVisibilityOfPlayerControlsButton();
-
-    skipButtonControlBar?.updateMobileControls();
-
-    if (previewBar !== null) {
-        if (!previewBar.parent.contains(previewBar.container) && isMobileControlsOpen()) {
-            previewBar.createElement();
-            updatePreviewBar();
-
-            return;
-        } else if (!previewBar.parent.isConnected) {
-            // The parent does not exist anymore, remove that old preview bar
-            previewBar.remove();
-            previewBar = null;
-        }
-    }
-
-    // Create the preview bar if needed (the function hasn't returned yet)
-    createPreviewBar();
-}
-
 /**
  * Creates a preview bar on the video
  */
@@ -479,9 +435,6 @@ function createPreviewBar(): void {
     if (previewBar !== null) return;
 
     const progressElementOptions = [{
-        // TODO: Add support for mobile (not really needed)
-        // TODO: Add support for invidiou sites
-
         // For Desktop Bilibili
         selector: ".bpx-player-progress-schedule-wrap",
         isVisibleCheck: true
@@ -509,7 +462,6 @@ function createPreviewBar(): void {
  * This happens when the resolution changes or at random time to clear memory.
  */
 function durationChangeListener(): void {
-    updateAdFlag();
     updatePreviewBar();
 }
 
@@ -542,16 +494,6 @@ function cancelSponsorSchedule(): void {
  */
 async function startSponsorSchedule(includeIntersectingSegments = false, currentTime?: number, includeNonIntersectingSegments = true): Promise<void> {
     cancelSponsorSchedule();
-
-    // Don't skip if advert playing and reset last checked time
-    if (getIsAdPlaying()) {
-        // Reset lastCheckVideoTime
-        lastCheckVideoTime = -1;
-        lastCheckTime = 0;
-        logDebug("[SB] Ad playing, pausing skipping");
-
-        return;
-    }
 
     // Give up if video changed, and trigger a videoID change if so
     if (await checkIfNewVideoID()) {
@@ -823,9 +765,6 @@ function setupVideoListeners() {
 
             lastPausedAtZero = false;
 
-            // Check if an ad is playing
-            updateAdFlag();
-
             // Make sure it doesn't get double called with the playing event
             if (Math.abs(lastCheckVideoTime - getVideo().currentTime) > 0.3
                     || (lastCheckVideoTime !== getVideo().currentTime && Date.now() - lastCheckTime > 2000)) {
@@ -1021,7 +960,6 @@ function setupSkipButtonControlBar() {
                 forceAutoSkip: true
             }),
             selectSegment,
-            onMobileYouTube: isOnMobileYouTube()
         });
     }
 
@@ -1033,7 +971,7 @@ function setupCategoryPill() {
         categoryPill = new CategoryPill();
     }
 
-    categoryPill.attachToPage(isOnMobileYouTube(), isOnInvidious(), voteAsync);
+    categoryPill.attachToPage(voteAsync);
 }
 
 async function sponsorsLookup(keepOldSubmissions = true) {
@@ -1150,7 +1088,6 @@ async function sponsorsLookup(keepOldSubmissions = true) {
         status: lastResponseStatus,
         sponsorTimes: sponsorTimes,
         time: getVideo().currentTime,
-        onMobileYouTube: isOnMobileYouTube()
     });
 
     if (Config.config.isVip) {
@@ -1298,12 +1235,6 @@ function selectSegment(UUID: SegmentUUID): void {
 
 function updatePreviewBar(): void {
     if (previewBar === null) return;
-
-    if (getIsAdPlaying()) {
-        previewBar.clear();
-        return;
-    }
-
     if (getVideo() === null) return;
 
     const hashParams = getHashParams();
@@ -1657,7 +1588,7 @@ function skipToTime({v, skipTime, skippingSegments, openNotice, forceAutoSkip, u
             && skippingSegments.length === 1
             && skippingSegments[0].actionType === ActionType.Poi) {
         skipButtonControlBar.enable(skippingSegments[0]);
-        if (isOnMobileYouTube() || Config.config.skipKeybind == null) skipButtonControlBar.setShowKeybindHint(false);
+        if (Config.config.skipKeybind == null) skipButtonControlBar.setShowKeybindHint(false);
 
         activeSkipKeybindElement?.setShowKeybindHint(false);
         activeSkipKeybindElement = skipButtonControlBar;
@@ -1694,7 +1625,7 @@ function createSkipNotice(skippingSegments: SponsorTime[], autoSkip: boolean, un
     }
 
     const newSkipNotice = new SkipNotice(skippingSegments, autoSkip, skipNoticeContentContainer, unskipTime, startReskip);
-    if (isOnMobileYouTube() || Config.config.skipKeybind == null) newSkipNotice.setShowKeybindHint(false);
+    if (Config.config.skipKeybind == null) newSkipNotice.setShowKeybindHint(false);
     skipNotices.push(newSkipNotice);
 
     activeSkipKeybindElement?.setShowKeybindHint(false);
@@ -1795,7 +1726,7 @@ async function createButtons(): Promise<void> {
     createButton("info", "openPopup", () => openInfoMenu(), "PlayerInfoIconSponsorBlocker.svg");
 
     const controlsContainer = getControls();
-    if (Config.config.autoHideInfoButton && !isOnInvidious() && controlsContainer
+    if (Config.config.autoHideInfoButton && controlsContainer
             && playerButtons["info"]?.button && !controlsWithEventListeners.includes(controlsContainer)) {
         controlsWithEventListeners.push(controlsContainer);
 
@@ -1806,14 +1737,14 @@ async function createButtons(): Promise<void> {
 /** Creates any missing buttons on the player and updates their visiblity. */
 async function updateVisibilityOfPlayerControlsButton(): Promise<void> {
     // Not on a proper video yet
-    if (!getVideoID() || isOnMobileYouTube()) return;
+    if (!getVideoID()) return;
 
     await createButtons();
 
     updateEditButtonsOnPlayer();
 
     // Don't show the info button on embeds
-    if (Config.config.hideInfoButtonPlayerControls || document.URL.includes("/embed/") || isOnInvidious()
+    if (Config.config.hideInfoButtonPlayerControls || document.URL.includes("/embed/")
         || document.getElementById("sponsorBlockPopupContainer") != null) {
         playerButtons.info.button.style.display = "none";
     } else {
@@ -1824,9 +1755,9 @@ async function updateVisibilityOfPlayerControlsButton(): Promise<void> {
 /** Updates the visibility of buttons on the player related to creating segments. */
 function updateEditButtonsOnPlayer(): void {
     // Don't try to update the buttons if we aren't on a YouTube video page
-    if (!getVideoID() || isOnMobileYouTube()) return;
+    if (!getVideoID()) return;
 
-    const buttonsEnabled = !(Config.config.hideVideoPlayerControls || isOnInvidious());
+    const buttonsEnabled = !(Config.config.hideVideoPlayerControls);
 
     let creatingSegment = false;
     let submitButtonVisible = false;
@@ -2526,18 +2457,6 @@ function addCSS() {
         } else {
             document.addEventListener("DOMContentLoaded", onLoad);
         }
-    }
-}
-
-/**
- * Update the isAdPlaying flag and hide preview bar/controls if ad is playing
- */
-function updateAdFlag(): void {
-    const wasAdPlaying = getIsAdPlaying();
-    setIsAdPlaying(document.getElementsByClassName('ad-showing').length > 0);
-    if(wasAdPlaying != getIsAdPlaying()) {
-        updatePreviewBar();
-        updateVisibilityOfPlayerControlsButton();
     }
 }
 

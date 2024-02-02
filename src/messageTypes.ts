@@ -76,7 +76,6 @@ export interface IsInfoFoundMessageResponse {
     status: number;
     sponsorTimes: SponsorTime[];
     time: number;
-    onMobileYouTube: boolean;
 }
 
 interface GetVideoIdResponse {
