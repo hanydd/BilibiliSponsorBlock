@@ -5,74 +5,51 @@
   <sub>Logo by <a href="https://github.com/munadikieh">@munadikieh</a></sub>
 </p>
 
-<h1 align="center">SponsorBlock</h1>
+<h1 align="center">BilibiliSponsorBlock（文档施工中）</h1>
 
-<p align="center">
-  <b>Download:</b>
-  <a href="https://chrome.google.com/webstore/detail/mnjggcdmjocbbbhaepdhchncahnbgone">Chrome/Chromium</a> |
-  <a href="https://addons.mozilla.org/addon/sponsorblock/?src=external-github">Firefox</a> |
-  <a href="https://github.com/ajayyy/SponsorBlock/wiki/Android">Android</a> |
-  <a href="https://github.com/ajayyy/SponsorBlock/wiki/Edge">Edge</a> |
-  <a href="https://github.com/ajayyy/SponsorBlock/wiki/Safari">Safari for MacOS and iOS</a> |
-  <a href="https://sponsor.ajay.app">Website</a> |
-  <a href="https://sponsor.ajay.app/stats">Stats</a>
-</p>
+BilibiliSponsorBlock是一款帮你跳过B站视频中广告片段的浏览器插件，插件自动获取并跳过广告片段，让你的刷视频体验毫无中断！插件中所有的标注片段都来自热心网友，您也可以提交自己的标注来帮助他人。除了广告之外，插件还支持其他类别，例如开场结尾的动画，一键三连提示等等。
 
-<p align="center">
-  <b>3rd-Party Ports:</b>
-  <a href="https://github.com/ajayyy/SponsorBlock/wiki/3rd-Party-Ports#mpv-media-player">MPV</a> |
-  <a href="https://github.com/ajayyy/SponsorBlock/wiki/3rd-Party-Ports#kodi">Kodi</a> |
-  <a href="https://github.com/ajayyy/SponsorBlock/wiki/3rd-Party-Ports#Chromecast">Chromecast</a> |
-  <a href="https://github.com/ajayyy/SponsorBlock/wiki/3rd-Party-Ports#ios">iOS</a>
-</p>
+目前本项目还处于开发中（包括本文档）。
 
-<p align="center">
-    <a href="https://addons.mozilla.org/addon/sponsorblock/?src=external-github"><img src="https://img.shields.io/amo/users/sponsorblock?label=Firefox%20Users" alt="Badge"></img></a>
-    <a href="https://chrome.google.com/webstore/detail/mnjggcdmjocbbbhaepdhchncahnbgone"><img src="https://img.shields.io/chrome-web-store/users/mnjggcdmjocbbbhaepdhchncahnbgone?label=Chrome%20Users" alt="Badge"></img></a>
-    <a href="https://sponsor.ajay.app/stats"><img src="https://img.shields.io/badge/dynamic/json?label=Submissions&query=totalSubmissions&suffix=%20segments&url=http%3A%2F%2Fsponsor.ajay.app%2Fapi%2FgetTotalStats&color=darkred" alt="Badge"></img></a>
-    <a href="https://sponsor.ajay.app/stats"><img src="https://img.shields.io/badge/dynamic/json?label=Active%20Users&query=apiUsers&url=http%3A%2F%2Fsponsor.ajay.app%2Fapi%2FgetTotalStats&color=darkblue" alt="Badge"></img></a>
-    <a href="https://sponsor.ajay.app/stats"><img src="https://img.shields.io/badge/dynamic/json?label=Time%20Saved%20From%20Skips&query=daysSaved&url=http%3A%2F%2Fsponsor.ajay.app%2Fapi%2FgetDaysSavedFormatted&color=darkgreen&suffix=%20days" alt="Badge"></img></a>
-</p>
+本插件移植自油管插件[SponsorBlock](https://github.com/ajayyy/SponsorBlock)，保留了大部分的UI和使用方法，加入一些了B站特色的功能。
 
+# 相比[原插件](https://github.com/ajayyy/SponsorBlock)变化
 
+- 放弃了多语言支持。不会真的有人看不懂中文还在刷B站吧？
 
-SponsorBlock is an open-source crowdsourced browser extension to skip sponsor segments in YouTube videos. Users submit when a sponsor happens from the extension, and the extension automatically skips sponsors it knows about. It also supports skipping other categories, such as intros, outros and reminders to subscribe.
+- 放弃了移动端网页支持。日后计划做一个ReVanced插件，移动端网页真的有人用吗？
 
-It also supports Invidious.
+- 放弃了第三方镜像站支持。我不清楚B站有没有镜像站，如果大家知道有使用人数多的欢迎提Issue。
 
-**Translate:** [![Crowdin](https://badges.crowdin.net/sponsorblock/localized.svg)](https://crowdin.com/project/sponsorblock)
+- 加入动态标记功能（制作中）。恰饭动态真的好多，甚至比视频更得还快。
 
-# Important Links
+- 加入评论标记功能（制作中）。不用多说了，百亿红包，点击就领！评论区置顶链接yyds！
 
-See the [Wiki](https://github.com/ajayyy/SponsorBlock/wiki) for important links.
+# 功能更新计划
 
-# Server
+- 评论和动态标记
 
-The backend server code is available here: https://github.com/ajayyy/SponsorBlockServer
+- 搬运视频自动获取油管标注
 
-To make sure that this project doesn't die, I have made the database publicly downloadable at https://sponsor.ajay.app/database ([License](https://github.com/ajayyy/SponsorBlock/wiki/Database-and-API-License)). If you are planning on using the database in another project, please read the [API Docs](https://wiki.sponsor.ajay.app/index.php/API_Docs) page for more information.
+- 完善文档
 
-The dataset and API are now being used in some [ports](https://github.com/ajayyy/SponsorBlock/wiki/3rd-Party-Ports) as well as a [neural network](https://github.com/andrewzlee/NeuralBlock).
+- 欢迎大家提出意见和建议！
+
+# 服务端
+
+服务端代码（同样也在开发中）：https://github.com/HanYaodong/SponsorBlockServer
 
 # API
 
-You can read the API docs [here](https://wiki.sponsor.ajay.app/w/API_Docs).
+油管原项目的[API](https://wiki.sponsor.ajay.app/w/API_Docs)，本项目对API改动很小，可以先参考原项目文档。
 
-# Building
-See [CONTRIBUTING.md](CONTRIBUTING.md)
+# 搭建项目
+详见 [CONTRIBUTING.md](CONTRIBUTING.md)
 
-# Credit
+# 致谢
 
-The awesome [Invidious API](https://docs.invidious.io/) was previously used, and the server is now using [NewLeaf](https://git.sr.ht/~cadence/NewLeaf) as a to get video info from YouTube.
-
-Originally forked from [YTSponsorSkip](https://github.com/NDevTK/YTSponsorSkip), but very little code remains.
-
-Icons made by:
-* <a href="https://www.flaticon.com/authors/gregor-cresnar" title="Gregor Cresnar">Gregor Cresnar</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> and are licensed by <a href="https://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a>
-* <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> and are licensed by <a href="https://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a>
-* <a href="https://iconmonstr.com/about/#creator">Alexander Kahlkopf</a> from <a href="https://iconmonstr.com/">iconmonstr.com</a> and are licensed by <a href="https://iconmonstr.com/license/">iconmonstr License</a>
-
+感谢[ajayyy](https://github.com/ajayyy)创建的[SponsorBlock](https://github.com/ajayyy/SponsorBlock)给我的启发！
 
 ### License
 
-This project is licensed under GNU LGPL v3 or any later version
+This project is licensed under GNU GPL v3 or any later version
