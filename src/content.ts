@@ -146,7 +146,7 @@ let skipButtonControlBar: SkipButtonControlBar = null;
 // For full video sponsors/selfpromo
 let categoryPill: CategoryPill = null;
 
-/** Element containing the player controls on the YouTube player. */
+/** Element containing the player controls on the Bilibili player. */
 let controls: HTMLElement | null = null;
 
 /** Contains buttons created by `createButton()`. */
@@ -159,7 +159,7 @@ let sponsorTimesSubmitting: SponsorTime[] = [];
 let loadedPreloadedSegment = false;
 
 //becomes true when isInfoFound is called
-//this is used to close the popup on YouTube when the other popup opens
+//this is used to close the popup on Bilibili when the other popup opens
 let popupInitialised = false;
 
 let submissionNotice: SubmissionNotice = null;
@@ -1713,7 +1713,7 @@ function shouldSkip(segment: SponsorTime): boolean {
                 && segment.actionType === ActionType.Skip);
 }
 
-/** Creates any missing buttons on the YouTube player if possible. */
+/** Creates any missing buttons on the Bilibili player if possible. */
 async function createButtons(): Promise<void> {
     controls = await utils.wait(getControls).catch();
 
@@ -1754,7 +1754,7 @@ async function updateVisibilityOfPlayerControlsButton(): Promise<void> {
 
 /** Updates the visibility of buttons on the player related to creating segments. */
 function updateEditButtonsOnPlayer(): void {
-    // Don't try to update the buttons if we aren't on a YouTube video page
+    // Don't try to update the buttons if we aren't on a Bilibili video page
     if (!getVideoID()) return;
 
     const buttonsEnabled = !(Config.config.hideVideoPlayerControls);
@@ -2344,7 +2344,7 @@ function addHotkeyListener(): void {
     document.addEventListener("keydown", hotkeyListener);
 
     const onLoad = () => {
-        // Allow us to stop propagation to YouTube by being deeper
+        // Allow us to stop propagation to Bilibili by being deeper
         document.removeEventListener("keydown", hotkeyListener);
         document.body.addEventListener("keydown", hotkeyListener);
 

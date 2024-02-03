@@ -415,7 +415,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
                 // Handle error if it exists
                 chrome.runtime.lastError;
 
-                // This isn't a YouTube video then, or at least the content script is not loaded
+                // This isn't a Bilibili video then, or at least the content script is not loaded
                 displayNoVideo();
 
                 // Try again in some time if a failure
@@ -429,7 +429,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
     async function loadTabData(tabs, updating: boolean): Promise<void> {
         if (!currentVideoID) {
-            //this isn't a YouTube video then
+            //this isn't a Bilibili video then
             displayNoVideo();
             return;
         }
@@ -465,7 +465,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             return;
         }
 
-        //if request is undefined, then the page currently being browsed is not YouTube
+        //if request is undefined, then the page currently being browsed is not Bilibili
         if (request != undefined) {
             //remove loading text
             PageElements.mainControls.style.display = "block";
@@ -502,7 +502,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     }
 
     async function sendSponsorStartMessage() {
-        //the content script will get the message if a YouTube page is open
+        //the content script will get the message if a Bilibili page is open
         const response = await sendTabMessageAsync({ from: 'popup', message: 'sponsorStart' }) as SponsorStartResponse;
         startSponsorCallback(response);
 
@@ -858,7 +858,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         PageElements.setUsername.style.display = "unset";
     }
 
-    //this is not a YouTube video page
+    //this is not a Bilibili video page
     function displayNoVideo() {
         document.getElementById("loadingIndicator").innerText = chrome.i18n.getMessage("noVideoID");
 
