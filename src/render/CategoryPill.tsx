@@ -18,11 +18,22 @@ export class CategoryPill {
 
     lastState: CategoryPillState;
 
+    mutationCount: number;
+    isSegmentSet: boolean;
     mutationObserver?: MutationObserver;
+
     vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>;
 
     constructor() {
         this.ref = React.createRef();
+        this.mutationCount = 0;
+        this.isSegmentSet = false;
+
+        // this mutation observer listens to the change to title bar
+        // bilibili will set the textContent of the title after loading for some reason.
+        // If the node is inserted before this reset of title, it will be removed
+        const mutationCounter = (thisPtr) => thisPtr.mutationCount += 1
+        this.mutationObserver = new MutationObserver(() => mutationCounter(this));
 
         addCleanupListener(() => {
             if (this.mutationObserver) {
@@ -33,7 +44,13 @@ export class CategoryPill {
 
     async attachToPage(vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>): Promise<void> {
         this.vote = vote;
+        const referenceNode = await waitFor(() => getBilibiliTitleNode());
+        this.mutationObserver.observe(referenceNode, { attributes: true, childList: true })
 
+        // wait for bilibili to reload the title bar
+        await waitFor(() => this.mutationCount >= 1, 10000, 50)
+        // if setSegment is called after node attachment, it won't render sometimes
+        await waitFor(() => this.isSegmentSet, 10000, 50);
         this.attachToPageInternal();
     }
 
@@ -62,13 +79,7 @@ export class CategoryPill {
                 });
             }
 
-            // Use a parent because YouTube does weird things to the top level object
-            // react would have to rerender if container was the top level
-            const parent = document.createElement("span");
-            parent.id = "categoryPillParent";
-            parent.appendChild(this.container);
-
-            referenceNode.prepend(parent);
+            referenceNode.prepend(this.container);
             referenceNode.style.display = "flex";
         }
     }
@@ -116,5 +127,6 @@ export class CategoryPill {
                 }
             }
         }
+        this.isSegmentSet = true;
     }
 }

@@ -755,10 +755,11 @@ input::-webkit-inner-spin-button {
     line-height: 1.5em;
 }
 
-#categoryPillParent {
+#categoryPill {
 	height: fit-content;
     margin-top: auto;
 	margin-bottom: auto;
+	text-indent: 0;
 
     position: relative;
 }
