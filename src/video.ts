@@ -135,8 +135,7 @@ export async function checkVideoIDChange(): Promise<boolean> {
 
 async function videoIDChange(id: VideoID | null): Promise<boolean> {
     // don't switch to invalid value
-    if (!id && videoID &&
-            (params.allowClipPage || !document?.URL?.includes("youtube.com/clip/"))) {
+    if (!id && videoID) {
         return false;
     }
 
@@ -386,8 +385,7 @@ function windowListenerHandler(event: MessageEvent): void {
     const data = event.data;
     const dataType = data.type;
 
-    if (data.source !== "sponsorblock"
-        || (!params.allowClipPage && document?.URL?.includes("youtube.com/clip/"))) return;
+    if (data.source !== "sponsorblock") return;
 
     if (dataType === "navigation") {
         newThumbnails();
