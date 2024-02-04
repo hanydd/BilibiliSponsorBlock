@@ -1,10 +1,9 @@
 {
     "name": "__MSG_fullName__",
-    "short_name": "SponsorBlockBili",
-    "version": "5.5.4",
+    "short_name": "哔哩广告助手",
+    "version": "0.1.0",
     "default_locale": "zh_CN",
     "description": "__MSG_Description__",
-    "homepage_url": "https://sponsor.ajay.app",
     "content_scripts": [{
         "run_at": "document_start",
         "matches": [
