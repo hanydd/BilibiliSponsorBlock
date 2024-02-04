@@ -1,6 +1,6 @@
 import * as React from "react";
 import Config from "../config";
-import { ActionType, Category, SegmentUUID, SponsorTime } from "../types";
+import { Category, SegmentUUID, SponsorTime } from "../types";
 
 import ThumbsUpSvg from "../svg-icons/thumbs_up_svg";
 import ThumbsDownSvg from "../svg-icons/thumbs_down_svg";
@@ -48,8 +48,8 @@ class ChapterVoteComponent extends React.Component<ChapterVoteProps, ChapterVote
                         draggable="false"
                         title={chrome.i18n.getMessage("upvoteButtonInfo")}
                         onClick={(e) => this.vote(e, 1)}>
-                    <ThumbsUpSvg className="playerButtonImage" 
-                        fill={Config.config.colorPalette.white} 
+                    <ThumbsUpSvg className="playerButtonImage"
+                        fill={Config.config.colorPalette.white}
                         width={this.state.size} height={this.state.size} />
                 </button>
 
@@ -59,52 +59,17 @@ class ChapterVoteComponent extends React.Component<ChapterVoteProps, ChapterVote
                         draggable="false"
                         title={chrome.i18n.getMessage("reportButtonInfo")}
                         onClick={(e) => {
-                            const chapterNode = document.querySelector(".ytp-chapter-container") as HTMLElement;
-
                             if (this.tooltip) {
                                 this.tooltip.close();
                                 this.tooltip = null;
                             } else {
-                                if (this.state.segment?.actionType === ActionType.Chapter) {
-                                    const referenceNode = chapterNode?.parentElement?.parentElement;
-                                    if (referenceNode) {
-                                        const outerBounding = referenceNode.getBoundingClientRect();
-                                        const buttonBounding = (e.target as HTMLElement)?.parentElement?.getBoundingClientRect();
-                                        
-                                        this.tooltip = new Tooltip({
-                                            referenceNode: chapterNode?.parentElement?.parentElement,
-                                            prependElement: chapterNode?.parentElement,
-                                            showLogo: false,
-                                            showGotIt: false,
-                                            bottomOffset: `${outerBounding.height + 25}px`,
-                                            leftOffset: `${buttonBounding.x - outerBounding.x}px`,
-                                            extraClass: "centeredSBTriangle",
-                                            buttons: [
-                                                {
-                                                    name: chrome.i18n.getMessage("incorrectVote"),
-                                                    listener: (event) => this.vote(event, 0, e.target as HTMLElement).then(() => {
-                                                        this.tooltip?.close();
-                                                        this.tooltip = null;
-                                                    })
-                                                }, {
-                                                    name: chrome.i18n.getMessage("harmfulVote"),
-                                                    listener: (event) => this.vote(event, 30, e.target as HTMLElement).then(() => {
-                                                        this.tooltip?.close();
-                                                        this.tooltip = null;
-                                                    })
-                                                }
-                                            ]
-                                        });
-                                    }
-                                } else {
-                                    this.vote(e, 0, e.target as HTMLElement)
-                                }
+                                this.vote(e, 0, e.target as HTMLElement)
                             }
                         }}>
-                    <ThumbsDownSvg 
-                        className="playerButtonImage" 
-                        fill={downvoteButtonColor(this.state.segment ? [this.state.segment] : null, SkipNoticeAction.Downvote, SkipNoticeAction.Downvote)} 
-                        width={this.state.size} 
+                    <ThumbsDownSvg
+                        className="playerButtonImage"
+                        fill={downvoteButtonColor(this.state.segment ? [this.state.segment] : null, SkipNoticeAction.Downvote, SkipNoticeAction.Downvote)}
+                        width={this.state.size}
                         height={this.state.size} />
                 </button>
             </>

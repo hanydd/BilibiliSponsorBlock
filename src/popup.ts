@@ -5,7 +5,6 @@ import {
     ActionType,
     SegmentUUID,
     SponsorHideType,
-    SponsorSourceType,
     SponsorTime,
 } from "./types";
 import {
@@ -104,11 +103,6 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     //current video ID of this tab
     let currentVideoID = null;
 
-    enum SegmentTab {
-        Segments,
-        Chapters
-    }
-    let segmentTab = SegmentTab.Segments;
     let port: chrome.runtime.Port = null;
 
     //saves which detail elemts are opened, by saving the uuids
@@ -172,7 +166,6 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         "sbDonate",
         "issueReporterTabs",
         "issueReporterTabSegments",
-        "issueReporterTabChapters",
         "sponsorTimesDonateContainer",
         "sbConsiderDonateLink",
         "sbCloseDonate",
@@ -374,17 +367,6 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
     PageElements.issueReporterTabSegments.addEventListener("click", () => {
         PageElements.issueReporterTabSegments.classList.add("sbSelected");
-        PageElements.issueReporterTabChapters.classList.remove("sbSelected");
-
-        segmentTab = SegmentTab.Segments;
-        getSegmentsFromContentScript(true);
-    });
-
-    PageElements.issueReporterTabChapters.addEventListener("click", () => {
-        PageElements.issueReporterTabSegments.classList.remove("sbSelected");
-        PageElements.issueReporterTabChapters.classList.add("sbSelected");
-
-        segmentTab = SegmentTab.Chapters;
         getSegmentsFromContentScript(true);
     });
 
@@ -535,32 +517,10 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
     //display the video times from the array at the top, in a different section
     function displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
-        let currentSegmentTab = segmentTab;
-        if (!sponsorTimes.some((segment) => segment.actionType === ActionType.Chapter && segment.source !== SponsorSourceType.YouTube)) {
-            PageElements.issueReporterTabs.classList.add("hidden");
-            currentSegmentTab = SegmentTab.Segments;
-        } else {
-            if (currentSegmentTab === SegmentTab.Segments
-                    && sponsorTimes.every((segment) => segment.actionType === ActionType.Chapter)) {
-                PageElements.issueReporterTabs.classList.add("hidden");
-                currentSegmentTab = SegmentTab.Chapters;
-            } else {
-                PageElements.issueReporterTabs.classList.remove("hidden");
-            }
-        }
+        PageElements.issueReporterTabs.classList.add("hidden");
 
         // Sort list by start time
         const downloadedTimes = sponsorTimes
-            .filter((segment) => {
-                if (currentSegmentTab === SegmentTab.Segments) {
-                    return segment.actionType !== ActionType.Chapter;
-                } else if (currentSegmentTab === SegmentTab.Chapters) {
-                    return segment.actionType === ActionType.Chapter
-                        && segment.source !== SponsorSourceType.YouTube;
-                } else {
-                    return true;
-                }
-            })
             .sort((a, b) => a.segment[1] - b.segment[1])
             .sort((a, b) => a.segment[0] - b.segment[0]);
 
@@ -626,7 +586,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
             // for inline-styling purposes
             const labelContainer = document.createElement("div");
-            if (actionType !== ActionType.Chapter) labelContainer.appendChild(categoryColorCircle);
+            labelContainer.appendChild(categoryColorCircle);
 
             const span = document.createElement('span');
             span.className = "summaryLabel";
@@ -714,8 +674,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             skipButton.id = "sponsorTimesSkipButtonContainer" + UUID;
             skipButton.className = "voteButton";
             skipButton.src = chrome.runtime.getURL("icons/skip.svg");
-            skipButton.title = actionType === ActionType.Chapter ? chrome.i18n.getMessage("playChapter")
-                : chrome.i18n.getMessage("skipSegment");
+            skipButton.title = chrome.i18n.getMessage("skipSegment");
             skipButton.addEventListener("click", () => skipSegment(actionType, UUID, skipButton));
             votingButtons.addEventListener("dblclick", () => skipSegment(actionType, UUID));
             votingButtons.addEventListener("dblclick", () => skipSegment(actionType, UUID));
@@ -985,17 +944,10 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     }
 
     function skipSegment(actionType: ActionType, UUID: SegmentUUID, element?: HTMLElement): void {
-        if (actionType === ActionType.Chapter) {
-            sendTabMessage({
-                message: "unskip",
-                UUID: UUID
-            });
-        } else {
-            sendTabMessage({
-                message: "reskip",
-                UUID: UUID
-            });
-        }
+        sendTabMessage({
+            message: "reskip",
+            UUID: UUID
+        });
 
         if (element) {
             const stopAnimation = AnimationUtils.applyLoadingAnimation(element, 0.3);

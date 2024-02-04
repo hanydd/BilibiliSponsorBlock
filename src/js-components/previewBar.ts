@@ -286,11 +286,11 @@ class PreviewBar {
                 })()) as HTMLDivElement;
                 chapterCustomText.innerText = chosenSegment.description || shortCategoryName(chosenSegment.category);
 
-                if (chosenSegment.actionType !== ActionType.Chapter) {
-                    chapterTitle.classList.add("sponsorBlock-segment-title");
-                } else {
+                // if (chosenSegment.actionType !== ActionType.Chapter) {
+                //     chapterTitle.classList.add("sponsorBlock-segment-title");
+                // } else {
                     chapterTitle.classList.remove("sponsorBlock-segment-title");
-                }
+                // }
 
                 if (chosenSegment.source === SponsorSourceType.Server) {
                     const chapterVoteContainer = this.chapterVote.getContainer();

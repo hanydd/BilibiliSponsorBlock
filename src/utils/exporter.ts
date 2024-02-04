@@ -6,8 +6,7 @@ import { generateUserID } from "../../maze-utils/src/setup";
 
 const inTest = typeof chrome === "undefined";
 
-const chapterNames = CompileConfig.categoryList.filter((code) => code !== "chapter")
-    .map((code) => ({
+const chapterNames = CompileConfig.categoryList.map((code) => ({
         code,
         names: !inTest ? [chrome.i18n.getMessage("category_" + code), shortCategoryName(code)] : [code]
     }));
@@ -28,7 +27,7 @@ function exportTime(segment: SponsorTime): string {
     const name = segment.description || shortCategoryName(segment.category);
 
     return `${getFormattedTime(segment.segment[0], true)}${
-        segment.segment[1] && segment.segment[0] !== segment.segment[1] 
+        segment.segment[1] && segment.segment[0] !== segment.segment[1]
             ? ` - ${getFormattedTime(segment.segment[1], true)}` : ""} ${name}`;
 }
 
@@ -58,8 +57,8 @@ export function importTimes(data: string, videoDuration: number): SponsorTime[] 
 
                     const segment: SponsorTime = {
                         segment: [startTime, getFormattedTimeToSeconds(match[1])],
-                        category: determinedCategory ?? ("chapter" as Category),
-                        actionType: determinedCategory ? ActionType.Skip : ActionType.Chapter,
+                        category: determinedCategory,
+                        actionType: ActionType.Skip,
                         description: title,
                         source: SponsorSourceType.Local,
                         UUID: generateUserID() as SegmentUUID

@@ -138,7 +138,7 @@ interface SBStorage {
     /* VideoID prefixes to UUID prefixes */
     downvotedSegments: Record<VideoID & HashedValue, VideoDownvotes>;
     navigationApiAvailable: boolean;
-    
+
     // Used when sync storage disbaled
     alreadyInstalled: boolean;
 
@@ -173,19 +173,6 @@ function migrateOldSyncFormats(config: SBConfig) {
         }, () => {
             chrome.storage.sync.remove("unsubmittedSegments");
         });
-    }
-
-    if (!config["chapterCategoryAdded"]) {
-        config["chapterCategoryAdded"] = true;
-
-        if (!config.categorySelections.some((s) => s.name === "chapter")) {
-            config.categorySelections.push({
-                name: "chapter" as Category,
-                option: CategorySkipOption.ShowOverlay
-            });
-    
-            config.categorySelections = config.categorySelections;
-        }
     }
 
     if (config["exclusive_accessCategoryAdded"] !== undefined) {
@@ -361,9 +348,6 @@ const syncDefaults = {
         option: CategorySkipOption.ManualSkip
     }, {
         name: "exclusive_access" as Category,
-        option: CategorySkipOption.ShowOverlay
-    }, {
-        name: "chapter" as Category,
         option: CategorySkipOption.ShowOverlay
     }],
 

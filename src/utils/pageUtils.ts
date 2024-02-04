@@ -1,6 +1,3 @@
-import { ActionType, Category, SponsorSourceType, SponsorTime, VideoID } from "../types";
-import { getFormattedTimeToSeconds } from "../../maze-utils/src/formating";
-
 export function getControls(): HTMLElement {
     const controlsSelectors = [
         // Bilibili
@@ -45,48 +42,6 @@ export function getHashParams(): Record<string, unknown> {
     }
 
     return {};
-}
-
-export function getExistingChapters(currentVideoID: VideoID, duration: number): SponsorTime[] {
-    const chaptersBox = document.querySelector("ytd-macro-markers-list-renderer");
-    const title = document.querySelector("[target-id=engagement-panel-macro-markers-auto-chapters] #title-text");
-    if (title?.textContent?.includes("Key moment")) return [];
-
-    const chapters: SponsorTime[] = [];
-    // .ytp-timed-markers-container indicates that key-moments are present, which should not be divided
-    if (chaptersBox) {
-        let lastSegment: SponsorTime = null;
-        const links = chaptersBox.querySelectorAll("ytd-macro-markers-list-item-renderer > a");
-        for (const link of links) {
-            const timeElement = link.querySelector("#time") as HTMLElement;
-            const description = link.querySelector("#details h4") as HTMLElement;
-            if (timeElement && description?.innerText?.length > 0 && link.getAttribute("href")?.includes(currentVideoID)) {
-                const time = getFormattedTimeToSeconds(timeElement.innerText.replace(/\./g, ":"));
-                if (time === null) return [];
-
-                if (lastSegment) {
-                    lastSegment.segment[1] = time;
-                    chapters.push(lastSegment);
-                }
-
-                lastSegment = {
-                    segment: [time, null],
-                    category: "chapter" as Category,
-                    actionType: ActionType.Chapter,
-                    description: description.innerText,
-                    source: SponsorSourceType.YouTube,
-                    UUID: null
-                };
-            }
-        }
-
-        if (lastSegment) {
-            lastSegment.segment[1] = duration;
-            chapters.push(lastSegment);
-        }
-    }
-
-    return chapters;
 }
 
 export function isPlayingPlaylist() {

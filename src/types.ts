@@ -51,7 +51,6 @@ export enum SponsorHideType {
 export enum ActionType {
     Skip = "skip",
     Mute = "mute",
-    Chapter = "chapter",
     Full = "full",
     Poi = "poi"
 }

@@ -24,7 +24,7 @@ import SubmissionNotice from "./render/SubmissionNotice";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
 import { getStartTimeFromUrl } from "./utils/urlParser";
-import { getControls, getExistingChapters, getHashParams, isPlayingPlaylist, isVisible } from "./utils/pageUtils";
+import { getControls, getHashParams, isPlayingPlaylist, isVisible } from "./utils/pageUtils";
 import { CategoryPill } from "./render/CategoryPill";
 import { AnimationUtils } from "../maze-utils/src/animationUtils";
 import { GenericUtils } from "./utils/genericUtils";
@@ -68,8 +68,6 @@ const endTimeSkipBuffer = 0.5;
 let sponsorDataFound = false;
 //the actual sponsorTimes if loaded and UUIDs associated with them
 let sponsorTimes: SponsorTime[] = [];
-let existingChaptersImported = false;
-let importingChaptersWaitingForFocus = false;
 // List of open skip notices
 const skipNotices: SkipNotice[] = [];
 let activeSkipKeybindElement: ToggleSkippable = null;
@@ -91,10 +89,6 @@ const lastKnownVideoTime: { videoTime: number; preciseTime: number; fromPause: b
 };
 // It resumes with a slightly later time on chromium
 let lastTimeFromWaitingEvent: number = null;
-const lastNextChapterKeybind = {
-    time: 0,
-    date: 0
-};
 
 // Skips are scheduled to ensure precision.
 // Skips are rescheduled every seeking event.
@@ -294,12 +288,6 @@ function messageListener(request: Message, sender: unknown, sendResponse: (respo
                 if (!sponsorTimesSubmitting.some(
                         (s) => Math.abs(s.segment[0] - segment.segment[0]) < 1
                             && Math.abs(s.segment[1] - segment.segment[1]) < 1)) {
-                    if (segment.category === "chapter" && !utils.getCategorySelection("chapter")) {
-                        segment.category = "chooseACategory" as Category;
-                        segment.actionType = ActionType.Skip;
-                        segment.description = "";
-                    }
-
                     sponsorTimesSubmitting.push(segment);
                     addedSegments = true;
                 }
@@ -372,7 +360,6 @@ function resetValues() {
     previewedSegment = false;
 
     sponsorTimes = [];
-    existingChaptersImported = false;
     sponsorSkipped = [];
     lastResponseStatus = 0;
     shownSegmentFailedToFetchWarning = false;
@@ -1028,7 +1015,6 @@ async function sponsorsLookup(keepOldSubmissions = true) {
 
             const oldSegments = sponsorTimes || [];
             sponsorTimes = receivedSegments;
-            existingChaptersImported = false;
 
             // Hide all submissions smaller than the minimum duration
             if (Config.config.minDuration !== 0) {
@@ -1079,8 +1065,6 @@ async function sponsorsLookup(keepOldSubmissions = true) {
         retryFetch(lastResponseStatus);
     }
 
-    importExistingChapters(true);
-
     // notify popup of segment changes
     chrome.runtime.sendMessage({
         message: "infoUpdated",
@@ -1095,32 +1079,8 @@ async function sponsorsLookup(keepOldSubmissions = true) {
     }
 }
 
-function importExistingChapters(wait: boolean) {
-    if (!existingChaptersImported) {
-        const waitCondition = () => getVideo()?.duration && getExistingChapters(getVideoID(), getVideo().duration);
-
-        if (!waitCondition() && wait && !document.hasFocus() && !importingChaptersWaitingForFocus) {
-            importingChaptersWaitingForFocus = true;
-            const listener = () => {
-                importExistingChapters(wait);
-                window.removeEventListener("focus", listener);
-            };
-            window.addEventListener("focus", listener);
-        } else {
-            waitFor(waitCondition,
-                wait ? 15000 : 0, 400, (c) => c?.length > 0).then((chapters) => {
-                    if (!existingChaptersImported && chapters?.length > 0) {
-                        sponsorTimes = (sponsorTimes ?? []).concat(...chapters).sort((a, b) => a.segment[0] - b.segment[0]);
-                        existingChaptersImported = true;
-                        updatePreviewBar();
-                    }
-                }).catch(() => {}); // eslint-disable-line @typescript-eslint/no-empty-function
-        }
-    }
-}
-
 function getEnabledActionTypes(forceFullVideo = false): ActionType[] {
-    const actionTypes = [ActionType.Skip, ActionType.Poi, ActionType.Chapter];
+    const actionTypes = [ActionType.Skip, ActionType.Poi];
     if (Config.config.muteSegments) {
         actionTypes.push(ActionType.Mute);
     }
@@ -1277,7 +1237,7 @@ function updatePreviewBar(): void {
 
     if (Config.config.showTimeWithSkips) {
         const skippedDuration = utils.getTimestampsDuration(previewBarSegments
-            .filter(({actionType}) => ![ActionType.Mute, ActionType.Chapter].includes(actionType))
+            .filter(({actionType}) => actionType !== ActionType.Mute)
             .map(({segment}) => segment));
 
         showTimeWithoutSkips(skippedDuration);
@@ -1510,9 +1470,7 @@ function sendTelemetryAndCount(skippingSegments: SponsorTime[], secondsSkipped: 
             sponsorSkipped[index] = true;
             if (!counted) {
                 Config.config.minutesSaved = Config.config.minutesSaved + secondsSkipped / 60;
-                if (segment.actionType !== ActionType.Chapter) {
-                    Config.config.skipCount = Config.config.skipCount + 1;
-                }
+                Config.config.skipCount = Config.config.skipCount + 1;
                 counted = true;
             }
 
@@ -1655,7 +1613,7 @@ function reskipSponsorTime(segment: SponsorTime, forceSeek = false) {
         const fullSkip = skippedTime / segmentDuration > manualSkipPercentCount;
 
         getVideo().currentTime = segment.segment[1];
-        sendTelemetryAndCount([segment], segment.actionType !== ActionType.Chapter ? skippedTime : 0, fullSkip);
+        sendTelemetryAndCount([segment], skippedTime, fullSkip);
         startSponsorSchedule(true, segment.segment[1], false);
     }
 }
@@ -1839,8 +1797,6 @@ function startOrEndTimingNewSegment() {
     updateEditButtonsOnPlayer();
     updateSponsorTimesSubmitting(false);
 
-    importExistingChapters(false);
-
     if (lastResponseStatus !== 200 && lastResponseStatus !== 404
             && !shownSegmentFailedToFetchWarning && Config.config.showSegmentFailedToFetchWarning) {
         alert(chrome.i18n.getMessage("segmentFetchFailureWarning"));
@@ -1897,8 +1853,6 @@ function updateSponsorTimesSubmitting(getFromConfig = true) {
         if (sponsorTimesSubmitting.length > 0) {
             // Assume they already previewed a segment
             previewedSegment = true;
-
-            importExistingChapters(true);
         }
     }
 
@@ -2180,7 +2134,7 @@ async function sendSubmitMessage() {
 
     if (!previewedSegment
             && !sponsorTimesSubmitting.every((segment) =>
-                [ActionType.Full, ActionType.Chapter, ActionType.Poi].includes(segment.actionType)
+                [ActionType.Full, ActionType.Poi].includes(segment.actionType)
                     || segment.segment[1] >= getVideo()?.duration)) {
         alert(`${chrome.i18n.getMessage("previewSegmentRequired")} ${keybindToString(Config.config.previewKeybind)}`);
         return;
@@ -2301,45 +2255,6 @@ function updateActiveSegment(currentTime: number): void {
     });
 }
 
-function nextChapter(): void {
-    const chapters = previewBar.unfilteredChapterGroups?.filter((time) => [ActionType.Chapter, null].includes(time.actionType));
-    if (!chapters || chapters.length <= 0) return;
-
-    lastNextChapterKeybind.time = getVideo().currentTime;
-    lastNextChapterKeybind.date = Date.now();
-
-    const nextChapter = chapters.findIndex((time) => time.segment[0] > getVideo().currentTime);
-    if (nextChapter !== -1) {
-        getVideo().currentTime = chapters[nextChapter].segment[0];
-    } else {
-        getVideo().currentTime = getVideo().duration;
-    }
-}
-
-function previousChapter(): void {
-    if (Date.now() - lastNextChapterKeybind.date < 3000) {
-        getVideo().currentTime = lastNextChapterKeybind.time;
-        lastNextChapterKeybind.date = 0;
-        return;
-    }
-
-    const chapters = previewBar.unfilteredChapterGroups?.filter((time) => [ActionType.Chapter, null].includes(time.actionType));
-    if (!chapters || chapters.length <= 0) {
-        getVideo().currentTime = 0;
-        return;
-    }
-
-    // subtract 5 seconds to allow skipping back to the previous chapter if close to start of
-    // the current one
-    const nextChapter = chapters.findIndex((time) => time.segment[0] > getVideo().currentTime - Math.min(5, time.segment[1] - time.segment[0]));
-    const previousChapter = nextChapter !== -1 ? (nextChapter - 1) : (chapters.length - 1);
-    if (previousChapter !== -1) {
-        getVideo().currentTime = chapters[previousChapter].segment[0];
-    } else {
-        getVideo().currentTime = 0;
-    }
-}
-
 function addHotkeyListener(): void {
     document.addEventListener("keydown", hotkeyListener);
 
@@ -2379,8 +2294,6 @@ function hotkeyListener(e: KeyboardEvent): void {
     const submitKey = Config.config.actuallySubmitKeybind;
     const previewKey = Config.config.previewKeybind;
     const openSubmissionMenuKey = Config.config.submitKeybind;
-    const nextChapterKey = Config.config.nextChapterKeybind;
-    const previousChapterKey = Config.config.previousChapterKeybind;
 
     if (keybindEquals(key, skipKey)) {
         if (activeSkipKeybindElement) {
@@ -2411,14 +2324,6 @@ function hotkeyListener(e: KeyboardEvent): void {
         return;
     } else if (keybindEquals(key, previewKey)) {
         previewRecentSegment();
-        return;
-    } else if (keybindEquals(key, nextChapterKey)) {
-        if (sponsorTimes.length > 0) e.stopPropagation();
-        nextChapter();
-        return;
-    } else if (keybindEquals(key, previousChapterKey)) {
-        if (sponsorTimes.length > 0) e.stopPropagation();
-        previousChapter();
         return;
     }
 

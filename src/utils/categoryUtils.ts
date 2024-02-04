@@ -1,7 +1,7 @@
 import { ActionType, Category, SponsorTime } from "../types";
 
 export function getSkippingText(segments: SponsorTime[], autoSkip: boolean): string {
-    const categoryName = chrome.i18n.getMessage(segments.length > 1 ? "multipleSegments" 
+    const categoryName = chrome.i18n.getMessage(segments.length > 1 ? "multipleSegments"
         : "category_" + segments[0].category + "_short") || chrome.i18n.getMessage("category_" + segments[0].category);
     if (autoSkip) {
         let messageId = "";
@@ -16,7 +16,7 @@ export function getSkippingText(segments: SponsorTime[], autoSkip: boolean): str
                 messageId = "skipped_to_category";
                 break;
         }
-            
+
         return chrome.i18n.getMessage(messageId).replace("{0}", categoryName);
     } else {
         let messageId = "";
@@ -41,8 +41,6 @@ export function getCategorySuffix(category: Category): string {
         return "_POI";
     } else if (category === "exclusive_access") {
         return "_full";
-    } else if (category === "chapter") {
-        return "_chapter";
     } else {
         return "";
     }

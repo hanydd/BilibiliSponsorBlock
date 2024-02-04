@@ -7,7 +7,7 @@ import { Category, CategorySkipOption } from "../../types";
 import { getCategorySuffix } from "../../utils/categoryUtils";
 import ToggleOptionComponent from "./ToggleOptionComponent";
 
-export interface CategorySkipOptionsProps { 
+export interface CategorySkipOptionsProps {
     category: Category;
     defaultColor?: string;
     defaultPreviewColor?: string;
@@ -78,18 +78,16 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                         </select>
                     </td>
 
-                    {this.props.category !== "chapter" &&
-                        <td id={this.props.category + "ColorOption"}
-                            className="colorOption">
-                            <input
-                                className="categoryColorTextBox option-text-box"
-                                type="color"
-                                onChange={(event) => this.setColorState(event, false)}
-                                value={this.state.color} />
-                        </td>
-                    }
+                    <td id={this.props.category + "ColorOption"}
+                        className="colorOption">
+                        <input
+                            className="categoryColorTextBox option-text-box"
+                            type="color"
+                            onChange={(event) => this.setColorState(event, false)}
+                            value={this.state.color} />
+                    </td>
 
-                    {!["chapter", "exclusive_access"].includes(this.props.category) &&
+                    {!["exclusive_access"].includes(this.props.category) &&
                         <td id={this.props.category + "PreviewColorOption"}
                             className="previewColorOption">
                             <input
@@ -113,7 +111,7 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                             </a>
                         </td>
                 </tr>
-                
+
                 {this.getExtraOptionComponents(this.props.category)}
 
             </>
@@ -165,13 +163,12 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
         const elements: JSX.Element[] = [];
 
         let optionNames = ["disable", "showOverlay", "manualSkip", "autoSkip"];
-        if (this.props.category === "chapter") optionNames = ["disable", "showOverlay"]
-        else if (this.props.category === "exclusive_access") optionNames = ["disable", "showOverlay"];
+        if (this.props.category === "exclusive_access") optionNames = ["disable", "showOverlay"];
 
         for (const optionName of optionNames) {
             elements.push(
                 <option key={optionName} value={optionName}>
-                    {chrome.i18n.getMessage(optionName !== "disable" ? optionName + getCategorySuffix(this.props.category) 
+                    {chrome.i18n.getMessage(optionName !== "disable" ? optionName + getCategorySuffix(this.props.category)
                                                                      : optionName)}
                 </option>
             );
@@ -210,8 +207,8 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
             result.push(
                 <tr key={option.configKey}>
                     <td id={`${category}_${option.configKey}`} className="categoryExtraOptions">
-                        <ToggleOptionComponent 
-                            configKey={option.configKey} 
+                        <ToggleOptionComponent
+                            configKey={option.configKey}
                             label={option.label}
                             style={{width: "inherit"}}
                         />
@@ -225,16 +222,6 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
 
     getExtraOptions(category: string): ToggleOption[] {
         switch (category) {
-            case "chapter":
-                return [{
-                    configKey: "renderSegmentsAsChapters",
-                    label: chrome.i18n.getMessage("renderAsChapters"),
-                    dontDisable: true
-                }, {
-                    configKey: "showSegmentNameInChapterBar",
-                    label: chrome.i18n.getMessage("showSegmentNameInChapterBar"),
-                    dontDisable: true
-                }];
             case "music_offtopic":
                 return [{
                     configKey: "autoSkipOnMusicVideos",
