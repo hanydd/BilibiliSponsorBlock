@@ -6,7 +6,7 @@
   --dialog-border: white;
   --text: #c4c4c4;
   --title: #dad8d8;
-  --disabled: #520000;
+  --disabled: #08495e;
   --black: black;
   --white: white;
 }
@@ -19,7 +19,7 @@
   --dialog-border: #282828;
   --text: #262626;
   --title: #707070;
-  --disabled: #ffcaca;
+  --disabled: #08495e;
   --black: white;
   --white: black;
 }
@@ -87,7 +87,7 @@ body {
   color: var(--header-color);
 
   padding: 20px;
-  
+
   text-decoration: none;
 
   border-radius: 15px;
@@ -145,7 +145,7 @@ a {
   color: #e8e8e8;
 
   text-align: center;
-  
+
   padding: 10px;
 }
 
@@ -197,7 +197,7 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 svg {
- text-decoration: none; 
+ text-decoration: none;
 }
 
 #sbDonate {
@@ -305,7 +305,7 @@ svg {
 .option-button {
   cursor: pointer;
 
-  background-color: #c00000;
+  background-color: #00a1d6;
   padding: 10px;
   color: white;
   border-radius: 5px;
@@ -315,7 +315,7 @@ svg {
 }
 
 .option-button:hover:not(.disabled) {
-  background-color: #fc0303;
+  background-color: #086f91;
 }
 
 .option-button.disabled {

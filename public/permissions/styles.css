@@ -44,7 +44,7 @@ body {
 .option-button {
     cursor: pointer;
 
-    background-color: #c00000;
+    background-color: #00a1d6;
     padding: 10px;
     color: white;
     border-radius: 5px;
@@ -92,7 +92,7 @@ body {
     height: 24px;
 }
 
-.switch input { 
+.switch input {
     opacity: 0;
     width: 0;
     height: 0;
@@ -193,32 +193,32 @@ body {
 
 #title {
     background-color: #636363;
-  
+
     text-align: center;
     vertical-align: middle;
-  
+
     font-size: 50px;
     color: #212121;
-  
+
     padding: 20px;
-  
+
     text-decoration: none;
-  
+
     transition: font-size 1s;
 }
 
 .subtitle {
     font-size: 40px;
     color: #dad8d8;
-  
+
     padding-top: 10px;
-  
+
     transition: font-size 0.4s;
 }
 
 .subtitle:hover {
     font-size: 45px;
-  
+
     transition: font-size 0.4s;
 }
 
@@ -240,24 +240,24 @@ a {
 
 .link {
     padding: 20px;
-  
+
     height: 80px;
-  
+
     transition: height 0.2s;
 }
 
 .link:hover {
     height: 95px;
-  
+
     transition: height 0.2s;
 }
 
 #contact,.smalllink {
     font-size: 25px;
     color: #e8e8e8;
-  
+
     text-align: center;
-  
+
     padding: 10px;
 }
 
@@ -268,7 +268,7 @@ a {
 p,li {
     font-size: 20px;
     color: #c4c4c4;
-  
+
     padding: 10px;
 }
 
@@ -282,7 +282,7 @@ p,li,code,a {
     p,li,code,a {
         max-width: 100%;
     }
-  
+
     .projectPreviewImage {
         position: unset;
         width: 130px;
@@ -298,7 +298,7 @@ p,li,code,a {
 
 img {
     max-width: 100%;
-  
+
     text-align: center;
 }
 
@@ -317,7 +317,7 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 svg {
-    text-decoration: none; 
+    text-decoration: none;
 }
 
 .number-container:before {
@@ -343,9 +343,9 @@ svg {
 }
 
 .categoryOptionsSelector {
-    background-color: #c00000;
+    background-color: #00a1d6;
     color: white;
-    
+
     border: none;
     font-size: 14px;
     padding: 5px;

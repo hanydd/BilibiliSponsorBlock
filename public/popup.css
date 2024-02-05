@@ -4,7 +4,7 @@
   --sb-main-fg-color: #fff;
   --sb-grey-bg-color: #333;
   --sb-grey-fg-color: #999;
-  --sb-red-bg-color: #cc1717;
+  --sb-red-bg-color: #00a1d6;
 }
 
 /*
@@ -420,7 +420,7 @@
 }
 .sbMediumButton:hover,
 .sbMediumButton:focus {
-  background-color: #ec1c1c;
+  background-color: #00a1d6;
   outline: none;
 }
 .sbMediumButton:active {

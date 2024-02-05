@@ -8,10 +8,10 @@
     --dialog-background: #181818;
     --dialog-border: white;
     --tab-color: #242424;
-    --tab-button-hover: #4d0000;
+    --tab-button-hover: #086f91;
     --tab-hover: white;
     --description: #dfdfdf;
-    --disabled: #520000;
+    --disabled: #08495e;
     --slider: #707070;
     --title: #dad8d8;
     --border-color: #484848;
@@ -27,7 +27,7 @@
     --dialog-background: #f9f9f9;
     --dialog-border: #282828;
     --tab-color: #ababab;
-    --tab-button-hover: #750000;
+    --tab-button-hover: #086f91;
     --tab-hover: #2e2e2e;
     --description: #262626;
     --disabled: #ffcaca;
@@ -38,15 +38,23 @@
     --white: black;
 }
 
-.medium-description, .switch-container, .optionLabel, .categoryTableElement, .promotion-description {
+.medium-description,
+.switch-container,
+.optionLabel,
+.categoryTableElement,
+.promotion-description {
     color: var(--white);
 }
 
-.small-description, p, li, span, div {
+.small-description,
+p,
+li,
+span,
+div {
     color: var(--description);
 }
 
-h1,h2,h3,h4,h5,h6 {
+h1, h2, h3, h4, h5, h6 {
     color: var(--title);
 }
 
@@ -107,12 +115,12 @@ html, body {
 }
 
 .tab-heading.selected {
-    background-color: #c00000;
+    background-color: #00a1d6;
     color: white;
 }
 
 .tab-heading:active {
-    background-color: #950000;
+    background-color: #08495e;
     color: white;
 }
 
@@ -120,7 +128,7 @@ html, body {
     min-height: 50px;
     padding: 20px 0;
     border-bottom: 1px solid var(--border-color);
-    border-image: linear-gradient(to right, var(--border-color), #00000000 80%)  1;
+    border-image: linear-gradient(to right, var(--border-color), #00000000 80%) 1;
 }
 
 .categoryExtraOptions {
@@ -298,7 +306,7 @@ input[type='number'] {
 .option-button {
     cursor: pointer;
 
-    background-color: #c00000;
+    background-color: #00a1d6;
     padding: 10px;
     color: white;
     border-radius: 5px;
@@ -308,7 +316,7 @@ input[type='number'] {
 }
 
 .option-button:hover:not(.disabled) {
-    background-color: #fc0303;
+    background-color: #00a1d6;
 }
 
 .option-button.disabled {
@@ -322,7 +330,8 @@ input[type='number'] {
 }
 
 /* To hide everything except upsell button */
-.disabled td:not(.skipOption, .categoryExtraOptions), .disabled td.skipOption > :not(.upsellButton) {
+.disabled td:not(.skipOption, .categoryExtraOptions),
+.disabled td.skipOption> :not(.upsellButton) {
     opacity: 0.3;
 }
 
@@ -348,7 +357,7 @@ input[type='number'] {
 }
 
 .switch-container {
-	content: attr(label-name);
+    content: attr(label-name);
     width: max-content;
 
     font-size: 14px;
@@ -374,7 +383,7 @@ input[type='number'] {
     height: 24px;
 }
 
-.switch input { 
+.switch input {
     opacity: 0;
     width: 0;
     height: 0;
@@ -411,7 +420,7 @@ input[type='number'] {
 }
 
 input:checked + .slider {
-    background-color: #fc0303;
+    background-color: #00a1d6;
 }
 
 input:checked + .slider:before {
@@ -474,26 +483,22 @@ input:checked + .slider:before {
 #title {
     text-align: center;
     vertical-align: middle;
-  
     font-size: 40px;
-  
     padding: 40px 20px;
-  
     text-decoration: none;
 }
 
 .subtitle {
     font-size: 40px;
     color: #dad8d8;
-  
     padding-top: 10px;
-  
+
     transition: font-size 0.4s;
 }
 
 .subtitle:hover {
     font-size: 45px;
-  
+
     transition: font-size 0.4s;
 }
 
@@ -514,24 +519,24 @@ a {
 
 .link {
     padding: 20px;
-  
+
     height: 80px;
-  
+
     transition: height 0.2s;
 }
 
 .link:hover {
     height: 95px;
-  
+
     transition: height 0.2s;
 }
 
 #contact,.smalllink {
     font-size: 25px;
     color: #e8e8e8;
-  
+
     text-align: center;
-  
+
     padding: 10px;
 }
 
@@ -539,7 +544,7 @@ a {
     text-decoration: none;
 }
 
-p,li {
+p, li {
     font-size: 20px;
     padding: 10px;
 }
@@ -550,7 +555,6 @@ p,li {
 
 img {
     max-width: 100%;
-  
     text-align: center;
 }
 
@@ -565,7 +569,7 @@ img {
 }
 
 svg {
-    text-decoration: none; 
+    text-decoration: none;
 }
 
 .number-container:before {
@@ -583,18 +587,18 @@ svg {
     font-size: 16px;
 }
 
-.categoryTableElement > * {
+.categoryTableElement>* {
     padding-right: 15px;
 }
 
-.categoryTableDescription > * {
+.categoryTableDescription>* {
     padding-bottom: 15px;
 }
 
 .optionsSelector {
-    background-color: #c00000;
+    background-color: #00a1d6;
     color: white;
-    
+
     border: none;
     font-size: 14px;
     padding: 5px;
@@ -614,22 +618,26 @@ svg {
 
 
 /* Top bar navigation for smaller screens */
-@media only screen and (max-height: 725px), only screen and (max-width: 1200px) {
+@media only screen and (max-height: 725px),
+only screen and (max-width: 1200px) {
     #options-container {
         flex-direction: column;
     }
+
     #menubar {
         gap: 8px;
         min-width: unset;
         max-width: unset;
         padding: 8px;
     }
+
     #navigation {
         gap: 8px;
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: center;
     }
+
     #options {
         padding: 0 50px;
     }
@@ -647,39 +655,48 @@ svg {
         padding: 0 10px;
         margin: 0;
     }
+
     #title {
         width: 100%;
         font-size: 30px;
         padding: 10px;
     }
+
     #title .profilepic {
         height: 40px;
     }
+
     #createdBy {
         margin: 10px 0 0 0;
         height: unset;
         width: 100%;
     }
+
     #createdBy > div {
         display: inline-block;
     }
+
     #sbDonate {
         position: absolute;
         right: 30px;
         margin-top: 10px;
     }
+
     #version {
         font-size: 10px;
         height: 10px;
         transform: translate(-50px, -5px);
     }
+
     .sticky #menubar {
         position: fixed;
         left: 0;
         right: 0;
         margin: 0 15px;
     }
-    .sticky #title, .sticky #createdBy {
+
+    .sticky #title,
+    .sticky #createdBy {
         display: none;
     }
 }
@@ -688,6 +705,7 @@ svg {
     #options {
         padding: 0 15px;
     }
+
     #options > div {
         max-width: 100%;
     }
@@ -726,7 +744,7 @@ svg {
     transition: opacity 0.2s;
     margin-left: 10px;
 }
-  
+
 .dearrow-link:hover .close-button {
     opacity: 1;
 }
