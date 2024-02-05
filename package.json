@@ -53,9 +53,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ajayyy/maze-utils.git"
+    "url": "git+https://github.com/HanYaodong/maze-utils-bili.git"
   },
-  "author": "Ajay Ramachandran",
+  "author": "Han Yaodong",
   "license": "GPL-3.0",
   "private": true,
   "files": [
