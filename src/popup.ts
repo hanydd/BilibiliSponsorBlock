@@ -871,7 +871,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         //get the channel url
         const response = await sendTabMessageAsync({ message: 'getChannelID' }) as GetChannelIDResponse;
         if (!response.channelID) {
-            alert(chrome.i18n.getMessage("channelDataNotFound") + " https://github.com/ajayyy/SponsorBlock/issues/753");
+            alert(chrome.i18n.getMessage("channelDataNotFound") + " https://github.com/HanYaodong/BilibiliSponsorBlock/issues/1");
             return;
         }
 
