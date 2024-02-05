@@ -71,10 +71,6 @@ interface SBConfig {
     useVirtualTime: boolean;
     showSegmentFailedToFetchWarning: boolean;
     allowScrollingToEdit: boolean;
-    deArrowInstalled: boolean;
-    showDeArrowPromotion: boolean;
-    showDeArrowInSettings: boolean;
-    shownDeArrowPromotion: boolean;
     showZoomToFillError2: boolean;
     cleanPopup: boolean;
 

@@ -28,17 +28,5 @@
         "poi_highlight": "https://wiki.sponsor.ajay.app/w/Highlight",
         "guidelines": "https://wiki.sponsor.ajay.app/w/Guidelines",
         "mute": "https://wiki.sponsor.ajay.app/w/Mute_Segment"
-    },
-    "extensionImportList": {
-        "chromium": [
-            "enamippconapkdmgfgjchkhakpfinmaj"
-        ],
-        "firefox": [
-            "deArrow@ajay.app",
-            "deArrowBETA@ajay.app"
-        ],
-        "safari": [
-            "app.ajay.dearrow.extension"
-        ]
     }
 }

@@ -17,7 +17,6 @@ import { localizeHtmlPage } from "../maze-utils/src/setup";
 import { StorageChangesObject } from "../maze-utils/src/config";
 import { getHash } from "../maze-utils/src/hash";
 import { isFirefoxOrSafari } from "../maze-utils/src";
-import { isDeArrowInstalled } from "./utils/crossExtension";
 import { asyncRequestToServer } from "./utils/requests";
 const utils = new Utils();
 let embed = false;
@@ -76,27 +75,6 @@ async function init() {
     donate.addEventListener("click", () => Config.config.donateClicked = Config.config.donateClicked + 1);
     if (!showDonationLink()) {
         donate.classList.add("hidden");
-    }
-
-    // DeArrow promotion
-    if (Config.config.showNewFeaturePopups && Config.config.showUpsells && Config.config.showDeArrowInSettings) {
-        isDeArrowInstalled().then((installed) => {
-            if (!installed) {
-                const deArrowPromotion = document.getElementById("deArrowPromotion");
-                deArrowPromotion.classList.remove("hidden");
-
-                deArrowPromotion.addEventListener("click", () => Config.config.showDeArrowPromotion = false);
-
-                const closeButton = deArrowPromotion.querySelector(".close-button");
-                closeButton.addEventListener("click", (e) => {
-                    e.preventDefault();
-
-                    deArrowPromotion.classList.add("hidden");
-                    Config.config.showDeArrowPromotion = false;
-                    Config.config.showDeArrowInSettings = false;
-                });
-            }
-        });
     }
 
     const skipToHighlightKeybind = document.querySelector(`[data-sync="skipToHighlightKeybind"] .optionLabel`) as HTMLElement;

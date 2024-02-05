@@ -12,7 +12,6 @@ import { generateUserID } from "../maze-utils/src/setup";
 window.SB = Config;
 
 import Utils from "./utils";
-import { getExtensionIdsToImportFrom } from "./utils/crossExtension";
 import { isFirefoxOrSafari } from "../maze-utils/src";
 import { injectUpdatedScripts } from "../maze-utils/src/cleanup";
 import { logWarn } from "./utils/logger";
@@ -88,20 +87,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
 	}
 });
 
-chrome.runtime.onMessageExternal.addListener((request, sender, callback) => {
-    if (getExtensionIdsToImportFrom().includes(sender.id)) {
-        if (request.message === "requestConfig") {
-            callback({
-                userID: Config.config.userID,
-                allowExpirements: Config.config.allowExpirements,
-                showDonationLink: Config.config.showDonationLink,
-                showUpsells: Config.config.showUpsells,
-                darkMode: Config.config.darkMode,
-            })
-        }
-    }
-});
-
 chrome.runtime.onConnect.addListener((port) => {
     if (port.name === "popup") {
         chrome.tabs.query({
@@ -160,7 +145,7 @@ async function registerFirefoxContentScript(options: Registration) {
             ids: [options.id]
         }).catch(() => []);
 
-        if (existingRegistrations.length > 0 
+        if (existingRegistrations.length > 0
             && existingRegistrations[0].matches.every((match) => options.matches.includes(match))) {
             // No need to register another script, already registered
             return;
