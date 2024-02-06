@@ -1884,7 +1884,7 @@ function openInfoMenu() {
 
     const frame = document.createElement("iframe");
     frame.width = "374";
-    frame.height = "650";
+    frame.height = "500";
     frame.style.borderRadius = "6px";
     frame.addEventListener("load", async () => {
         frame.contentWindow.postMessage("", "*");
