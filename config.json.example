@@ -1,6 +1,6 @@
 {
-    "serverAddress": "https://sponsor.ajay.app",
-    "testingServerAddress": "https://sponsor.ajay.app/test",
+    "serverAddress": "http://47.103.74.95:9876",
+    "testingServerAddress": "http://127.0.0.1:9876",
     "serverAddressComment": "This specifies the default SponsorBlock server to connect to",
     "categoryList": ["sponsor", "selfpromo", "exclusive_access", "interaction", "poi_highlight", "intro", "outro", "preview", "filler", "music_offtopic"],
     "categorySupport": {
