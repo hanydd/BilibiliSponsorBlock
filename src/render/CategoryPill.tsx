@@ -44,14 +44,25 @@ export class CategoryPill {
 
     async attachToPage(vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>): Promise<void> {
         this.vote = vote;
+        this.mutationCount = 0;
         const referenceNode = await waitFor(() => getBilibiliTitleNode());
+        if (!referenceNode) {
+            console.log("Title element for category pill is not found");
+            return;
+        }
+        this.mutationObserver.disconnect();
         this.mutationObserver.observe(referenceNode, { attributes: true, childList: true })
 
-        // wait for bilibili to reload the title bar
-        await waitFor(() => this.mutationCount >= 1, 10000, 50)
-        // if setSegment is called after node attachment, it won't render sometimes
-        await waitFor(() => this.isSegmentSet, 10000, 50);
-        this.attachToPageInternal();
+        try {
+            // wait for bilibili to reload the title bar
+            await waitFor(() => this.mutationCount >= 1, 10000, 50)
+            // if setSegment is called after node attachment, it won't render sometimes
+            await waitFor(() => this.isSegmentSet, 10000, 50);
+            this.attachToPageInternal();
+        }
+        catch (error) {
+            if(error !== "TIMEOUT") console.log("Category Pill attachment error ", error)
+        }
     }
 
     private async attachToPageInternal(): Promise<void> {
