@@ -34,7 +34,6 @@ class PreviewBar {
     container: HTMLUListElement;
     categoryTooltip?: HTMLDivElement;
     categoryTooltipContainer?: HTMLElement;
-    chapterTooltip?: HTMLDivElement;
     lastSmallestSegment: Record<string, {
         index: number;
         segment: PreviewBarSegment;
@@ -82,9 +81,6 @@ class PreviewBar {
         this.categoryTooltip = document.createElement("div");
         this.categoryTooltip.id = "sponsorTooltip";
         this.categoryTooltip.className = "bpx-player-progress-preview-time sponsorCategoryTooltip";
-        this.chapterTooltip = document.createElement("div");
-        this.chapterTooltip.id = "sponsorTooltip";
-        this.chapterTooltip.className = "bpx-player-progress-preview-time sponsorCategoryTooltip";
 
         // global chaper tooltip or duration tooltip
         this.categoryTooltipContainer = document.querySelector(".bpx-player-progress-area .bpx-player-progress-wrap .bpx-player-progress-popup");
@@ -94,10 +90,8 @@ class PreviewBar {
 
         if (biliChapterWrapper) {
             biliChapterWrapper.after(this.categoryTooltip);
-            biliChapterWrapper.after(this.chapterTooltip);
         } else {
             tooltipTextWrapper.after(this.categoryTooltip);
-            tooltipTextWrapper.after(this.chapterTooltip);
         }
 
         const seekBar = document.querySelector(".bpx-player-progress-wrap");
