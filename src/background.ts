@@ -145,8 +145,8 @@ async function registerFirefoxContentScript(options: Registration) {
             ids: [options.id]
         }).catch(() => []);
 
-        if (existingRegistrations.length > 0
-            && existingRegistrations[0].matches.every((match) => options.matches.includes(match))) {
+        if (existingRegistrations && existingRegistrations.length > 0
+            && options.matches.every((match) => existingRegistrations[0].matches.includes(match))) {
             // No need to register another script, already registered
             return;
         }
@@ -207,27 +207,35 @@ async function submitVote(type: number, UUID: string, category: string) {
 
     const typeSection = (type !== undefined) ? "&type=" + type : "&category=" + category;
 
-    //publish this vote
-    const response = await asyncRequestToServer("POST", "/api/voteOnSponsorTime?UUID=" + UUID + "&userID=" + userID + typeSection);
+    try {
+        const response = await asyncRequestToServer("POST", "/api/voteOnSponsorTime?UUID=" + UUID + "&userID=" + userID + typeSection);
 
-    if (response.ok) {
-        return {
-            successType: 1,
-            responseText: await response.text()
-        };
-    } else if (response.status == 405) {
-        //duplicate vote
-        return {
-            successType: 0,
-            statusCode: response.status,
-            responseText: await response.text()
-        };
-    } else {
-        //error while connect
+        if (response.ok) {
+            return {
+                successType: 1,
+                responseText: await response.text()
+            };
+        } else if (response.status == 405) {
+            //duplicate vote
+            return {
+                successType: 0,
+                statusCode: response.status,
+                responseText: await response.text()
+            };
+        } else {
+            //error while connect
+            return {
+                successType: -1,
+                statusCode: response.status,
+                responseText: await response.text()
+            };
+        }
+    } catch (e) {
+        console.error(e);
         return {
             successType: -1,
-            statusCode: response.status,
-            responseText: await response.text()
+            statusCode: -1,
+            responseText: ""
         };
     }
 }

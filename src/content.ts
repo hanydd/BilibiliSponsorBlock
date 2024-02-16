@@ -674,6 +674,7 @@ function getVirtualTime(): number {
 
 function inMuteSegment(currentTime: number, includeOverlap: boolean): boolean {
     const checkFunction = (segment) => segment.actionType === ActionType.Mute
+        && segment.hidden === SponsorHideType.Visible
         && segment.segment[0] <= currentTime
         && (segment.segment[1] > currentTime || (includeOverlap && segment.segment[1] + 0.02 > currentTime));
     return sponsorTimes?.some(checkFunction) || sponsorTimesSubmitting.some(checkFunction);
@@ -2123,13 +2124,13 @@ function submitSegments() {
 
 //send the message to the background js
 //called after all the checks have been made that it's okay to do so
-async function sendSubmitMessage() {
+async function sendSubmitMessage(): Promise<boolean> {
     // check if all segments are full video
     const onlyFullVideo = sponsorTimesSubmitting.every((segment) => segment.actionType === ActionType.Full);
     // Block if submitting on a running livestream or premiere
     if (!onlyFullVideo && (getIsLivePremiere() || isVisible(document.querySelector(".ytp-live-badge")))) {
         alert(chrome.i18n.getMessage("liveOrPremiere"));
-        return;
+        return false;
     }
 
     if (!previewedSegment
@@ -2137,7 +2138,7 @@ async function sendSubmitMessage() {
                 [ActionType.Full, ActionType.Poi].includes(segment.actionType)
                     || segment.segment[1] >= getVideo()?.duration)) {
         alert(`${chrome.i18n.getMessage("previewSegmentRequired")} ${keybindToString(Config.config.previewKeybind)}`);
-        return;
+        return false;
     }
 
     // Add loading animation
@@ -2163,7 +2164,7 @@ async function sendSubmitMessage() {
                 const confirmShort = chrome.i18n.getMessage("shortCheck") + "\n\n" +
                     getSegmentsMessage(sponsorTimesSubmitting);
 
-                if(!confirm(confirmShort)) return;
+                if(!confirm(confirmShort)) return false;
             }
         }
     }
@@ -2213,6 +2214,8 @@ async function sendSubmitMessage() {
         if (fullVideoSegment) {
             categoryPill?.setSegment(fullVideoSegment);
         }
+
+        return true;
     } else {
         // Show that the upload failed
         playerButtons.submit.button.style.animation = "unset";
@@ -2224,6 +2227,8 @@ async function sendSubmitMessage() {
             alert(getErrorMessage(response.status, response.responseText));
         }
     }
+
+    return false;
 }
 
 //get the message that visually displays the video times
@@ -2249,6 +2254,8 @@ function getSegmentsMessage(sponsorTimes: SponsorTime[]): string {
 }
 
 function updateActiveSegment(currentTime: number): void {
+    previewBar?.updateChapterText(sponsorTimes, sponsorTimesSubmitting, currentTime);
+
     chrome.runtime.sendMessage({
         message: "time",
         time: currentTime
