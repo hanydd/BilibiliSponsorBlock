@@ -2101,7 +2101,7 @@ function openSubmissionMenu() {
     if (sponsorTimesSubmitting !== undefined && sponsorTimesSubmitting.length > 0) {
         submissionNotice = new SubmissionNotice(skipNoticeContentContainer, sendSubmitMessage);
         // Add key bind for jumpping to next frame, for easier sponsor time editting
-        document.addEventListener("keydown", seekFrameByKeyPress);
+        document.addEventListener("keydown", seekFrameByKeyPressListener);
     }
 }
 
@@ -2350,14 +2350,18 @@ function hotkeyListener(e: KeyboardEvent): void {
 /**
  * Hot keys to jump to the next or previous frame, for easier segment time editting
  * only effective when the SubmissionNotice is open
- * @param e keydown event
+ *
+ * Uses 1/30s as the frame rate, as it's the most common frame rate for videos
+ * @param key keydown event
  */
-export function seekFrameByKeyPress(e) {
+export function seekFrameByKeyPressListener(key) {
     const vid = getVideo()
     if (!vid.paused) return
-    if (e.key === ".") { // next frame
+
+    // TODO: better way to check framerate or next frame
+    if (keybindEquals(key, Config.config.nextFrameKeybind)) { // next frame
         vid.currentTime += 1 / 30;
-    } else if (e.key === ",") { // previous frame
+    } else if (keybindEquals(key, Config.config.previousFrameKeybind)) { // previous frame
         vid.currentTime -= 1 / 30;
     }
 }

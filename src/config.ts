@@ -88,8 +88,8 @@ interface SBConfig {
     submitKeybind: Keybind;
     actuallySubmitKeybind: Keybind;
     previewKeybind: Keybind;
-    nextChapterKeybind: Keybind;
-    previousChapterKeybind: Keybind;
+    nextFrameKeybind: Keybind;
+    previousFrameKeybind: Keybind;
     closeSkipNoticeKeybind: Keybind;
 
     // What categories should be skipped
@@ -332,8 +332,8 @@ const syncDefaults = {
     submitKeybind: { key: "'" },
     actuallySubmitKeybind: { key: "'", ctrl: true },
     previewKeybind: { key: ";", ctrl: true },
-    nextChapterKeybind: { key: "ArrowRight", ctrl: true },
-    previousChapterKeybind: { key: "ArrowLeft", ctrl: true },
+    nextFrameKeybind: { key: "." },
+    previousFrameKeybind: { key: "," },
     closeSkipNoticeKeybind: { key: "Backspace" },
 
     categorySelections: [{

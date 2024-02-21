@@ -6,7 +6,7 @@ const utils = new Utils();
 
 import SubmissionNoticeComponent from "../components/SubmissionNoticeComponent";
 import { ContentContainer } from "../types";
-import { seekFrameByKeyPress } from "../content";
+import { seekFrameByKeyPressListener } from "../content";
 
 class SubmissionNotice {
     // Contains functions and variables from the content script needed by the skip notice
@@ -53,7 +53,7 @@ class SubmissionNotice {
 
         this.noticeElement.remove();
 
-        document.removeEventListener("keydown", seekFrameByKeyPress);
+        document.removeEventListener("keydown", seekFrameByKeyPressListener);
     }
 
     submit(): void {
