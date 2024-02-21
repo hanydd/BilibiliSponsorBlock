@@ -2100,6 +2100,8 @@ function openSubmissionMenu() {
 
     if (sponsorTimesSubmitting !== undefined && sponsorTimesSubmitting.length > 0) {
         submissionNotice = new SubmissionNotice(skipNoticeContentContainer, sendSubmitMessage);
+        // Add key bind for jumpping to next frame, for easier sponsor time editting
+        document.addEventListener("keydown", seekFrameByKeyPress);
     }
 }
 
@@ -2342,6 +2344,21 @@ function hotkeyListener(e: KeyboardEvent): void {
         startOrEndTimingNewSegment();
     } else if (key.key == submitKey?.key && submitKey.code == null && !keybindEquals(Config.syncDefaults.submitKeybind, submitKey)) {
         openSubmissionMenu();
+    }
+}
+
+/**
+ * Hot keys to jump to the next or previous frame, for easier segment time editting
+ * only effective when the SubmissionNotice is open
+ * @param e keydown event
+ */
+export function seekFrameByKeyPress(e) {
+    const vid = getVideo()
+    if (!vid.paused) return
+    if (e.key === ".") { // next frame
+        vid.currentTime += 1 / 30;
+    } else if (e.key === ",") { // previous frame
+        vid.currentTime -= 1 / 30;
     }
 }
 

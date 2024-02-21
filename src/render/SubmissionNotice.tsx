@@ -6,6 +6,7 @@ const utils = new Utils();
 
 import SubmissionNoticeComponent from "../components/SubmissionNoticeComponent";
 import { ContentContainer } from "../types";
+import { seekFrameByKeyPress } from "../content";
 
 class SubmissionNotice {
     // Contains functions and variables from the content script needed by the skip notice
@@ -26,7 +27,7 @@ class SubmissionNotice {
         this.callback = callback;
 
         const referenceNode = utils.findReferenceNode();
-    
+
         this.noticeElement = document.createElement("div");
         this.noticeElement.id = "submissionNoticeContainer";
 
@@ -36,7 +37,7 @@ class SubmissionNotice {
         this.root.render(
             <SubmissionNoticeComponent
                 contentContainer={contentContainer}
-                callback={callback} 
+                callback={callback}
                 ref={this.noticeRef}
                 closeListener={() => this.close(false)} />
         );
@@ -51,6 +52,8 @@ class SubmissionNotice {
         this.root.unmount();
 
         this.noticeElement.remove();
+
+        document.removeEventListener("keydown", seekFrameByKeyPress);
     }
 
     submit(): void {
