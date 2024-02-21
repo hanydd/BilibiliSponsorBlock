@@ -182,22 +182,6 @@ function resetValues() {
     }, "/");
 }
 
-// export function getYouTubeVideoID(url?: string): VideoID | null {
-//     url ||= document?.URL;
-//     // pageType shortcut
-//     if (pageType === PageType.Channel) return getYouTubeVideoIDFromDocument();
-//     // clips should never skip, going from clip to full video has no indications.
-//     if (!params.allowClipPage && url.includes("youtube.com/clip/")) return null;
-//     // skip to document and don't hide if on /embed/
-//     if (url.includes("/embed/") && url.includes("youtube.com")) return getYouTubeVideoIDFromDocument(false, PageType.Embed);
-//     // skip to URL if matches youtube watch or invidious or matches youtube pattern
-//     if ((!url.includes("youtube.com")) || url.includes("/watch") || url.includes("/shorts/") || url.includes("playlist")) return getYouTubeVideoIDFromURL(url);
-//     // skip to document if matches pattern
-//     if (url.includes("/channel/") || url.includes("/user/") || url.includes("/c/")) return getYouTubeVideoIDFromDocument(true, PageType.Channel);
-//     // not sure, try URL then document
-//     return getYouTubeVideoIDFromURL(url) || getYouTubeVideoIDFromDocument(false);
-// }
-
 export function getBilibiliVideoID(url?: string): VideoID | null {
     url ||= document?.URL;
 
