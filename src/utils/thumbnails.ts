@@ -13,7 +13,7 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
         return null;
     }
 
-    const link = thumbnail.querySelector("a") as HTMLAnchorElement
+    const link = thumbnail.querySelector("a") as HTMLAnchorElement;
     if (!link || !link.href) return null; // no link found
     const videoID = parseBilibiliVideoIDFromURL(link.href)?.videoID;
     if (!videoID) {
@@ -49,11 +49,11 @@ function hideThumbnailLabel(thumbnail: HTMLImageElement): void {
 }
 
 function createOrGetThumbnail(thumbnail: HTMLImageElement): { overlay: HTMLElement; text: HTMLElement } {
-    const oldElement = getOldThumbnailLabel(thumbnail);
-    if (oldElement) {
+    const oldLabelElement = getOldThumbnailLabel(thumbnail);
+    if (oldLabelElement) {
         return {
-            overlay: oldElement as HTMLElement,
-            text: oldElement.querySelector("span") as HTMLElement
+            overlay: oldLabelElement as HTMLElement,
+            text: oldLabelElement.querySelector("span") as HTMLElement
         };
     }
 
@@ -71,10 +71,10 @@ function createOrGetThumbnail(thumbnail: HTMLImageElement): { overlay: HTMLEleme
 
     const icon = createSBIconElement();
     const text = document.createElement("span");
-    thumbnail.style.position = "relative";
     overlay.appendChild(icon);
     overlay.appendChild(text);
-    thumbnail.appendChild(overlay);
+    const labelAnchor = thumbnail.querySelector("img") ?? thumbnail.lastChild;
+    labelAnchor.after(overlay);
 
     return {
         overlay,
