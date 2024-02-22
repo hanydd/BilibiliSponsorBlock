@@ -24,7 +24,7 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
             if (!thumbnailContainer) return;
             thumbnailContainerObserver ??= new MutationObserver(() => newThumbnails());
             thumbnailContainerObserver.observe(thumbnailContainer, { childList: true, subtree: true })
-        })
+        }).catch((err) => {console.log(err)})
     };
 
     if (document.readyState === "complete") {
