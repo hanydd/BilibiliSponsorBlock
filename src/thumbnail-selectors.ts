@@ -1,17 +1,19 @@
 export function getThumbnailElements() {
     return [
-        ".bili-video-card", // main page
-        ".video-page-card-small", // recommendation on player page
-        ".s-space .small-item", // user space page
-        ".bili-dyn-content", // dynamic page feed
+        ".bili-video-card", // 主页
+        ".video-page-card-small", // 播放页推荐
+        ".s-space .small-item", // 用户空间页
+        ".bili-dyn-content", // 动态页面
+        "a.dynamic-video-item" // 动态弹出框
     ];
 }
 
 export function getThumbnailContainerElements() {
-    return ".recommended-container_floor-aside .container," // main page
-        +  "#reco_list," // recommendation on player page
-        +  ".s-space," // user space page
-        +  ".bili-dyn-list"; // dynamic page feed
+    return ".recommended-container_floor-aside .container," // 主页
+        +  "#reco_list," // 播放页推荐
+        +  ".s-space," // 用户空间页
+        +  ".bili-dyn-list" // 动态页面
+        +  ".dynamic-panel-popover .dynamic-video"; // 动态弹出框
 }
 
 export function getThumbnailImageSelectors() {
