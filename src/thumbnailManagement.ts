@@ -4,7 +4,7 @@ import { getThumbnailContainerElements, getThumbnailLink, getThumbnailSelectors 
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 
-const handledThumbnails = new Map<HTMLElement, MutationObserver>();
+const handledThumbnailsObserverMap = new Map<HTMLElement, MutationObserver>();
 let lastGarbageCollection = 0;
 let thumbnailListener: ThumbnailListener | null = null;
 let thumbnailContainerObserver: MutationObserver | null = null;
@@ -24,7 +24,7 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
             if (!thumbnailContainer) return;
             thumbnailContainerObserver ??= new MutationObserver(() => newThumbnails());
             thumbnailContainerObserver.observe(thumbnailContainer, { childList: true, subtree: true })
-        }).catch((err) => {console.log(err)})
+        }).catch((err) => { console.log(err) })
     };
 
     if (document.readyState === "complete") {
@@ -39,11 +39,11 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
 
     addCleanupListener(() => {
         thumbnailContainerObserver?.disconnect();
-        for (const handledThumbnail of handledThumbnails) {
-            handledThumbnail[1].disconnect();
+        for (const handledThumbnailObserver of handledThumbnailsObserverMap) {
+            handledThumbnailObserver[1].disconnect();
         }
 
-        handledThumbnails.clear();
+        handledThumbnailsObserverMap.clear();
     });
 }
 
@@ -65,12 +65,12 @@ export function newThumbnails() {
 
     lastThumbnailCheck = performance.now();
 
-    const notNewThumbnails = handledThumbnails.keys();
+    const notNewThumbnails = handledThumbnailsObserverMap.keys();
 
     const thumbnails = document.querySelectorAll(selector) as NodeListOf<HTMLElement>;
     const newThumbnailsFound: HTMLElement[] = [];
     for (const thumbnail of thumbnails) {
-        if (!handledThumbnails.has(thumbnail)) {
+        if (!handledThumbnailsObserverMap.has(thumbnail)) {
             newThumbnailsFound.push(thumbnail);
 
             const observer = new MutationObserver((mutations) => {
@@ -81,7 +81,7 @@ export function newThumbnails() {
                     }
                 }
             });
-            handledThumbnails.set(thumbnail, observer);
+            handledThumbnailsObserverMap.set(thumbnail, observer);
 
             const link = getThumbnailLink(thumbnail);
             if (link) observer.observe(link, { attributes: true });
@@ -95,9 +95,9 @@ export function newThumbnails() {
         // But are handled by happening to be when new ones are added too
         for (const thumbnail of notNewThumbnails) {
             if (!document.body.contains(thumbnail)) {
-                const observer = handledThumbnails.get(thumbnail);
+                const observer = handledThumbnailsObserverMap.get(thumbnail);
                 observer?.disconnect();
-                handledThumbnails.delete(thumbnail);
+                handledThumbnailsObserverMap.delete(thumbnail);
             }
         }
 
@@ -106,5 +106,5 @@ export function newThumbnails() {
 }
 
 export function updateAll(): void {
-    if (thumbnailListener) thumbnailListener([...handledThumbnails.keys()]);
+    if (thumbnailListener) thumbnailListener([...handledThumbnailsObserverMap.keys()]);
 }
