@@ -13,13 +13,18 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
         return null;
     }
 
-    const link = thumbnail.querySelector("a") as HTMLAnchorElement;
-    if (!link || !link.href) return null; // no link found
-    const videoID = parseBilibiliVideoIDFromURL(link.href)?.videoID;
-    if (!videoID) {
+    // find all links in the thumbnail, reduce to only one video ID
+    const links = Array.from(thumbnail.querySelectorAll("a[href]")) as Array<HTMLAnchorElement>;
+    const videoIDs = new Set(links.filter((link) => link && link.href)
+        .map((link) => parseBilibiliVideoIDFromURL(link.href)?.videoID)
+        .filter((id) => id));
+    if (videoIDs.size !== 1) {
+        // none or multiple video IDs found
         hideThumbnailLabel(thumbnail);
         return null;
     }
+    const [videoID] = videoIDs;
+    console.log("videoID", videoID)
 
     const category = await getVideoLabel(videoID);
     if (!category) {
@@ -58,7 +63,7 @@ function createOrGetThumbnail(thumbnail: HTMLImageElement): { overlay: HTMLEleme
     }
 
     const overlay = document.createElement("div") as HTMLElement;
-    overlay.classList.add("sponsorThumbnailLabel");
+    overlay.id = "sponsorThumbnailLabel";
     // Disable hover autoplay
     overlay.addEventListener("pointerenter", (e) => {
         e.stopPropagation();
@@ -73,7 +78,8 @@ function createOrGetThumbnail(thumbnail: HTMLImageElement): { overlay: HTMLEleme
     const text = document.createElement("span");
     overlay.appendChild(icon);
     overlay.appendChild(text);
-    const labelAnchor = thumbnail.querySelector("img") ?? thumbnail.lastChild;
+    // try append after image element, exclude avatar in feed popup
+    const labelAnchor = thumbnail.querySelector("picture img:not(.bili-avatar-img)") ?? thumbnail.lastChild;
     labelAnchor.after(overlay);
 
     return {
