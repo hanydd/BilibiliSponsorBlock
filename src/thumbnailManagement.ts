@@ -19,12 +19,15 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
         onInitialLoad?.();
 
         // listen to container child changes
-        void waitFor(() => document.querySelector(getThumbnailContainerElements())).then((thumbnailContainer) => {
-            newThumbnails(); // fire thumbnail check once when the container is loaded
-            if (!thumbnailContainer) return;
-            thumbnailContainerObserver ??= new MutationObserver(() => newThumbnails());
-            thumbnailContainerObserver.observe(thumbnailContainer, { childList: true, subtree: true })
-        }).catch((err) => { console.log(err) })
+        getThumbnailContainerElements().forEach((selector) => {
+            void waitFor(() => document.querySelector(selector), 10000)
+                .then((thumbnailContainer) => {
+                    newThumbnails(); // fire thumbnail check once when the container is loaded
+                    if (!thumbnailContainer) return;
+                    thumbnailContainerObserver ??= new MutationObserver(() => newThumbnails());
+                    thumbnailContainerObserver?.observe(thumbnailContainer, { childList: true, subtree: true })
+                }).catch((err) => { console.log(err) })
+        });
     };
 
     if (document.readyState === "complete") {

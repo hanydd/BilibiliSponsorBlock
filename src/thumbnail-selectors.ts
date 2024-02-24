@@ -9,11 +9,12 @@ export function getThumbnailElements() {
 }
 
 export function getThumbnailContainerElements() {
-    return ".recommended-container_floor-aside .container," // 主页
-        +  "#reco_list," // 播放页推荐
-        +  ".s-space," // 用户空间页
-        +  ".bili-dyn-list" // 动态页面
-        +  ".dynamic-panel-popover .dynamic-video"; // 动态弹出框
+    return [
+        ".recommended-container_floor-aside .container", // 主页
+        "#reco_list", // 播放页推荐
+        ".s-space", // 用户空间页
+        ".bili-dyn-list", // 动态页面
+        "#biliMainHeader .right-entry .v-popover-wrap:nth-of-type(3)"]; // 动态弹出框
 }
 
 export function getThumbnailImageSelectors() {
