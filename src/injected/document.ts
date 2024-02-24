@@ -214,34 +214,38 @@ export function init(): void {
 
         // If customElement.define() is native, we will be given a class constructor and should extend it.
         // If it is not native, we will be given a function and should wrap it.
-        const isDefineNative = window.customElements.define.toString().indexOf("[native code]") !== -1;
         const realCustomElementDefine = window.customElements.define.bind(window.customElements);
         savedSetup.customElementDefine = realCustomElementDefine;
-        window.customElements.define = (name: string, constructor: CustomElementConstructor, options: ElementDefinitionOptions) => {
-            let replacedConstructor: CallableFunction = constructor;
-            if (elementsToListenFor.includes(name)) {
-                if (isDefineNative) {
-                    class WrappedThumbnail extends constructor {
-                        constructor() {
-                            super();
-                            sendMessage({ type: "newElement", name })
+        Object.defineProperty(window.customElements, "define", {
+            configurable: true,
+            enumerable: false,
+            writable: true,
+            value: (name: string, constructor: CustomElementConstructor, options: ElementDefinitionOptions) => {
+                let replacedConstructor: CallableFunction = constructor;
+                if (elementsToListenFor.includes(name)) {
+                    if (constructor.toString().startsWith("class")) {
+                        class WrappedThumbnail extends constructor {
+                            constructor() {
+                                super();
+                                sendMessage({ type: "newElement", name })
+                            }
                         }
+                        replacedConstructor = WrappedThumbnail;
+                    } else {
+                        // based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new.target#new.target_using_reflect.construct
+                        // clearly marked as bad practice, but it works lol
+                        replacedConstructor = function () {
+                            constructor.call(this);
+                            sendMessage({ type: "newElement", name })
+                        };
+                        Object.setPrototypeOf(replacedConstructor.prototype, constructor.prototype);
+                        Object.setPrototypeOf(replacedConstructor, constructor);
                     }
-                    replacedConstructor = WrappedThumbnail;
-                } else {
-                    // based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new.target#new.target_using_reflect.construct
-                    // clearly marked as bad practice, but it works lol
-                    replacedConstructor = function () {
-                        constructor.call(this);
-                        sendMessage({ type: "newElement", name })
-                    };
-                    Object.setPrototypeOf(replacedConstructor.prototype, constructor.prototype);
-                    Object.setPrototypeOf(replacedConstructor, constructor);
                 }
-            }
 
-            realCustomElementDefine(name, replacedConstructor, options);
-        }
+                realCustomElementDefine(name, replacedConstructor, options);
+            }
+        });
     }
 
     // Hijack fetch to know when new videoIDs are loaded
