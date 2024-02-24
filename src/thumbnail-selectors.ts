@@ -1,34 +1,50 @@
+interface ThumbnailSelector {
+    containerSelector: string;
+    thumbnailSelector: string;
+    customLinkSelector?: string;
+}
+
+const thumbnailSelectors: ThumbnailSelector[] = [
+    {
+        // 主页
+        containerSelector: ".recommended-container_floor-aside .container",
+        thumbnailSelector: ".bili-video-card"
+    },
+    {
+        // 播放页推荐
+        containerSelector: "#reco_list",
+        thumbnailSelector: ".video-page-card-small"
+    },
+    {
+        // 用户空间页
+        containerSelector: ".s-space",
+        thumbnailSelector: "li.small-item"
+    },
+    {
+        // 动态页面
+        containerSelector: ".bili-dyn-list",
+        thumbnailSelector: ".bili-dyn-content"
+    },
+    {
+        // 动态弹出框
+        containerSelector: ".bili-header .right-entry .v-popover-wrap:nth-of-type(3)",
+        thumbnailSelector: "a.dynamic-video-item",
+        customLinkSelector: "a"
+    }
+];
+
+const thumbnailElementSelectors = thumbnailSelectors.map((s) => s.thumbnailSelector);
 export function getThumbnailElements() {
-    return [
-        ".bili-video-card", // 主页
-        ".video-page-card-small", // 播放页推荐
-        ".s-space .small-item", // 用户空间页
-        ".bili-dyn-content", // 动态页面
-        "a.dynamic-video-item" // 动态弹出框
-    ];
+    return thumbnailElementSelectors;
 }
 
+const thumbnailContainerSelectors = thumbnailSelectors.map((s) => s.containerSelector);
 export function getThumbnailContainerElements() {
-    return [
-        ".recommended-container_floor-aside .container", // 主页
-        "#reco_list", // 播放页推荐
-        ".s-space", // 用户空间页
-        ".bili-dyn-list", // 动态页面
-        "#biliMainHeader .right-entry .v-popover-wrap:nth-of-type(3)"]; // 动态弹出框
-}
-
-export function getThumbnailImageSelectors() {
-    return "ytd-thumbnail:not([hidden]) img, ytd-playlist-thumbnail yt-image:not(.blurred-image) img";
+    return thumbnailContainerSelectors;
 }
 
 export function getThumbnailLink(thumbnail: HTMLElement): HTMLElement | null {
     return thumbnail.querySelector(getThumbnailSelectors(" a"));
-
-}
-
-export function getThumbnailBoxSelectors() {
-    return getThumbnailSelectors(":not([hidden])");
-
 }
 
 export function getThumbnailSelectors(additionalSelectors = "") {
