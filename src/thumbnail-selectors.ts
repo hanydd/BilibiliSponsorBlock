@@ -30,6 +30,11 @@ const thumbnailSelectors: ThumbnailSelector[] = [
         containerSelector: ".bili-header .right-entry .v-popover-wrap:nth-of-type(3)",
         thumbnailSelector: "a.dynamic-video-item",
         customLinkSelector: "a"
+    },
+    {
+        // 搜索页
+        containerSelector: ".search-page",
+        thumbnailSelector: ".bili-video-card"
     }
 ];
 
