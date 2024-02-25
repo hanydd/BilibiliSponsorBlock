@@ -82,11 +82,10 @@ export async function injectUpdatedScripts(extraScripts: InjectedScript[] = []) 
                                 }
 
                                 if (script.css) {
-                                    for (const file of script.css) {
-                                        void chrome.tabs.insertCSS(tab.id!, {
-                                            file
-                                        });
-                                    }
+                                    void chromeP.scripting.insertCSS({
+                                        target: { tabId: tab.id! },
+                                        files: script.css,
+                                    })
                                 }
                             }
                         }
