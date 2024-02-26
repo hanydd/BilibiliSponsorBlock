@@ -3,7 +3,7 @@ import { ChangeEvent } from "react";
 import Config from "../../config";
 import { Keybind, formatKey, keybindEquals } from "../../../maze-utils/src/config";
 
-export interface KeybindDialogProps { 
+export interface KeybindDialogProps {
     option: string;
     closeListener: (updateWith) => void;
 }
@@ -90,7 +90,7 @@ class KeybindDialogComponent extends React.Component<KeybindDialogProps, Keybind
                 this.props.closeListener(null);
                 return;
             }
-    
+
             this.setState({
                 key: {
                     key: e.key,
@@ -101,11 +101,11 @@ class KeybindDialogComponent extends React.Component<KeybindDialogProps, Keybind
             }, () => this.setState({ error: this.isKeybindAvailable() }));
         }
     }
-    
+
     keybindModifierChecked = (e: ChangeEvent<HTMLInputElement>): void => {
         const id = e.target.id;
         const val = e.target.checked;
-    
+
         this.setState({
             key: {
                 key: this.state.key.key,
@@ -120,25 +120,22 @@ class KeybindDialogComponent extends React.Component<KeybindDialogProps, Keybind
         if (this.state.key.key == null)
             return null;
 
-        let youtubeShortcuts: Keybind[];
+        let bilibiliShortcuts: Keybind[];
         if (/[a-zA-Z0-9,.+\-\][:]/.test(this.state.key.key)) {
-            youtubeShortcuts = [{key: "k"}, {key: "j"}, {key: "l"}, {key: "p", shift: true}, {key: "n", shift: true}, {key: ","}, {key: "."}, {key: ",", shift: true}, {key: ".", shift: true},
-                {key: "ArrowRight"}, {key: "ArrowLeft"}, {key: "ArrowUp"}, {key: "ArrowDown"}, {key: "c"}, {key: "o"},
-                {key: "w"}, {key: "+"}, {key: "-"}, {key: "f"}, {key: "t"}, {key: "i"}, {key: "m"}, {key: "a"}, {key: "s"}, {key: "d"}, {key: "Home"}, {key: "End"},
-                {key: "0"}, {key: "1"}, {key: "2"}, {key: "3"}, {key: "4"}, {key: "5"}, {key: "6"}, {key: "7"}, {key: "8"}, {key: "9"}, {key: "]"}, {key: "["}];
+            bilibiliShortcuts = [{key: "q"}, {key: "w"}, {key: "e"}, {key: "r"}, {key: "ArrowRight"},
+                {key: "ArrowLeft"}, {key: "ArrowUp"}, {key: "ArrowDown"}, {key: "f"}, {key: "m"},
+                {key: "d"}, {key: "]"}, {key: "["}];
         } else {
-            youtubeShortcuts = [{key: null, code: "KeyK"}, {key: null, code: "KeyJ"}, {key: null, code: "KeyL"}, {key: null, code: "KeyP", shift: true}, {key: null, code: "KeyN", shift: true},
-                {key: null, code: "Comma"}, {key: null, code: "Period"}, {key: null, code: "Comma", shift: true}, {key: null, code: "Period", shift: true}, {key: null, code: "Space"},
-                {key: null, code: "KeyC"}, {key: null, code: "KeyO"}, {key: null, code: "KeyW"}, {key: null, code: "Equal"}, {key: null, code: "Minus"}, {key: null, code: "KeyF"}, {key: null, code: "KeyT"},
-                {key: null, code: "KeyI"}, {key: null, code: "KeyM"}, {key: null, code: "KeyA"}, {key: null, code: "KeyS"}, {key: null, code: "KeyD"}, {key: null, code: "BracketLeft"}, {key: null, code: "BracketRight"}];
+            bilibiliShortcuts = [{key: null, code: "KeyQ"}, {key: null, code: "KeyW"}, {key: null, code: "KeyE"},
+                {key: null, code: "KeyR"}, {key: null, code: "KeyF"}, {key: null, code: "Comma"},
+                {key: null, code: "Period"}, {key: null, code: "Space"}, {key: null, code: "KeyM"},
+                {key: null, code: "KeyD"}, {key: null, code: "Minus"}, {key: null, code: "BracketLeft"},
+                {key: null, code: "BracketRight"}];
         }
-        
-        for (const shortcut of youtubeShortcuts) {
-            const withShift = Object.assign({}, shortcut);
-            if (!/[0-9]/.test(this.state.key.key)) //shift+numbers don't seem to do anything on youtube, all other keys do
-                withShift.shift = true;
-            if (this.equals(shortcut) || this.equals(withShift))
-                return {message: chrome.i18n.getMessage("youtubeKeybindWarning"), blocking: false};
+
+        for (const shortcut of bilibiliShortcuts) {
+            if (this.equals(shortcut))
+                return {message: chrome.i18n.getMessage("bilibiliKeybindWarning"), blocking: false};
         }
 
         if (this.props.option !== "skipKeybind" && this.equals(Config.config['skipKeybind']) ||
