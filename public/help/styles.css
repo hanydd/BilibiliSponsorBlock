@@ -327,3 +327,8 @@ svg {
 .hidden {
   display: none;
 }
+
+.divider {
+  margin: 200px 0 0;
+  border-bottom: 1px solid var(--header-color);
+}

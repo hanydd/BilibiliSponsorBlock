@@ -1,6 +1,6 @@
 {
     "name": "__MSG_fullName__",
-    "short_name": "哔哩广告助手",
+    "short_name": "__MSG_shortName__",
     "version": "0.1.0",
     "default_locale": "zh_CN",
     "description": "__MSG_Description__",
