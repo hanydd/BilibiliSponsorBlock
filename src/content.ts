@@ -433,7 +433,6 @@ function createPreviewBar(): void {
         const el = option.isVisibleCheck ? findValidElement(allElements) : allElements[0];
 
         if (el) {
-            console.log("createPreviewBar parent node: ", el)
             const chapterVote = new ChapterVote(voteAsync);
             previewBar = new PreviewBar(el, chapterVote);
 
@@ -1000,7 +999,6 @@ async function sponsorsLookup(keepOldSubmissions = true) {
                         source: SponsorSourceType.Server
                     }))
                     ?.sort((a, b) => a.segment[0] - b.segment[0]);
-        console.log("sponsor lookup", receivedSegments)
         if (receivedSegments && receivedSegments.length) {
             sponsorDataFound = true;
 
@@ -1201,8 +1199,6 @@ function updatePreviewBar(): void {
     const hashParams = getHashParams();
     const requiredSegment = hashParams?.requiredSegment as SegmentUUID || undefined;
     const previewBarSegments: PreviewBarSegment[] = [];
-    //TODO: remove temp console output
-    console.log("update preview bar, sponsorTimes:", sponsorTimes)
     if (sponsorTimes) {
         sponsorTimes.forEach((segment) => {
             if (segment.hidden !== SponsorHideType.Visible) return;

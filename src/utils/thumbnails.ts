@@ -24,7 +24,6 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
         return null;
     }
     const [videoID] = videoIDs;
-    console.log("videoID", videoID)
 
     const category = await getVideoLabel(videoID);
     if (!category) {

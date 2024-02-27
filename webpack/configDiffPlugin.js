@@ -47,7 +47,7 @@ class configDiffPlugin {
     compiler.hooks.done.tapAsync("configDiffPlugin", async (stats, callback) => {
       logger = compiler.getInfrastructureLogger('configDiffPlugin')
       logger.log('Checking for config.json diff...')
-      
+
       // check example
       const exampleConfig = await readFileContents("./config.json.example")
       const currentConfig = await readFileContents("./config.json")
