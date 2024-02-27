@@ -67,14 +67,40 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             }
         });
 
+        let lastSet = 0;
+        const nextToUpdate: Set<string> = new Set();
+        let activeTimeout: NodeJS.Timeout | null = null;
+
         const self = this;
         const syncHandler: ProxyHandler<SyncStorage> = {
             set<K extends keyof SyncStorage>(obj: SyncStorage, prop: K, value: SyncStorage[K]) {
                 self.cachedSyncConfig![prop] = value;
+
+                if (Date.now() - lastSet < 20) {
+                    nextToUpdate.add(prop);
+                    if (!activeTimeout) {
+                        const delayUpdate = () => {
+                            const first = nextToUpdate.entries().next().value[0];
+                            nextToUpdate.delete(first);
+                            self.forceSyncUpdate(first);
+
+                            if (nextToUpdate.size > 0) {
+                                activeTimeout = setTimeout(delayUpdate, 100);
+                            } else {
+                                activeTimeout = null;
+                            }
+                        }
+                        activeTimeout = setTimeout(delayUpdate, 100);
+                    }
+
+                    return true;
+                }
     
                 void chrome.storage.sync.set({
                     [prop]: value
                 });
+
+                lastSet = Date.now();
     
                 return true;
             },
