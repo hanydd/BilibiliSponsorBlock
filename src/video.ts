@@ -89,9 +89,11 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
 
     // Can't use onInvidious at this point, the configuration might not be ready.
     if (YT_DOMAINS.includes(location.host)) {
-        void waitForElement(embedTitleSelector)
+        waitForElement(embedTitleSelector)
             .then((e) => waitFor(() => e.getAttribute("href")))
-            .then(() => videoIDChange(getYouTubeVideoID()));
+            .then(() => videoIDChange(getYouTubeVideoID()))
+            // Ignore if not an embed
+            .catch(() => {}); // eslint-disable-line @typescript-eslint/no-empty-function
     }
 
     addPageListeners();
