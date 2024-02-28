@@ -176,7 +176,8 @@ export class GenericTooltip {
             result.push(
                 <div style={{
                     padding: "5px"
-                }}>
+                }}
+                key={line}>
                     {line}
                 </div>
             );
