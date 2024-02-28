@@ -447,8 +447,8 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             return;
         }
 
-        //if request is undefined, then the page currently being browsed is not Bilibili
-        if (request != undefined) {
+        // if request is undefined, then the page currently being browsed is not Bilibili
+        if (request.found != undefined) {
             //remove loading text
             PageElements.mainControls.style.display = "block";
             PageElements.whitelistButton.classList.remove("hidden");
@@ -471,6 +471,8 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
                 PageElements.issueReporterImportExport.classList.remove("hidden");
             }
+        } else {
+            displayNoVideo();
         }
 
         //see if whitelist button should be swapped

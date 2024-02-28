@@ -248,7 +248,14 @@ function messageListener(request: Message, sender: unknown, sendResponse: (respo
             break;
         case "refreshSegments":
             // update video on refresh if videoID invalid
-            if (!getVideoID()) checkVideoIDChange();
+            if (!getVideoID()) {
+                checkVideoIDChange().then(() => {
+                    if (!getVideoID()) {
+                        // if not on a video page, send a message to the popup to stop refresh animation
+                        chrome.runtime.sendMessage({ message: "infoUpdated" });
+                    }
+                });
+            }
             // fetch segments
             sponsorsLookup(false);
 
