@@ -23,14 +23,6 @@
 	transition: transform .1s cubic-bezier(0,0,0.2,1);
 }
 
-.ytp-big-mode #previewbar {
-	transform: scaleY(0.625) translateY(-30%) translateY(1.5px);
-}
-
-.ytp-big-mode .sponsorTwoTooltips .sponsorCategoryTooltip {
-	top: 75px !important;
-}
-
 .progress-bar-line > #previewbar {
 	height: 3px;
 }
@@ -49,11 +41,6 @@
 	opacity: 1 !important;
 	z-index: 100;
 	transform: scaleY(1.5);
-}
-
-/* Make sure settings are upfront */
-.ytp-settings-menu {
-	z-index: 6000 !important;
 }
 
 /* Preview Bar page hacks */
@@ -78,45 +65,6 @@
 
 .ytp-tooltip.sponsorCategoryTooltipVisible.sponsorTwoTooltips {
 	transform: translateY(-2em) !important;
-}
-
-.ytp-big-mode .ytp-tooltip.sponsorCategoryTooltipVisible {
-	transform: translateY(-2em) !important;
-}
-
-.ytp-big-mode .ytp-tooltip.sponsorCategoryTooltipVisible.sponsorTwoTooltips {
-	transform: translateY(-4em) !important;
-}
-
-#movie_player:not(.ytp-big-mode) .ytp-tooltip.sponsorCategoryTooltipVisible > .ytp-tooltip-text-wrapper {
-	transform: translateY(1em) !important;
-}
-
-#movie_player:not(.ytp-big-mode) .ytp-tooltip.sponsorCategoryTooltipVisible.sponsorTwoTooltips > .ytp-tooltip-text-wrapper {
-	transform: translateY(2em) !important;
-}
-
-/* Pull up for precise seeking */
-.ytp-tooltip.sponsorCategoryTooltipVisible.sponsorTwoTooltips .ytp-tooltip-edu {
-	transform: translateY(-2em) !important;
-}
-
-.ytp-big-mode .ytp-tooltip.sponsorCategoryTooltipVisible > .ytp-tooltip-text-wrapper {
-	transform: translateY(0.5em) !important;
-}
-
-.ytp-big-mode .ytp-tooltip.sponsorCategoryTooltipVisible.sponsorTwoTooltips > .ytp-tooltip-text-wrapper {
-	transform: translateY(1em) !important;
-}
-
-.ytp-big-mode .ytp-tooltip.sponsorCategoryTooltipVisible > .ytp-tooltip-text-wrapper > .ytp-tooltip-text {
-	display: block !important;
-	transform: translateY(1em) !important;
-}
-
-.ytp-big-mode .ytp-tooltip.sponsorCategoryTooltipVisible.sponsorTwoTooltips > .ytp-tooltip-text-wrapper > .ytp-tooltip-text {
-	display: block !important;
-	transform: translateY(2em) !important;
 }
 
 /*  */
