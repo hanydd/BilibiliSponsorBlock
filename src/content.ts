@@ -431,20 +431,20 @@ function createPreviewBar(): void {
     const progressElementOptions = [{
         // For Desktop Bilibili
         selector: ".bpx-player-progress-schedule-wrap",
+        shadowSelector: ".bpx-player-shadow-progress-area",
         isVisibleCheck: true
-        }
-    ];
+    }];
 
     for (const option of progressElementOptions) {
         const allElements = document.querySelectorAll(option.selector) as NodeListOf<HTMLElement>;
-        const el = option.isVisibleCheck ? findValidElement(allElements) : allElements[0];
+        const parent = option.isVisibleCheck ? findValidElement(allElements) : allElements[0];
+        const allshadowSelectorElements = document.querySelectorAll(option.shadowSelector) as NodeListOf<HTMLElement>;
+        const shadowParent = allshadowSelectorElements[0];
 
-        if (el) {
+        if (parent) {
             const chapterVote = new ChapterVote(voteAsync);
-            previewBar = new PreviewBar(el, chapterVote);
-
+            previewBar = new PreviewBar(parent, shadowParent, chapterVote);
             updatePreviewBar();
-
             break;
         }
     }

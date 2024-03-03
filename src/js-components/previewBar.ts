@@ -25,7 +25,10 @@ export interface PreviewBarSegment {
 }
 
 class PreviewBar {
+    // main progress bar
     container: HTMLUListElement;
+    // small progress bar on the bottom of <video />, shown only when not hovering the video
+    shadowContainer: HTMLUListElement;
     categoryTooltip?: HTMLDivElement;
     categoryTooltipContainer?: HTMLElement;
     lastSmallestSegment: Record<string, {
@@ -34,7 +37,7 @@ class PreviewBar {
     }> = {};
 
     parent: HTMLElement;
-    progressBar: HTMLElement;
+    shadowParent: HTMLElement;
 
     segments: PreviewBarSegment[] = [];
     existingChapters: PreviewBarSegment[] = [];
@@ -42,12 +45,15 @@ class PreviewBar {
 
     chapterVote: ChapterVote;
 
-    constructor(parent: HTMLElement, chapterVote: ChapterVote, test=false) {
+    constructor(parent: HTMLElement, shadowParent: HTMLElement, chapterVote: ChapterVote, test=false) {
         if (test) return;
         this.container = document.createElement('ul');
         this.container.id = 'previewbar';
+        this.shadowContainer = document.createElement('ul');
+        this.shadowContainer.id = 'shadowPreviewbar';
 
         this.parent = parent;
+        this.shadowParent = shadowParent;
         this.chapterVote = chapterVote;
 
         this.createElement();
@@ -119,14 +125,19 @@ class PreviewBar {
      * Insert the container of the preview bar into DOM,
      * as the first child node of parent
      */
-    createElement(parent?: HTMLElement): void {
+    createElement(parent?: HTMLElement, shadowParent?: HTMLElement): void {
         if (parent) this.parent = parent;
         this.parent.prepend(this.container);
+        if (shadowParent) this.shadowParent = shadowParent;
+        this.shadowParent?.prepend(this.shadowContainer);
     }
 
     clear(): void {
         while (this.container.firstChild) {
             this.container.removeChild(this.container.firstChild);
+        }
+        while (this.shadowContainer?.firstChild) {
+            this.shadowContainer.removeChild(this.shadowContainer.firstChild);
         }
 
         this.chapterVote?.setVisibility(false);
@@ -155,7 +166,9 @@ class PreviewBar {
         });
         for (const segment of sortedSegments) {
             const bar = this.createBar(segment);
+            const shadowBar = bar.cloneNode(true) as HTMLLIElement;
             this.container.appendChild(bar);
+            this.shadowContainer?.appendChild(shadowBar);
         }
     }
 
@@ -292,6 +305,7 @@ class PreviewBar {
 
     remove(): void {
         this.container.remove();
+        this.shadowContainer.remove();
 
         if (this.categoryTooltip) {
             this.categoryTooltip.remove();
