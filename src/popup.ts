@@ -441,38 +441,34 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             stopLoadingAnimation = null;
         }
 
-        if (chrome.runtime.lastError) {
-            //This page doesn't have the injected content script, or at least not yet
+        if (chrome.runtime.lastError || request.found == undefined) {
+            // This page doesn't have the injected content script, or at least not yet
+            // or if request is undefined, then the page currently being browsed is not Bilibili
             displayNoVideo();
             return;
         }
 
-        // if request is undefined, then the page currently being browsed is not Bilibili
-        if (request.found != undefined) {
-            //remove loading text
-            PageElements.mainControls.style.display = "block";
-            PageElements.whitelistButton.classList.remove("hidden");
-            PageElements.loadingIndicator.style.display = "none";
+        //remove loading text
+        PageElements.mainControls.style.display = "block";
+        PageElements.whitelistButton.classList.remove("hidden");
+        PageElements.loadingIndicator.style.display = "none";
 
-            downloadedTimes = request.sponsorTimes ?? [];
-            displayDownloadedSponsorTimes(downloadedTimes, request.time);
-            if (request.found) {
-                PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsorFound");
-                PageElements.issueReporterImportExport.classList.remove("hidden");
-            } else if (request.status == 404 || request.status == 200) {
-                PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsor404");
-                PageElements.issueReporterImportExport.classList.remove("hidden");
-            } else {
-                if (request.status) {
-                    PageElements.videoFound.innerHTML = chrome.i18n.getMessage("connectionError") + request.status;
-                } else {
-                    PageElements.videoFound.innerHTML = chrome.i18n.getMessage("segmentsStillLoading");
-                }
-
-                PageElements.issueReporterImportExport.classList.remove("hidden");
-            }
+        downloadedTimes = request.sponsorTimes ?? [];
+        displayDownloadedSponsorTimes(downloadedTimes, request.time);
+        if (request.found) {
+            PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsorFound");
+            PageElements.issueReporterImportExport.classList.remove("hidden");
+        } else if (request.status == 404 || request.status == 200) {
+            PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsor404");
+            PageElements.issueReporterImportExport.classList.remove("hidden");
         } else {
-            displayNoVideo();
+            if (request.status) {
+                PageElements.videoFound.innerHTML = chrome.i18n.getMessage("connectionError") + request.status;
+            } else {
+                PageElements.videoFound.innerHTML = chrome.i18n.getMessage("segmentsStillLoading");
+            }
+
+            PageElements.issueReporterImportExport.classList.remove("hidden");
         }
 
         //see if whitelist button should be swapped
