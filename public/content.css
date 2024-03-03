@@ -119,10 +119,6 @@
 	transform: translateY(2em) !important;
 }
 
-div:hover > .sponsorBlockChapterBar {
-	z-index: 41 !important;
-}
-
 /*  */
 
 .popup {

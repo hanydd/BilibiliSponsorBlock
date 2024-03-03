@@ -7,7 +7,7 @@ https://github.com/videosegments/videosegments/commits/f1e111bdfe231947800c6efdd
 
 import Config from "../config";
 import { ChapterVote } from "../render/ChapterVote";
-import { ActionType, Category, SegmentContainer, SponsorHideType, SponsorSourceType, SponsorTime } from "../types";
+import { ActionType, Category, SponsorHideType, SponsorSourceType, SponsorTime } from "../types";
 import { DEFAULT_CATEGORY, shortCategoryName } from "../utils/categoryUtils";
 
 const TOOLTIP_VISIBLE_CLASS = 'sponsorCategoryTooltipVisible';
@@ -22,11 +22,6 @@ export interface PreviewBarSegment {
     source: SponsorSourceType;
     requiredSegment?: boolean;
     selectedSegment?: boolean;
-}
-
-interface ChapterGroup extends SegmentContainer {
-    originalDuration: number;
-    actionType: ActionType;
 }
 
 class PreviewBar {
@@ -44,19 +39,8 @@ class PreviewBar {
     segments: PreviewBarSegment[] = [];
     existingChapters: PreviewBarSegment[] = [];
     videoDuration = 0;
-    lastChapterUpdate = 0;
 
-    // For chapter bar
-    hoveredSection: HTMLElement;
-    customChaptersBar: HTMLElement;
-    chaptersBarSegments: PreviewBarSegment[];
     chapterVote: ChapterVote;
-    originalChapterBar: HTMLElement;
-    originalChapterBarBlocks: NodeListOf<HTMLElement>;
-    chapterMargin: number;
-    lastRenderedSegments: PreviewBarSegment[];
-    unfilteredChapterGroups: ChapterGroup[];
-    chapterGroups: ChapterGroup[];
 
     constructor(parent: HTMLElement, chapterVote: ChapterVote, test=false) {
         if (test) return;
@@ -145,15 +129,7 @@ class PreviewBar {
             this.container.removeChild(this.container.firstChild);
         }
 
-        if (this.customChaptersBar) this.customChaptersBar.style.display = "none";
-        this.originalChapterBar?.style?.removeProperty("display");
         this.chapterVote?.setVisibility(false);
-
-        document.querySelectorAll(`.sponsorBlockChapterBar`).forEach((e) => {
-            if (e !== this.customChaptersBar) {
-                e.remove();
-            }
-        });
     }
 
     set(segments: PreviewBarSegment[], videoDuration: number): void {
@@ -356,42 +332,6 @@ class PreviewBar {
      * Decimal to time or time to decimal
      */
     decimalTimeConverter(value: number, isTime: boolean): number {
-        if (this.originalChapterBarBlocks?.length > 1 && this.existingChapters.length === this.originalChapterBarBlocks?.length) {
-            // Parent element to still work when display: none
-            const totalPixels = this.originalChapterBar.parentElement.clientWidth;
-            let pixelOffset = 0;
-            let lastCheckedChapter = -1;
-            for (let i = 0; i < this.originalChapterBarBlocks.length; i++) {
-                const chapterElement = this.originalChapterBarBlocks[i];
-                const widthPixels = parseFloat(chapterElement.style.width.replace("px", ""));
-
-                const marginPixels = chapterElement.style.marginRight ? parseFloat(chapterElement.style.marginRight.replace("px", "")) : 0;
-                if ((isTime && value >= this.existingChapters[i].segment[1])
-                        || (!isTime && value >= (pixelOffset + widthPixels + marginPixels) / totalPixels)) {
-                    pixelOffset += widthPixels + marginPixels;
-                    lastCheckedChapter = i;
-                } else {
-                    break;
-                }
-            }
-
-            // The next chapter is the one we are currently inside of
-            const latestChapter = this.existingChapters[lastCheckedChapter + 1];
-            if (latestChapter) {
-                const latestWidth = parseFloat(this.originalChapterBarBlocks[lastCheckedChapter + 1].style.width.replace("px", ""));
-                const latestChapterDuration = latestChapter.segment[1] - latestChapter.segment[0];
-
-                if (isTime) {
-                    const percentageInCurrentChapter = (value - latestChapter.segment[0]) / latestChapterDuration;
-                    const sizeOfCurrentChapter = latestWidth / totalPixels;
-                    return Math.min(1, ((pixelOffset / totalPixels) + (percentageInCurrentChapter * sizeOfCurrentChapter)));
-                } else {
-                    const percentageInCurrentChapter = (value * totalPixels - pixelOffset) / latestWidth;
-                    return Math.max(0, latestChapter.segment[0] + (percentageInCurrentChapter * latestChapterDuration));
-                }
-            }
-        }
-
         if (isTime) {
             return Math.min(1, value / this.videoDuration);
         } else {
