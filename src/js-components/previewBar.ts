@@ -9,7 +9,6 @@ import Config from "../config";
 import { ChapterVote } from "../render/ChapterVote";
 import { ActionType, Category, SegmentContainer, SponsorHideType, SponsorSourceType, SponsorTime } from "../types";
 import { DEFAULT_CATEGORY, shortCategoryName } from "../utils/categoryUtils";
-import { findValidElement } from "../../maze-utils/src/dom";
 
 const TOOLTIP_VISIBLE_CLASS = 'sponsorCategoryTooltipVisible';
 
@@ -67,7 +66,6 @@ class PreviewBar {
         this.parent = parent;
         this.chapterVote = chapterVote;
 
-        this.updateProgressBarElement();
         this.createElement();
         this.setupHoverText();
     }
@@ -162,8 +160,6 @@ class PreviewBar {
         this.segments = segments ?? [];
         this.videoDuration = videoDuration ?? 0;
 
-        this.updateProgressBarElement();
-
         // TODO: find an api to varify video duration
         // Sometimes video duration is inaccurate, pull from accessibility info
         // const ariaDuration = parseInt(this.progressBar?.getAttribute('aria-valuemax')) ?? 0;
@@ -172,11 +168,6 @@ class PreviewBar {
         // }
 
         this.update();
-    }
-
-    private updateProgressBarElement(): void {
-        const allProgressBars = document.querySelectorAll('.bpx-player-progress-schedule-wrap') as NodeListOf<HTMLElement>;
-        this.progressBar = findValidElement(allProgressBars) ?? allProgressBars?.[0];
     }
 
     private update(): void {
