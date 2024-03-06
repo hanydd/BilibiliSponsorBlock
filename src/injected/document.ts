@@ -174,6 +174,9 @@ const savedSetup = {
     waitingInterval: null as NodeJS.Timer | null
 };
 
+let hasSetupCustomElementListener = false;
+let thumbnailMutationObserver: MutationObserver | null = null;
+
 // WARNING: Putting any parameters here will not work because SponsorBlock and the clickbait extension share document scripts
 // Only one will exist on the page at a time
 export function init(): void {
@@ -210,42 +213,55 @@ export function init(): void {
         if (!window.customElements) {
             // Old versions of Chrome that don't support "world" option for content scripts
             alert("Your browser is out of date and is not supported by DeArrow. Please update your browser to use DeArrow.");
+        } else {
+            setTimeout(() => {
+                if (!hasSetupCustomElementListener) {
+                    createMutationObserver();
+                }
+            }, 2000);
+
+            // If customElement.define() is native, we will be given a class constructor and should extend it.
+            // If it is not native, we will be given a function and should wrap it.
+            const realCustomElementDefine = window.customElements.define.bind(window.customElements);
+            savedSetup.customElementDefine = realCustomElementDefine;
+            Object.defineProperty(window.customElements, "define", {
+                configurable: true,
+                enumerable: false,
+                writable: true,
+                value: (name: string, constructor: CustomElementConstructor, options: ElementDefinitionOptions) => {
+                    let replacedConstructor: CallableFunction = constructor;
+                    if (elementsToListenFor.includes(name)) {
+                        hasSetupCustomElementListener = true;
+                        if (thumbnailMutationObserver) {
+                            thumbnailMutationObserver.disconnect();
+                            thumbnailMutationObserver = null;
+                        }
+
+                        if (constructor.toString().startsWith("class")) {
+                            class WrappedThumbnail extends constructor {
+                                constructor() {
+                                    super();
+                                    sendMessage({ type: "newElement", name })
+                                }
+                            }
+                            replacedConstructor = WrappedThumbnail;
+                        } else {
+                            // based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new.target#new.target_using_reflect.construct
+                            // clearly marked as bad practice, but it works lol
+                            replacedConstructor = function () {
+                                constructor.call(this);
+                                sendMessage({ type: "newElement", name })
+                            };
+                            Object.setPrototypeOf(replacedConstructor.prototype, constructor.prototype);
+                            Object.setPrototypeOf(replacedConstructor, constructor);
+                        }
+                    }
+    
+                    realCustomElementDefine(name, replacedConstructor, options);
+                }
+            });
         }
 
-        // If customElement.define() is native, we will be given a class constructor and should extend it.
-        // If it is not native, we will be given a function and should wrap it.
-        const realCustomElementDefine = window.customElements.define.bind(window.customElements);
-        savedSetup.customElementDefine = realCustomElementDefine;
-        Object.defineProperty(window.customElements, "define", {
-            configurable: true,
-            enumerable: false,
-            writable: true,
-            value: (name: string, constructor: CustomElementConstructor, options: ElementDefinitionOptions) => {
-                let replacedConstructor: CallableFunction = constructor;
-                if (elementsToListenFor.includes(name)) {
-                    if (constructor.toString().startsWith("class")) {
-                        class WrappedThumbnail extends constructor {
-                            constructor() {
-                                super();
-                                sendMessage({ type: "newElement", name })
-                            }
-                        }
-                        replacedConstructor = WrappedThumbnail;
-                    } else {
-                        // based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new.target#new.target_using_reflect.construct
-                        // clearly marked as bad practice, but it works lol
-                        replacedConstructor = function () {
-                            constructor.call(this);
-                            sendMessage({ type: "newElement", name })
-                        };
-                        Object.setPrototypeOf(replacedConstructor.prototype, constructor.prototype);
-                        Object.setPrototypeOf(replacedConstructor, constructor);
-                    }
-                }
-
-                realCustomElementDefine(name, replacedConstructor, options);
-            }
-        });
     }
 
     // Hijack fetch to know when new videoIDs are loaded
@@ -328,4 +344,37 @@ function teardown() {
     window.removeEventListener("message", windowMessageListener);
 
     window["teardownCB"] = null;
+
+    hasSetupCustomElementListener = true;
+    thumbnailMutationObserver?.disconnect?.();
+}
+
+function createMutationObserver() {
+    if (thumbnailMutationObserver) {
+        thumbnailMutationObserver.disconnect();
+    }
+
+    thumbnailMutationObserver = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+                if (node instanceof HTMLElement) {
+                    for (const name of elementsToListenFor) {
+                        if (node.tagName.toLowerCase() === name || node.querySelector(name)) {
+                            sendMessage({ type: "newElement", name });
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    thumbnailMutationObserver.observe(document.documentElement, { childList: true, subtree: true });
+
+    // In case new elements appeared before falling back
+    for (const name of elementsToListenFor) {
+        if (document.querySelector(name)) {
+            sendMessage({ type: "newElement", name });
+        }
+    }
 }
