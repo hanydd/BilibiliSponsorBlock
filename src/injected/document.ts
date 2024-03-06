@@ -212,7 +212,7 @@ export function init(): void {
     if (YT_DOMAINS.includes(window.location.host) && !onMobile()) {
         if (!window.customElements) {
             // Old versions of Chrome that don't support "world" option for content scripts
-            alert("Your browser is out of date and is not supported by DeArrow. Please update your browser to use DeArrow.");
+            createMutationObserver();
         } else {
             setTimeout(() => {
                 if (!hasSetupCustomElementListener) {
