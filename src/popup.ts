@@ -14,6 +14,7 @@ import {
     Message,
     MessageResponse,
     PopupMessage,
+    RefreshSegmentsResponse,
     SponsorStartResponse,
     VoteResponse,
 } from "./messageTypes";
@@ -936,9 +937,17 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         stopLoadingAnimation = AnimationUtils.applyLoadingAnimation(PageElements.refreshSegmentsButton, 0.3);
     }
 
-    function refreshSegments() {
+    async function refreshSegments() {
         startLoadingAnimation();
-        sendTabMessage({ message: 'refreshSegments' });
+        const response = await sendTabMessageAsync({ message: 'refreshSegments' }) as RefreshSegmentsResponse;
+
+        if (response == null || !response.hasVideo) {
+            if (stopLoadingAnimation != null) {
+                stopLoadingAnimation();
+                stopLoadingAnimation = null;
+            }
+            displayNoVideo();
+        }
     }
 
     function skipSegment(actionType: ActionType, UUID: SegmentUUID, element?: HTMLElement): void {
