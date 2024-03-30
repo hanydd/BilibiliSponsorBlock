@@ -85,7 +85,11 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     // Can't use onInvidious at this point, the configuration might not be ready.
     //TODO: What does this wait for?
     if (BILI_DOMAINS.includes(location.host)) {
-        void waitForElement(embedTitleSelector).then(() => videoIDChange(getBilibiliVideoID()));
+        waitForElement(embedTitleSelector)
+            .then((e) => waitFor(() => e.getAttribute("href")))
+            .then(() => videoIDChange(getBilibiliVideoID()))
+            // Ignore if not an embed
+            .catch(() => {}); // eslint-disable-line @typescript-eslint/no-empty-function
     }
 
     addPageListeners();

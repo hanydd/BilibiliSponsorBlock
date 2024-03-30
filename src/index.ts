@@ -3,7 +3,7 @@ export async function waitFor<T>(condition: () => T, timeout = 5000, check = 100
     return await new Promise((resolve, reject) => {
         setTimeout(() => {
             clearInterval(interval);
-            reject("TIMEOUT");
+            reject(`TIMEOUT: ${Error().stack}`);
         }, timeout);
 
         const intervalCheck = () => {
