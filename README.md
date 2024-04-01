@@ -2,18 +2,32 @@
   <a href="https://sponsor.ajay.app"><img src="public/icons/LogoSponsorBlocker256px.png" alt="Logo"></img></a>
 
   <br/>
-  <sub>Logo by <a href="https://github.com/munadikieh">@munadikieh</a></sub>
+  <sub>Logo by <a href="https://github.com/munadikieh">@munadikieh</a>. Modified by HanYaodong</sub>
 </p>
 
-<h1 align="center">BilibiliSponsorBlock（文档施工中）</h1>
+<h1 align="center">B站空降助手</h1>
 
-BilibiliSponsorBlock是一款帮你跳过B站视频中广告片段的浏览器插件，插件自动获取并跳过广告片段，让你的刷视频体验毫无中断！插件中所有的标注片段都来自热心网友，您也可以提交自己的标注来帮助他人。除了广告之外，插件还支持其他类别，例如开场结尾的动画，一键三连提示等等。
+受够了B站视频中无处不在的恰饭广告了吗？受够了看了一半才发现的软广视频了吗？B站空降助手是一款帮你精准空降到广告之后的浏览器插件。插件自动获取并跳过广告片段，让你的视频体验毫无中断！
 
-目前本项目还处于开发中（包括本文档）。
+除了广告之外，插件还支持跳过其他类别的片段，例如开场结尾的动画、一键三连提示，或者直接空降到视频封面的位置。插件中所有的标注片段都来自网友标注，您也可以提交自己的片段来为空降指挥部添砖加瓦。
 
 本插件移植自油管插件[SponsorBlock](https://github.com/ajayyy/SponsorBlock)，保留了大部分的UI和使用方法，加入一些了B站特色的功能。
 
-# 相比[原插件](https://github.com/ajayyy/SponsorBlock)变化
+目前本项目还处于开发中（包括本文档）。
+
+# 安装
+
+初版即将发布，敬请期待。
+
+# 功能
+
+## 使用说明
+
+计划视频使用说明
+
+## 相比[原插件](https://github.com/ajayyy/SponsorBlock)变化
+
+如果你使用过YouTube的原插件，你会发现在核心功能和交互上，本插件基本没有做出大的改动。功能主要的不同有以下几点：
 
 - 放弃了多语言支持。不会真的有人看不懂中文还在刷B站吧？
 
@@ -25,7 +39,7 @@ BilibiliSponsorBlock是一款帮你跳过B站视频中广告片段的浏览器�
 
 - 加入评论标记功能（制作中）。不用多说了，百亿红包，点击就领！评论区置顶链接yyds！
 
-# 功能更新计划
+## 功能更新计划
 
 - 评论和动态标记
 
@@ -48,8 +62,8 @@ BilibiliSponsorBlock是一款帮你跳过B站视频中广告片段的浏览器�
 
 # 致谢
 
-感谢[ajayyy](https://github.com/ajayyy)创建的[SponsorBlock](https://github.com/ajayyy/SponsorBlock)给我的启发！
+感谢[ajayyy](https://github.com/ajayyy)创造的[SponsorBlock](https://github.com/ajayyy/SponsorBlock)给我的启发！
 
-### License
+### 开源协议
 
-This project is licensed under GNU GPL v3 or any later version
+本项目在 GNU GPL v3 协议下开源。
