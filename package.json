@@ -75,27 +75,15 @@
   },
   "funding": [
     {
-      "type": "individual",
-      "url": "https://sponsor.ajay.app/donate"
-    },
-    {
-      "type": "github",
-      "url": "https://github.com/sponsors/ajayyy-org"
-    },
-    {
       "type": "patreon",
-      "url": "https://www.patreon.com/ajayyy"
-    },
-    {
-      "type": "individual",
-      "url": "https://paypal.me/ajayyy"
+      "url": "https://www.patreon.com/hanyd"
     }
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/HanYaodong/BilibiliSponsorBlock.git"
   },
-  "author": "Ajay Ramachandran",
+  "author": "Yaodong Han",
   "license": "GPL-3.0",
   "private": true
 }
