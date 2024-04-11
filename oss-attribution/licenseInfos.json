@@ -71,7 +71,7 @@
   "webext-patterns": {
     "ignore": false,
     "name": "webext-patterns",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "authors": "Federico Brigante <me@fregante.com> (https://fregante.com)",
     "url": "https://github.com/fregante/webext-patterns",
     "license": "MIT",
