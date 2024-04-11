@@ -2,7 +2,7 @@
   <a href="https://sponsor.ajay.app"><img src="public/icons/LogoSponsorBlocker256px.png" alt="Logo"></img></a>
 
   <br/>
-  <sub>Logo by <a href="https://github.com/munadikieh">@munadikieh</a>. Modified by HanYaodong</sub>
+  <sub>Logo by <a href="https://github.com/munadikieh">@munadikieh</a>. Modified by Yaodong</sub>
 </p>
 
 <h1 align="center">B站空降助手</h1>
@@ -17,13 +17,22 @@
 
 # 安装
 
-初版即将发布，敬请期待。
+目前可以从 [Github Release](https://github.com/HanYaodong/BilibiliSponsorBlock/releases/latest) 页面获取最新发布的插件。
+
+1. 根据您浏览器的类型下载适合的版本，Chrome、Edge、360和基于Chromium的国产浏览器下载 `ChromiumExtension.zip`；火狐浏览器下载`FirefoxExtension.zip`。
+
+1. 将下载好的压缩包**直接**拖进浏览器里，这时会弹窗提示是否安装插件，点击“是”完成安装。
+
+
+插件商店正在上架中！目前计划上架Chrome、Edge和Firefox应用商店，如果你知道更多流行的插件分发平台，欢迎在 [Issue](https://github.com/HanYaodong/BilibiliSponsorBlock/issues/new) 里留言!
 
 # 功能
 
 ## 使用说明
 
-计划视频使用说明
+计划做个视频使用说明。
+
+可以先在这个[示例视频](https://www.bilibili.com/video/BV1Km42177kz/)上试一试精准空降的快乐！
 
 ## 相比[原插件](https://github.com/ajayyy/SponsorBlock)变化
 
@@ -31,13 +40,14 @@
 
 - 放弃了多语言支持。不会真的有人看不懂中文还在刷B站吧？
 
-- 放弃了移动端网页支持。日后计划做一个ReVanced插件，移动端网页真的有人用吗？
+- 放弃了移动端网页支持。根据我个人搬运视频的播放数据，移动端网页只占播放量的0.5%。如果有机会，日后可以做一个安卓端 ReVanced 插件。
 
 - 放弃了第三方镜像站支持。我不清楚B站有没有镜像站，如果大家知道有使用人数多的欢迎提Issue。
 
 - 加入动态标记功能（制作中）。恰饭动态真的好多，甚至比视频更得还快。
 
 - 加入评论标记功能（制作中）。不用多说了，百亿红包，点击就领！评论区置顶链接yyds！
+
 
 ## 功能更新计划
 
@@ -66,4 +76,4 @@
 
 ### 开源协议
 
-本项目在 GNU GPL v3 协议下开源。
+本项目在遵循 GNU GPL v3 开源协议。
