@@ -1,5 +1,5 @@
 {
-  "name": "@ajayyy/maze-utils",
+  "name": "@hanyd/maze-utils",
   "version": "1.1.37",
   "description": "Utilities for my browser extensions",
   "main": "lib/index.js",
@@ -35,20 +35,8 @@
   },
   "funding": [
     {
-      "type": "individual",
-      "url": "https://sponsor.ajay.app/donate"
-    },
-    {
-      "type": "github",
-      "url": "https://github.com/sponsors/ajayyy-org"
-    },
-    {
       "type": "patreon",
-      "url": "https://www.patreon.com/ajayyy"
-    },
-    {
-      "type": "individual",
-      "url": "https://paypal.me/ajayyy"
+      "url": "https://www.patreon.com/hanyd"
     }
   ],
   "repository": {
