@@ -6,11 +6,6 @@ import "content-scripts-register-polyfill";
 import { sendRealRequestToCustomServer, setupBackgroundRequestProxy } from "../maze-utils/src/background-request-proxy";
 import { setupTabUpdates } from "../maze-utils/src/tab-updates";
 import { generateUserID } from "../maze-utils/src/setup";
-
-// Make the config public for debugging purposes
-
-window.SB = Config;
-
 import Utils from "./utils";
 import { isFirefoxOrSafari } from "../maze-utils/src";
 import { injectUpdatedScripts } from "../maze-utils/src/cleanup";
@@ -129,7 +124,8 @@ chrome.runtime.onInstalled.addListener(function () {
 
     // Only do this once the old version understands how to clean itself up
     if (!isFirefoxOrSafari() && chrome.runtime.getManifest().version !== "5.4.13") {
-        injectUpdatedScripts().catch(logWarn);
+        // TODO: Add logging back on error
+        injectUpdatedScripts().catch();
     }
 });
 

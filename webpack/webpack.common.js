@@ -63,8 +63,8 @@ module.exports = env => {
         currentWatching = null;
 
         /**
-         * 
-         * @param {webpack.Compiler} compiler 
+         *
+         * @param {webpack.Compiler} compiler
          */
         apply(compiler) {
             compiler.hooks.beforeCompile.tapAsync({ name: 'DocumentScriptCompiler' }, (compiler, callback) => {
@@ -143,7 +143,7 @@ module.exports = env => {
                         context: './public',
                         filter: async (path) => {
                             if (path.match(/(\/|\\)_locales(\/|\\).+/)) {
-                                if (env.browser.toLowerCase() === "edge" 
+                                if (env.browser.toLowerCase() === "edge"
                                         && !edgeLanguages.includes(path.match(/(?<=\/_locales\/)[^/]+(?=\/[^/]+$)/)[0])) {
                                     return false;
                                 }
@@ -170,7 +170,7 @@ module.exports = env => {
                                         parsed.Description.message = parsed.Description.message.slice(0, 77) + "...";
                                     }
                                 }
-                
+
                                 return Buffer.from(JSON.stringify(parsed));
                             }
 
