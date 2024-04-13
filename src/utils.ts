@@ -7,7 +7,7 @@ import { findValidElementFromSelector } from "../maze-utils/src/dom";
 import { isSafari } from "../maze-utils/src/config";
 
 export default class Utils {
-    
+
     // Contains functions needed from the background script
     backgroundScriptContainer: BackgroundScriptContainer | null;
 
@@ -39,9 +39,9 @@ export default class Utils {
     /**
      * Asks for the optional permissions required for all extra sites.
      * It also starts the content script registrations.
-     * 
+     *
      * For now, it is just SB.config.invidiousInstances.
-     * 
+     *
      * @param {CallableFunction} callback
      */
     setupExtraSitePermissions(callback: (granted: boolean) => void): void {
@@ -71,7 +71,7 @@ export default class Utils {
      * Registers the content scripts for the extra sites.
      * Will use a different method depending on the browser.
      * This is called by setupExtraSitePermissions().
-     * 
+     *
      * For now, it is just SB.config.invidiousInstances.
      */
     setupExtraSiteContentScripts(): void {
@@ -114,37 +114,6 @@ export default class Utils {
         chrome.permissions.remove({
             origins: this.getPermissionRegex()
         });
-    }
-
-    applyInvidiousPermissions(enable: boolean, option = "supportInvidious"): Promise<boolean> {
-        return new Promise((resolve) => {
-            if (enable) {
-                this.setupExtraSitePermissions((granted) => {
-                    if (!granted) {
-                        Config.config[option] = false;
-                    }
-
-                    resolve(granted);
-                });
-            } else {
-                this.removeExtraSiteRegistration();
-                resolve(false);
-            }
-        });
-    }
-
-    containsInvidiousPermission(): Promise<boolean> {
-        return new Promise((resolve) => {
-            let permissions = ["declarativeContent"];
-            if (isFirefoxOrSafari()) permissions = [];
-
-            chrome.permissions.contains({
-                origins: this.getPermissionRegex(),
-                permissions: permissions
-            }, function (result) {
-                resolve(result);
-            });
-        })
     }
 
     /**

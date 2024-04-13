@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 
 import Config from "./config";
 import * as CompileConfig from "../config.json";
-import * as invidiousList from "../ci/invidiouslist.json";
 
 // Make the config public for debugging purposes
 window.SB = Config;
@@ -398,23 +397,6 @@ function updateDisplayElement(element: HTMLElement) {
     const displayOption = element.getAttribute("data-sync")
     const displayText = Config.config[displayOption];
     element.innerText = displayText;
-
-    // See if anything extra must be run
-    switch (displayOption) {
-        case "invidiousInstances": {
-            element.innerText = displayText.join(', ');
-            let allEquals = displayText.length == invidiousList.length;
-            for (let i = 0; i < invidiousList.length && allEquals; i++) {
-                if (displayText[i] != invidiousList[i])
-                    allEquals = false;
-            }
-            if (!allEquals) {
-                const resetButton = element.parentElement.querySelector(".invidious-instance-reset");
-                resetButton.classList.remove("hidden");
-            }
-            break;
-        }
-    }
 }
 
 /**
@@ -463,14 +445,6 @@ function invidiousInstanceAddInit(element: HTMLElement, option: string) {
         textBox.value = "";
         element.querySelector(".option-hidden-section").classList.add("hidden");
         button.classList.remove("disabled");
-    });
-
-    resetButton.addEventListener("click", function() {
-        if (confirm(chrome.i18n.getMessage("resetInvidiousInstanceAlert"))) {
-            // Set to CI populated list
-            Config.config[option] = invidiousList;
-            resetButton.classList.add("hidden");
-        }
     });
 }
 

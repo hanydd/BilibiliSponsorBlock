@@ -1,5 +1,4 @@
 import * as CompileConfig from "../config.json";
-import * as invidiousList from "../ci/invidiouslist.json";
 import { Category, CategorySelection, CategorySkipOption, NoticeVisbilityMode, PreviewBarOption, SponsorTime, VideoID, SponsorHideType } from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "../maze-utils/src/config";
 import { HashedValue } from "../maze-utils/src/hash";
@@ -40,7 +39,6 @@ interface SBConfig {
     hideDiscordLaunches: number;
     hideDiscordLink: boolean;
     invidiousInstances: string[];
-    supportInvidious: boolean;
     serverAddress: string;
     minDuration: number;
     skipNoticeDuration: number;
@@ -243,11 +241,6 @@ function migrateOldSyncFormats(config: SBConfig) {
         chrome.storage.sync.remove("previousVideoID");
     }
 
-    // populate invidiousInstances with new instances if 3p support is **DISABLED**
-    if (!config["supportInvidious"] && config["invidiousInstances"].length < invidiousList.length) {
-        config["invidiousInstances"] = [...new Set([...invidiousList, ...config["invidiousInstances"]])];
-    }
-
     if (config["lastIsVipUpdate"]) {
         chrome.storage.sync.remove("lastIsVipUpdate");
     }
@@ -285,7 +278,6 @@ const syncDefaults = {
     hideDiscordLaunches: 0,
     hideDiscordLink: false,
     invidiousInstances: ["invidious.snopyta.org"], // leave as default
-    supportInvidious: false,
     serverAddress: CompileConfig.serverAddress,
     minDuration: 0,
     skipNoticeDuration: 4,

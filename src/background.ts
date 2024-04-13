@@ -6,24 +6,14 @@ import "content-scripts-register-polyfill";
 import { sendRealRequestToCustomServer, setupBackgroundRequestProxy } from "../maze-utils/src/background-request-proxy";
 import { setupTabUpdates } from "../maze-utils/src/tab-updates";
 import { generateUserID } from "../maze-utils/src/setup";
-import Utils from "./utils";
 import { isFirefoxOrSafari } from "../maze-utils/src";
 import { injectUpdatedScripts } from "../maze-utils/src/cleanup";
 import { chromeP } from "../maze-utils/src/browserApi";
-const utils = new Utils({
-    registerFirefoxContentScript,
-    unregisterFirefoxContentScript
-});
 
 const popupPort: Record<string, chrome.runtime.Port> = {};
 
 // Used only on Firefox, which does not support non persistent background pages.
 const contentScriptRegistrations = {};
-
-// Register content script if needed
-utils.wait(() => Config.isReady()).then(function() {
-    if (Config.config.supportInvidious) utils.setupExtraSiteContentScripts();
-});
 
 setupBackgroundRequestProxy();
 setupTabUpdates(Config);
@@ -114,11 +104,6 @@ chrome.runtime.onInstalled.addListener(function () {
             Config.config.categoryPillUpdate = true;
         }
 
-        if (Config.config.supportInvidious) {
-            if (!(await utils.containsInvidiousPermission())) {
-                chrome.tabs.create({url: chrome.runtime.getURL("/permissions/index.html")});
-            }
-        }
     }, 1500);
 
     // Only do this once the old version understands how to clean itself up
