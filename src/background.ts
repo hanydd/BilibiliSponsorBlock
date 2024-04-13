@@ -9,7 +9,6 @@ import { generateUserID } from "../maze-utils/src/setup";
 import Utils from "./utils";
 import { isFirefoxOrSafari } from "../maze-utils/src";
 import { injectUpdatedScripts } from "../maze-utils/src/cleanup";
-import { logWarn } from "./utils/logger";
 import { chromeP } from "../maze-utils/src/browserApi";
 const utils = new Utils({
     registerFirefoxContentScript,
@@ -205,7 +204,7 @@ async function submitVote(type: number, UUID: string, category: string) {
 
     try {
         const response = await asyncRequestToServer("POST", "/api/voteOnSponsorTime?UUID=" + UUID + "&userID=" + userID + typeSection);
-    
+
         if (response.ok) {
             return {
                 successType: 1,
