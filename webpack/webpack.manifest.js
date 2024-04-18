@@ -9,8 +9,6 @@ const manifest = require("../manifest/manifest.json");
 const firefoxManifestExtra = require("../manifest/firefox-manifest-extra.json");
 const chromeManifestExtra = require("../manifest/chrome-manifest-extra.json");
 const safariManifestExtra = require("../manifest/safari-manifest-extra.json");
-const betaManifestExtra = require("../manifest/beta-manifest-extra.json");
-const firefoxBetaManifestExtra = require("../manifest/firefox-beta-manifest-extra.json");
 
 // schema for options object
 const schema = {
@@ -25,7 +23,7 @@ const schema = {
         steam: {
             type: 'string'
         }
-    }  
+    }
 };
 
 class BuildManifest {
@@ -42,7 +40,7 @@ class BuildManifest {
         // Add missing manifest elements
         if (this.options.browser.toLowerCase() === "firefox") {
             mergeObjects(manifest, firefoxManifestExtra);
-        } else if (this.options.browser.toLowerCase() === "chrome" 
+        } else if (this.options.browser.toLowerCase() === "chrome"
                 || this.options.browser.toLowerCase() === "chromium"
                 || this.options.browser.toLowerCase() === "edge") {
             mergeObjects(manifest, chromeManifestExtra);

@@ -60,18 +60,6 @@ jobs:
           path: ./builds/FirefoxExtension.zip
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Create Beta artifacts (Builds with the name changed to beta)
-      - name: Create Chrome Beta artifacts
-        run: npm run build:chrome -- --env stream=beta
-      - name: Zip Artifacts
-        run: cd ./dist ; zip -r ../builds/ChromeExtensionBeta.zip *
-      - name: Upload ChromeExtensionBeta to release
-        uses: Shopify/upload-to-release@v2.0.0
-        with:
-          name: ChromeExtensionBeta.zip
-          path: ./builds/ChromeExtensionBeta.zip
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       # Create Safari artifacts
       - name: Create Safari artifacts
         run: npm run build:safari
