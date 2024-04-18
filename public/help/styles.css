@@ -119,6 +119,7 @@ body {
   vertical-align: middle;
   overflow: hidden;
   border-radius: 50%;
+  margin-right: 0.5em;
 }
 
 a {
