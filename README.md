@@ -7,6 +7,12 @@
 
 <h1 align="center">B站空降助手</h1>
 
+<p align="center">安装：
+  <a href="https://chromewebstore.google.com/detail/eaoelafamejbnggahofapllmfhlhajdd">Chrome</a> |
+  <a href="https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha">Edge</a> |
+  <a href="https://addons.mozilla.org/firefox/addon/bilisponsorblock/">FireFox</a>
+</p>
+
 受够了B站视频中无处不在的恰饭广告了吗？受够了看了一半才发现的软广视频了吗？B站空降助手是一款帮你精准空降到广告之后的浏览器插件。插件自动获取并跳过广告片段，让你的视频体验毫无中断！
 
 除了广告之外，插件还支持跳过其他类别的片段，例如开场结尾的动画、一键三连提示，或者直接空降到视频封面的位置。插件中所有的标注片段都来自网友标注，您也可以提交自己的片段来为空降指挥部添砖加瓦。
@@ -17,14 +23,14 @@
 
 # 安装
 
-目前可以从 [Github Release](https://github.com/HanYaodong/BilibiliSponsorBlock/releases/latest) 页面获取最新发布的插件。
+- 目前上架了[Chrome应用商店](https://chromewebstore.google.com/detail/eaoelafamejbnggahofapllmfhlhajdd)，[Edge应用商店](https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha)， [火狐应用商店](https://addons.mozilla.org/en-US/firefox/addon/bilisponsorblock/)。如果你知道更多流行的浏览器插件商店，欢迎留言~
 
-1. 根据您浏览器的类型下载适合的版本，Chrome、Edge、360和基于Chromium的国产浏览器下载 `ChromiumExtension.zip`；火狐浏览器下载`FirefoxExtension.zip`。
+- 或者可以从 [Github Release](https://github.com/HanYaodong/BilibiliSponsorBlock/releases/latest) 页面获取最新发布的插件。
 
-1. 将下载好的压缩包**直接**拖进浏览器里，这时会弹窗提示是否安装插件，点击“是”完成安装。
+  1. 根据您浏览器的类型下载适合的版本，Chrome、Edge、360和基于Chromium的国产浏览器下载 `ChromiumExtension.zip`；火狐浏览器下载`FirefoxExtension.zip`。并解压缩。
 
+  1. 打开浏览器的插件管理页面，启用“开发者模式”，点击`加载已解压的拓展程序`，选择刚刚下载解压的插件文件夹，就可以完成安装。
 
-插件商店正在上架中！目前计划上架Chrome、Edge和Firefox应用商店，如果你知道更多流行的插件分发平台，欢迎在 [Issue](https://github.com/HanYaodong/BilibiliSponsorBlock/issues/new) 里留言!
 
 # 功能
 
