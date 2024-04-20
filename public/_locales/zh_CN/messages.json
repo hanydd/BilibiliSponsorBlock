@@ -525,7 +525,7 @@
         "message": "未提交"
     },
     "inspect": {
-        "message": "检查"
+        "message": "开头"
     },
     "edit": {
         "message": "编辑"
@@ -773,7 +773,7 @@
         "message": "当连接到测试服务器时，所有的提交和投票将不会计入主服务器。当您想要进行真实提交时，请确保禁用了此选项。"
     },
     "bracketNow": {
-        "message": "(设为现在)"
+        "message": "(当前)"
     },
     "moreCategories": {
         "message": "更多类别"
@@ -798,7 +798,7 @@
         "message": "（设为结束）"
     },
     "End": {
-        "message": "结束",
+        "message": "结尾",
         "description": "Button that skips to the end of a segment"
     },
     "hiddenDueToDownvote": {
