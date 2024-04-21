@@ -18,7 +18,7 @@ import {
     SponsorStartResponse,
     VoteResponse,
 } from "./messageTypes";
-import { showDonationLink } from "./utils/configUtils";
+// import { showDonationLink } from "./utils/configUtils";
 import { AnimationUtils } from "../maze-utils/src/animationUtils";
 import { shortCategoryName } from "./utils/categoryUtils";
 import { localizeHtmlPage } from "../maze-utils/src/setup";
@@ -200,9 +200,9 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     }
 
     // Hide donate button if wanted (Safari, or user choice)
-    if (!showDonationLink()) {
-        PageElements.sbDonate.style.display = "none";
-    }
+    // if (!showDonationLink()) {
+    PageElements.sbDonate.style.display = "none";
+    // }
     PageElements.sbDonate.addEventListener("click", () => Config.config.donateClicked = Config.config.donateClicked + 1);
 
     if (Config.config.cleanPopup) {
