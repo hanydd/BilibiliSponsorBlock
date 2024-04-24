@@ -4,11 +4,17 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
 
   build:
     name: Upload Release
     runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN: ${{ github.token }}
 
     steps:
       # Initialization
