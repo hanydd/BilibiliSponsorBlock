@@ -4,7 +4,7 @@
 	--skip-notice-margin: 5px;
 	--skip-notice-border-horizontal: 5px;
 	--skip-notice-border-vertical: 10px;
-	--sb-dark-red-outline: rgb(130,0,0,0.9);
+	--sb-dark-outline: rgba(6, 80, 111, 0.9);
 }
 
 .sbhidden {
@@ -542,7 +542,7 @@ input::-webkit-inner-spin-button {
 
 .sponsorTimeEditInput {
 	width: 90px;
-	border: 3px solid var(--sb-dark-red-outline);
+	border: 3px solid var(--sb-dark-outline);
 }
 
 .sponsorTimeEditInput.sponsorChapterNameInput {
@@ -562,7 +562,7 @@ input::-webkit-inner-spin-button {
 	margin-bottom: 5px;
 
 	background-color: rgba(28, 28, 28, 0.9);
-    border-color: var(--sb-dark-red-outline);
+    border-color: var(--sb-dark-outline);
     color: white;
     border-width: 3px;
     padding: 3px;
