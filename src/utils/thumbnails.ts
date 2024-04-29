@@ -111,7 +111,7 @@ function insertSBIconDefinition() {
     </g>
   </defs>
 </svg>`;
-    document.body.querySelector('div#app')?.appendChild(container.children[0]);
+    document.body.appendChild(container.children[0]);
 }
 
 export function setupThumbnailListener(): void {
