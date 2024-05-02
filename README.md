@@ -7,14 +7,20 @@
 
 <h1 align="center">B站空降助手</h1>
 
+<div align="center">
+  
+  [![LICENSE](https://img.shields.io/github/license/HanYaodong/BilibiliSponsorBlock)](LICENSE)
+  [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd.svg)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd)
+  [![CI Status](https://img.shields.io/github/actions/workflow/status/HanYaodong/BilibiliSponsorBlock/ci.yml)](https://github.com/HanYaodong/BilibiliSponsorBlock/actions/workflows/ci.yml)
+
+</div>
+
 <p align="center">安装：
   <a href="https://chromewebstore.google.com/detail/eaoelafamejbnggahofapllmfhlhajdd">Chrome</a> |
   <a href="https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha">Edge</a> |
   <a href="https://addons.mozilla.org/firefox/addon/bilisponsorblock/">FireFox</a>
+  &nbsp;&nbsp;交流群：371384235
 </p>
-
-<p align="center">交流群：371384235</p>
-
 
 受够了B站视频中无处不在的恰饭广告了吗？受够了看了一半才发现的软广视频了吗？B站空降助手是一款帮你精准空降到广告之后的浏览器插件。插件自动获取并跳过广告片段，让你的视频体验毫无中断！
 
