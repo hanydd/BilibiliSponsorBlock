@@ -773,7 +773,7 @@
         "message": "当连接到测试服务器时，所有的提交和投票将不会计入主服务器。当您想要进行真实提交时，请确保禁用了此选项。"
     },
     "bracketNow": {
-        "message": "(当前)"
+        "message": "[设为当前]"
     },
     "moreCategories": {
         "message": "更多类别"
@@ -792,10 +792,10 @@
         "message": "您必须为所有您要提交的片段选择类别！"
     },
     "bracketStart": {
-        "message": "（设为开始）"
+        "message": "[视频开始]"
     },
     "bracketEnd": {
-        "message": "（设为结束）"
+        "message": "[视频结尾]"
     },
     "End": {
         "message": "结尾",

@@ -135,6 +135,8 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                             </span>
                         ): ""}
 
+                        &nbsp;
+
                         <span id={"nowButton0" + this.idSuffix}
                             className="sponsorNowButton"
                             onClick={() => this.setTimeToNow(0)}>
@@ -173,6 +175,8 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                                     onClick={() => this.setTimeToNow(1)}>
                                         {chrome.i18n.getMessage("bracketNow")}
                                 </span>
+
+                                &nbsp;
 
                                 <span id={"endButton" + this.idSuffix}
                                     className="sponsorNowButton"
