@@ -506,7 +506,18 @@
 /* Submission Notice */
 
 .sponsorTimeDisplay {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.25rem;
+
 	font-size: 15px;
+}
+
+.sponsorTimeStackButton {
+	display: inline-flex;
+	flex-direction: column;
+	gap: 0.2rem;
 }
 
 .sponsorTimeEditButton {

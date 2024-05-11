@@ -127,6 +127,13 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                     style={timeDisplayStyle}
                     className="sponsorTimeDisplay">
 
+                    <span className="sponsorTimeStackButton">
+                        <span id={"nowButton0" + this.idSuffix}
+                            className="sponsorNowButton"
+                            onClick={() => this.setTimeToNow(0)}>
+                                {chrome.i18n.getMessage("bracketNow")}
+                        </span>
+
                         {this.state.selectedActionType !== ActionType.Poi ? (
                             <span id={"startButton" + this.idSuffix}
                                 className="sponsorNowButton"
@@ -134,49 +141,42 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                                     {chrome.i18n.getMessage("bracketStart")}
                             </span>
                         ): ""}
+                    </span>
 
-                        &nbsp;
+                    <input id={"submittingTime0" + this.idSuffix}
+                        className="sponsorTimeEdit sponsorTimeEditInput"
+                        type="text"
+                        style={{color: "inherit", backgroundColor: "inherit"}}
+                        value={this.state.sponsorTimeEdits[0] ?? ""}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        onKeyUp={(e) => e.stopPropagation()}
+                        onChange={(e) => this.handleOnChange(0, e, sponsorTime, e.target.value)}
+                        onWheel={(e) => this.changeTimesWhenScrolling(0, e, sponsorTime)}>
+                    </input>
 
-                        <span id={"nowButton0" + this.idSuffix}
-                            className="sponsorNowButton"
-                            onClick={() => this.setTimeToNow(0)}>
-                                {chrome.i18n.getMessage("bracketNow")}
-                        </span>
-                        <input id={"submittingTime0" + this.idSuffix}
-                            className="sponsorTimeEdit sponsorTimeEditInput"
-                            type="text"
-                            style={{color: "inherit", backgroundColor: "inherit"}}
-                            value={this.state.sponsorTimeEdits[0] ?? ""}
-                            onKeyDown={(e) => e.stopPropagation()}
-                            onKeyUp={(e) => e.stopPropagation()}
-                            onChange={(e) => this.handleOnChange(0, e, sponsorTime, e.target.value)}
-                            onWheel={(e) => this.changeTimesWhenScrolling(0, e, sponsorTime)}>
-                        </input>
-
-                        {this.state.selectedActionType !== ActionType.Poi ? (
+                    {this.state.selectedActionType !== ActionType.Poi ? (
+                        <>
                             <span>
-                                <span>
-                                    {" " + chrome.i18n.getMessage("to") + " "}
-                                </span>
+                                {" " + chrome.i18n.getMessage("to") + " "}
+                            </span>
 
-                                <input id={"submittingTime1" + this.idSuffix}
-                                    className="sponsorTimeEdit sponsorTimeEditInput"
-                                    type="text"
-                                    style={{color: "inherit", backgroundColor: "inherit"}}
-                                    value={this.state.sponsorTimeEdits[1] ?? ""}
-                                    onKeyDown={(e) => e.stopPropagation()}
-                                    onKeyUp={(e) => e.stopPropagation()}
-                                    onChange={(e) => this.handleOnChange(1, e, sponsorTime, e.target.value)}
-                                    onWheel={(e) => this.changeTimesWhenScrolling(1, e, sponsorTime)}>
-                                </input>
+                            <input id={"submittingTime1" + this.idSuffix}
+                                className="sponsorTimeEdit sponsorTimeEditInput"
+                                type="text"
+                                style={{color: "inherit", backgroundColor: "inherit"}}
+                                value={this.state.sponsorTimeEdits[1] ?? ""}
+                                onKeyDown={(e) => e.stopPropagation()}
+                                onKeyUp={(e) => e.stopPropagation()}
+                                onChange={(e) => this.handleOnChange(1, e, sponsorTime, e.target.value)}
+                                onWheel={(e) => this.changeTimesWhenScrolling(1, e, sponsorTime)}>
+                            </input>
 
+                            <span className="sponsorTimeStackButton">
                                 <span id={"nowButton1" + this.idSuffix}
                                     className="sponsorNowButton"
                                     onClick={() => this.setTimeToNow(1)}>
                                         {chrome.i18n.getMessage("bracketNow")}
                                 </span>
-
-                                &nbsp;
 
                                 <span id={"endButton" + this.idSuffix}
                                     className="sponsorNowButton"
@@ -184,7 +184,8 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                                         {chrome.i18n.getMessage("bracketEnd")}
                                 </span>
                             </span>
-                        ): ""}
+                        </>
+                    ): ""}
                 </div>
             );
         } else {
