@@ -525,7 +525,7 @@
         "message": "未提交"
     },
     "inspect": {
-        "message": "开头"
+        "message": "片段开头"
     },
     "edit": {
         "message": "编辑"
@@ -798,7 +798,7 @@
         "message": "[视频结尾]"
     },
     "End": {
-        "message": "结尾",
+        "message": "片段结尾",
         "description": "Button that skips to the end of a segment"
     },
     "hiddenDueToDownvote": {
