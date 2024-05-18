@@ -1235,8 +1235,11 @@ function updatePreviewBar(): void {
         });
     });
 
-    previewBar.set(previewBarSegments.filter((segment) => segment.actionType !== ActionType.Full), getVideo()?.duration)
+    previewBar.set(previewBarSegments.filter((segment) => segment.actionType !== ActionType.Full), getVideo()?.duration);
     if (getVideo()) updateActiveSegment(getVideo().currentTime);
+
+    // retry create buttons in case the video is not ready
+    updateVisibilityOfPlayerControlsButton();
 
     if (Config.config.showTimeWithSkips) {
         const skippedDuration = utils.getTimestampsDuration(previewBarSegments
