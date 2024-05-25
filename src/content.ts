@@ -1634,6 +1634,7 @@ function createButton(baseID: string, title: string, callback: () => void, image
     newButton.id = baseID + "Button";
     newButton.classList.add("playerButton");
     newButton.classList.add("bpx-player-ctrl-btn");
+    newButton.style.maxWidth = "40px";
     newButton.setAttribute("title", chrome.i18n.getMessage(title));
     newButton.addEventListener("click", () => {
         callback();
