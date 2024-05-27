@@ -8,7 +8,7 @@
 <h1 align="center">B站空降助手</h1>
 
 <div align="center">
-  
+
   [![LICENSE](https://img.shields.io/github/license/HanYaodong/BilibiliSponsorBlock)](LICENSE)
   [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd.svg)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd)
   [![CI Status](https://img.shields.io/github/actions/workflow/status/HanYaodong/BilibiliSponsorBlock/ci.yml)](https://github.com/HanYaodong/BilibiliSponsorBlock/actions/workflows/ci.yml)
@@ -53,8 +53,6 @@
 
 ## 相比[原插件](https://github.com/ajayyy/SponsorBlock)变化
 
-功能主要的不同有以下几点：
-
 - 放弃了多语言支持。不会真的有人看不懂中文还在刷B站吧？
 
 - 放弃了移动端网页支持。根据我个人搬运视频的播放数据，移动端网页只占播放量的0.5%。如果有机会，日后可以做一个安卓端 ReVanced 插件。
@@ -66,13 +64,15 @@
 - 加入评论标记功能（计划中）。不用多说了，百亿红包，点击就领！评论区置顶链接yyds！
 
 
-## 功能更新计划
+## 功能更新计划（按优先级排序）
+
+- 搬运视频自动获取油管标注
+
+- 支持分P视频标注（目前所有分P都会被当作同一段视频，导致提交的片段互相覆盖）
 
 - 评论和动态标记
 
-- 支持分P视频标注（目前所有分P都会被当作同一段视频）
-
-- 搬运视频自动获取油管标注
+- 支持悬浮预览 / 小窗播放器 / 嵌入式播放器
 
 - 通过空降弹幕自动获取片段 “空降xx:xx”、“猝不及防”等 [#3](https://github.com/HanYaodong/BilibiliSponsorBlock/issues/3)
 
@@ -80,11 +80,6 @@
 
 - 欢迎大家提出意见和建议！
 
-## 已知的问题
-
-- 当播放器页面加载时间过长的时候，可能导致插件按钮无法正确加载
-
-- 当按钮栏空间不足时，鼠标悬浮到按钮上会导致按钮位置移动（放上去就到处跑，点不到）
 
 # 服务端
 
@@ -92,9 +87,10 @@
 
 # API
 
-油管原项目的[API](https://wiki.sponsor.ajay.app/w/API_Docs)，本项目对API改动很小，可以先参考原项目文档。
+本项目对API改动很小，可以先参考[原项目文档](https://wiki.sponsor.ajay.app/w/API_Docs)。
 
 # 搭建项目
+
 详见 [CONTRIBUTING.md](CONTRIBUTING.md)
 
 # 致谢
