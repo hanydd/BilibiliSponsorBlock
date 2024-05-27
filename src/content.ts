@@ -210,7 +210,7 @@ function messageListener(request: Message, sender: unknown, sendResponse: (respo
                 found: sponsorDataFound,
                 status: lastResponseStatus,
                 sponsorTimes: sponsorTimes,
-                time: getVideo().currentTime,
+                time: getVideo()?.currentTime ?? 0,
             });
 
             if (!request.updating && popupInitialised && document.getElementById("sponsorBlockPopupContainer") != null) {
@@ -419,6 +419,8 @@ function videoIDChange(): void {
     // Clear unsubmitted segments from the previous video
     sponsorTimesSubmitting = [];
     updateSponsorTimesSubmitting();
+
+    checkPreviewbarState();
 }
 
 /**
@@ -712,14 +714,16 @@ let playbackRateCheckInterval: NodeJS.Timeout | null = null;
 let lastPlaybackSpeed = 1;
 let setupVideoListenersFirstTime = true;
 function setupVideoListeners() {
+    const video = getVideo();
+
     //wait until it is loaded
-    getVideo().addEventListener('loadstart', videoOnReadyListener)
-    getVideo().addEventListener('durationchange', durationChangeListener);
+    video.addEventListener('loadstart', videoOnReadyListener)
+    video.addEventListener('durationchange', durationChangeListener);
 
     if (setupVideoListenersFirstTime) {
         addCleanupListener(() => {
-            getVideo().removeEventListener('loadstart', videoOnReadyListener);
-            getVideo().removeEventListener('durationchange', durationChangeListener);
+            video.removeEventListener('loadstart', videoOnReadyListener);
+            video.removeEventListener('durationchange', durationChangeListener);
         });
     }
 
@@ -735,16 +739,16 @@ function setupVideoListeners() {
 
             startSponsorSchedule();
         };
-        getVideo().addEventListener('ratechange', rateChangeListener);
+        video.addEventListener('ratechange', rateChangeListener);
         // Used by videospeed extension (https://github.com/igrigorik/videospeed/pull/740)
-        getVideo().addEventListener('videoSpeed_ratechange', rateChangeListener);
+        video.addEventListener('videoSpeed_ratechange', rateChangeListener);
 
         const playListener = () => {
             // If it is not the first event, then the only way to get to 0 is if there is a seek event
             // This check makes sure that changing the video resolution doesn't cause the extension to think it
             // gone back to the begining
-            if (getVideo().readyState <= HTMLMediaElement.HAVE_CURRENT_DATA
-                    && getVideo().currentTime === 0) return;
+            if (video.readyState <= HTMLMediaElement.HAVE_CURRENT_DATA
+                    && video.currentTime === 0) return;
 
             updateVirtualTime();
 
@@ -759,15 +763,15 @@ function setupVideoListeners() {
             lastPausedAtZero = false;
 
             // Make sure it doesn't get double called with the playing event
-            if (Math.abs(lastCheckVideoTime - getVideo().currentTime) > 0.3
-                    || (lastCheckVideoTime !== getVideo().currentTime && Date.now() - lastCheckTime > 2000)) {
+            if (Math.abs(lastCheckVideoTime - video.currentTime) > 0.3
+                    || (lastCheckVideoTime !== video.currentTime && Date.now() - lastCheckTime > 2000)) {
                 lastCheckTime = Date.now();
-                lastCheckVideoTime = getVideo().currentTime;
+                lastCheckVideoTime = video.currentTime;
 
                 startSponsorSchedule();
             }
         };
-        getVideo().addEventListener('play', playListener);
+        video.addEventListener('play', playListener);
 
         const playingListener = () => {
             updateVirtualTime();
@@ -775,8 +779,8 @@ function setupVideoListeners() {
 
             if (startedWaiting) {
                 startedWaiting = false;
-                logDebug(`[SB] Playing event after buffering: ${Math.abs(lastCheckVideoTime - getVideo().currentTime) > 0.3
-                    || (lastCheckVideoTime !== getVideo().currentTime && Date.now() - lastCheckTime > 2000)}`);
+                logDebug(`[SB] Playing event after buffering: ${Math.abs(lastCheckVideoTime - video.currentTime) > 0.3
+                    || (lastCheckVideoTime !== video.currentTime && Date.now() - lastCheckTime > 2000)}`);
             }
 
             if (switchingVideos) {
@@ -788,63 +792,63 @@ function setupVideoListeners() {
             }
 
             // Make sure it doesn't get double called with the play event
-            if (Math.abs(lastCheckVideoTime - getVideo().currentTime) > 0.3
-                    || (lastCheckVideoTime !== getVideo().currentTime && Date.now() - lastCheckTime > 2000)) {
+            if (Math.abs(lastCheckVideoTime - video.currentTime) > 0.3
+                    || (lastCheckVideoTime !== video.currentTime && Date.now() - lastCheckTime > 2000)) {
                 lastCheckTime = Date.now();
-                lastCheckVideoTime = getVideo().currentTime;
+                lastCheckVideoTime = video.currentTime;
 
                 startSponsorSchedule();
             }
 
             if (playbackRateCheckInterval) clearInterval(playbackRateCheckInterval);
-            lastPlaybackSpeed = getVideo().playbackRate;
+            lastPlaybackSpeed = video.playbackRate;
 
             // Video speed controller compatibility
             // That extension makes rate change events not propagate
             if (document.body.classList.contains("vsc-initialized")) {
                 playbackRateCheckInterval = setInterval(() => {
-                    if ((!getVideoID() || getVideo().paused) && playbackRateCheckInterval) {
+                    if ((!getVideoID() || video.paused) && playbackRateCheckInterval) {
                         // Video is gone, stop checking
                         clearInterval(playbackRateCheckInterval);
                         return;
                     }
 
-                    if (getVideo().playbackRate !== lastPlaybackSpeed) {
-                        lastPlaybackSpeed = getVideo().playbackRate;
+                    if (video.playbackRate !== lastPlaybackSpeed) {
+                        lastPlaybackSpeed = video.playbackRate;
 
                         rateChangeListener();
                     }
                 }, 2000);
             }
         };
-        getVideo().addEventListener('playing', playingListener);
+        video.addEventListener('playing', playingListener);
 
         const seekingListener = () => {
             lastKnownVideoTime.fromPause = false;
 
-            if (!getVideo().paused){
+            if (!video.paused){
                 // Reset lastCheckVideoTime
                 lastCheckTime = Date.now();
-                lastCheckVideoTime = getVideo().currentTime;
+                lastCheckVideoTime = video.currentTime;
 
                 updateVirtualTime();
                 clearWaitingTime();
 
                 // Sometimes looped videos loop back to almost zero, but not quite
-                if (getVideo().loop && getVideo().currentTime < 0.2) {
+                if (video.loop && video.currentTime < 0.2) {
                     startSponsorSchedule(false, 0);
                 } else {
                     startSponsorSchedule();
                 }
             } else {
-                updateActiveSegment(getVideo().currentTime);
+                updateActiveSegment(video.currentTime);
 
-                if (getVideo().currentTime === 0) {
+                if (video.currentTime === 0) {
                     lastPausedAtZero = true;
                 }
             }
         };
-        getVideo().addEventListener('seeking', seekingListener);
+        video.addEventListener('seeking', seekingListener);
 
         const stoppedPlayback = () => {
             // Reset lastCheckVideoTime
@@ -864,26 +868,26 @@ function setupVideoListeners() {
 
             stoppedPlayback();
         };
-        getVideo().addEventListener('pause', pauseListener);
+        video.addEventListener('pause', pauseListener);
         const waitingListener = () => {
             logDebug("[SB] Not skipping due to buffering");
             startedWaiting = true;
 
             stoppedPlayback();
         };
-        getVideo().addEventListener('waiting', waitingListener);
+        video.addEventListener('waiting', waitingListener);
 
         startSponsorSchedule();
 
         if (setupVideoListenersFirstTime) {
             addCleanupListener(() => {
-                getVideo().removeEventListener('play', playListener);
-                getVideo().removeEventListener('playing', playingListener);
-                getVideo().removeEventListener('seeking', seekingListener);
-                getVideo().removeEventListener('ratechange', rateChangeListener);
-                getVideo().removeEventListener('videoSpeed_ratechange', rateChangeListener);
-                getVideo().removeEventListener('pause', pauseListener);
-                getVideo().removeEventListener('waiting', waitingListener);
+                video.removeEventListener('play', playListener);
+                video.removeEventListener('playing', playingListener);
+                video.removeEventListener('seeking', seekingListener);
+                video.removeEventListener('ratechange', rateChangeListener);
+                video.removeEventListener('videoSpeed_ratechange', rateChangeListener);
+                video.removeEventListener('pause', pauseListener);
+                video.removeEventListener('waiting', waitingListener);
 
                 if (playbackRateCheckInterval) clearInterval(playbackRateCheckInterval);
             });
@@ -1076,7 +1080,7 @@ async function sponsorsLookup(keepOldSubmissions = true) {
         found: sponsorDataFound,
         status: lastResponseStatus,
         sponsorTimes: sponsorTimes,
-        time: getVideo().currentTime,
+        time: getVideo()?.currentTime ?? 0,
     });
 
     if (Config.config.isVip) {
@@ -1275,6 +1279,7 @@ function videoElementChange(newVideo: boolean): void {
             setupCategoryPill();
         }
 
+        updatePreviewBar();
         checkPreviewbarState();
 
         // Incase the page is still transitioning, check again in a few seconds
@@ -1467,6 +1472,13 @@ function previewTime(time: number, unpause = true) {
 
 //send telemetry and count skip
 function sendTelemetryAndCount(skippingSegments: SponsorTime[], secondsSkipped: number, fullSkip: boolean) {
+    for (const segment of skippingSegments) {
+        if (!previewedSegment && sponsorTimesSubmitting.some((s) => s.segment === segment.segment)) {
+            // Count that as a previewed segment
+            previewedSegment = true;
+        }
+    }
+
     if (!Config.config.trackViewCount || (!Config.config.trackViewCountInPrivate && chrome.extension.inIncognitoContext)) return;
 
     let counted = false;
@@ -1481,9 +1493,6 @@ function sendTelemetryAndCount(skippingSegments: SponsorTime[], secondsSkipped: 
             }
 
             if (fullSkip) asyncRequestToServer("POST", "/api/viewedVideoSponsorTime?UUID=" + segment.UUID);
-        } else if (!previewedSegment && sponsorTimesSubmitting.some((s) => s.segment === segment.segment)) {
-            // Count that as a previewed segment
-            previewedSegment = true;
         }
     }
 }
@@ -1494,8 +1503,9 @@ function skipToTime({v, skipTime, skippingSegments, openNotice, forceAutoSkip, u
 
     // There will only be one submission if it is manual skip
     const autoSkip: boolean = forceAutoSkip || shouldAutoSkip(skippingSegments[0]);
+    const isSubmittingSegment = sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment);
 
-    if ((autoSkip || sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment))
+    if ((autoSkip || isSubmittingSegment)
             && v.currentTime !== skipTime[1]) {
         switch(skippingSegments[0].actionType) {
             case ActionType.Poi:
@@ -1576,7 +1586,7 @@ function skipToTime({v, skipTime, skippingSegments, openNotice, forceAutoSkip, u
     }
 
     //send telemetry that a this sponsor was skipped
-    if (autoSkip) sendTelemetryAndCount(skippingSegments, skipTime[1] - skipTime[0], true);
+    if (autoSkip || isSubmittingSegment) sendTelemetryAndCount(skippingSegments, skipTime[1] - skipTime[0], true);
 }
 
 function createSkipNotice(skippingSegments: SponsorTime[], autoSkip: boolean, unskipTime: number, startReskip: boolean) {
@@ -1667,7 +1677,8 @@ function shouldAutoSkip(segment: SponsorTime): boolean {
     return (!Config.config.manualSkipOnFullVideo || !sponsorTimes?.some((s) => s.category === segment.category && s.actionType === ActionType.Full))
         && (utils.getCategorySelection(segment.category)?.option === CategorySkipOption.AutoSkip ||
             (Config.config.autoSkipOnMusicVideos && sponsorTimes?.some((s) => s.category === "music_offtopic")
-                && segment.actionType === ActionType.Skip));
+                && segment.actionType === ActionType.Skip)
+            || sponsorTimesSubmitting.some((s) => s.segment === segment.segment));
 }
 
 function shouldSkip(segment: SponsorTime): boolean {

@@ -134,7 +134,7 @@ interface SBStorage {
     downvotedSegments: Record<VideoID & HashedValue, VideoDownvotes>;
     navigationApiAvailable: boolean;
 
-    // Used when sync storage disbaled
+    // Used when sync storage disabled
     alreadyInstalled: boolean;
 
     /* Contains unsubmitted segments that the user has created. */

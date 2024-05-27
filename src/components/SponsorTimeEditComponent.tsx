@@ -245,8 +245,6 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                     </div>
                 ): ""}
 
-                <br/>
-
                 {/* Editing Tools */}
 
                 <div style={{ marginTop: "3px" }}>
