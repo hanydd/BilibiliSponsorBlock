@@ -158,70 +158,6 @@ class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
 }
 
 function migrateOldSyncFormats(config: SBConfig) {
-    if (config["showZoomToFillError"]) {
-        chrome.storage.sync.remove("showZoomToFillError");
-    }
-
-    if (config["unsubmittedSegments"] && Object.keys(config["unsubmittedSegments"]).length > 0) {
-        chrome.storage.local.set({
-            unsubmittedSegments: config["unsubmittedSegments"]
-        }, () => {
-            chrome.storage.sync.remove("unsubmittedSegments");
-        });
-    }
-
-    if (config["exclusive_accessCategoryAdded"] !== undefined) {
-        chrome.storage.sync.remove("exclusive_accessCategoryAdded");
-    }
-
-    if (config["fillerUpdate"] !== undefined) {
-        chrome.storage.sync.remove("fillerUpdate");
-    }
-    if (config["highlightCategoryAdded"] !== undefined) {
-        chrome.storage.sync.remove("highlightCategoryAdded");
-    }
-    if (config["highlightCategoryUpdate"] !== undefined) {
-        chrome.storage.sync.remove("highlightCategoryUpdate");
-    }
-
-    if (config["askAboutUnlistedVideos"]) {
-        chrome.storage.sync.remove("askAboutUnlistedVideos");
-    }
-
-    if (!config["autoSkipOnMusicVideosUpdate"]) {
-        config["autoSkipOnMusicVideosUpdate"] = true;
-        for (const selection of config.categorySelections) {
-            if (selection.name === "music_offtopic"
-                && selection.option === CategorySkipOption.AutoSkip) {
-
-                config.autoSkipOnMusicVideos = true;
-                break;
-            }
-        }
-    }
-
-    if (config["disableAutoSkip"]) {
-        for (const selection of config.categorySelections) {
-            if (selection.name === "sponsor") {
-                selection.option = CategorySkipOption.ManualSkip;
-
-                chrome.storage.sync.remove("disableAutoSkip");
-            }
-        }
-    }
-
-    if (typeof config["skipKeybind"] == "string") {
-        config["skipKeybind"] = { key: config["skipKeybind"] };
-    }
-
-    if (typeof config["startSponsorKeybind"] == "string") {
-        config["startSponsorKeybind"] = { key: config["startSponsorKeybind"] };
-    }
-
-    if (typeof config["submitKeybind"] == "string") {
-        config["submitKeybind"] = { key: config["submitKeybind"] };
-    }
-
     // Unbind key if it matches a previous one set by the user (should be ordered oldest to newest)
     const keybinds = ["skipKeybind", "startSponsorKeybind", "submitKeybind"];
     for (let i = keybinds.length - 1; i >= 0; i--) {
@@ -233,16 +169,9 @@ function migrateOldSyncFormats(config: SBConfig) {
         }
     }
 
-    // Remove some old unused options
-    if (config["sponsorVideoID"] !== undefined) {
-        chrome.storage.sync.remove("sponsorVideoID");
-    }
-    if (config["previousVideoID"] !== undefined) {
-        chrome.storage.sync.remove("previousVideoID");
-    }
-
-    if (config["lastIsVipUpdate"]) {
-        chrome.storage.sync.remove("lastIsVipUpdate");
+    // move to new server endpoint v0.1.6
+    if (config["serverAddress"].includes("47.103.74.95:9876")) {
+        config["serverAddress"] = CompileConfig.serverAddress;
     }
 }
 
