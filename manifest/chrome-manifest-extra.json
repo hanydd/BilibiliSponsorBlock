@@ -10,7 +10,7 @@
   ],
   "host_permissions": [
     "https://*.bilibili.com/*",
-    "http://47.103.74.95:9876/*"
+    "http://47.103.74.95/*"
   ],
   "optional_host_permissions": [
     "*://*/*"
