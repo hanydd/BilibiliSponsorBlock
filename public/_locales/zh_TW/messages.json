@@ -7,7 +7,7 @@
         "message": "SponsorBlock"
     },
     "Description": {
-        "message": "廣告？桌子都給你掀了(/= _ =)/~┴┴   帶您精準跳轉到贊助結束或者高能時刻，自動跳過影片中的贊助廣告、訂閱提醒等片段。您也可以親自標記影片中的廣告並上傳，所有人都會從您的貢獻中受益。",
+        "message": "廣告？桌子都給你掀了(/= _ =)/~┴┴   帶您精準跳轉到高能時刻，自動跳過影片中的贊助廣告、訂閱提醒等片段。您也可以親自標記影片中的廣告並上傳，所有人都會從您的貢獻中受益。",
         "description": "Description of the extension."
     },
     "400": {
@@ -89,7 +89,7 @@
         "message": "取消創建片段"
     },
     "noVideoID": {
-        "message": "未找到嗶哩嗶哩影片。\n如果識別錯誤，請刷新此頁面。"
+        "message": "未找到影片。\n如果識別錯誤，請刷新此頁面。"
     },
     "refreshSegments": {
         "message": "刷新片段"
@@ -113,7 +113,7 @@
         "message": "清除片段"
     },
     "openPopup": {
-        "message": "打開廣告助手跳出視窗"
+        "message": "打開SponsorBlock跳出視窗"
     },
     "closePopup": {
         "message": "關閉跳出視窗"
@@ -210,7 +210,7 @@
         "message": "啟用跳過次數統計跟蹤"
     },
     "whatViewTracking": {
-        "message": "此功能追蹤您跳過了哪些片段，讓用戶知道他們提交的片段幫助了多少人。同時按讚會作為依據，確保垃圾資訊不會汙染資料庫。在您每次跳過片段時，我們都會向伺服器發送一條消息。希望大家開啟此項設置，以便得到更準確的統計數據。:)"
+        "message": "此功能追蹤您跳過了哪些片段，讓用戶知道他們提交的片段幫助了多少人。同時按讚會作為依據，確保垃圾資訊不會汙染資料庫。在您每次跳過片段時，我們都會向伺服器發送一條消息。希望大家開啟此項設置，以便得到更準確的統計資料。:)"
     },
     "enableViewTrackingInPrivate": {
         "message": "在無痕模式中啟用跳過計數跟蹤"
@@ -228,10 +228,10 @@
         "message": "保存在無痕模式中的倒讚"
     },
     "enableQueryByHashPrefix": {
-        "message": "按哈希前綴查詢"
+        "message": "按哈希值前綴查詢"
     },
     "whatQueryByHashPrefix": {
-        "message": "使用影片 ID 哈希值的前 4 個字元而非整個影片 ID 向伺服器查詢片段。伺服器將返回所有具有類似哈希值的影片數據。"
+        "message": "使用影片 ID 哈希值的前 4 個字元而非整個影片 ID 向伺服器查詢片段。伺服器將返回所有具有類似哈希值的影片資料。"
     },
     "enableRefetchWhenNotFound": {
         "message": "新影片重複獲取片段"
@@ -270,7 +270,7 @@
         "message": "減弱所有的跳過提醒"
     },
     "longDescription": {
-        "message": "嗶哩嗶哩廣告跳過助手可幫您跳過B站影片中的贊助廣告、開場結尾、三連提醒和其他煩人片段。廣告助手是一個眾包的瀏覽器擴展，任何人可以提交B站影片中的廣告和其他片段的開始和結束時間。如果有一人提交了資訊，其他所有使用此擴展的人都能直接跳過廣告片段。您也可以跳過音樂影片中的非音樂部分。",
+        "message": "SponsorBlock可幫您跳過影片中的贊助廣告、開場結尾、三連提醒和其他煩人片段。SponsorBlock是一個眾包的瀏覽器擴展，任何人可以提交影片中的廣告和其他片段的開始和結束時間。如果有一人提交了資訊，其他所有使用此擴展的人都能直接跳過廣告片段。您也可以跳過音樂影片中的非音樂部分。",
         "description": "Full description of the extension on the store pages."
     },
     "website": {
@@ -420,10 +420,10 @@
         "message": "在 status.sponsor.ajay.app 檢查伺服器狀態。"
     },
     "changeUserID": {
-        "message": "導入/導出您的私人用戶ID"
+        "message": "匯入/匯出您的私人用戶ID"
     },
     "whatChangeUserID": {
-        "message": "私人ID應該被保密。如果他人獲得了您的私人ID，他就可以冒充您。如果您想找公開用戶ID，請點擊彈出窗口中的剪貼板圖示。"
+        "message": "私人ID應該被保密。如果他人獲得了您的私人ID，他就可以冒充您。如果您想找公開用戶ID，請點擊彈出窗口中的剪貼簿圖示。"
     },
     "setUserID": {
         "message": "設置私人用戶ID"
@@ -444,7 +444,7 @@
         "message": "當整個影片都被標記為廣告時使用手動跳過"
     },
     "whatManualSkipOnFullVideo": {
-        "message": "如果您想看軟廣影片時不跳過中間的內容，而是觀看完整影片，可以啟用軟廣手動跳過"
+        "message": "如果您想看推廣影片時不跳過中間的內容，而是觀看完整影片，可以啟用推廣手動跳過"
     },
     "skipNoticeDuration": {
         "message": "跳過提醒持續時間（秒）："
@@ -462,7 +462,7 @@
         "message": "顯示上傳按鈕"
     },
     "customServerAddress": {
-        "message": "廣告助手伺服器地址"
+        "message": "SponsorBlock伺服器地址"
     },
     "customServerAddressDescription": {
         "message": "廣告跳過助手的伺服器地址。\n不建議更改，除非您有自己的伺服器。"
@@ -480,10 +480,10 @@
         "message": "您確定要重設嗎？"
     },
     "exportOptions": {
-        "message": "導入/導出所有選項"
+        "message": "匯入/匯出所有選項"
     },
     "exportOtherData": {
-        "message": "導入/導出所有其他數據"
+        "message": "匯入/匯出所有其他資料"
     },
     "exportOptionsCopy": {
         "message": "編輯/複製"
@@ -531,13 +531,13 @@
         "message": "編輯"
     },
     "copyDebugInformation": {
-        "message": "複製除錯資訊到剪貼板"
+        "message": "複製除錯資訊到剪貼簿"
     },
     "copyDebugInformationFailed": {
-        "message": "複製到剪貼板失敗"
+        "message": "複製到剪貼簿失敗"
     },
     "copyDebugInformationOptions": {
-        "message": "複製資訊到剪貼板，在提交錯誤時提供給開發者。 敏感資訊如：您的用戶ID、頻道白名單和自訂伺服器地址等已被刪除。然而，它仍然包含諸如您的useragent ，瀏覽器，操作系統和插件版本號等資訊。 "
+        "message": "複製資訊到剪貼簿，在提交錯誤時提供給開發者。 敏感資訊如：您的用戶ID、頻道白名單和自訂伺服器地址等已被刪除。然而，它仍然包含諸如您的useragent ，瀏覽器，操作系統和插件版本號等資訊。 "
     },
     "copyDebugInformationComplete": {
         "message": "除錯資訊已複製到剪切板中。 您可以隨意移除任何您不想分享的資訊。請將其另存為 .txt 文件或黏貼到錯誤報告中。"
@@ -1024,13 +1024,13 @@
         "message": "您確定要將所有設置重設為預設值嗎？此操作無法撤銷。"
     },
     "exportSegments": {
-        "message": "導出片段"
+        "message": "匯出片段"
     },
     "importSegments": {
-        "message": "導入片段"
+        "message": "匯入片段"
     },
     "Import": {
-        "message": "導入",
+        "message": "匯入",
         "description": "Button to initiate importing segments. Appears under the textbox where they paste in the data"
     },
     "redeemSuccess": {
@@ -1117,29 +1117,29 @@
         "description": "This is used on the popup to show how much time left. It will look like \"5s\". The word {seconds} will be replaced, so keep it here. Translations should only change the \"s\""
     },
     "FillerWarning": {
-        "message": "Warning: This is an incredibly aggressive category. You most likely will have to unskip stuff, or disable it sometimes. Be warned that many videos have over 50% or more of the video skipped! However, remember that there are still specific guidelines to follow when submitting.",
+        "message": "警告：這是一個非常激進的分類。您很可能會需要取消跳過某些內容，或者有時候需要禁用它。請注意，許多影片的跳過率超過50%或更多！然而，請記住，在提交時仍需遵守特定的指導原則。",
         "description": "Warning that appears when enabling the filler tangent category"
     },
     "zoomToFillUnsupported": {
-        "message": "SponsorBlock is not compatible with the extension \"Zoom to Fill\". There are many alternatives you can use instead that will work properly."
+        "message": "SponsorBlock 無法與擴充功能 \"Zoom to Fill\"兼容。您可以使用許多其他能夠正常運作的替代方案。"
     },
     "cleanPopup": {
         "message": "簡化彈出窗口內容"
     },
     "syncDisabledWarning": {
-        "message": "Warning: Extension storage has been disabled in your browser. Settings will not be saved if you try saving them."
+        "message": "警告：您的瀏覽器已禁用擴充功能儲存功能。如果您嘗試儲存設定，這些設定將無法被儲存。"
     },
     "syncDisabledWarningDeArrow": {
-        "message": "DeArrow will not function without storage."
+        "message": "DeArrow 在沒有儲存功能的情況下將無法運作。"
     },
     "syncDisabledFirefoxSuggestions": {
-        "message": "You can enable it by going to about:config and setting the value of \"webextensions.storage.sync.enabled\" to true."
+        "message": "您可以通過前往 about:config 並將 \"webextensions.storage.sync.enabled\" 的值設為 true 來啟用它。"
     },
     "storageFull": {
-        "message": "Extension storage is full. Please delete some unsubmitted segments in the options."
+        "message": "擴充功能儲存空間已滿。請在選項中刪除一些未提交的片段。"
     },
     "previewSegmentRequired": {
-        "message": "Please preview your segments before submitting. You can do this by clicking the preview button or using the following shortcut:",
+        "message": "請在提交之前預覽您的片段。您可以點擊預覽按鈕或使用以下快捷鍵：",
         "description": "Appears when trying to submit a segment without previewing it first. After the colon, the shortcut will appear"
     }
 }
