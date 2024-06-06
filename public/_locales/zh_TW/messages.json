@@ -1,23 +1,23 @@
 {
     "fullName": {
-        "message": "B站空降助手",
+        "message": "BiliBiliSponsorBlock",
         "description": "Name of the extension."
     },
     "shortName": {
-        "message": "空降助手"
+        "message": "SponsorBlock"
     },
     "Description": {
-        "message": "恰饭？桌子都给你掀了(/= _ =)/~┴┴   带你精准空降到恰饭结束或者高能时刻，自动跳过视频中的赞助广告、订阅提醒等片段。你也可以亲自标记视频中的广告并上传，所有人都会从您的贡献中受益。",
+        "message": "廣告？桌子都給你掀了(/= _ =)/~┴┴   帶您精準跳轉到贊助結束或者高能時刻，自動跳過影片中的贊助廣告、訂閱提醒等片段。您也可以親自標記影片中的廣告並上傳，所有人都會從您的貢獻中受益。",
         "description": "Description of the extension."
     },
     "400": {
-        "message": "此请求无效"
+        "message": "此請求無效"
     },
     "409": {
-        "message": "已经提交过了"
+        "message": "已經提交過了"
     },
     "channelWhitelisted": {
-        "message": "UP主已加入白名单！"
+        "message": "頻道已加入白名單！"
     },
     "Segment": {
         "message": "片段"
@@ -29,67 +29,67 @@
         "message": "片段"
     },
     "upvoteButtonInfo": {
-        "message": "给这个片段点赞"
+        "message": "給這個片段按讚"
     },
     "reportButtonTitle": {
-        "message": "反馈"
+        "message": "回饋"
     },
     "reportButtonInfo": {
-        "message": "反馈此片段错误。"
+        "message": "回饋此片段錯誤。"
     },
     "Dismiss": {
         "message": "忽略"
     },
     "Loading": {
-        "message": "加载中..."
+        "message": "載入中..."
     },
     "Hide": {
-        "message": "不再显示"
+        "message": "不再顯示"
     },
     "hitGoBack": {
-        "message": "点击取消跳过回到跳过前。"
+        "message": "點擊取消跳過回到跳過前。"
     },
     "unskip": {
-        "message": "取消跳过"
+        "message": "取消跳過"
     },
     "reskip": {
-        "message": "重新跳过"
+        "message": "重新跳過"
     },
     "unmute": {
-        "message": "取消静音"
+        "message": "取消靜音"
     },
     "paused": {
-        "message": "已暂停"
+        "message": "已暫停"
     },
     "manualPaused": {
-        "message": "计时器已停止"
+        "message": "計時器已停止"
     },
     "confirmMSG": {
-        "message": "要编辑或删除个别值，请点击信息按钮，或点击浏览器右上角的扩展图标打开扩展弹窗。"
+        "message": "要編輯或刪除個別值，請點擊資訊按鈕，或點擊瀏覽器右上角的擴展圖示打開擴展跳出視窗。"
     },
     "clearThis": {
-        "message": "您确定要清空它吗？\n\n"
+        "message": "您確定要清空它嗎？\n\n"
     },
     "Unknown": {
-        "message": "提交您的片段时间时出错。请稍后再试。"
+        "message": "提交您的片段時間時出錯。請稍後再試。"
     },
     "sponsorFound": {
-        "message": "此视频在数据库中有可跳过片段！"
+        "message": "此影片在資料庫中有可跳過片段！"
     },
     "sponsor404": {
         "message": "未找到可跳片段"
     },
     "sponsorStart": {
-        "message": "片段现在开始"
+        "message": "片段現在開始"
     },
     "sponsorEnd": {
-        "message": "片段现在结束"
+        "message": "片段現在結束"
     },
     "sponsorCancel": {
-        "message": "取消创建片段"
+        "message": "取消創建片段"
     },
     "noVideoID": {
-        "message": "未找到哔哩哔哩视频。\n如果识别错误，请刷新此页面。"
+        "message": "未找到嗶哩嗶哩影片。\n如果識別錯誤，請刷新此頁面。"
     },
     "refreshSegments": {
         "message": "刷新片段"
@@ -101,49 +101,49 @@
         "message": "已投票！"
     },
     "serverDown": {
-        "message": "服务器似乎已宕机 (/ﾟДﾟ)/"
+        "message": "伺服器似乎已當機 (/ﾟДﾟ)/"
     },
     "connectionError": {
-        "message": "连接错误。错误代码： "
+        "message": "連接錯誤。錯誤代碼： "
     },
     "segmentsStillLoading": {
-        "message": "片段仍在加载中..."
+        "message": "片段仍在載入中..."
     },
     "clearTimes": {
         "message": "清除片段"
     },
     "openPopup": {
-        "message": "打开广告助手弹窗"
+        "message": "打開廣告助手跳出視窗"
     },
     "closePopup": {
-        "message": "关闭弹窗"
+        "message": "關閉跳出視窗"
     },
     "closeIcon": {
-        "message": "关闭图标"
+        "message": "關閉圖示"
     },
     "OpenSubmissionMenu": {
-        "message": "打开提交菜单"
+        "message": "打開提交菜單"
     },
     "sortSegments": {
         "message": "排序片段"
     },
     "submitCheck": {
-        "message": "您确定要提交它吗？"
+        "message": "您確定要提交它嗎？"
     },
     "whitelistChannel": {
-        "message": "将UP主列入白名单"
+        "message": "將頻道列入白名單"
     },
     "removeFromWhitelist": {
-        "message": "将UP主移出白名单"
+        "message": "將頻道移出白名單"
     },
     "voteOnTime": {
-        "message": "对片段投票"
+        "message": "對片段投票"
     },
     "Submissions": {
-        "message": "提交数"
+        "message": "提交數"
     },
     "savedPeopleFrom": {
-        "message": "您为大家节省了 "
+        "message": "您為大家節省了 "
     },
     "viewLeaderboard": {
         "message": "排行榜"
@@ -152,153 +152,153 @@
         "message": "提交"
     },
     "submissionEditHint": {
-        "message": "片段编辑将在您点击提交后显示",
+        "message": "片段編輯將在您點擊提交後顯示",
         "description": "Appears in the popup to inform them that editing has been moved to the video player."
     },
     "popupHint": {
-        "message": "提示：您可以在选项中为提交动作绑定按键"
+        "message": "提示：您可以在選項中為提交動作綁定按鍵"
     },
     "clearTimesButton": {
-        "message": "清除时间"
+        "message": "清除時間"
     },
     "Username": {
-        "message": "用户名"
+        "message": "使用者名稱"
     },
     "setUsername": {
-        "message": "设定用户名"
+        "message": "設定使用者名稱"
     },
     "copyPublicID": {
-        "message": "复制公开的用户ID"
+        "message": "複製公開的用戶ID"
     },
     "copySegmentID": {
-        "message": "复制片段 ID"
+        "message": "複製片段 ID"
     },
     "hideThis": {
-        "message": "隐藏"
+        "message": "隱藏"
     },
     "Options": {
-        "message": "选项"
+        "message": "選項"
     },
     "showButtons": {
-        "message": "在播放器上显示信息按钮"
+        "message": "在播放器上顯示資訊按鈕"
     },
     "hideButtons": {
-        "message": "在播放器上隐藏按钮"
+        "message": "在播放器上隱藏按鈕"
     },
     "hideButtonsDescription": {
-        "message": "隐藏在播放器控制栏提交片段的按钮"
+        "message": "隱藏在播放器控制欄提交片段的按鈕"
     },
     "showSkipButton": {
-        "message": "播放器显示跳至精华片段按钮"
+        "message": "播放器顯示跳至精華片段按鈕"
     },
     "showInfoButton": {
-        "message": "在播放器上显示信息按钮"
+        "message": "在播放器上顯示資訊按鈕"
     },
     "hideInfoButton": {
-        "message": "在播放器上隐藏信息按钮"
+        "message": "在播放器上隱藏資訊按鈕"
     },
     "autoHideInfoButton": {
-        "message": "自动隐藏信息按钮"
+        "message": "自動隱藏資訊按鈕"
     },
     "hideDeleteButton": {
-        "message": "在播放器上隐藏删除按钮"
+        "message": "在播放器上隱藏刪除按鈕"
     },
     "showDeleteButton": {
-        "message": "在播放器上显示删除按钮"
+        "message": "在播放器上顯示刪除按鈕"
     },
     "enableViewTracking": {
-        "message": "启用跳过次数统计跟踪"
+        "message": "啟用跳過次數統計跟蹤"
     },
     "whatViewTracking": {
-        "message": "此功能追踪您跳过了哪些片段，让用户知道他们提交的片段帮助了多少人。同时点赞会作为依据，确保垃圾信息不会污染数据库。在您每次跳过片段时，我们都会向服务器发送一条消息。希望大家开启此项设置，以便得到更准确的统计数据。:)"
+        "message": "此功能追蹤您跳過了哪些片段，讓用戶知道他們提交的片段幫助了多少人。同時按讚會作為依據，確保垃圾資訊不會汙染資料庫。在您每次跳過片段時，我們都會向伺服器發送一條消息。希望大家開啟此項設置，以便得到更準確的統計數據。:)"
     },
     "enableViewTrackingInPrivate": {
-        "message": "在无痕模式中启用跳过计数跟踪"
+        "message": "在無痕模式中啟用跳過計數跟蹤"
     },
     "enableTrackDownvotes": {
-        "message": "保存差评片段"
+        "message": "保存倒讚片段"
     },
     "whatTrackDownvotes": {
-        "message": "保存被你差评的片段，即使在刷新后也会保持隐藏"
+        "message": "保存被您倒讚的片段，即使在刷新後也會保持隱藏"
     },
     "trackDownvotesWarning": {
-        "message": "警告：禁用此功能将删除所有先前保存的差评"
+        "message": "警告：禁用此功能將刪除所有先前保存的倒讚"
     },
     "enableTrackDownvotesInPrivate": {
-        "message": "保存在无痕模式中的差评"
+        "message": "保存在無痕模式中的倒讚"
     },
     "enableQueryByHashPrefix": {
-        "message": "按哈希前缀查询"
+        "message": "按哈希前綴查詢"
     },
     "whatQueryByHashPrefix": {
-        "message": "使用视频 ID 哈希值的前 4 个字符而非整个视频 ID 向服务器查询片段。服务器将返回所有具有类似哈希值的视频数据。"
+        "message": "使用影片 ID 哈希值的前 4 個字元而非整個影片 ID 向伺服器查詢片段。伺服器將返回所有具有類似哈希值的影片數據。"
     },
     "enableRefetchWhenNotFound": {
-        "message": "新视频重复获取片段"
+        "message": "新影片重複獲取片段"
     },
     "whatRefetchWhenNotFound": {
-        "message": "如果新视频中没有发现可跳片段，将每隔几分钟再次尝试获取片段信息。"
+        "message": "如果新影片中沒有發現可跳片段，將每隔幾分鐘再次嘗試獲取片段資訊。"
     },
     "enableShowCategoryWithoutPermission": {
-        "message": "在提交菜单中显示类别，即使没有提交权限"
+        "message": "在提交菜單中顯示類別，即使沒有提交權限"
     },
     "whatShowCategoryWithoutPermission": {
-        "message": "一些类别由于有最低权限要求，需要得到许可才能提交"
+        "message": "一些類別由於有最低權限要求，需要得到許可才能提交"
     },
     "showNotice": {
-        "message": "重新显示跳过通知"
+        "message": "重新顯示跳過通知"
     },
     "showSkipNotice": {
-        "message": "在跳过片段后显示通知"
+        "message": "在跳過片段後顯示通知"
     },
     "showCategoryGuidelines": {
-        "message": "显示类别帮助"
+        "message": "顯示類別幫助"
     },
     "noticeVisibilityMode0": {
-        "message": "全尺寸的跳过通知"
+        "message": "全尺寸的跳過通知"
     },
     "noticeVisibilityMode1": {
-        "message": "缩小自动跳过的提醒"
+        "message": "縮小自動跳過的提醒"
     },
     "noticeVisibilityMode2": {
-        "message": "缩小所有的跳过提醒"
+        "message": "縮小所有的跳過提醒"
     },
     "noticeVisibilityMode3": {
-        "message": "减弱自动跳过的提醒"
+        "message": "減弱自動跳過的提醒"
     },
     "noticeVisibilityMode4": {
-        "message": "减弱所有的跳过提醒"
+        "message": "減弱所有的跳過提醒"
     },
     "longDescription": {
-        "message": "哔哩哔哩广告跳过助手可帮您跳过B站视频中的恰饭广告、开场结尾、三连提醒和其他烦人片段。广告助手是一个众包的浏览器扩展，任何人可以提交B站视频中的广告和其他片段的开始和结束时间。如果有一人提交了信息，其他所有使用此扩展的人都能直接跳过广告片段。您也可以跳过音乐视频中的非音乐部分。",
+        "message": "嗶哩嗶哩廣告跳過助手可幫您跳過B站影片中的贊助廣告、開場結尾、三連提醒和其他煩人片段。廣告助手是一個眾包的瀏覽器擴展，任何人可以提交B站影片中的廣告和其他片段的開始和結束時間。如果有一人提交了資訊，其他所有使用此擴展的人都能直接跳過廣告片段。您也可以跳過音樂影片中的非音樂部分。",
         "description": "Full description of the extension on the store pages."
     },
     "website": {
-        "message": "网站",
+        "message": "網站",
         "description": "Used on Firefox Store Page"
     },
     "sourceCode": {
-        "message": "源代码",
+        "message": "原始碼",
         "description": "Used on Firefox Store Page"
     },
     "noticeUpdate": {
-        "message": "通知已升级！",
+        "message": "通知已升級！",
         "description": "The first line of the message displayed after the notice was upgraded."
     },
     "noticeUpdate2": {
-        "message": "如果您依然不喜欢它，请按下不再显示按钮。",
+        "message": "如果您依然不喜歡它，請按下不再顯示按鈕。",
         "description": "The second line of the message displayed after the notice was upgraded."
     },
     "setSkipShortcut": {
-        "message": "跳过片段",
+        "message": "跳過片段",
         "description": "Keybind label"
     },
     "setStartSponsorShortcut": {
-        "message": "片段开始/停止",
+        "message": "片段開始/停止",
         "description": "Keybind label"
     },
     "setOpenSubmissionMenuKeybind": {
-        "message": "打开提交菜单",
+        "message": "打開提交菜單",
         "description": "Keybind label"
     },
     "setSubmitKeybind": {
@@ -306,69 +306,69 @@
         "description": "Keybind label"
     },
     "setPreviewKeybind": {
-        "message": "预览片段",
+        "message": "預覽片段",
         "description": "Keybind label"
     },
     "setCloseSkipNoticeKeybind": {
-        "message": "关闭跳过通知",
+        "message": "關閉跳過通知",
         "description": "Keybind label"
     },
     "nextFrameKeybind": {
-        "message": "（编辑提交弹窗）视频下一帧",
+        "message": "（編輯提交跳出視窗）影片下一幀",
         "description": "Keybind label"
     },
     "previousFrameKeybind": {
-        "message": "编辑提交弹窗）视频前一帧",
+        "message": "編輯提交跳出視窗）影片前一幀",
         "description": "Keybind label"
     },
     "keybindDescription": {
-        "message": "请按下想绑定的按键。如果您想使用组合快捷键，请勾选左侧的选项。"
+        "message": "請按下想綁定的按鍵。如果您想使用組合快捷鍵，請勾選左側的選項。"
     },
     "0": {
-        "message": "连接超时。请检查您的网络连接。如果您的网络运行正常，则可能是服务器宕机。"
+        "message": "連接超時。請檢查您的網路連接。如果您的網路運行正常，則可能是伺服器當機。"
     },
     "disableSkipping": {
-        "message": "已启用跳过"
+        "message": "已啟用跳過"
     },
     "enableSkipping": {
-        "message": "已关闭跳过"
+        "message": "已關閉跳過"
     },
     "yourWork": {
-        "message": "您的信息",
+        "message": "您的資訊",
         "description": "Used to describe the section that will show you the statistics from your submissions."
     },
     "502": {
-        "message": "服务器似乎已过载。请稍后再试。"
+        "message": "伺服器似乎已過載。請稍後再試。"
     },
     "errorCode": {
-        "message": "错误代码： "
+        "message": "錯誤代碼： "
     },
     "skip": {
-        "message": "跳过"
+        "message": "跳過"
     },
     "mute": {
-        "message": "静音"
+        "message": "靜音"
     },
     "full": {
-        "message": "整个视频",
+        "message": "整個影片",
         "description": "Used for the name of the option to label an entire video as sponsor or self promotion."
     },
     "skip_category": {
-        "message": "跳过{0}？"
+        "message": "跳過{0}？"
     },
     "mute_category": {
-        "message": "要静音 {0} 吗?"
+        "message": "要靜音 {0} 嗎?"
     },
     "skip_to_category": {
-        "message": "要跳到 {0} 吗?",
+        "message": "要跳到 {0} 嗎?",
         "description": "Used for skipping to things (Skip to Highlight)"
     },
     "skipped": {
-        "message": "{0} 已跳过",
+        "message": "{0} 已跳過",
         "description": "Example: Sponsor Skipped"
     },
     "muted": {
-        "message": "{0} 已静音",
+        "message": "{0} 已靜音",
         "description": "Example: Sponsor Muted"
     },
     "skipped_to_category": {
@@ -376,40 +376,40 @@
         "description": "Used for skipping to things (Skipped to Highlight)"
     },
     "disableAutoSkip": {
-        "message": "禁用自动跳过"
+        "message": "禁用自動跳過"
     },
     "enableAutoSkip": {
-        "message": "启用自动跳过"
+        "message": "啟用自動跳過"
     },
     "audioNotification": {
-        "message": "跳过时音频通知"
+        "message": "跳過時音訊通知"
     },
     "audioNotificationDescription": {
-        "message": "在跳过片段时播放声音。如果禁用（或禁用自动跳过），则不会播放声音。"
+        "message": "在跳過片段時播放聲音。如果禁用（或禁用自動跳過），則不會播放聲音。"
     },
     "showTimeWithSkips": {
-        "message": "显示减去可跳片段后的时间"
+        "message": "顯示減去可跳片段後的時間"
     },
     "showTimeWithSkipsDescription": {
-        "message": "此时间位于进度条下方的当前时间旁边，用括号框住。 显示的是视频减去所有可跳片段后的时间，可跳片段包括标记为“在进度条中显示”的片段。"
+        "message": "此時間位於進度條下方的當前時間旁邊，用括號框住。 顯示的是影片減去所有可跳片段後的時間，可跳片段包括標記為“在進度條中顯示”的片段。"
     },
     "youHaveSkipped": {
-        "message": "您已跳过 "
+        "message": "您已跳過 "
     },
     "minLower": {
-        "message": "分钟"
+        "message": "分鐘"
     },
     "minsLower": {
-        "message": "分钟"
+        "message": "分鐘"
     },
     "hourLower": {
-        "message": "小时"
+        "message": "小時"
     },
     "hoursLower": {
-        "message": "小时"
+        "message": "小時"
     },
     "youHaveSavedTime": {
-        "message": "您为大家节省了",
+        "message": "您為大家節省了",
         "description": "You've saved people from 887,362 segments (236d 15h 5.3 minutes of their lives)."
     },
     "youHaveSavedTimeEnd": {
@@ -417,94 +417,94 @@
         "description": "You've saved people from 887,362 segments (236d 15h 5.3 minutes of their lives)."
     },
     "statusReminder": {
-        "message": "在 status.sponsor.ajay.app 检查服务器状态。"
+        "message": "在 status.sponsor.ajay.app 檢查伺服器狀態。"
     },
     "changeUserID": {
-        "message": "导入/导出您的私人用户ID"
+        "message": "導入/導出您的私人用戶ID"
     },
     "whatChangeUserID": {
-        "message": "私人ID应该被保密。如果他人获得了你的私人ID，他就可以冒充您。如果您想找公开用户ID，请点击弹出窗口中的剪贴板图标。"
+        "message": "私人ID應該被保密。如果他人獲得了您的私人ID，他就可以冒充您。如果您想找公開用戶ID，請點擊彈出窗口中的剪貼板圖示。"
     },
     "setUserID": {
-        "message": "设置私人用户ID"
+        "message": "設置私人用戶ID"
     },
     "userIDChangeWarning": {
-        "message": "警告：更改私人用户ID是永久性的。您确定要这么做吗？请务必备份您的旧私人ID以防万一。"
+        "message": "警告：更改私人用戶ID是永久性的。您確定要這麼做嗎？請務必備份您的舊私人ID以防萬一。"
     },
     "createdBy": {
-        "message": "创建者"
+        "message": "創建者"
     },
     "minDuration": {
-        "message": "最小持续时间(秒)："
+        "message": "最小持續時間(秒)："
     },
     "minDurationDescription": {
-        "message": "短于设定值的片段将不会被跳过或显示在播放器中。"
+        "message": "短於設定值的片段將不會被跳過或顯示在播放器中。"
     },
     "enableManualSkipOnFullVideo": {
-        "message": "当整个视频都被标记为广告时使用手动跳过"
+        "message": "當整個影片都被標記為廣告時使用手動跳過"
     },
     "whatManualSkipOnFullVideo": {
-        "message": "如果你想看软广视频时不跳过中间的内容，而是观看完整视频，可以启用软广手动跳过"
+        "message": "如果您想看軟廣影片時不跳過中間的內容，而是觀看完整影片，可以啟用軟廣手動跳過"
     },
     "skipNoticeDuration": {
-        "message": "跳过提醒持续时间（秒）："
+        "message": "跳過提醒持續時間（秒）："
     },
     "skipNoticeDurationDescription": {
-        "message": "跳过提醒将显示至少这么多秒。手动跳过的提醒可能会显示更久。"
+        "message": "跳過提醒將顯示至少這麼多秒。手動跳過的提醒可能會顯示更久。"
     },
     "shortCheck": {
-        "message": "以下的提交短于您的最小持续时间选项。这代表它们可能已经被提交，只是由于该选项被忽略了。您确定要提交吗？"
+        "message": "以下的提交短於您的最小持續時間選項。這代表它們可能已經被提交，只是由於該選項被忽略了。您確定要提交嗎？"
     },
     "liveOrPremiere": {
-        "message": "无法在进行中的直播或首播提交片段。请等待直播结束后刷新页面并确认片段仍然有效，再次提交。"
+        "message": "無法在進行中的直播或首播提交片段。請等待直播結束後刷新頁面並確認片段仍然有效，再次提交。"
     },
     "showUploadButton": {
-        "message": "显示上传按钮"
+        "message": "顯示上傳按鈕"
     },
     "customServerAddress": {
-        "message": "广告助手服务器地址"
+        "message": "廣告助手伺服器地址"
     },
     "customServerAddressDescription": {
-        "message": "广告跳过助手的服务器地址。\n不建议更改，除非您有自己的服务器。"
+        "message": "廣告跳過助手的伺服器地址。\n不建議更改，除非您有自己的伺服器。"
     },
     "save": {
         "message": "保存"
     },
     "reset": {
-        "message": "重置"
+        "message": "重設"
     },
     "customAddressError": {
-        "message": "此地址格式不正确。请确保开头有 http:// 或 https:// ，结尾没有斜杠 / 。"
+        "message": "此地址格式不正確。請確保開頭有 http:// 或 https:// ，結尾沒有斜槓 / 。"
     },
     "areYouSureReset": {
-        "message": "您确定要重置吗？"
+        "message": "您確定要重設嗎？"
     },
     "exportOptions": {
-        "message": "导入/导出所有选项"
+        "message": "導入/導出所有選項"
     },
     "exportOtherData": {
-        "message": "导入/导出所有其他数据"
+        "message": "導入/導出所有其他數據"
     },
     "exportOptionsCopy": {
-        "message": "编辑/复制"
+        "message": "編輯/複製"
     },
     "exportOptionsDownload": {
         "message": "保存到文件"
     },
     "exportOptionsUpload": {
-        "message": "从文件加载"
+        "message": "從文件載入"
     },
     "whatExportOptions": {
-        "message": "这是您所有设置的 JSON 格式。它包含了您的私人用户 ID ，所以您一定要谨慎的保管它。"
+        "message": "這是您所有設置的 JSON 格式。它包含了您的私人用戶 ID ，所以您一定要謹慎的保管它。"
     },
     "setOptions": {
-        "message": "设定选项"
+        "message": "設定選項"
     },
     "exportOptionsWarning": {
-        "message": "警告：更改选项是永久性的且可能破坏您安装的东西。您确定要这么做吗？请确保已备份旧文件以防万一。"
+        "message": "警告：更改選項是永久性的且可能破壞您安裝的東西。您確定要這麼做嗎？請確保已備份舊文件以防萬一。"
     },
     "incorrectlyFormattedOptions": {
-        "message": "此 JSON 格式不正确。您的选项尚未更改。"
+        "message": "此 JSON 格式不正確。您的選項尚未更改。"
     },
     "confirmNoticeTitle": {
         "message": "提交片段"
@@ -516,451 +516,451 @@
         "message": "取消"
     },
     "delete": {
-        "message": "删除"
+        "message": "刪除"
     },
     "preview": {
-        "message": "预览"
+        "message": "預覽"
     },
     "unsubmitted": {
         "message": "未提交"
     },
     "inspect": {
-        "message": "片段开头"
+        "message": "片段開頭"
     },
     "edit": {
-        "message": "编辑"
+        "message": "編輯"
     },
     "copyDebugInformation": {
-        "message": "复制调试信息到剪贴板"
+        "message": "複製除錯資訊到剪貼板"
     },
     "copyDebugInformationFailed": {
-        "message": "复制到剪贴板失败"
+        "message": "複製到剪貼板失敗"
     },
     "copyDebugInformationOptions": {
-        "message": "复制信息到剪贴板，在提交错误时提供给开发者。 敏感信息如：您的用户ID、UP主白名单和自定义服务器地址等已被删除。然而，它仍然包含诸如您的useragent ，浏览器，操作系统和插件版本号等信息。 "
+        "message": "複製資訊到剪貼板，在提交錯誤時提供給開發者。 敏感資訊如：您的用戶ID、頻道白名單和自訂伺服器地址等已被刪除。然而，它仍然包含諸如您的useragent ，瀏覽器，操作系統和插件版本號等資訊。 "
     },
     "copyDebugInformationComplete": {
-        "message": "调试信息已复制到剪切板中。 您可以随意移除任何您不想分享的信息。请将其另存为 .txt 文件或粘贴到错误报告中。"
+        "message": "除錯資訊已複製到剪切板中。 您可以隨意移除任何您不想分享的資訊。請將其另存為 .txt 文件或黏貼到錯誤報告中。"
     },
     "keyAlreadyUsed": {
-        "message": "此快捷键已绑定到另一个动作。请选择其他快捷键。"
+        "message": "此快捷鍵已綁定到另一個動作。請選擇其他快捷鍵。"
     },
     "to": {
         "message": "到",
         "description": "Used between segments. Example: 1:20 to 1:30"
     },
     "CopiedExclamation": {
-        "message": "复制成功！",
+        "message": "複製成功！",
         "description": "Used after something has been copied to the clipboard. Example: 'Copied!'"
     },
     "generic_guideline1": {
-        "message": "包括衔接转场"
+        "message": "包括銜接轉場"
     },
     "generic_guideline2": {
-        "message": "跳过后的视频仍然流畅，就好像跳过的片段不存在一样"
+        "message": "跳過後的影片仍然流暢，就好像跳過的片段不存在一樣"
     },
     "category_sponsor": {
-        "message": "恰饭广告"
+        "message": "贊助廣告"
     },
     "category_sponsor_description": {
-        "message": "付费推广、付费推荐和直接广告。不是自我推广或免费提及他们喜欢的商品/创作者/网站/产品。"
+        "message": "付費推廣、付費推薦和直接廣告。不是自我推廣或免費提及他們喜歡的商品/創作者/網站/產品。"
     },
     "category_sponsor_guideline1": {
-        "message": "付费推广"
+        "message": "付費推廣"
     },
     "category_sponsor_guideline2": {
-        "message": "捐款或自制周边不属于此项"
+        "message": "捐款或自製周邊不屬於此項"
     },
     "category_selfpromo": {
-        "message": "无偿推广/自我推广"
+        "message": "無償推廣/自我推廣"
     },
     "category_selfpromo_description": {
-        "message": "类似于 “恰饭广告” ，但无报酬或是自我推广。包括有关商品、捐赠的部分或合作者的信息。"
+        "message": "類似於 “贊助廣告” ，但無報酬或是自我推廣。包括有關商品、捐贈的部分或合作者的資訊。"
     },
     "category_selfpromo_guideline1": {
-        "message": "捐赠、会员和自制周边"
+        "message": "捐贈、會員和自製周邊"
     },
     "category_selfpromo_guideline2": {
-        "message": "与视频无关的免费推广"
+        "message": "與影片無關的免費推廣"
     },
     "category_selfpromo_guideline3": {
-        "message": "不是公司设计的产品和周边"
+        "message": "不是公司設計的產品和周邊"
     },
     "category_exclusive_access": {
-        "message": "独家限定"
+        "message": "獨家限定"
     },
     "category_exclusive_access_description": {
-        "message": "仅用于标记整个视频。当视频展示了免费或被帮助以获得产品、服务或访问地点时使用。"
+        "message": "僅用於標記整個影片。當影片展示了免費或被幫助以獲得產品、服務或訪問地點時使用。"
     },
     "category_exclusive_access_pill": {
-        "message": "此视频展示了免费或被帮助以获得产品、服务或访问地点",
+        "message": "此影片展示了免費或被幫助以獲得產品、服務或訪問地點",
         "description": "Short description for this category"
     },
     "category_exclusive_access_guideline1": {
-        "message": "整个视频都在展示免费/受助以获得和访问的事物"
+        "message": "整個影片都在展示免費/受助以獲得和訪問的事物"
     },
     "category_interaction": {
-        "message": "三连/订阅提醒"
+        "message": "三連/訂閱提醒"
     },
     "category_interaction_description": {
-        "message": "视频中间简短提醒观众来一键三连或关注。 如果片段较长，或是有具体内容，则应分类为自我推广。"
+        "message": "影片中間簡短提醒觀眾來一鍵三連或關注。 如果片段較長，或是有具體內容，則應分類為自我推廣。"
     },
     "category_interaction_guideline1": {
-        "message": "短暂提醒要点赞、投币或关注"
+        "message": "短暫提醒要按讚、投幣或關注"
     },
     "category_interaction_guideline2": {
-        "message": "包括间接提醒评论和弹幕"
+        "message": "包括間接提醒評論和彈幕"
     },
     "category_interaction_guideline3": {
-        "message": "不应包含有意义的内容"
+        "message": "不應包含有意義的內容"
     },
     "category_interaction_short": {
-        "message": "三连提醒"
+        "message": "三連提醒"
     },
     "category_intro": {
-        "message": "过场/开场动画"
+        "message": "過場/開場動畫"
     },
     "category_intro_description": {
-        "message": "没有实际内容的间隔片段。可以是暂停、静态帧或重复动画。不适用于包含内容的过场。"
+        "message": "沒有實際內容的間隔片段。可以是暫停、靜態幀或重複動畫。不適用於包含內容的過場。"
     },
     "category_intro_short": {
-        "message": "过场动画或者开场动画"
+        "message": "過場動畫或者開場動畫"
     },
     "category_intro_guideline1": {
-        "message": "不包含任何有意义的内容"
+        "message": "不包含任何有意義的內容"
     },
     "category_intro_guideline2": {
-        "message": "不包括含有内容的转场"
+        "message": "不包括含有內容的轉場"
     },
     "category_outro": {
-        "message": "结束画面/结尾致谢"
+        "message": "結束畫面/結尾致謝"
     },
     "category_outro_description": {
-        "message": "致谢画面或片尾画面。不包含内容的结尾。"
+        "message": "致謝畫面或片尾畫面。不包含內容的結尾。"
     },
     "category_outro_guideline1": {
-        "message": "不应包含有意义的内容，即使致谢或片尾已经出现。"
+        "message": "不應包含有意義的內容，即使致謝或片尾已經出現。"
     },
     "category_preview": {
-        "message": "回顾/概要",
+        "message": "回顧/概要",
         "description": "https://en.wikipedia.org/wiki/Narrative_hook"
     },
     "category_preview_description": {
-        "message": "展示此视频或同系列视频将出现的画面集锦，片段中所有内容都将在之后的正片中再次出现。"
+        "message": "展示此影片或同系列影片將出現的畫面集錦，片段中所有內容都將在之後的正片中再次出現。"
     },
     "category_preview_guideline1": {
-        "message": "视频中稍后会出现的片段"
+        "message": "影片中稍後會出現的片段"
     },
     "category_preview_guideline2": {
-        "message": "往期视频的回顾总结"
+        "message": "往期影片的回顧總結"
     },
     "category_preview_guideline3": {
-        "message": "不含有新内容"
+        "message": "不含有新內容"
     },
     "category_filler": {
-        "message": "离题的闲聊/笑话"
+        "message": "離題的閒聊/笑話"
     },
     "category_filler_description": {
-        "message": "离题片段标签仅在出现不需要理解视频主要内容的拖时间/无关笑话片段时使用。此标签不能包含有意义的内容或背景细节。这是非常激进的类别，代表您没有心情娱乐。"
+        "message": "離題片段標籤僅在出現不需要理解影片主要內容的拖時間/無關笑話片段時使用。此標籤不能包含有意義的內容或背景細節。這是非常激進的類別，代表您沒有心情娛樂。"
     },
     "category_filler_short": {
-        "message": "离题"
+        "message": "離題"
     },
     "category_filler_guideline1": {
-        "message": "拖时间/无意义笑话等离题片段"
+        "message": "拖時間/無意義笑話等離題片段"
     },
     "category_filler_guideline2": {
         "message": "分心、花絮、重播"
     },
     "category_filler_guideline3": {
-        "message": "不需要理解主题的片段"
+        "message": "不需要理解主題的片段"
     },
     "category_music_offtopic": {
-        "message": "音乐视频的非音乐部分"
+        "message": "音樂影片的非音樂部分"
     },
     "category_music_offtopic_description": {
-        "message": "仅用于音乐视频。此分类只能用于音乐视频中未包括于其他分类的部分。"
+        "message": "僅用於音樂影片。此分類只能用於音樂影片中未包括於其他分類的部分。"
     },
     "category_music_offtopic_short": {
-        "message": "非音乐"
+        "message": "非音樂"
     },
     "category_music_offtopic_guideline1": {
         "message": "不在官方版本中的部分"
     },
     "category_music_offtopic_guideline2": {
-        "message": "现场表演中的非音乐片段"
+        "message": "現場表演中的非音樂片段"
     },
     "category_poi_highlight": {
-        "message": "精彩时刻"
+        "message": "精彩時刻"
     },
     "category_poi_highlight_description": {
-        "message": "大部分人都在寻找的空降时间。类似于“封面在12:34”的评论。"
+        "message": "大部分人都在尋找的跳轉時間。類似於“封面在12:34”的評論。"
     },
     "category_poi_highlight_guideline1": {
         "message": "大部分人想看的片段"
     },
     "category_poi_highlight_guideline2": {
-        "message": "可以帮助略过之前的内容"
+        "message": "可以幫助略過之前的內容"
     },
     "category_poi_highlight_guideline3": {
-        "message": "可以跳到标题或封面"
+        "message": "可以跳到標題或封面"
     },
     "category_livestream_messages": {
-        "message": "直播：捐赠/消息阅读"
+        "message": "直播：捐贈/消息閱讀"
     },
     "category_livestream_messages_short": {
-        "message": "阅读消息"
+        "message": "閱讀消息"
     },
     "autoSkip": {
-        "message": "自动跳过"
+        "message": "自動跳過"
     },
     "manualSkip": {
-        "message": "手动跳过"
+        "message": "手動跳過"
     },
     "showOverlay": {
-        "message": "在进度条中显示"
+        "message": "在進度條中顯示"
     },
     "disable": {
         "message": "禁用"
     },
     "autoSkip_POI": {
-        "message": "自动跳至位置"
+        "message": "自動跳至位置"
     },
     "manualSkip_POI": {
-        "message": "视频加载时询问"
+        "message": "影片載入時詢問"
     },
     "showOverlay_POI": {
-        "message": "在进度条中显示"
+        "message": "在進度條中顯示"
     },
     "showOverlay_full" : {
-        "message": "显示标签"
+        "message": "顯示標籤"
     },
     "autoSkipOnMusicVideos": {
-        "message": "自动跳过所有音乐视频中的非音乐片段"
+        "message": "自動跳過所有音樂影片中的非音樂片段"
     },
     "muteSegments": {
-        "message": "允许片段静音而不是跳过"
+        "message": "允許片段靜音而不是跳過"
     },
     "fullVideoSegments": {
-        "message": "当整个视频都是某一类别时显示图标",
+        "message": "當整個影片都是某一類別時顯示圖示",
         "description": "Referring to the category pill that is now shown on videos that are entirely sponsor or entirely selfpromo"
     },
     "fullVideoLabelsOnThumbnails": {
-        "message": "在视频封面上显示标签",
+        "message": "在影片封面上顯示標籤",
         "description": "Referring to the category pill that is shown on videos that are entirely sponsor or entirely selfpromo on recommended videos, in searches or on the homepage."
     },
     "previewColor": {
-        "message": "未提交颜色",
+        "message": "未提交顏色",
         "description": "Referring to submissions that have not been sent to the server yet."
     },
     "seekBarColor": {
-        "message": "进度条颜色"
+        "message": "進度條顏色"
     },
     "category": {
-        "message": "类别"
+        "message": "類別"
     },
     "skipOption": {
-        "message": "跳过选项",
+        "message": "跳過選項",
         "description": "Used on the options page to describe the ways to skip the segment (auto skip, manual, etc.)"
     },
     "enableTestingServer": {
-        "message": "启用Beta测试服务器"
+        "message": "啟用Beta測試伺服器"
     },
     "whatEnableTestingServer": {
-        "message": "您的提交和投票将不会计入主服务器。它只被用于测试。"
+        "message": "您的提交和投票將不會計入主伺服器。它只被用於測試。"
     },
     "testingServerWarning": {
-        "message": "当连接到测试服务器时，所有的提交和投票将不会计入主服务器。当您想要进行真实提交时，请确保禁用了此选项。"
+        "message": "當連接到測試伺服器時，所有的提交和投票將不會計入主伺服器。當您想要進行真實提交時，請確保禁用了此選項。"
     },
     "bracketNow": {
-        "message": "[设为当前]"
+        "message": "[設為當前]"
     },
     "moreCategories": {
-        "message": "更多类别"
+        "message": "更多類別"
     },
     "chooseACategory": {
-        "message": "选择类别"
+        "message": "選擇類別"
     },
     "enableThisCategoryFirst": {
-        "message": "要提交“{0}”类别的片段，您必须在选项中启用此类别。现在将重定向到选项。",
+        "message": "要提交“{0}”類別的片段，您必須在選項中啟用此類別。現在將重定向到選項。",
         "description": "Used when submitting segments to only let them select a certain category if they have it enabled in the options."
     },
     "poiOnlyOneSegment": {
-        "message": "警告：此类型的片段一次最多只能使用一个。提交多个片段将随机显示。"
+        "message": "警告：此類型的片段一次最多只能使用一個。提交多個片段將隨機顯示。"
     },
     "youMustSelectACategory": {
-        "message": "您必须为所有您要提交的片段选择类别！"
+        "message": "您必須為所有您要提交的片段選擇類別！"
     },
     "bracketStart": {
-        "message": "[视频开始]"
+        "message": "[影片開始]"
     },
     "bracketEnd": {
-        "message": "[视频结尾]"
+        "message": "[影片結尾]"
     },
     "End": {
-        "message": "片段结尾",
+        "message": "片段結尾",
         "description": "Button that skips to the end of a segment"
     },
     "hiddenDueToDownvote": {
-        "message": "隐藏：差评"
+        "message": "隱藏：倒讚"
     },
     "hiddenDueToDuration": {
-        "message": "隐藏：过短"
+        "message": "隱藏：過短"
     },
     "manuallyHidden": {
-        "message": "手动隐藏"
+        "message": "手動隱藏"
     },
     "channelDataNotFound": {
-        "message": "未检测到UP主ID。如果您正在使用嵌入式视频播放器，请到Bilibili网站观看。也可能是B站更改了页面布局，如果您认为是此问题，请在此评论：",
+        "message": "未檢測到頻道ID。如果您正在使用嵌入式影片播放器，請到Bilibili網站觀看。也可能是B站更改了頁面布局，如果您認為是此問題，請在此評論：",
         "description": "This error appears in an alert when they try to whitelist a channel and the extension is unable to determine what channel they are looking at."
     },
     "invidiousPermissionRefresh": {
-        "message": "浏览器已撤销在 Invidious 及其他第三方网站运行所需的权限。请点击下方按钮重新激活权限。"
+        "message": "瀏覽器已撤銷在 Invidious 及其他第三方網站運行所需的權限。請點擊下方按鈕重新啟用權限。"
     },
     "acceptPermission": {
-        "message": "接受权限"
+        "message": "接受權限"
     },
     "permissionRequestSuccess": {
-        "message": "权限请求成功！"
+        "message": "權限請求成功！"
     },
     "permissionRequestFailed": {
-        "message": "权限请求失败，您是否点击拒绝？"
+        "message": "權限請求失敗，您是否點擊拒絕？"
     },
     "forceChannelCheck": {
-        "message": "跳过前强制进行频道检查"
+        "message": "跳過前強制進行頻道檢查"
     },
     "whatForceChannelCheck": {
-        "message": "默认情况下，即使还未检测出当前是什么频道，也会立即跳过片段。因此，在白名单中UP的视频，一些在开头的片段也可能被跳过。启用此选项将防止这种情况，但所有的跳过将会产生轻微的延迟，因为获取频道 ID 需要一点时间。如果您的网速很快，那延迟可能非常短。"
+        "message": "默認情況下，即使還未檢測出當前是什麼頻道，也會立即跳過片段。因此，在白名單中UP的影片，一些在開頭的片段也可能被跳過。啟用此選項將防止這種情況，但所有的跳過將會產生輕微的延遲，因為獲取頻道 ID 需要一點時間。如果您的網速很快，那延遲可能非常短。"
     },
     "forceChannelCheckPopup": {
-        "message": "请考虑启用“跳过前强制进行频道检查”"
+        "message": "請考慮啟用“跳過前強制進行頻道檢查”"
     },
     "downvoteDescription": {
-        "message": "不正确/错误的时间"
+        "message": "不正確/錯誤的時間"
     },
     "incorrectVote": {
-        "message": "不正确"
+        "message": "不正確"
     },
     "harmfulVote": {
         "message": "有害的",
         "description": "Used for chapter segments when the text is harmful/offensive to remove it faster"
     },
     "incorrectCategory": {
-        "message": "更改类别"
+        "message": "更改類別"
     },
     "nonMusicCategoryOnMusic": {
-        "message": "此视频的分类为音乐。 您确定其中包含赞助商广告吗？如果这是“非音乐片段”，请打开扩展选项并启用此类别。 之后，您可以以“非音乐”而不是赞助商广告类别提交此片段。如果您不太明白，请阅读指南。"
+        "message": "此影片的分類為音樂。 您確定其中包含贊助商廣告嗎？如果這是“非音樂片段”，請打開擴展選項並啟用此類別。 之後，您可以以“非音樂”而不是贊助商廣告類別提交此片段。如果您不太明白，請閱讀指南。"
     },
     "multipleSegments": {
-        "message": "多个片段"
+        "message": "多個片段"
     },
     "guidelines": {
         "message": "指南"
     },
     "readTheGuidelines": {
-        "message": "阅读指南！！",
+        "message": "閱讀指南！！",
         "description": "Show the first time they submit or if they are \"high risk\""
     },
     "categoryUpdate1": {
-        "message": "类别在这里！"
+        "message": "類別在這裡！"
     },
     "categoryUpdate2": {
-        "message": "开启选项以跳过开头、结尾和商业等内容。"
+        "message": "開啟選項以跳過開頭、結尾和商業等內容。"
     },
     "help": {
-        "message": "帮助"
+        "message": "幫助"
     },
     "GotIt": {
         "message": "明白了",
         "description": "Used as the button to dismiss a tooltip"
     },
     "fullVideoTooltipWarning": {
-        "message": "片段过长。如果整个视频都是关于同一个主题，请将“跳过”改成“整个视频”标签。查看指南了解详情。"
+        "message": "片段過長。如果整個影片都是關於同一個主題，請將“跳過”改成“整個影片”標籤。查看指南了解詳情。"
     },
     "categoryPillTitleText": {
-        "message": "整个视频都被标记为此分类且内容过于紧凑，无法分开。"
+        "message": "整個影片都被標記為此分類且內容過於緊湊，無法分開。"
     },
     "chapterNameTooltipWarning": {
-        "message": "提交的章节名称与现有类别名称相似。如果已经存在分类，您应该优先使用它。"
+        "message": "提交的章節名稱與現有類別名稱相似。如果已經存在分類，您應該優先使用它。"
     },
     "experiementOptOut": {
-        "message": "关闭所有实验性功能",
+        "message": "關閉所有實驗性功能",
         "description": "This is used in a popup about a new experiment to get a list of unlisted videos to back up since all unlisted videos uploaded before 2017 will be set to private."
     },
     "hideForever": {
-        "message": "永远隐藏"
+        "message": "永遠隱藏"
     },
     "warningChatInfo": {
-        "message": "我们注意到你犯了一些常见错误。我们非常赞赏你迄今所做的工作，但我们努力追求完美，所以即使是非常小的错误，也需要重视:)"
+        "message": "我們注意到您犯了一些常見錯誤。我們非常讚賞您迄今所做的工作，但我們努力追求完美，所以即使是非常小的錯誤，也需要重視:)"
     },
     "questionButton": {
-        "message": "我有疑问"
+        "message": "我有疑問"
     },
     "askAQuestion": {
-        "message": "提问"
+        "message": "提問"
     },
     "warningConfirmButton": {
         "message": "我理解原因"
     },
     "warningError": {
-        "message": "尝试确认警告时发生错误："
+        "message": "嘗試確認警告時發生錯誤："
     },
     "deArrowMessageRecieved": {
-        "message": "您收到了来自版主的提示"
+        "message": "您收到了來自版主的提示"
     },
     "Donate": {
-        "message": "捐赠"
+        "message": "捐贈"
     },
     "considerDonating": {
-        "message": "资助开发"
+        "message": "資助開發"
     },
     "hideDonationLink": {
-        "message": "隐藏捐赠链接"
+        "message": "隱藏捐贈連結"
     },
     "darkModeOptionsPage": {
-        "message": "选项页面深色模式"
+        "message": "選項頁面深色模式"
     },
     "LearnMore": {
-        "message": "了解详情"
+        "message": "了解詳情"
     },
     "FullDetails": {
-        "message": "全部细节"
+        "message": "全部細節"
     },
     "CopyDownvoteButtonInfo": {
-        "message": "差评并创建本地副本供您再次提交"
+        "message": "倒讚並創建本地副本供您再次提交"
     },
     "OpenCategoryWikiPage": {
-        "message": "打开此类别的百科页面。"
+        "message": "打開此類別的百科頁面。"
     },
     "CopyAndDownvote": {
-        "message": "复制并差评"
+        "message": "複製並倒讚"
     },
     "ContinueVoting": {
-        "message": "继续投票"
+        "message": "繼續投票"
     },
     "ChangeCategoryTooltip": {
-        "message": "这会立即应用到您所有的片段"
+        "message": "這會立即應用到您所有的片段"
     },
     "downvote": {
-        "message": "差评"
+        "message": "倒讚"
     },
     "upvote": {
-        "message": "点赞"
+        "message": "按讚"
     },
     "hideSegment": {
-        "message": "隐藏片段"
+        "message": "隱藏片段"
     },
     "skipSegment": {
-        "message": "跳过片段"
+        "message": "跳過片段"
     },
     "playChapter": {
-        "message": "播放章节"
+        "message": "播放章節"
     },
     "SponsorTimeEditScrollNewFeature": {
-        "message": "将鼠标悬停在编辑框上，操作鼠标滚轮可以快速调整时间。包含 Ctrl 和 Shift 的组合快捷键可以微调时间。"
+        "message": "將滑鼠懸停在編輯框上，操作滑鼠滾輪可以快速調整時間。包含 Ctrl 和 Shift 的組合快捷鍵可以微調時間。"
     },
     "categoryPillNewFeature": {
-        "message": "新功能！知道视频是否完全是赞助广告或自我推广"
+        "message": "新功能！知道影片是否完全是贊助廣告或自我推廣"
     },
     "yearAbbreviation": {
         "message": "年",
@@ -971,11 +971,11 @@
         "description": "100d"
     },
     "hourAbbreviation": {
-        "message": "小时",
+        "message": "小時",
         "description": "100h"
     },
     "optionsTabBehavior": {
-        "message": "行为",
+        "message": "行為",
         "description": "Appears in Options as a tab header for options related to categories and skipping behavior. To fit inside the button, it should not be longer than ~20-25 characters (depending on their width)."
     },
     "optionsTabInterface": {
@@ -983,11 +983,11 @@
         "description": "Appears in Options as a tab header for options related to GUI and sounds. To fit inside the button, it should not be longer than ~20-25 characters (depending on their width)."
     },
     "optionsTabKeyBinds": {
-        "message": "快捷键",
+        "message": "快捷鍵",
         "description": "Appears in Options as a tab header for keybinds. To fit inside the button, it should not be longer than ~20-25 characters (depending on their width)."
     },
     "optionsTabBackup": {
-        "message": "备份/恢复",
+        "message": "備份/恢復",
         "description": "Appears in Options as a tab header for options related to saving/restoring your settings. To fit inside the button, it should not be longer than ~20-25 characters (depending on their width)."
     },
     "optionsTabAdvanced": {
@@ -995,68 +995,68 @@
         "description": "Appears in Options as a tab header for advanced/niche options. To fit inside the button, it should not be longer than ~20-25 characters (depending on their width)."
     },
     "noticeVisibilityLabel": {
-        "message": "跳过提醒外观",
+        "message": "跳過提醒外觀",
         "description": "Option label"
     },
     "unbind": {
-        "message": "解除绑定",
+        "message": "解除綁定",
         "description": "Unbind keyboard shortcut"
     },
     "notSet": {
-        "message": "未设置"
+        "message": "未設置"
     },
     "change": {
         "message": "更改"
     },
     "bilibiliKeybindWarning": {
-        "message": "这是B站内置的快捷方式。您确定要使用吗？"
+        "message": "這是B站內建的捷徑。您確定要使用嗎？"
     },
     "betaServerWarning": {
-        "message": "测试服务器已启用！"
+        "message": "測試伺服器已啟用！"
     },
     "openOptionsPage": {
-        "message": "打开选项页面"
+        "message": "打開選項頁面"
     },
     "resetToDefault": {
-        "message": "重置所有设置"
+        "message": "重設所有設置"
     },
     "confirmResetToDefault": {
-        "message": "您确定要将所有设置重置为默认值吗？此操作无法撤销。"
+        "message": "您確定要將所有設置重設為預設值嗎？此操作無法撤銷。"
     },
     "exportSegments": {
-        "message": "导出片段"
+        "message": "導出片段"
     },
     "importSegments": {
-        "message": "导入片段"
+        "message": "導入片段"
     },
     "Import": {
-        "message": "导入",
+        "message": "導入",
         "description": "Button to initiate importing segments. Appears under the textbox where they paste in the data"
     },
     "redeemSuccess": {
-        "message": "兑换成功！"
+        "message": "兌換成功！"
     },
     "redeemFailed": {
-        "message": "注册码无效"
+        "message": "註冊碼無效"
     },
     "hideUpsells": {
-        "message": "隐藏需要额外付费才能使用的选项"
+        "message": "隱藏需要額外付費才能使用的選項"
     },
     "hideNewFeatureUpdates": {
-        "message": "隐藏新功能提示"
+        "message": "隱藏新功能提示"
     },
     "redeem": {
-        "message": "兑换"
+        "message": "兌換"
     },
     "enterLicenseKey": {
-        "message": "输入注册码"
+        "message": "輸入註冊碼"
     },
     "unsubmittedSegmentCounts": {
         "message": "您在 {1} 中有 {0}",
         "description": "Example: You currently have 12 unsubmitted segments on 5 videos"
     },
     "unsubmittedSegmentCountsZero": {
-        "message": "您目前没有未提交的片段",
+        "message": "您目前沒有未提交的片段",
         "description": "Replaces 'unsubmittedSegmentCounts' string when there are no unsubmitted segments"
     },
     "unsubmittedSegmentsSingular": {
@@ -1068,11 +1068,11 @@
         "description": "Example: You currently have 12 *unsubmitted segments* on 5 videos"
     },
     "videosSingular": {
-        "message": "视频",
+        "message": "影片",
         "description": "Example: You currently have 3 unsubmitted segments on 1 *video*"
     },
     "videosPlural": {
-        "message": "视频",
+        "message": "影片",
         "description": "Example: You currently have 12 unsubmitted segments on 5 *videos*"
     },
     "clearUnsubmittedSegments": {
@@ -1080,23 +1080,23 @@
         "description": "Label for a button in settings"
     },
     "clearUnsubmittedSegmentsConfirm": {
-        "message": "您确定要清除所有未提交的片段吗？",
+        "message": "您確定要清除所有未提交的片段嗎？",
         "description": "Confirmation message for the Clear unsubmitted segments button"
     },
     "showUnsubmittedSegments": {
-        "message": "显示片段",
+        "message": "顯示片段",
         "description": "Show/hide button for the unsubmitted segments list"
     },
     "hideUnsubmittedSegments": {
-        "message": "隐藏片段",
+        "message": "隱藏片段",
         "description": "Show/hide button for the unsubmitted segments list"
     },
     "videoID": {
-        "message": "视频ID",
+        "message": "影片ID",
         "description": "Header of the unsubmitted segments list"
     },
     "segmentCount": {
-        "message": "片段数",
+        "message": "片段數",
         "description": "Header of the unsubmitted segments list"
     },
     "actions": {
@@ -1104,13 +1104,13 @@
         "description": "Header of the unsubmitted segments list"
     },
     "exportSegmentsAsURL": {
-        "message": "分享链接"
+        "message": "分享連結"
     },
     "segmentFetchFailureWarning": {
-        "message": "警告：服务器未响应。片段可能已提交，只是由于服务器问题您未收到回应。"
+        "message": "警告：伺服器未響應。片段可能已提交，只是由於伺服器問題您未收到回應。"
     },
     "allowScrollingToEdit": {
-        "message": "允许滚动编辑时间"
+        "message": "允許滾動編輯時間"
     },
     "NoticeTimeAfterSkip": {
         "message": "{seconds}秒",
@@ -1124,7 +1124,7 @@
         "message": "SponsorBlock is not compatible with the extension \"Zoom to Fill\". There are many alternatives you can use instead that will work properly."
     },
     "cleanPopup": {
-        "message": "简化弹出窗口内容"
+        "message": "簡化彈出窗口內容"
     },
     "syncDisabledWarning": {
         "message": "Warning: Extension storage has been disabled in your browser. Settings will not be saved if you try saving them."
