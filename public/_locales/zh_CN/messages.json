@@ -113,7 +113,7 @@
         "message": "清除片段"
     },
     "openPopup": {
-        "message": "打开广告助手弹窗"
+        "message": "打开空降助手弹窗"
     },
     "closePopup": {
         "message": "关闭弹窗"
@@ -270,7 +270,7 @@
         "message": "减弱所有的跳过提醒"
     },
     "longDescription": {
-        "message": "哔哩哔哩广告跳过助手可帮您跳过B站视频中的恰饭广告、开场结尾、三连提醒和其他烦人片段。广告助手是一个众包的浏览器扩展，任何人可以提交B站视频中的广告和其他片段的开始和结束时间。如果有一人提交了信息，其他所有使用此扩展的人都能直接跳过广告片段。您也可以跳过音乐视频中的非音乐部分。",
+        "message": "B站空降助手可帮您跳过B站视频中的恰饭广告、开场结尾、三连提醒和其他烦人片段。空降助手是一个众包的浏览器扩展，任何人可以提交B站视频中的广告和其他片段的开始和结束时间。如果有一人提交了信息，其他所有使用此扩展的人都能直接跳过广告片段。您也可以跳过音乐视频中的非音乐部分。",
         "description": "Full description of the extension on the store pages."
     },
     "website": {
@@ -462,10 +462,10 @@
         "message": "显示上传按钮"
     },
     "customServerAddress": {
-        "message": "广告助手服务器地址"
+        "message": "空降助手服务器地址"
     },
     "customServerAddressDescription": {
-        "message": "广告跳过助手的服务器地址。\n不建议更改，除非您有自己的服务器。"
+        "message": "B站空降助手的服务器地址。\n不建议更改，除非您有自己的服务器。"
     },
     "save": {
         "message": "保存"
