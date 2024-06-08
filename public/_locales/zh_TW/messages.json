@@ -4,7 +4,7 @@
         "description": "Name of the extension."
     },
     "shortName": {
-        "message": "SponsorBlock"
+        "message": "BiliSponsorBlock"
     },
     "Description": {
         "message": "廣告？桌子都給你掀了(/= _ =)/~┴┴   帶您精準跳轉到高能時刻，自動跳過影片中的贊助廣告、訂閱提醒等片段。您也可以親自標記影片中的廣告並上傳，所有人都會從您的貢獻中受益。",
