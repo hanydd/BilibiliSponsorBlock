@@ -1039,9 +1039,6 @@
     "redeemFailed": {
         "message": "註冊碼無效"
     },
-    "hideUpsells": {
-        "message": "隱藏需要額外付費才能使用的選項"
-    },
     "hideNewFeatureUpdates": {
         "message": "隱藏新功能提示"
     },

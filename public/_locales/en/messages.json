@@ -1039,9 +1039,6 @@
     "redeemFailed": {
         "message": "注册码无效"
     },
-    "hideUpsells": {
-        "message": "隐藏需要额外付费才能使用的选项"
-    },
     "hideNewFeatureUpdates": {
         "message": "隐藏新功能提示"
     },

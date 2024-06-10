@@ -50,7 +50,6 @@ interface SBConfig {
     allowExpirements: boolean;
     showDonationLink: boolean;
     showPopupDonationCount: number;
-    showUpsells: boolean;
     showNewFeaturePopups: boolean;
     donateClicked: number;
     autoHideInfoButton: boolean;
@@ -218,7 +217,6 @@ const syncDefaults = {
     allowExpirements: true,
     showDonationLink: true,
     showPopupDonationCount: 0,
-    showUpsells: true,
     showNewFeaturePopups: true,
     donateClicked: 0,
     autoHideInfoButton: true,
