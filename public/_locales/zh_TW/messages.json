@@ -1,10 +1,10 @@
 {
     "fullName": {
-        "message": "BiliBiliSponsorBlock",
+        "message": "BiliBili Sponsor Block",
         "description": "Name of the extension."
     },
     "shortName": {
-        "message": "BiliSponsorBlock"
+        "message": "Bili Sponsor Block"
     },
     "Description": {
         "message": "廣告？桌子都給你掀了(/= _ =)/~┴┴   帶您精準跳轉到高能時刻，自動跳過影片中的贊助廣告、訂閱提醒等片段。您也可以親自標記影片中的廣告並上傳，所有人都會從您的貢獻中受益。",
@@ -113,7 +113,7 @@
         "message": "清除片段"
     },
     "openPopup": {
-        "message": "打開SponsorBlock跳出視窗"
+        "message": "打開Bilibili Sponsor Block跳出視窗"
     },
     "closePopup": {
         "message": "關閉跳出視窗"
@@ -270,7 +270,7 @@
         "message": "減弱所有的跳過提醒"
     },
     "longDescription": {
-        "message": "SponsorBlock可幫您跳過影片中的贊助廣告、開場結尾、三連提醒和其他煩人片段。SponsorBlock是一個瀏覽器擴展，任何人可以提交影片中的廣告和其他片段的開始和結束時間。如果有一人提交了資訊，其他所有使用此擴展的人都能直接跳過廣告片段。您也可以跳過音樂影片中的非音樂部分。",
+        "message": "Bilibili Sponsor Block可幫您跳過影片中的贊助廣告、開場結尾、三連提醒和其他煩人片段。Bilibili Sponsor Block是一個瀏覽器擴展，任何人可以提交影片中的廣告和其他片段的開始和結束時間。如果有一人提交了資訊，其他所有使用此擴展的人都能直接跳過廣告片段。您也可以跳過音樂影片中的非音樂部分。",
         "description": "Full description of the extension on the store pages."
     },
     "website": {
@@ -462,10 +462,10 @@
         "message": "顯示上傳按鈕"
     },
     "customServerAddress": {
-        "message": "SponsorBlock伺服器地址"
+        "message": "Bilibili Sponsor Block伺服器地址"
     },
     "customServerAddressDescription": {
-        "message": "SponsorBlock的伺服器地址。\n不建議更改，除非您有自己的伺服器。"
+        "message": "Bilibili Sponsor Block的伺服器地址。\n不建議更改，除非您有自己的伺服器。"
     },
     "save": {
         "message": "保存"
@@ -1121,7 +1121,7 @@
         "description": "Warning that appears when enabling the filler tangent category"
     },
     "zoomToFillUnsupported": {
-        "message": "SponsorBlock 無法與擴充功能 \"Zoom to Fill\"兼容。您可以使用許多其他能夠正常運作的替代方案。"
+        "message": "Bilibili Sponsor Block 無法與擴充功能 \"Zoom to Fill\"兼容。您可以使用許多其他能夠正常運作的替代方案。"
     },
     "cleanPopup": {
         "message": "簡化彈出窗口內容"
