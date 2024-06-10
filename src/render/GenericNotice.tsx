@@ -45,7 +45,7 @@ export default class GenericNotice {
         this.contentContainer = contentContainer;
 
         const referenceNode = options.referenceNode ?? utils.findReferenceNode();
-    
+
         this.noticeElement = document.createElement("div");
         this.noticeElement.className = "sponsorSkipNoticeContainer";
         this.noticeElement.id = "sponsorSkipNoticeContainer" + idSuffix;
@@ -101,7 +101,7 @@ export default class GenericNotice {
         );
     }
 
-    getMessageBoxes(idSuffix: string, textBoxes: TextBox[]): JSX.Element[] { 
+    getMessageBoxes(idSuffix: string, textBoxes: TextBox[]): JSX.Element[] {
         if (textBoxes) {
             const result = [];
             for (let i = 0; i < textBoxes.length; i++) {

@@ -12,7 +12,7 @@ export class ChapterVote {
     unsavedState: ChapterVoteState;
 
     mutationObserver?: MutationObserver;
-    
+
     constructor(vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>) {
         this.ref = React.createRef();
 

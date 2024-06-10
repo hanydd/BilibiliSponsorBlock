@@ -10,7 +10,7 @@ import SponsorTimeEditComponent from "./SponsorTimeEditComponent";
 import { getGuidelineInfo } from "../utils/constants";
 import { exportTimes } from "../utils/exporter";
 
-export interface SubmissionNoticeProps { 
+export interface SubmissionNoticeProps {
     // Contains functions and variables from the content script needed by the skip notice
     contentContainer: ContentContainer;
 
@@ -46,7 +46,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
 
         this.contentContainer = props.contentContainer;
         this.callback = props.callback;
-    
+
         const noticeTitle = chrome.i18n.getMessage("confirmNoticeTitle");
 
         this.lastSegmentCount = this.props.contentContainer().sponsorTimesSubmitting.length;
@@ -101,16 +101,16 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
     }
 
     render(): React.ReactElement {
-        const sortButton = 
-            <img id={"sponsorSkipSortButton" + this.state.idSuffix} 
+        const sortButton =
+            <img id={"sponsorSkipSortButton" + this.state.idSuffix}
                 className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipSmallButton"
                 onClick={() => this.sortSegments()}
                 title={chrome.i18n.getMessage("sortSegments")}
                 key="sortButton"
                 src={chrome.runtime.getURL("icons/sort.svg")}>
             </img>;
-        const exportButton = 
-            <img id={"sponsorSkipExportButton" + this.state.idSuffix} 
+        const exportButton =
+            <img id={"sponsorSkipExportButton" + this.state.idSuffix}
                 className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipSmallButton"
                 onClick={() => this.exportSegments()}
                 title={chrome.i18n.getMessage("exportSegments")}

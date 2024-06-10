@@ -50,7 +50,7 @@ class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryP
                 onClick={(e) => this.toggleOpen(e)}
                 onMouseEnter={() => this.openTooltip()}
                 onMouseLeave={() => this.closeTooltip()}>
-                
+
                 <span className="sponsorBlockCategoryPillTitleSection">
                     <img className="sponsorSkipLogo sponsorSkipObject"
                         src={chrome.runtime.getURL("icons/IconSponsorBlocker256px.png")}>

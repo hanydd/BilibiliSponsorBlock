@@ -4,11 +4,11 @@ import Config from "../../config";
 import KeybindDialogComponent from "./KeybindDialogComponent";
 import { formatKey, Keybind, keybindEquals, keybindToString } from "../../../maze-utils/src/config";
 
-export interface KeybindProps { 
+export interface KeybindProps {
     option: string;
 }
 
-export interface KeybindState { 
+export interface KeybindState {
     keybind: Keybind;
 }
 

@@ -2,7 +2,7 @@ import * as React from "react";
 
 import Config from "../../config";
 
-export interface ToggleOptionProps { 
+export interface ToggleOptionProps {
     configKey: string;
     label: string;
     disabled?: boolean;
@@ -29,10 +29,10 @@ class ToggleOptionComponent extends React.Component<ToggleOptionProps, ToggleOpt
             <div className={`sb-toggle-option ${this.props.disabled ? "disabled" : ""}`}>
                 <div className="switch-container" style={this.props.style}>
                     <label className="switch">
-                        <input id={this.props.configKey} 
-                            type="checkbox" 
-                            checked={this.state.enabled} 
-                            disabled={this.props.disabled} 
+                        <input id={this.props.configKey}
+                            type="checkbox"
+                            checked={this.state.enabled}
+                            disabled={this.props.disabled}
                             onChange={(e) => this.clicked(e)}/>
                         <span className="slider round"></span>
                     </label>

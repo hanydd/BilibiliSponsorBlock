@@ -4,7 +4,7 @@ import * as CompileConfig from "../../../config.json";
 import { Category } from "../../types";
 import CategorySkipOptionsComponent from "./CategorySkipOptionsComponent";
 
-export interface CategoryChooserProps { 
+export interface CategoryChooserProps {
 
 }
 
@@ -19,14 +19,14 @@ class CategoryChooserComponent extends React.Component<CategoryChooserProps, Cat
 
         // Setup state
         this.state = {
-            
+
         }
     }
 
     render(): React.ReactElement {
         return (
             <table id="categoryChooserTable"
-                className="categoryChooserTable"> 
+                className="categoryChooserTable">
                 <tbody>
                     {/* Headers */}
                     <tr id={"CategoryOptionsRow"}
@@ -52,7 +52,7 @@ class CategoryChooserComponent extends React.Component<CategoryChooserProps, Cat
                     </tr>
 
                     {this.getCategorySkipOptions()}
-                </tbody> 
+                </tbody>
             </table>
         );
     }

@@ -6,4 +6,4 @@ module.exports = {
         "^.+\\.ts$": "ts-jest"
     },
     "reporters": ["default", "github-actions"]
-}; 
+};

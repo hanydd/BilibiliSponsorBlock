@@ -28,7 +28,7 @@ class SkipNotice {
         this.contentContainer = contentContainer;
 
         const referenceNode = utils.findReferenceNode();
-    
+
         const amountOfPreviousNotices = document.getElementsByClassName("sponsorSkipNotice").length;
         //this is the suffix added at the end of every id
         let idSuffix = "";
@@ -45,13 +45,13 @@ class SkipNotice {
 
         this.root = createRoot(this.noticeElement);
         this.root.render(
-            <SkipNoticeComponent segments={segments} 
-                autoSkip={autoSkip} 
+            <SkipNoticeComponent segments={segments}
+                autoSkip={autoSkip}
                 startReskip={startReskip}
                 contentContainer={contentContainer}
                 ref={this.skipNoticeRef}
                 closeListener={() => this.close()}
-                smaller={Config.config.noticeVisibilityMode >= NoticeVisbilityMode.MiniForAll 
+                smaller={Config.config.noticeVisibilityMode >= NoticeVisbilityMode.MiniForAll
                     || (Config.config.noticeVisibilityMode >= NoticeVisbilityMode.MiniForAutoSkip && autoSkip)}
                 unskipTime={unskipTime} />
         );

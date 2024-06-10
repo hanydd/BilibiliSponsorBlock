@@ -30,10 +30,10 @@ class NoticeTextSelectionComponent extends React.Component<NoticeTextSelectionPr
                 onClick={this.props.onClick}
                 style={style}
                 className="sponsorTimesInfoMessage">
-                    
+
                 <td>
-                    {this.props.icon ? 
-                        <img src={chrome.runtime.getURL(this.props.icon)} className="sponsorTimesInfoIcon" /> 
+                    {this.props.icon ?
+                        <img src={chrome.runtime.getURL(this.props.icon)} className="sponsorTimesInfoIcon" />
                     : null}
 
                     <span>

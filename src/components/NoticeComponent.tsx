@@ -87,7 +87,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
             if (this.props.maxCountdownTime) return this.props.maxCountdownTime();
             else return Config.config.skipNoticeDuration;
         };
-    
+
         //the id for the setInterval running the countdown
         this.countdownInterval = null;
 
@@ -127,7 +127,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
         }
 
         return (
-            <div id={"sponsorSkipNotice" + this.idSuffix} 
+            <div id={"sponsorSkipNotice" + this.idSuffix}
                 className={"sponsorSkipObject sponsorSkipNoticeParent"
                     + (this.props.showInSecondSlot ? " secondSkipNotice" : "")
                     + (this.props.extraClass ? ` ${this.props.extraClass}` : "")}
@@ -157,7 +157,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
                 }}
                 ref={this.parentRef}
                 style={noticeStyle} >
-                <div className={"sponsorSkipNoticeTableContainer" 
+                <div className={"sponsorSkipNoticeTableContainer"
                         + (this.props.fadeIn ? " sponsorSkipNoticeFadeIn" : "")
                         + (this.state.startFaded ? " sponsorSkipNoticeFaded" : "") }>
                     <table className={"sponsorSkipObject sponsorSkipNotice"
@@ -172,7 +172,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
                                     {/* Logo */}
                                     {!this.props.hideLogo &&
                                         <SbSvg
-                                            id={"sponsorSkipLogo" + this.idSuffix} 
+                                            id={"sponsorSkipLogo" + this.idSuffix}
                                             fill={this.props.logoFill}
                                             className="sponsorSkipLogo sponsorSkipObject"/>
                                     }
@@ -180,7 +180,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
                                     <span id={"sponsorSkipMessage" + this.idSuffix}
                                         style={{float: "left", marginRight: this.props.hideLogo ? "0px" : null}}
                                         className="sponsorSkipMessage sponsorSkipObject">
-                                        
+
                                         {this.props.noticeTitle}
                                     </span>
 
@@ -193,9 +193,9 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
                                 {!this.props.hideRightInfo &&
                                     <td className="sponsorSkipNoticeRightSection"
                                         style={{top: "9.32px"}}>
-                                        
+
                                         {/* Time left */}
-                                        {this.props.timed ? ( 
+                                        {this.props.timed ? (
                                             <span id={"sponsorSkipNoticeTimeLeft" + this.idSuffix}
                                                 onClick={() => this.toggleManualPause()}
                                                 className="sponsorSkipObject sponsorSkipNoticeTimeLeft">
@@ -204,30 +204,30 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
 
                                             </span>
                                         ) : ""}
-                                    
+
 
                                         {/* Close button */}
                                         <img src={chrome.runtime.getURL("icons/close.png")}
-                                            className={"sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeCloseButton sponsorSkipNoticeRightButton" 
+                                            className={"sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeCloseButton sponsorSkipNoticeRightButton"
                                                             + (this.props.biggerCloseButton ? " biggerCloseButton" : "")}
                                             onClick={() => this.close()}>
                                         </img>
                                     </td>
                                 }
-                            </tr> 
+                            </tr>
 
                             {this.props.children}
 
-                            {!this.props.smaller && this.props.bottomRow ? 
+                            {!this.props.smaller && this.props.bottomRow ?
                                 this.props.bottomRow
                             : null}
 
-                        </tbody> 
+                        </tbody>
                     </table>
                 </div>
 
                 {/* Add as a hidden table to keep the height constant */}
-                {this.props.smaller && this.props.bottomRow ? 
+                {this.props.smaller && this.props.bottomRow ?
                     <table style={{visibility: "hidden", paddingTop: "14px"}}>
                         <tbody>
                         {this.props.bottomRow}
@@ -240,21 +240,21 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
 
     getCountdownElements(): React.ReactElement[] {
         return [(
-                    <span 
+                    <span
                         id={"skipNoticeTimerText" + this.idSuffix}
                         key="skipNoticeTimerText"
                         className={this.state.countdownMode !== CountdownMode.Timer ? "sbhidden" : ""} >
                             {chrome.i18n.getMessage("NoticeTimeAfterSkip").replace("{seconds}", this.state.countdownTime.toString())}
                     </span>
                 ),(
-                    <img 
+                    <img
                         id={"skipNoticeTimerPaused" + this.idSuffix}
                         key="skipNoticeTimerPaused"
                         className={this.state.countdownMode !== CountdownMode.Paused ? "sbhidden" : ""}
                         src={chrome.runtime.getURL("icons/pause.svg")}
                         alt={chrome.i18n.getMessage("paused")} />
                 ),(
-                    <img 
+                    <img
                         id={"skipNoticeTimerStopped" + this.idSuffix}
                         key="skipNoticeTimerStopped"
                         className={this.state.countdownMode !== CountdownMode.Stopped ? "sbhidden" : ""}
@@ -337,7 +337,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
             countdownTime
         })
     }
-    
+
     removeFadeAnimation(): void {
         //remove the fade out class if it exists
         const notice = document.getElementById("sponsorSkipNotice" + this.idSuffix);
@@ -357,7 +357,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
             countdownTime: this.state.maxCountdownTime(),
             countdownMode: this.state.countdownMode === CountdownMode.Timer ? CountdownMode.Paused : this.state.countdownMode
         });
-        
+
         this.removeFadeAnimation();
     }
 
@@ -393,7 +393,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
 
         this.removeFadeAnimation();
     }
-    
+
     /**
      * @param silent If true, the close listener will not be called
      */
@@ -418,7 +418,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
             //remove it
             document.getElementById("sponsorSkipNotice" + this.idSuffix).removeChild(previousInfoMessage2);
         }
-        
+
         //add info
         const thanksForVotingText = document.createElement("p");
         thanksForVotingText.id = "sponsorTimesInfoMessage" + this.idSuffix;
@@ -427,7 +427,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
 
         //add element to div
         document.querySelector("#sponsorSkipNotice" + this.idSuffix + " > tbody").insertBefore(thanksForVotingText, document.getElementById("sponsorSkipNoticeSpacer" + this.idSuffix));
-    
+
         if (message2 !== undefined) {
             const thanksForVotingText2 = document.createElement("p");
             thanksForVotingText2.id = "sponsorTimesInfoMessage" + this.idSuffix + "2";

@@ -2,7 +2,7 @@ import * as React from "react";
 import { createRoot, Root } from 'react-dom/client';
 
 export interface RectangleTooltipProps {
-    text: string; 
+    text: string;
     link?: string;
     referenceNode: HTMLElement;
     prependElement?: HTMLElement; // Element to append before
@@ -18,11 +18,11 @@ export interface RectangleTooltipProps {
 }
 
 export class RectangleTooltip {
-    text: string;   
+    text: string;
     container: HTMLDivElement;
     root: Root;
     timer: NodeJS.Timeout;
-    
+
     constructor(props: RectangleTooltipProps) {
         props.bottomOffset ??= "0px";
         props.leftOffset ??= "0px";
@@ -50,12 +50,12 @@ export class RectangleTooltip {
         this.root = createRoot(this.container);
         this.root.render(
             <div style={{
-                bottom: props.bottomOffset, 
+                bottom: props.bottomOffset,
                 left: props.leftOffset,
                 maxHeight: props.maxHeight,
                 maxWidth: props.maxWidth,
                 backgroundColor: props.backgroundColor,
-                fontSize: props.fontSize}} 
+                fontSize: props.fontSize}}
                     className="sponsorBlockRectangleTooltip" >
                     <div>
                         <img className="sponsorSkipLogo sponsorSkipObject"
@@ -63,13 +63,13 @@ export class RectangleTooltip {
                         </img>
                         <span className="sponsorSkipObject">
                             {this.text + (props.link ? ". " : "")}
-                            {props.link ? 
-                                <a style={{textDecoration: "underline"}} 
+                            {props.link ?
+                                <a style={{textDecoration: "underline"}}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         href={props.link}>
                                     {chrome.i18n.getMessage("LearnMore")}
-                                    </a> 
+                                    </a>
                             : null}
                         </span>
                     </div>

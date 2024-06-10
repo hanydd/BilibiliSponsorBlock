@@ -4,7 +4,7 @@ export interface SelectorOption {
     label: string;
 }
 
-export interface SelectorProps { 
+export interface SelectorProps {
     id: string;
     options: SelectorOption[];
     onChange: (value: string) => void;
@@ -23,7 +23,7 @@ class SelectorComponent extends React.Component<SelectorProps, SelectorState> {
 
         // Setup state
         this.state = {
-            
+
         }
     }
 
