@@ -4,12 +4,12 @@ export function isVisible(element: HTMLElement | null, ignoreWidth = false): boo
     }
 
     // Special case for when a video is first loaded, and the main video element is technically hidden
-    if (element.tagName === "VIDEO" 
+    if (element.tagName === "VIDEO"
         && (element.classList.contains("html5-main-video") || element.id === "player" || element.id === "player_html5_api")
         && document.querySelectorAll("video").length === 1) {
         return true;
     }
-    
+
     if (element.offsetHeight === 0 || (element.offsetWidth === 0 && !ignoreWidth)) {
         return false;
     }
@@ -19,13 +19,13 @@ export function isVisible(element: HTMLElement | null, ignoreWidth = false): boo
         boundingRect.top + boundingRect.height / 2)
         || document.elementFromPoint(boundingRect.left, boundingRect.top);
 
-    if (!elementAtPoint 
+    if (!elementAtPoint
             && element.id === "movie_player"
             && boundingRect.top < 0) {
         return true;
     }
 
-    if (elementAtPoint === element 
+    if (elementAtPoint === element
             || (!!elementAtPoint && element.contains(elementAtPoint))
             || (!!elementAtPoint && elementAtPoint.contains(element))) {
         return true;
@@ -83,7 +83,7 @@ export async function waitForElement(selector: string, visibleCheck = false, ign
             return;
         }
 
-        const existingWaitingElement = waitingElements.find((waitingElement) => waitingElement.selector === selector 
+        const existingWaitingElement = waitingElements.find((waitingElement) => waitingElement.selector === selector
             && waitingElement.visibleCheck === visibleCheck);
 
         if (existingWaitingElement) {
@@ -123,14 +123,14 @@ function setupWaitingMutationListener(): void {
                     let found = false;
                     for (const mutation of mutations) {
                         if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-                            if (mutation.target instanceof HTMLElement 
+                            if (mutation.target instanceof HTMLElement
                                     && (mutation.target.matches(selector) || mutation.target.querySelector(selector))) {
                                 found = true;
                                 break;
                             }
 
                             for (const node of mutation.addedNodes) {
-                                if (node instanceof HTMLElement 
+                                if (node instanceof HTMLElement
                                         && (node.matches(selector) || node.querySelector(selector))) {
                                     found = true;
                                     break;
@@ -167,7 +167,7 @@ function setupWaitingMutationListener(): void {
             }
 
             waitingElements = waitingElements.filter((element) => !foundSelectors.includes(element.selector));
-            
+
             if (waitingElements.length === 0) {
                 waitingMutationObserver?.disconnect();
                 waitingMutationObserver = null;

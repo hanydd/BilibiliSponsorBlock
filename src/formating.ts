@@ -14,7 +14,7 @@ export function getFormattedTimeToSeconds(formatted: string): number | null {
 
 export function getFormattedTime(seconds: number, precise?: boolean): string | null {
     seconds = Math.max(seconds, 0);
-    
+
     const hours = Math.floor(seconds / 60 / 60);
     const minutes = Math.floor(seconds / 60) % 60;
     let minutesDisplay = String(minutes);
@@ -24,7 +24,7 @@ export function getFormattedTime(seconds: number, precise?: boolean): string | n
     }
 
     let secondsDisplay = String(precise ? secondsNum.toFixed(3) : secondsNum);
-    
+
     if (secondsNum < 10) {
         //add a zero
         secondsDisplay = "0" + secondsDisplay;
@@ -44,8 +44,8 @@ export function getFormattedTime(seconds: number, precise?: boolean): string | n
 
 /**
  * Gets the error message in a nice string
- * 
- * @param {int} statusCode 
+ *
+ * @param {int} statusCode
  * @returns {string} errorMessage
  */
 export function getErrorMessage(statusCode: number, responseText: string): string {

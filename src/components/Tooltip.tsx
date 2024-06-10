@@ -35,12 +35,12 @@ export interface TooltipProps {
 }
 
 export class GenericTooltip {
-    text?: string;   
+    text?: string;
     container: HTMLDivElement;
 
     timer: NodeJS.Timeout;
     root: Root;
-    
+
     constructor(props: TooltipProps, logoUrl: string) {
         props.bottomOffset ??= "70px";
         props.topOffset ??= "inherit";
@@ -106,26 +106,26 @@ export class GenericTooltip {
                     maxHeight: props.textBoxMaxHeight,
                     overflowY: "auto"
                 }}>
-                    {props.showLogo ? 
+                    {props.showLogo ?
                         <img className="sponsorSkipLogo sponsorSkipObject"
-                            src={chrome.runtime.getURL(logoUrl)}> 
+                            src={chrome.runtime.getURL(logoUrl)}>
                         </img>
                     : null}
-                    {this.text ? 
+                    {this.text ?
                         <span className={`sponsorSkipObject${!props.showLogo ? ` sponsorSkipObjectFirst` : ``}`}>
                             {this.getTextElements(this.text + (props.link ? ". " : ""))}
-                            {props.link ? 
-                                <a style={{textDecoration: "underline"}} 
+                            {props.link ?
+                                <a style={{textDecoration: "underline"}}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         href={props.link}>
                                     {chrome.i18n.getMessage("LearnMore")}
-                                </a> 
-                            : (props.linkOnClick ? 
-                                <a style={{textDecoration: "underline", marginLeft: "5px", cursor: "pointer"}} 
+                                </a>
+                            : (props.linkOnClick ?
+                                <a style={{textDecoration: "underline", marginLeft: "5px", cursor: "pointer"}}
                                         onClick={props.linkOnClick} onAuxClick={props.linkOnClick}>
                                     {chrome.i18n.getMessage("LearnMore")}
-                                </a> 
+                                </a>
                             : null)}
                         </span>
                     : null}

@@ -1,6 +1,6 @@
  /**
  * Starts a spinning animation and returns a function to be called when it should be stopped
- * The callback will be called when the animation is finished 
+ * The callback will be called when the animation is finished
  * It waits until a full rotation is complete
  */
 function applyLoadingAnimation(element: HTMLElement, time: number, callback?: () => void): () => Promise<void> {

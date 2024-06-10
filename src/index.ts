@@ -15,7 +15,7 @@ export async function waitFor<T>(condition: () => T, timeout = 5000, check = 100
         };
 
         const interval = setInterval(intervalCheck, check);
-        
+
         //run the check once first, this speeds it up a lot
         intervalCheck();
     });

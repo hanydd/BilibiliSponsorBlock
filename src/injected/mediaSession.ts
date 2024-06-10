@@ -79,7 +79,7 @@ function checkIfDifference(original: unknown, newData: unknown) {
             }
         }
     }
-    
+
 
     return false;
 }
