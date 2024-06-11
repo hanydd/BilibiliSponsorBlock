@@ -199,7 +199,7 @@
 .votingButtons {
   font-family: Arial, Helvetica, sans-serif;
   border-radius: 8px;
-  margin: 4px 16px;
+  margin: 1px 16px;
 }
 .votingButtons[open] {
   padding-bottom: 5px;
