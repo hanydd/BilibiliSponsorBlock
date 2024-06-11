@@ -10,7 +10,10 @@
 <div align="center">
 
   [![LICENSE](https://img.shields.io/github/license/HanYaodong/BilibiliSponsorBlock)](LICENSE)
-  [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd.svg)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd)
+  [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd?label=Chrome%20%E6%8F%92%E4%BB%B6%E5%95%86%E5%BA%97)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd)
+  ![用户数量](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F47.103.74.95%2Fapi%2FgetTotalStats&query=activeUsers&suffix=%E4%BA%BA&label=%E7%94%A8%E6%88%B7&color=green&cacheSeconds=3600)
+  ![片段数量](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F47.103.74.95%2Fapi%2FgetTotalStats&query=totalSubmissions&label=%E6%8F%90%E4%BA%A4%E7%9A%84%E7%89%87%E6%AE%B5%E6%95%B0%E9%87%8F&color=red&cacheSeconds=3600)
+  ![节省时间](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F47.103.74.95%2Fapi%2FgetTotalStats&query=minutesSaved&suffix=%E5%88%86%E9%92%9F&label=%E5%85%B1%E8%8A%82%E7%9C%81&color=orange&cacheSeconds=3600)
   [![CI Status](https://img.shields.io/github/actions/workflow/status/HanYaodong/BilibiliSponsorBlock/ci.yml)](https://github.com/HanYaodong/BilibiliSponsorBlock/actions/workflows/ci.yml)
 
 </div>
