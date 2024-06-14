@@ -256,7 +256,7 @@ function messageListener(request: Message, sender: unknown, sendResponse: (respo
             // it will assume the page is not a video page and stop the refresh animation
             sendResponse({ hasVideo: getVideoID() != null });
             // fetch segments
-            sponsorsLookup(false);
+            sponsorsLookup(false, true);
 
             break;
         case "unskip":
@@ -971,14 +971,14 @@ function setupCategoryPill() {
     categoryPill.attachToPage(voteAsync);
 }
 
-async function sponsorsLookup(keepOldSubmissions = true) {
+async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false) {
     if (lookupWaiting) return;
     //there is still no video here
     if (!getVideo()) {
         lookupWaiting = true;
         setTimeout(() => {
             lookupWaiting = false;
-            sponsorsLookup()
+            sponsorsLookup(keepOldSubmissions, ignoreServerCache)
         }, 100);
         return;
     }
@@ -995,7 +995,7 @@ async function sponsorsLookup(keepOldSubmissions = true) {
         actionTypes: getEnabledActionTypes(),
         userAgent: `${chrome.runtime.id}`,
         ...extraRequestData
-    });
+    }, ignoreServerCache);
 
     // store last response status
     lastResponseStatus = response?.status;
@@ -1810,7 +1810,7 @@ function startOrEndTimingNewSegment() {
     Config.forceLocalUpdate("unsubmittedSegments");
 
     // Make sure they know if someone has already submitted something it while they were watching
-    sponsorsLookup();
+    sponsorsLookup(true, true);
 
     updateEditButtonsOnPlayer();
     updateSponsorTimesSubmitting(false);
