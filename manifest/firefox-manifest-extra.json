@@ -4,7 +4,7 @@
     "storage",
     "scripting",
     "https://*.bilibili.com/*",
-    "http://47.103.74.95/*"
+    "http://*.bsbsb.top/*"
   ],
   "optional_permissions": [
     "*://*/*"
