@@ -168,8 +168,8 @@ function migrateOldSyncFormats(config: SBConfig) {
         }
     }
 
-    // move to new server endpoint v0.1.6
-    if (config["serverAddress"].includes("47.103.74.95:9876")) {
+    // move to new server endpoint v0.1.8
+    if (config["serverAddress"].includes("47.103.74.95")) {
         config["serverAddress"] = CompileConfig.serverAddress;
     }
 }
