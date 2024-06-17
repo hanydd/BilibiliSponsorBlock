@@ -31,7 +31,7 @@ class UnsubmittedVideoListItem extends React.Component<UnsubmittedVideosListItem
                     className="categoryTableElement">
                     <td id={this.props.videoID + "UnsubmittedVideoID"}
                         className="categoryTableLabel">
-                        <a href={`https://youtu.be/${this.props.videoID}`}
+                        <a href={`https://www.bilibili.com/video/${this.props.videoID}`}
                            target="_blank" rel="noreferrer">
                             {this.props.videoID}
                         </a>
