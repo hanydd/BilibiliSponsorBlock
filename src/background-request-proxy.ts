@@ -27,6 +27,7 @@ export async function sendRealRequestToCustomServer(type: string, url: string,
         method: type,
         headers: {
             'Content-Type': 'application/json',
+            'X-EXT-VERSION': chrome.runtime.getManifest().version,
             'X-SKIP-CACHE': ignoreServerCache ? '1' : '0'
         },
         redirect: 'follow',
