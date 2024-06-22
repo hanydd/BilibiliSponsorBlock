@@ -8,6 +8,7 @@ import { setupTabUpdates } from "../maze-utils/src/tab-updates";
 import { generateUserID } from "../maze-utils/src/setup";
 import { isFirefoxOrSafari } from "../maze-utils/src";
 import { injectUpdatedScripts } from "../maze-utils/src/cleanup";
+import { logWarn } from "./utils/logger";
 import { chromeP } from "../maze-utils/src/browserApi";
 
 const popupPort: Record<string, chrome.runtime.Port> = {};
@@ -106,10 +107,8 @@ chrome.runtime.onInstalled.addListener(function () {
 
     }, 1500);
 
-    // Only do this once the old version understands how to clean itself up
-    if (!isFirefoxOrSafari() && chrome.runtime.getManifest().version !== "5.4.13") {
-        // TODO: Add logging back on error
-        injectUpdatedScripts().catch();
+    if (!isFirefoxOrSafari()) {
+        injectUpdatedScripts().catch(logWarn);
     }
 });
 
