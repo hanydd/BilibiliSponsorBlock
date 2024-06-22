@@ -86,7 +86,7 @@
 
 # 服务端
 
-服务端代码（同样也在开发中）：https://github.com/HanYaodong/SponsorBlockServer
+服务端代码（同样也在开发中）：https://github.com/HanYaodong/BilibiliSponsorBlockServer
 
 # API
 
