@@ -2,6 +2,7 @@ import { parseBilibiliVideoIDFromURL } from "../../maze-utils/src/video";
 import Config from "../config";
 import { getVideoLabel } from "./videoLabels";
 import { setThumbnailListener } from "../../maze-utils/src/thumbnailManagement";
+import { waitFor } from "../../maze-utils/src";
 
 export async function labelThumbnails(thumbnails: HTMLImageElement[]): Promise<void> {
     await Promise.all(thumbnails.map((t) => labelThumbnail(t)));
@@ -31,7 +32,7 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
         return null;
     }
 
-    const { overlay, text } = createOrGetThumbnail(thumbnail);
+    const { overlay, text } = await createOrGetThumbnail(thumbnail);
 
     overlay.style.setProperty('--category-color', `var(--sb-category-preview-${category}, var(--sb-category-${category}))`);
     overlay.style.setProperty('--category-text-color', `var(--sb-category-text-preview-${category}, var(--sb-category-text-${category}))`);
@@ -52,7 +53,7 @@ function hideThumbnailLabel(thumbnail: HTMLImageElement): void {
     }
 }
 
-function createOrGetThumbnail(thumbnail: HTMLImageElement): { overlay: HTMLElement; text: HTMLElement } {
+async function createOrGetThumbnail(thumbnail: HTMLImageElement): Promise<{ overlay: HTMLElement; text: HTMLElement }> {
     const oldLabelElement = getOldThumbnailLabel(thumbnail);
     if (oldLabelElement) {
         return {
@@ -73,12 +74,13 @@ function createOrGetThumbnail(thumbnail: HTMLImageElement): { overlay: HTMLEleme
         thumbnail.dispatchEvent(new PointerEvent("pointerenter", { bubbles: true }));
     });
 
+    // try append after image element, exclude avatar in feed popup
+    // wait unitl there is an anchor point, or the label might get inserted elsewhere and break the header
+    const labelAnchor = await waitFor(() => thumbnail.querySelector("picture img:not(.bili-avatar-img)")) ?? thumbnail.lastChild;
     const icon = createSBIconElement();
     const text = document.createElement("span");
     overlay.appendChild(icon);
     overlay.appendChild(text);
-    // try append after image element, exclude avatar in feed popup
-    const labelAnchor = thumbnail.querySelector("picture img:not(.bili-avatar-img)") ?? thumbnail.lastChild;
     labelAnchor.after(overlay);
 
     return {
@@ -111,7 +113,7 @@ function insertSBIconDefinition() {
     </g>
   </defs>
 </svg>`;
-    document.body.appendChild(container.children[0]);
+    document.body.appendChild(container);
 }
 
 export function setupThumbnailListener(): void {
