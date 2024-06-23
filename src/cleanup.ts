@@ -41,8 +41,8 @@ export interface InjectedScript {
     css?: string[];
 }
 
-export async function injectUpdatedScripts(extraScripts: InjectedScript[] = []) {
-    const scripts = extraScripts.concat(chrome.runtime.getManifest().content_scripts || []);
+export async function injectUpdatedScripts(extraScripts: InjectedScript[] = [], ignoreNormalScipts = false) {
+    const scripts = ignoreNormalScipts ? extraScripts : extraScripts.concat(chrome.runtime.getManifest().content_scripts || []);
     if ("scripting" in chrome) {
         for (const cs of scripts) {
             for (const tab of await chromeP.tabs.query({url: cs.matches})) {
