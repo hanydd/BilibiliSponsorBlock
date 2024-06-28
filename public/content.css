@@ -67,20 +67,6 @@
 	transform: translateY(-2em) !important;
 }
 
-/*  */
-
-.popup {
-    z-index: 10;
-    width: 100%;
-    height: 500px;
-}
-
-.smallLink {
-	font-size: 10px;
-	text-decoration: underline;
-	cursor: pointer;
-}
-
 .playerButtonImage {
 	height: 22px;
 	vertical-align: top;
