@@ -1,4 +1,4 @@
-import { parseBilibiliVideoIDFromURL } from "../../maze-utils/src/video";
+import { getBvIDFromURL } from "../../maze-utils/src/video";
 import Config from "../config";
 import { getVideoLabel } from "./videoLabels";
 import { setThumbnailListener } from "../../maze-utils/src/thumbnailManagement";
@@ -17,7 +17,7 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
     // find all links in the thumbnail, reduce to only one video ID
     const links = Array.from(thumbnail.querySelectorAll("a[href]")) as Array<HTMLAnchorElement>;
     const videoIDs = new Set(links.filter((link) => link && link.href)
-        .map((link) => parseBilibiliVideoIDFromURL(link.href)?.videoID)
+        .map((link) => getBvIDFromURL(link.href))
         .filter((id) => id));
     if (videoIDs.size !== 1) {
         // none or multiple video IDs found
