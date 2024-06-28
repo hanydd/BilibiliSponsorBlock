@@ -121,8 +121,8 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "hanyaodongcn@gmail.com",
-      "strict_min_version": "56.0"
+      "id": "{f10c197e-c2a4-43b6-a982-7e186f7c63d9}",
+      "strict_min_version": "60.0"
     },
     "gecko_android": {
       "strict_min_version": "113.0"
