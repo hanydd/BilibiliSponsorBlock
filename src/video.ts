@@ -190,59 +190,42 @@ export function getBilibiliVideoID(url?: string): VideoID | null {
     url ||= document?.URL;
 
     // video page
-    if (url.includes("bilibili.com/video")) return getBilibiliVideoIDFromURL(url)
+    if (url.includes("bilibili.com/video")) {
+        return getBvIDFromWindow() ?? getBvIDFromURL(url);
+    }
     return null
 }
 
-function getBilibiliVideoIDFromURL(url: string): VideoID | null {
-    const result = parseBilibiliVideoIDFromURL(url);
-    if (result.callLater) {
-        // Call this later, in case this is an Invidious tab
-        void waitFor(() => getConfig().isReady()).then(() => videoIDChange(getBilibiliVideoIDFromURL(url)));
-
-        return null;
-    }
-    return result.videoID;
+function getBvIDFromWindow(): VideoID | null {
+    return (window as any)?.__INITIAL_STATE__?.videoData?.bvid
 }
 
 /**
  * Parse without side effects
  */
-export function parseBilibiliVideoIDFromURL(url: string): ParsedVideoURL {
+export function getBvIDFromURL(url: string): VideoID | null {
     //Attempt to parse url
     let urlObject: URL | null = null;
     try {
         urlObject = new URL(url);
     } catch (e) {
         console.error("[SB] Unable to parse URL: " + url);
-        return {
-            videoID: null,
-            callLater: false
-        };
+        return null;
     }
 
     // Check if valid hostname
     if (!BILI_DOMAINS.includes(urlObject.host)) {
-        return {
-            videoID: null,
-            callLater: !getConfig().isReady() // Might be an Invidious tab
-        };
+        return null;
     }
 
     // Get ID from url
     // video BV id
     if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/video/")) {
         const id = urlObject.pathname.replace("/video/", "").replace("/", "");
-        return {
-            videoID: (id?.length == 12 && id?.startsWith("BV")) ? id as VideoID : null,
-            callLater: false
-        };
+        return (id?.length == 12 && id?.startsWith("BV")) ? id as VideoID : null;
     }
 
-    return {
-        videoID: null,
-        callLater: false
-    };
+    return null;
 }
 
 
