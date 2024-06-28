@@ -1,6 +1,5 @@
 import Config from "./config";
 
-import Utils from "./utils";
 import {
     ActionType,
     SegmentUUID,
@@ -28,8 +27,7 @@ import { getErrorMessage, getFormattedTime } from "../maze-utils/src/formating";
 import { StorageChangesObject } from "../maze-utils/src/config";
 import { getHash } from "../maze-utils/src/hash";
 import { asyncRequestToServer, sendRequestToServer } from "./utils/requests";
-
-const utils = new Utils();
+import { waitFor } from "../maze-utils/src";
 
 interface MessageListener {
     (request: Message, sender: unknown, sendResponse: (response: MessageResponse) => void): void;
@@ -182,7 +180,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     ].forEach(id => PageElements[id] = document.getElementById(id));
 
     getSegmentsFromContentScript(false);
-    await utils.wait(() => Config.config !== null && allowPopup, 5000, 5);
+    await waitFor(() => Config.config !== null && allowPopup, 5000, 5);
     PageElements.sponsorBlockPopupBody.style.removeProperty("visibility");
     if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
         Config.configSyncListeners.push(contentConfigUpdateListener);
@@ -340,7 +338,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         }
     });
 
-    
+
 
     //get the amount of times this user has skipped a sponsor
     if (Config.config.skipCount != undefined) {
@@ -419,7 +417,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             return;
         }
 
-        await utils.wait(() => Config.config !== null, 5000, 10);
+        await waitFor(() => Config.config !== null, 5000, 10);
         sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
         updateSegmentEditingUI();
 

@@ -2,7 +2,6 @@ import Config, { VideoDownvotes } from "./config";
 import { CategorySelection, SponsorTime, BackgroundScriptContainer, Registration, VideoID, SponsorHideType, CategorySkipOption } from "./types";
 
 import { getHash, HashedValue } from "../maze-utils/src/hash";
-import { waitFor } from "../maze-utils/src";
 import { findValidElementFromSelector } from "../maze-utils/src/dom";
 import { isSafari } from "../maze-utils/src/config";
 
@@ -24,10 +23,6 @@ export default class Utils {
 
     constructor(backgroundScriptContainer: BackgroundScriptContainer = null) {
         this.backgroundScriptContainer = backgroundScriptContainer;
-    }
-
-    async wait<T>(condition: () => T, timeout = 5000, check = 100): Promise<T> {
-        return waitFor(condition, timeout, check);
     }
 
     containsPermission(permissions: chrome.permissions.Permissions): Promise<boolean> {

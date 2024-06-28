@@ -52,7 +52,7 @@ cleanPage();
 
 const utils = new Utils();
 
-utils.wait(() => Config.isReady(), 5000, 10).then(() => {
+waitFor(() => Config.isReady(), 5000, 10).then(() => {
     // Hack to get the CSS loaded on permission-based sites (Invidious)
     addCSS();
     setCategoryColorCSSVariables();
@@ -400,7 +400,7 @@ function resetValues() {
 function videoIDChange(): void {
     //setup the preview bar
     if (previewBar === null) {
-        utils.wait(getControls).then(createPreviewBar);
+        waitFor(getControls).then(createPreviewBar);
     }
 
     // Notify the popup about the video change
@@ -1690,10 +1690,10 @@ function shouldSkip(segment: SponsorTime): boolean {
 
 /** Creates any missing buttons on the Bilibili player if possible. */
 async function createButtons(): Promise<void> {
-    controls = await utils.wait(getControls).catch();
+    controls = await waitFor(getControls).catch();
 
     // Add button if does not already exist in html
-    await utils.wait(() => getControls().childElementCount > 4); // wait for controls buttons to be loaded
+    await waitFor(() => getControls().childElementCount > 4); // wait for controls buttons to be loaded
     createButton("startSegment", "sponsorStart", () => startOrEndTimingNewSegment(), "PlayerStartIconSponsorBlocker.svg");
     createButton("cancelSegment", "sponsorCancel", () => cancelCreatingSegment(), "PlayerCancelSegmentIconSponsorBlocker.svg");
     createButton("delete", "clearTimes", () => clearSponsorTimes(), "PlayerDeleteIconSponsorBlocker.svg");

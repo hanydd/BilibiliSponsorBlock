@@ -7,7 +7,6 @@ import * as CompileConfig from "../config.json";
 // Make the config public for debugging purposes
 window.SB = Config;
 
-import Utils from "./utils";
 import CategoryChooser from "./render/CategoryChooser";
 import UnsubmittedVideos from "./render/UnsubmittedVideos";
 import KeybindComponent from "./components/options/KeybindComponent";
@@ -15,9 +14,8 @@ import { showDonationLink } from "./utils/configUtils";
 import { localizeHtmlPage } from "../maze-utils/src/setup";
 import { StorageChangesObject } from "../maze-utils/src/config";
 import { getHash } from "../maze-utils/src/hash";
-import { isFirefoxOrSafari } from "../maze-utils/src";
+import { isFirefoxOrSafari, waitFor } from "../maze-utils/src";
 import { asyncRequestToServer } from "./utils/requests";
-const utils = new Utils();
 let embed = false;
 
 const categoryChoosers: CategoryChooser[] = [];
@@ -64,7 +62,7 @@ async function init() {
         Config.configLocalListeners.push(optionsLocalConfigUpdateListener);
     }
 
-    await utils.wait(() => Config.config !== null);
+    await waitFor(() => Config.config !== null);
 
     if (!Config.config.darkMode) {
         document.documentElement.setAttribute("data-theme", "light");
