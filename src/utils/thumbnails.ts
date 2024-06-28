@@ -76,7 +76,7 @@ async function createOrGetThumbnail(thumbnail: HTMLImageElement): Promise<{ over
 
     // try append after image element, exclude avatar in feed popup
     // wait unitl there is an anchor point, or the label might get inserted elsewhere and break the header
-    const labelAnchor = await waitFor(() => thumbnail.querySelector("picture img:not(.bili-avatar-img)")) ?? thumbnail.lastChild;
+    const labelAnchor = await waitFor(() => thumbnail.querySelector("picture img:not(.bili-avatar-img)"), 10000, 1000) ?? thumbnail.lastChild;
     const icon = createSBIconElement();
     const text = document.createElement("span");
     overlay.appendChild(icon);
