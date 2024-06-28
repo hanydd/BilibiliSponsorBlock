@@ -54,19 +54,6 @@
 	border-radius: 0;
 }
 
-.ytp-tooltip.sponsorCategoryTooltipVisible {
-	transform: translateY(-1em) !important;
-}
-
-/* Pull up for precise seeking */
-.ytp-tooltip.sponsorCategoryTooltipVisible .ytp-tooltip-edu {
-	transform: translateY(-1em) !important;
-}
-
-.ytp-tooltip.sponsorCategoryTooltipVisible.sponsorTwoTooltips {
-	transform: translateY(-2em) !important;
-}
-
 .playerButtonImage {
 	height: 22px;
 	vertical-align: top;
