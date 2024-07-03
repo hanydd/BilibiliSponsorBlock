@@ -8,11 +8,12 @@ import { injectScript } from "./scriptInjector";
 
 export enum PageType {
     Unknown = "unknown",
-    Shorts = "shorts",
-    Watch = "watch",
+    Main = 'main',
+    Video = "video",
     Search = "search",
-    Browse = "browse",
+    Dynamic = "dynamic",
     Channel = "channel",
+    Message = "message",
     Embed = "embed"
 }
 export type VideoID = string & { __videoID: never };
@@ -391,17 +392,10 @@ function windowListenerHandler(event: MessageEvent): void {
 }
 
 function addPageListeners(): void {
-    const refreshListeners = () => {
-        if (!isVisible(video)) {
-            void refreshVideoAttachments();
-        }
-    };
-
     if (params.documentScript) {
         injectScript(params.documentScript);
     }
 
-    document.addEventListener("yt-navigate-finish", refreshListeners);
     // piped player init
     const playerInitListener = () => {
         if (!document.querySelector('meta[property="og:title"][content="Piped"]')) return;
@@ -411,7 +405,6 @@ function addPageListeners(): void {
     window.addEventListener("message", windowListenerHandler);
 
     addCleanupListener(() => {
-        document.removeEventListener("yt-navigate-finish", refreshListeners);
         window.removeEventListener("playerInit", playerInitListener);
         window.removeEventListener("message", windowListenerHandler);
     });
