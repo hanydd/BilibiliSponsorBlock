@@ -32,8 +32,9 @@ export class CategoryPill {
         // this mutation observer listens to the change to title bar
         // bilibili will set the textContent of the title after loading for some reason.
         // If the node is inserted before this reset of title, it will be removed
-        const mutationCounter = (thisPtr) => thisPtr.mutationCount += 1
-        this.mutationObserver = new MutationObserver(() => mutationCounter(this));
+        const mutationCounter = () => this.mutationCount += 1;
+        mutationCounter.bind(this);
+        this.mutationObserver = new MutationObserver(mutationCounter);
 
         addCleanupListener(() => {
             if (this.mutationObserver) {
@@ -61,7 +62,7 @@ export class CategoryPill {
             this.attachToPageInternal();
         }
         catch (error) {
-            if(error !== "TIMEOUT") console.log("Category Pill attachment error ", error)
+            if (error !== "TIMEOUT") console.log("Category Pill attachment error ", error);
         }
     }
 
