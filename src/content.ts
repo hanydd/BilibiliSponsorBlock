@@ -109,6 +109,7 @@ setupVideoModule({
     videoElementChange,
     playerInit: () => {
         previewBar = null; // remove old previewbar
+        removeDurationAfterSkip();
         createPreviewBar();
     },
     updatePlayerBar: () => {
@@ -377,6 +378,9 @@ function resetValues() {
     if (previewBar !== null) {
         previewBar.clear();
     }
+
+    // resetDurationAfterSkip
+    removeDurationAfterSkip();
 
     //reset sponsor data found check
     sponsorDataFound = false;
@@ -1244,6 +1248,7 @@ function updatePreviewBar(): void {
     // retry create buttons in case the video is not ready
     updateVisibilityOfPlayerControlsButton();
 
+    removeDurationAfterSkip();
     if (Config.config.showTimeWithSkips) {
         const skippedDuration = utils.getTimestampsDuration(previewBarSegments
             .filter(({actionType}) => actionType !== ActionType.Mute)
@@ -1292,6 +1297,7 @@ function checkPreviewbarState(): void {
     if (previewBar && !utils.findReferenceNode()?.contains(previewBar.container)) {
         previewBar.remove();
         previewBar = null;
+        removeDurationAfterSkip();
     }
 
     createPreviewBar();
@@ -2410,6 +2416,7 @@ function addCSS() {
     }
 }
 
+const durationID = "sponsorBlockDurationAfterSkips";
 function showTimeWithoutSkips(skippedDuration: number): void {
     if (isNaN(skippedDuration) || skippedDuration < 0) {
         skippedDuration = 0;
@@ -2419,7 +2426,6 @@ function showTimeWithoutSkips(skippedDuration: number): void {
     const display = document.querySelector(".bpx-player-ctrl-time-label") as HTMLDivElement;
     if (!display) return;
 
-    const durationID = "sponsorBlockDurationAfterSkips";
     let duration = document.getElementById(durationID);
 
     // Create span if needed
@@ -2445,6 +2451,11 @@ function showTimeWithoutSkips(skippedDuration: number): void {
         // re-calculate text position after entering and exiting full screen
         window.addEventListener("fullscreenchange", refreshDurationTextWidth);
     }
+}
+
+function removeDurationAfterSkip() {
+    const duration = document.getElementById(durationID);
+    duration.remove();
 }
 
 function checkForPreloadedSegment() {
