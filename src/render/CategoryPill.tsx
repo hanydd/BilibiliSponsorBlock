@@ -67,8 +67,7 @@ export class CategoryPill {
     }
 
     private async attachToPageInternal(): Promise<void> {
-        const referenceNode =
-            await waitFor(() => getBilibiliTitleNode());
+        const referenceNode = await waitFor(() => getBilibiliTitleNode());
 
         if (referenceNode && !referenceNode.contains(this.container)) {
             if (!this.container) {
@@ -78,17 +77,17 @@ export class CategoryPill {
 
                 this.root = createRoot(this.container);
                 this.ref = React.createRef();
-                this.root.render(<CategoryPillComponent
+                this.root.render(
+                    <CategoryPillComponent
                         ref={this.ref}
                         vote={this.vote}
                         showTextByDefault={true}
-                        showTooltipOnClick={false} />);
+                        showTooltipOnClick={false}
+                    />);
             }
 
             if (this.lastState) {
-                waitFor(() => this.ref.current).then(() => {
-                    this.ref.current?.setState(this.lastState);
-                });
+                waitFor(() => this.ref.current).then(() => { this.ref.current?.setState(this.lastState) });
             }
 
             referenceNode.prepend(this.container);
