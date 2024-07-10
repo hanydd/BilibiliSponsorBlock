@@ -2455,7 +2455,7 @@ function showTimeWithoutSkips(skippedDuration: number): void {
 
 function removeDurationAfterSkip() {
     const duration = document.getElementById(durationID);
-    duration.remove();
+    duration?.remove();
 }
 
 function checkForPreloadedSegment() {
