@@ -230,20 +230,54 @@ export function getBvIDFromURL(url: string): VideoID | null {
 }
 
 
-// function getYouTubeVideoIDFromDocument(hideIcon = true, pageHint = PageType.Watch): VideoID | null {
-//     // get ID from document (channel trailer / embedded playlist)
-//     const element = pageHint === PageType.Embed ? document.querySelector(embedTitleSelector)
-//         : video?.parentElement?.parentElement?.querySelector(embedTitleSelector);
-//     const videoURL = element?.getAttribute("href");
-//     if (videoURL) {
-//         onInvidious = hideIcon;
-//         // if href found, hint was correct
-//         pageType = pageHint;
-//         return getYouTubeVideoIDFromURL(videoURL);
-//     } else {
-//         return null;
-//     }
-// }
+/**
+ * Parse without side effects
+ */
+export function parseYouTubeVideoIDFromURL(url: string): ParsedVideoURL {
+    if (url.startsWith("https://www.youtube.com/tv#/")) url = url.replace("#", "");
+    if (url.startsWith("https://www.youtube.com/tv?")) url = url.replace(/\?[^#]+#/, "");
+
+    // Attempt to parse url
+    let urlObject: URL | null = null;
+    try {
+        urlObject = new URL(url);
+    } catch (e) {
+        console.error("[SB] Unable to parse URL: " + url);
+        return {
+            videoID: null,
+            callLater: false
+        };
+    }
+
+    // Get ID from searchParam
+    if (urlObject.searchParams.has("v") && ["/watch", "/watch/"].includes(urlObject.pathname)
+        || urlObject.pathname.startsWith("/tv/watch")) {
+        const id = urlObject.searchParams.get("v");
+        return {
+            videoID: id?.length == 11 ? id as VideoID : null,
+            callLater: false
+        };
+    } else if (urlObject.pathname.startsWith("/embed/") || urlObject.pathname.startsWith("/shorts/")) {
+        try {
+            const id = urlObject.pathname.split("/")[2]
+            if (id?.length >= 11 ) return {
+                videoID: id.slice(0, 11) as VideoID,
+                callLater: false
+            };
+        } catch (e) {
+            console.error("[SB] Video ID not valid for " + url);
+            return {
+                videoID: null,
+                callLater: false
+            };
+        }
+    }
+
+    return {
+        videoID: null,
+        callLater: false
+    };
+}
 
 //checks if this channel is whitelisted, should be done only after the channelID has been loaded
 export async function whitelistCheck() {
