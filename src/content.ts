@@ -47,6 +47,7 @@ import { cleanPage } from "./utils/pageCleaner";
 import { addCleanupListener } from "../maze-utils/src/cleanup";
 import { asyncRequestToServer } from "./utils/requests";
 import { defaultPreviewTime } from "./utils/constants";
+import { DescriptionPortPill } from "./render/DesciptionPortPill";
 
 cleanPage();
 
@@ -140,6 +141,8 @@ let previewBar: PreviewBar = null;
 let skipButtonControlBar: SkipButtonControlBar = null;
 // For full video sponsors/selfpromo
 let categoryPill: CategoryPill = null;
+
+let descriptionPill: DescriptionPortPill = null;
 
 /** Element containing the player controls on the Bilibili player. */
 let controls: HTMLElement | null = null;
@@ -424,6 +427,8 @@ function videoIDChange(): void {
     updateSponsorTimesSubmitting();
 
     checkPreviewbarState();
+
+    setupDescriptionPill();
 }
 
 /**
@@ -974,6 +979,13 @@ function setupCategoryPill() {
     categoryPill.attachToPage(voteAsync);
 }
 
+function setupDescriptionPill() {
+    if (!descriptionPill) {
+        descriptionPill = new DescriptionPortPill();
+    }
+    descriptionPill.setupDecription(getVideoID());
+}
+
 async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false) {
     if (lookupWaiting) return;
     //there is still no video here
@@ -1281,6 +1293,7 @@ function videoElementChange(newVideo: boolean): void {
             setupVideoListeners();
             setupSkipButtonControlBar();
             setupCategoryPill();
+            setupDescriptionPill();
         }
 
         updatePreviewBar();
