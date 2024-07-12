@@ -3,6 +3,7 @@ import { createRoot, Root } from "react-dom/client";
 import { DescriptionPortPillComponent } from "../components/DescriptionPortPillComponent";
 import { VideoID } from "../types";
 import { waitFor } from "../../maze-utils/src";
+import { getPageLoaded } from "../content";
 
 
 const id = "bsbDescriptionContainer";
@@ -26,14 +27,13 @@ export class DescriptionPortPill {
         }
 
         // wait for the sibling span to load
-        await waitFor(() => referenceNode.querySelector(".desc-info-text")?.textContent, 20000, 500)
+        await waitFor(getPageLoaded, 20000, 10);
+        await waitFor(() => referenceNode.querySelector(".desc-info-text")?.textContent, 20000, 50)
             .catch(() => {
                 console.error("Failed to find description text element");
                 return;
             });
 
-        // wait for another 1.5 second to avoid render error
-        await new Promise((resolve) => { setTimeout(resolve, 1500) });
         this.attachToPage(referenceNode);
     }
 

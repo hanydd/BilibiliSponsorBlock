@@ -8,6 +8,7 @@ import { Tooltip } from "./Tooltip";
 import { waitFor } from "../../maze-utils/src";
 import { getBilibiliTitleNode } from "../../maze-utils/src/elements";
 import { addCleanupListener } from "../../maze-utils/src/cleanup";
+import { getPageLoaded } from "../content";
 
 const id = "categoryPill";
 
@@ -55,13 +56,12 @@ export class CategoryPill {
         this.mutationObserver.observe(referenceNode, { attributes: true, childList: true })
 
         try {
-            // wait for bilibili to reload the title bar
-            await waitFor(() => this.mutationCount >= 1, 10000, 50)
+            // wait for bilibili to finish loading
+            await waitFor(getPageLoaded, 10000, 10);
             // if setSegment is called after node attachment, it won't render sometimes
-            await waitFor(() => this.isSegmentSet, 10000, 50);
+            await waitFor(() => this.isSegmentSet, 10000, 100).catch(() => { console.log("No segment found") });
             this.attachToPageInternal();
-        }
-        catch (error) {
+        } catch (error) {
             if (error !== "TIMEOUT") console.log("Category Pill attachment error ", error);
         }
     }

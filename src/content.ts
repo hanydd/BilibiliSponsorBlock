@@ -104,6 +104,10 @@ let sponsorSkipped: boolean[] = [];
 let videoMuted = false; // Has it been attempted to be muted
 const controlsWithEventListeners: HTMLElement[] = [];
 
+// TODO: More robust way to check for page loaded
+let headerLoaded = false;
+setupPageLoadingListener();
+
 setupVideoModule({
     videoIDChange,
     channelIDChange,
@@ -121,6 +125,28 @@ setupVideoModule({
     documentScript: chrome.runtime.getManifest().manifest_version === 2 ? documentScript : undefined
 }, () => Config);
 setupThumbnailListener();
+
+/**
+ *  根据页面元素加载状态判断页面是否加载完成
+ */
+async function setupPageLoadingListener() {
+    // header栏会加载组件，触发5次mutation
+    const header = await waitFor(() => document.querySelector("#biliMainHeader"), 10000, 100);
+    let mutationCounter = 0;
+    const headerObserver = new MutationObserver(async () => {
+        mutationCounter += 1;
+        if (mutationCounter >= 5) {
+            headerObserver.disconnect();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            headerLoaded = true;
+        }
+    });
+        headerObserver.observe(header, { childList: true, subtree: true });
+}
+
+export function getPageLoaded() {
+    return headerLoaded;
+}
 
 //the video id of the last preview bar update
 let lastPreviewBarUpdate: VideoID;
