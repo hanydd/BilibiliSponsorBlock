@@ -416,6 +416,12 @@
         "message": " 的生命",
         "description": "You've saved people from 887,362 segments (236d 15h 5.3 minutes of their lives)."
     },
+    "serverStatus": {
+        "message": "服务器状态"
+    },
+    "projectRepo": {
+        "message": "项目代码"
+    },
     "statusReminder": {
         "message": "在 status.bsbsb.top 检查服务器状态。"
     },
@@ -732,7 +738,7 @@
     "showOverlay_POI": {
         "message": "在进度条中显示"
     },
-    "showOverlay_full" : {
+    "showOverlay_full": {
         "message": "显示标签"
     },
     "autoSkipOnMusicVideos": {
