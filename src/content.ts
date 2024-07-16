@@ -130,13 +130,14 @@ setupThumbnailListener();
  *  根据页面元素加载状态判断页面是否加载完成
  */
 async function setupPageLoadingListener() {
-    // header栏会加载组件，触发5次mutation
+    // header栏会加载组件，登录后触发5次mutation，未登录触发4次mutation
     const header = await waitFor(() => document.querySelector("#biliMainHeader"), 10000, 100);
     let mutationCounter = 0;
     const headerObserver = new MutationObserver(async () => {
         mutationCounter += 1;
-        if (mutationCounter >= 5) {
+        if (mutationCounter >= 4) {
             headerObserver.disconnect();
+            // 再等待500ms，确保页面加载完成
             await new Promise(resolve => setTimeout(resolve, 500));
             headerLoaded = true;
         }
