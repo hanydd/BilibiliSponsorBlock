@@ -9,13 +9,8 @@ import { FetchResponse, sendRequestToCustomServer } from "./background-request-p
  * @param address The address to add to the SponsorBlock server address
  * @param callback
  */
-export function asyncRequestToCustomServer(
-    type: string,
-    url: string,
-    data = {},
-    ignoreServerCache = false
-): Promise<FetchResponse> {
-    return sendRequestToCustomServer(type, url, data, ignoreServerCache);
+function asyncRequestToCustomServer(type: string, url: string, data = {}, headers = {}): Promise<FetchResponse> {
+    return sendRequestToCustomServer(type, url, data, headers);
 }
 
 /**
@@ -29,13 +24,17 @@ export async function asyncRequestToServer(
     type: string,
     address: string,
     data = {},
-    ignoreServerCache = false
+    ignoreServerCache = false,
+    customHeaders = {}
 ): Promise<FetchResponse> {
     const serverAddress = Config.config.testingServer
         ? CompileConfig.testingServerAddress
         : Config.config.serverAddress;
 
-    return await asyncRequestToCustomServer(type, serverAddress + address, data, ignoreServerCache);
+    return await asyncRequestToCustomServer(type, serverAddress + address, data, {
+        "X-SKIP-CACHE": ignoreServerCache ? "1" : "0",
+        ...customHeaders,
+    });
 }
 
 /**

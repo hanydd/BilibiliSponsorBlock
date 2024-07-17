@@ -46,7 +46,7 @@
   },
   "scripts": {
     "web-run": "npm run web-run:chrome",
-    "web-sign": "web-ext sign -s dist",
+    "web-sign": "web-ext sign --channel unlisted -s dist",
     "web-run:firefox": "cd dist && web-ext run --start-url https://www.bilibili.com",
     "web-run:firefox-android": "cd dist && web-ext run -t firefox-android --firefox-apk org.mozilla.fenix",
     "web-run:chrome": "cd dist && web-ext run --start-url https://www.bilibili.com -t chromium",

@@ -18,7 +18,7 @@ export async function sendRealRequestToCustomServer(
     type: string,
     url: string,
     data: Record<string, unknown> | null = {},
-    ignoreServerCache = false
+    headers: Record<string, string> = {}
 ) {
     // If GET, convert JSON to parameters
     if (type.toLowerCase() === "get") {
@@ -32,7 +32,7 @@ export async function sendRealRequestToCustomServer(
         headers: {
             "Content-Type": "application/json",
             "X-EXT-VERSION": chrome.runtime.getManifest().version,
-            "X-SKIP-CACHE": ignoreServerCache ? "1" : "0",
+            ...headers,
         },
         redirect: "follow",
         body: data ? JSON.stringify(data) : null,
@@ -44,7 +44,7 @@ export async function sendRealRequestToCustomServer(
 export function setupBackgroundRequestProxy() {
     chrome.runtime.onMessage.addListener((request, sender, callback) => {
         if (request.message === "sendRequest") {
-            sendRealRequestToCustomServer(request.type, request.url, request.data, request.ignoreServerCache)
+            sendRealRequestToCustomServer(request.type, request.url, request.data, request.headers)
                 .then(async (response) => {
                     callback({ responseText: await response.text(), status: response.status, ok: response.ok });
                 })
@@ -69,15 +69,10 @@ export function setupBackgroundRequestProxy() {
     });
 }
 
-export function sendRequestToCustomServer(
-    type: string,
-    url: string,
-    data = {},
-    ignoreServerCache = false
-): Promise<FetchResponse> {
+export function sendRequestToCustomServer(type: string, url: string, data = {}, headers = {}): Promise<FetchResponse> {
     return new Promise((resolve, reject) => {
         // Ask the background script to do the work
-        chrome.runtime.sendMessage({ message: "sendRequest", type, url, data, ignoreServerCache }, (response) => {
+        chrome.runtime.sendMessage({ message: "sendRequest", type, url, data, headers }, (response) => {
             if (response.status !== -1) {
                 resolve(response);
             } else {

@@ -1,3 +1,4 @@
+import * as CompileConfig from "../config.json";
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import Config from "./config";
 import { isSafari, Keybind, keybindEquals, keybindToString, StorageChangesObject } from "./config/config";
@@ -15,6 +16,7 @@ import { asyncRequestToServer } from "./requests/requests";
 import { setupThumbnailListener, updateAll } from "./thumbnail-utils/thumbnailManagement";
 import {
     ActionType,
+    ActionTypes,
     Category,
     CategorySkipOption,
     ChannelIDInfo,
@@ -1139,9 +1141,8 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
         "GET",
         "/api/skipSegments/" + hashPrefix,
         {
-            categories,
-            actionTypes: getEnabledActionTypes(),
-            userAgent: `${chrome.runtime.id}`,
+            categories: CompileConfig.categoryList,
+            actionTypes: ActionTypes,
             ...extraRequestData,
         },
         ignoreServerCache
@@ -1154,6 +1155,10 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
         const receivedSegments: SponsorTime[] = JSON.parse(response.responseText)
             ?.filter((video) => video.videoID === getVideoID())
             ?.map((video) => video.segments)?.[0]
+            ?.filter(
+                (segment) =>
+                    getEnabledActionTypes().includes(segment.actionType) && categories.includes(segment.category)
+            )
             ?.map((segment) => ({
                 ...segment,
                 source: SponsorSourceType.Server,
@@ -1782,7 +1787,7 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
         }
     }
 
-    if (autoSkip && Config.config.audioNotificationOnSkip) {
+    if (autoSkip && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
         const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
         beep.volume = getVideo().volume * 0.1;
         const oldMetadata = navigator.mediaSession.metadata;
