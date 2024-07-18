@@ -4,23 +4,39 @@ import { DescriptionPortPillComponent } from "../components/DescriptionPortPillC
 import { VideoID } from "../types";
 import { waitFor } from "../../maze-utils/src";
 import { getPageLoaded } from "../content";
+import { asyncRequestToServer } from "../utils/requests";
 
 
 const id = "bsbDescriptionContainer";
 
 export class DescriptionPortPill {
-    videoID: VideoID;
+    bvID: VideoID;
+    ytbID: VideoID;
+    portUUID: string;
+
     container: HTMLElement;
     ref: React.RefObject<DescriptionPortPillComponent>;
     root: Root;
 
     async setupDecription(videoId: VideoID) {
-        if (this.videoID === videoId) {
+        if (this.bvID === videoId) {
             return;
         }
+        this.bvID = videoId;
+
         this.cleanup();
 
-        this.videoID = videoId;
+        // make request to get the port video
+        const response = await asyncRequestToServer("GET", "/api/portVideo", { videoID: videoId });
+        if (response?.ok) {
+            const responseData = JSON.parse(response.responseText);
+            console.log(responseData);
+            if (responseData?.bvID == this.bvID) {
+                this.ytbID = responseData.ytbID;
+                this.portUUID = responseData.UUID;
+            }
+        }
+
         const referenceNode = await waitFor(() => document.querySelector("#v_desc .basic-desc-info") as HTMLElement);
         if (!referenceNode) {
             console.error("Description element not found");
@@ -46,10 +62,12 @@ export class DescriptionPortPill {
         this.root.render(
             <DescriptionPortPillComponent
                 ref={this.ref}
+                bvID={this.bvID}
+                ytbID={this.ytbID}
             />
         );
 
-        referenceNode.appendChild(this.container);
+        referenceNode.prepend(this.container);
     }
 
     cleanup() {
