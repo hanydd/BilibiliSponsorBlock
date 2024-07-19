@@ -5,9 +5,19 @@ import { VideoID } from "../types";
 import { waitFor } from "../../maze-utils/src";
 import { getPageLoaded } from "../content";
 import { asyncRequestToServer } from "../utils/requests";
+import { getVideo, getVideoID } from "../../maze-utils/src/video";
+import Config from "../config";
 
 
 const id = "bsbDescriptionContainer";
+
+export interface PortVideo {
+    bvID: VideoID;
+    ytbID: VideoID;
+    UUID: string;
+    votes: number;
+    locked: boolean;
+}
 
 export class DescriptionPortPill {
     bvID: VideoID;
@@ -53,7 +63,7 @@ export class DescriptionPortPill {
         this.attachToPage(referenceNode);
     }
 
-    attachToPage(referenceNode: HTMLElement) {
+    private attachToPage(referenceNode: HTMLElement) {
         this.container = document.createElement("div");
         this.container.id = id;
 
@@ -64,6 +74,7 @@ export class DescriptionPortPill {
                 ref={this.ref}
                 bvID={this.bvID}
                 ytbID={this.ytbID}
+                onSubmitPortVideo={(ytbID) => this.submitPortVideo(ytbID)}
             />
         );
 
@@ -76,5 +87,24 @@ export class DescriptionPortPill {
 
         this.root = null;
         this.container = null;
+    }
+
+
+    private async submitPortVideo(ytbID: VideoID): Promise<PortVideo> {
+        const response = await asyncRequestToServer("POST", "/api/portVideo", {
+            bvID: getVideoID(),
+            ytbID,
+            biliDuration: getVideo().duration,
+            userID: Config.config.userID,
+            userAgent: `${chrome.runtime.id}/v${chrome.runtime.getManifest().version}`
+        });
+        if (response?.ok) {
+            const newPortVideo = JSON.parse(response.responseText) as PortVideo;
+            this.ytbID = ytbID;
+            this.portUUID = newPortVideo.UUID;
+
+            return newPortVideo;
+        }
+        return null;
     }
 }
