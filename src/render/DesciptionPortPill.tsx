@@ -87,6 +87,8 @@ export class DescriptionPortPill {
 
         this.root = null;
         this.container = null;
+        this.ytbID = null;
+        this.portUUID = null;
     }
 
 
