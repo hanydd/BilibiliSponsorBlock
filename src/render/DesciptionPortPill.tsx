@@ -64,6 +64,11 @@ export class DescriptionPortPill {
     }
 
     private attachToPage(referenceNode: HTMLElement) {
+        this.attachInputToPage(referenceNode);
+        this.attachButtonToPage();
+    }
+
+    private attachInputToPage(referenceNode: HTMLElement) {
         this.container = document.createElement("div");
         this.container.id = id;
 
@@ -79,6 +84,28 @@ export class DescriptionPortPill {
         );
 
         referenceNode.prepend(this.container);
+    }
+
+    private attachButtonToPage() {
+        const referenceNode = document.querySelector(".video-toolbar-right") as HTMLElement;
+        if (!referenceNode) {
+            console.error("Video toolbar not found");
+            return;
+        }
+
+        const buttonContainer = document.createElement("div");
+        buttonContainer.id = "bsbPortButton";
+        buttonContainer.addEventListener("click", () => {
+            this.ref.current.toggleInput();
+        });
+
+        const newButtonImage = document.createElement("img");
+        newButtonImage.id = "bsbPortButtonImage";
+        newButtonImage.className = "playerButtonImage bpx-player-ctrl-btn-icon";
+        newButtonImage.src = chrome.runtime.getURL("icons/upvote.png");
+        buttonContainer.appendChild(newButtonImage);
+
+        referenceNode.prepend(buttonContainer);
     }
 
     cleanup() {

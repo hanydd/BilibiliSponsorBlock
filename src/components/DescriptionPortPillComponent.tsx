@@ -11,6 +11,7 @@ export interface DescriptionPortPillProps {
 }
 
 export interface DescriptionPortPillState {
+    show: boolean;
     loading: boolean;
     ytbVideoID: VideoID;
 }
@@ -20,35 +21,39 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
 
     constructor(props: DescriptionPortPillProps) {
         super(props);
-        this.state = { ytbVideoID: props.ytbID, loading: false };
+        this.state = { show: false, ytbVideoID: props.ytbID, loading: false };
         this.inputRef = React.createRef();
     }
 
     render(): React.ReactElement {
         return (
-            <>
+            <div hidden={!this.state.show}>
                 {
                     this.state.loading &&
                     <div>加载中...</div>
                 }
                 {
                     !!this.state.ytbVideoID &&
-                    <div>
+                    <>
                         <span>已经绑定搬运视频：
                             <a href={this.getVideoLink()} target="blank">{this.state.ytbVideoID}</a>
                         </span>
-                    </div>
+                    </>
                 }
                 {
                     !this.state.ytbVideoID &&
-                    <div>
+                    <>
                         <span>输入搬运视频地址：</span>
                         <input type="text" ref={this.inputRef}></input>
                         <button onClick={() => this.submitPortVideo()}>提交</button>
-                    </div>
+                    </>
                 }
-            </>
+            </div>
         )
+    }
+
+    toggleInput(): void {
+        this.setState({ show: !this.state.show });
     }
 
     private submitPortVideo(): void {
