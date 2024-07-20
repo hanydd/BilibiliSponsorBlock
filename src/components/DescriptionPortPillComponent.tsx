@@ -30,55 +30,52 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
             ytbVideoID: props.ytbID,
             loading: false,
             showPreviewYtbVideo: false,
-            previewYtbID: props.ytbID
+            previewYtbID: props.ytbID,
         };
     }
 
     render(): React.ReactElement {
         return (
             <div hidden={!this.state.show}>
-                {
-                    this.state.loading &&
-                    <div>加载中...</div>
-                }
-                {
-                    this.hasYtbVideo() &&
+                {this.state.loading && <div>加载中...</div>}
+                {this.hasYtbVideo() && (
                     <>
                         <span>已经绑定搬运视频：</span>
-                        <a href={this.getVideoLink()} target="blank">{this.state.ytbVideoID}</a>
+                        <a href={this.getVideoLink()} target="blank">
+                            {this.state.ytbVideoID}
+                        </a>
 
-                        {togglePreviewYtbVideoButton(
-                            this.props.showYtbVideoButton,
-                            !this.state.previewYtbID,
-                            () => this.toggleYtbVideo())}
+                        {togglePreviewYtbVideoButton(this.props.showYtbVideoButton, !this.state.previewYtbID, () =>
+                            this.toggleYtbVideo()
+                        )}
                     </>
-                }
-                {
-                    !this.hasYtbVideo() &&
+                )}
+                {!this.hasYtbVideo() && (
                     <>
                         <span>输入搬运视频地址：</span>
                         <input type="text" ref={this.inputRef}></input>
                         <button onClick={() => this.submitPortVideo()}>提交</button>
 
-                        {togglePreviewYtbVideoButton(
-                            this.props.showYtbVideoButton,
-                            !this.state.previewYtbID,
-                            () => this.toggleYtbVideo())}
+                        {togglePreviewYtbVideoButton(this.props.showYtbVideoButton, !this.state.previewYtbID, () =>
+                            this.toggleYtbVideo()
+                        )}
                     </>
-                }
+                )}
 
-                {
-                    (this.state.previewYtbID && this.props.showYtbVideoButton) &&
-                    < iframe hidden={!this.state.showPreviewYtbVideo}
-                        width="560" height="320"
+                {this.state.previewYtbID && this.props.showYtbVideoButton && (
+                    <iframe
+                        hidden={!this.state.showPreviewYtbVideo}
+                        width="560"
+                        height="320"
                         src={`https://www.youtube.com/embed/${this.state.previewYtbID}`}
                         title="YouTube video player"
                         allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
                         referrerPolicy="strict-origin-when-cross-origin"
-                        allowFullScreen></iframe>
-                }
+                        allowFullScreen
+                    ></iframe>
+                )}
             </div>
-        )
+        );
     }
 
     toggleInput(): void {
@@ -101,26 +98,30 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
         }
         const ytbID = parseYouTubeVideoIDFromURL(YtbInput).videoID;
         this.setState({ loading: true });
-        this.props.onSubmitPortVideo(ytbID).then((newPortVideo) => {
-            console.log(newPortVideo);
-            if (newPortVideo) {
-                this.setState({ ytbVideoID: newPortVideo.ytbID });
-            }
-        }).finally(() => {
-            this.setState({ loading: false });
-        });
+        this.props
+            .onSubmitPortVideo(ytbID)
+            .then((newPortVideo) => {
+                console.log(newPortVideo);
+                if (newPortVideo) {
+                    this.setState({ ytbVideoID: newPortVideo.ytbID });
+                }
+            })
+            .finally(() => {
+                this.setState({ loading: false });
+            });
     }
 
     private getVideoLink(): string {
         return `https://www.youtube.com/watch?v=${this.state.ytbVideoID}`;
     }
-
 }
-
 
 function togglePreviewYtbVideoButton(showButton: boolean, disabled: boolean, onClickCallback): React.ReactElement {
     return (
-        showButton &&
-        <button disabled={disabled} onClick={onClickCallback}>预览YouTube视频</button>
-    )
+        showButton && (
+            <button disabled={disabled} onClick={onClickCallback}>
+                预览YouTube视频
+            </button>
+        )
+    );
 }

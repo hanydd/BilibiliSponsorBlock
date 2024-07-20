@@ -8,7 +8,6 @@ import { asyncRequestToServer } from "../utils/requests";
 import { getVideo, getVideoID } from "../../maze-utils/src/video";
 import Config from "../config";
 
-
 const id = "bsbDescriptionContainer";
 
 export interface PortVideo {
@@ -38,7 +37,9 @@ export class DescriptionPortPill {
         this.cleanup();
 
         // make request to get the port video
-        const response = await asyncRequestToServer("GET", "/api/portVideo", { videoID: videoId }).catch((e) => { console.log(e) });
+        const response = await asyncRequestToServer("GET", "/api/portVideo", { videoID: videoId }).catch((e) => {
+            console.log(e);
+        });
         if (response && response?.ok) {
             const responseData = JSON.parse(response.responseText);
             if (responseData?.bvID == this.bvID) {
@@ -54,11 +55,10 @@ export class DescriptionPortPill {
 
         // wait for the sibling span to load
         await waitFor(getPageLoaded, 20000, 10);
-        await waitFor(() => referenceNode.querySelector(".desc-info-text")?.textContent, 20000, 50)
-            .catch(() => {
-                console.error("Failed to find description text element");
-                return;
-            });
+        await waitFor(() => referenceNode.querySelector(".desc-info-text")?.textContent, 20000, 50).catch(() => {
+            console.error("Failed to find description text element");
+            return;
+        });
 
         this.attachToPage(referenceNode);
     }
@@ -122,14 +122,13 @@ export class DescriptionPortPill {
         this.portUUID = null;
     }
 
-
     private async submitPortVideo(ytbID: VideoID): Promise<PortVideo> {
         const response = await asyncRequestToServer("POST", "/api/portVideo", {
             bvID: getVideoID(),
             ytbID,
             biliDuration: getVideo().duration,
             userID: Config.config.userID,
-            userAgent: `${chrome.runtime.id}/v${chrome.runtime.getManifest().version}`
+            userAgent: `${chrome.runtime.id}/v${chrome.runtime.getManifest().version}`,
         });
         if (response?.ok) {
             const newPortVideo = JSON.parse(response.responseText) as PortVideo;
