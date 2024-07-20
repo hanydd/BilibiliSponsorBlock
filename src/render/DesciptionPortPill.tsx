@@ -24,7 +24,8 @@ export class DescriptionPortPill {
     ytbID: VideoID;
     portUUID: string;
 
-    container: HTMLElement;
+    inputContainer: HTMLElement;
+    buttonContainer: HTMLElement;
     ref: React.RefObject<DescriptionPortPillComponent>;
     root: Root;
 
@@ -37,10 +38,9 @@ export class DescriptionPortPill {
         this.cleanup();
 
         // make request to get the port video
-        const response = await asyncRequestToServer("GET", "/api/portVideo", { videoID: videoId });
-        if (response?.ok) {
+        const response = await asyncRequestToServer("GET", "/api/portVideo", { videoID: videoId }).catch((e) => { console.log(e) });
+        if (response && response?.ok) {
             const responseData = JSON.parse(response.responseText);
-            console.log(responseData);
             if (responseData?.bvID == this.bvID) {
                 this.ytbID = responseData.ytbID;
                 this.portUUID = responseData.UUID;
@@ -69,10 +69,10 @@ export class DescriptionPortPill {
     }
 
     private attachInputToPage(referenceNode: HTMLElement) {
-        this.container = document.createElement("div");
-        this.container.id = id;
+        this.inputContainer = document.createElement("div");
+        this.inputContainer.id = id;
 
-        this.root = createRoot(this.container);
+        this.root = createRoot(this.inputContainer);
         this.ref = React.createRef();
         this.root.render(
             <DescriptionPortPillComponent
@@ -83,7 +83,7 @@ export class DescriptionPortPill {
             />
         );
 
-        referenceNode.prepend(this.container);
+        referenceNode.prepend(this.inputContainer);
     }
 
     private attachButtonToPage() {
@@ -106,14 +106,17 @@ export class DescriptionPortPill {
         buttonContainer.appendChild(newButtonImage);
 
         referenceNode.prepend(buttonContainer);
+        this.buttonContainer = buttonContainer;
     }
 
     cleanup() {
         this.root?.unmount();
-        this.container?.remove();
+        this.inputContainer?.remove();
+        this.buttonContainer?.remove();
 
         this.root = null;
-        this.container = null;
+        this.inputContainer = null;
+        this.buttonContainer = null;
         this.ytbID = null;
         this.portUUID = null;
     }
