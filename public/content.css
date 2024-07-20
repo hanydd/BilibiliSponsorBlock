@@ -796,8 +796,7 @@ input::-webkit-inner-spin-button {
 }
 
 #bsbDescriptionPortVideoPill input {
-	min-width: 400px;
-
+	width: 100%;
 	background-color: inherit;
 	border: none;
 	outline: none;
@@ -834,8 +833,14 @@ input::-webkit-inner-spin-button {
 }
 
 #bsbPortButton {
+	cursor: pointer;
 	margin-right: 18px;
 	display: inline-flex;
     align-items: center;
 	color: var(--text2);
+}
+
+#bsbPortButtonImage {
+	height: 24px;
+	margin-right: 8px;
 }

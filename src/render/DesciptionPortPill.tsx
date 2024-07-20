@@ -102,9 +102,14 @@ export class DescriptionPortPill {
 
         const newButtonImage = document.createElement("img");
         newButtonImage.id = "bsbPortButtonImage";
-        newButtonImage.className = "playerButtonImage bpx-player-ctrl-btn-icon";
-        newButtonImage.src = chrome.runtime.getURL("icons/upvote.png");
+        newButtonImage.src = chrome.runtime.getURL("icons/youtubeLogo.svg");
+        newButtonImage.title = "绑定搬运视频";
         buttonContainer.appendChild(newButtonImage);
+
+        const newButtonText = document.createElement("span");
+        newButtonText.id = "bsbPortButtonText";
+        newButtonText.textContent = "绑定搬运视频";
+        buttonContainer.appendChild(newButtonText);
 
         referenceNode.prepend(buttonContainer);
         this.buttonContainer = buttonContainer;
