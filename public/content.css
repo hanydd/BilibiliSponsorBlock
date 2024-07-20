@@ -781,7 +781,9 @@ input::-webkit-inner-spin-button {
 	gap: 2px;
 
 	line-height: 32px;
-	margin-bottom: 10px;
+	margin-top: -2px;
+	padding-top: 2px;
+	padding-bottom: 10px;
 }
 
 #bsbDescriptionPortVideoPill .inputWrapper {
@@ -822,6 +824,15 @@ input::-webkit-inner-spin-button {
 
 #bsbDescriptionPortVideoPill a#ytbLink {
 	color: var(--sb-brand-blue);
+}
+
+#bsbDescriptionContainer #bsbDescriptionPortLoading {
+	position: absolute;
+	width: 100%;
+	text-align: center;
+	backdrop-filter: blur(2px);
+	height: 44px;
+    line-height: 32px;
 }
 
 #bsbDescriptionContainer #ytbPreviewFrame {

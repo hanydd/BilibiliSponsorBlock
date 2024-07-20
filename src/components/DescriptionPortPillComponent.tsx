@@ -37,8 +37,11 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
     render(): React.ReactElement {
         return (
             <>
+                <div hidden={!this.state.loading || !this.state.show} id="bsbDescriptionPortLoading">
+                    加载中...
+                </div>
+
                 <div hidden={!this.state.show} id="bsbDescriptionPortVideoPill">
-                    {this.state.loading && <div>加载中...</div>}
                     {this.hasYtbVideo() && (
                         <>
                             <span>已绑定搬运视频：</span>
