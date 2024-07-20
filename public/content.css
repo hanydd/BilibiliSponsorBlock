@@ -5,6 +5,8 @@
 	--skip-notice-border-horizontal: 5px;
 	--skip-notice-border-vertical: 10px;
 	--sb-dark-outline: rgba(6, 80, 111, 0.9);
+	--sb-brand-blue: #00AEEC;
+	--sb-brand-blue-rgb: 0, 174, 236;
 }
 
 .sbhidden {
@@ -769,4 +771,71 @@ input::-webkit-inner-spin-button {
 
 .sponsorblock-chapter-visible {
 	display: inherit !important;
+}
+
+/* Port Video Related */
+#bsbDescriptionPortVideoPill {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 2px;
+
+	line-height: 32px;
+	margin-bottom: 10px;
+}
+
+#bsbDescriptionPortVideoPill .inputWrapper {
+	flex-grow: 1;
+	padding: 0 10px 0;
+	border: 1px solid var(--Ga1);
+	box-sizing: border-box;
+	border-radius: 6px;
+	background-color: var(--bg3);
+	transition: all 0.2s ease 0s;
+	cursor: text;
+}
+
+#bsbDescriptionPortVideoPill input {
+	min-width: 400px;
+
+	background-color: inherit;
+	border: none;
+	outline: none;
+}
+
+#bsbDescriptionPortVideoPill button {
+	padding: 0 5px;
+	cursor: pointer;
+	border-radius: 4px;
+	border: none;
+	outline: none;
+	color: var(--text_white);
+	background-color: rgba(var(--sb-brand-blue-rgb), 0.5);
+}
+
+#bsbDescriptionPortVideoPill button.active {
+	background-color: var(--sb-brand-blue);
+}
+
+#bsbDescriptionPortVideoPill button#previewYtb {
+	margin-left: auto;
+}
+
+#bsbDescriptionPortVideoPill a#ytbLink {
+	color: var(--sb-brand-blue);
+}
+
+#bsbDescriptionContainer #ytbPreviewFrame {
+	width: 100%;
+	box-sizing: border-box;
+	border: 1px solid var(--line_regular);
+	min-height: 300px;
+	max-height: 500px;
+}
+
+#bsbPortButton {
+	margin-right: 18px;
+	display: inline-flex;
+    align-items: center;
+	color: var(--text2);
 }

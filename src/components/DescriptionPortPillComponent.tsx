@@ -36,37 +36,36 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
 
     render(): React.ReactElement {
         return (
-            <div hidden={!this.state.show}>
-                {this.state.loading && <div>加载中...</div>}
-                {this.hasYtbVideo() && (
-                    <>
-                        <span>已经绑定搬运视频：</span>
-                        <a href={this.getVideoLink()} target="blank">
-                            {this.state.ytbVideoID}
-                        </a>
+            <>
+                <div hidden={!this.state.show} id="bsbDescriptionPortVideoPill">
+                    {this.state.loading && <div>加载中...</div>}
+                    {this.hasYtbVideo() && (
+                        <>
+                            <span>已绑定搬运视频：</span>
+                            <a id="ytbLink" href={this.getVideoLink()} target="blank">
+                                {this.state.ytbVideoID}
+                            </a>
+                        </>
+                    )}
+                    {!this.hasYtbVideo() && (
+                        <>
+                            <div className="inputWrapper">
+                                <input ref={this.inputRef} type="text" placeholder="请输入搬运视频地址"></input>
+                            </div>
+                            <button className="active" onClick={() => this.submitPortVideo()}>
+                                提交
+                            </button>
+                        </>
+                    )}
 
-                        {togglePreviewYtbVideoButton(this.props.showYtbVideoButton, !this.state.previewYtbID, () =>
-                            this.toggleYtbVideo()
-                        )}
-                    </>
-                )}
-                {!this.hasYtbVideo() && (
-                    <>
-                        <span>输入搬运视频地址：</span>
-                        <input type="text" ref={this.inputRef}></input>
-                        <button onClick={() => this.submitPortVideo()}>提交</button>
-
-                        {togglePreviewYtbVideoButton(this.props.showYtbVideoButton, !this.state.previewYtbID, () =>
-                            this.toggleYtbVideo()
-                        )}
-                    </>
-                )}
-
+                    {togglePreviewYtbVideoButton(this.props.showYtbVideoButton, !this.state.previewYtbID, () =>
+                        this.toggleYtbVideo()
+                    )}
+                </div>
                 {this.state.previewYtbID && this.props.showYtbVideoButton && (
                     <iframe
                         hidden={!this.state.showPreviewYtbVideo}
-                        width="560"
-                        height="320"
+                        id="ytbPreviewFrame"
                         src={`https://www.youtube.com/embed/${this.state.previewYtbID}`}
                         title="YouTube video player"
                         allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
@@ -74,7 +73,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                         allowFullScreen
                     ></iframe>
                 )}
-            </div>
+            </>
         );
     }
 
@@ -119,7 +118,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
 function togglePreviewYtbVideoButton(showButton: boolean, disabled: boolean, onClickCallback): React.ReactElement {
     return (
         showButton && (
-            <button disabled={disabled} onClick={onClickCallback}>
+            <button id="previewYtb" className={disabled ? "" : "active"} disabled={disabled} onClick={onClickCallback}>
                 预览YouTube视频
             </button>
         )
