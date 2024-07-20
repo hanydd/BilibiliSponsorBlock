@@ -79,6 +79,7 @@ export class DescriptionPortPill {
                 ref={this.ref}
                 bvID={this.bvID}
                 ytbID={this.ytbID}
+                showYtbVideoButton={true}
                 onSubmitPortVideo={(ytbID) => this.submitPortVideo(ytbID)}
             />
         );

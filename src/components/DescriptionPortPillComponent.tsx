@@ -6,14 +6,17 @@ import { parseYouTubeVideoIDFromURL } from "../../maze-utils/src/video";
 export interface DescriptionPortPillProps {
     bvID: VideoID;
     ytbID: VideoID;
+    showYtbVideoButton: boolean;
 
     onSubmitPortVideo: (ytbID: VideoID) => Promise<PortVideo>;
 }
 
 export interface DescriptionPortPillState {
     show: boolean;
+    showPreviewYtbVideo: boolean;
     loading: boolean;
     ytbVideoID: VideoID;
+    previewYtbID: VideoID;
 }
 
 export class DescriptionPortPillComponent extends React.Component<DescriptionPortPillProps, DescriptionPortPillState> {
@@ -21,8 +24,14 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
 
     constructor(props: DescriptionPortPillProps) {
         super(props);
-        this.state = { show: false, ytbVideoID: props.ytbID, loading: false };
         this.inputRef = React.createRef();
+        this.state = {
+            show: false,
+            ytbVideoID: props.ytbID,
+            loading: false,
+            showPreviewYtbVideo: false,
+            previewYtbID: props.ytbID
+        };
     }
 
     render(): React.ReactElement {
@@ -33,20 +42,40 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                     <div>加载中...</div>
                 }
                 {
-                    !!this.state.ytbVideoID &&
+                    this.hasYtbVideo() &&
                     <>
-                        <span>已经绑定搬运视频：
-                            <a href={this.getVideoLink()} target="blank">{this.state.ytbVideoID}</a>
-                        </span>
+                        <span>已经绑定搬运视频：</span>
+                        <a href={this.getVideoLink()} target="blank">{this.state.ytbVideoID}</a>
+
+                        {togglePreviewYtbVideoButton(
+                            this.props.showYtbVideoButton,
+                            !this.state.previewYtbID,
+                            () => this.toggleYtbVideo())}
                     </>
                 }
                 {
-                    !this.state.ytbVideoID &&
+                    !this.hasYtbVideo() &&
                     <>
                         <span>输入搬运视频地址：</span>
                         <input type="text" ref={this.inputRef}></input>
                         <button onClick={() => this.submitPortVideo()}>提交</button>
+
+                        {togglePreviewYtbVideoButton(
+                            this.props.showYtbVideoButton,
+                            !this.state.previewYtbID,
+                            () => this.toggleYtbVideo())}
                     </>
+                }
+
+                {
+                    (this.state.previewYtbID && this.props.showYtbVideoButton) &&
+                    < iframe hidden={!this.state.showPreviewYtbVideo}
+                        width="560" height="320"
+                        src={`https://www.youtube.com/embed/${this.state.previewYtbID}`}
+                        title="YouTube video player"
+                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allowFullScreen></iframe>
                 }
             </div>
         )
@@ -54,6 +83,15 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
 
     toggleInput(): void {
         this.setState({ show: !this.state.show });
+    }
+
+    toggleYtbVideo(): void {
+        this.setState({ showPreviewYtbVideo: !this.state.showPreviewYtbVideo });
+    }
+
+    private hasYtbVideo(): boolean {
+        // TODO: add validation
+        return !!this.state.ytbVideoID;
     }
 
     private submitPortVideo(): void {
@@ -77,4 +115,12 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
         return `https://www.youtube.com/watch?v=${this.state.ytbVideoID}`;
     }
 
+}
+
+
+function togglePreviewYtbVideoButton(showButton: boolean, disabled: boolean, onClickCallback): React.ReactElement {
+    return (
+        showButton &&
+        <button disabled={disabled} onClick={onClickCallback}>预览YouTube视频</button>
+    )
 }
