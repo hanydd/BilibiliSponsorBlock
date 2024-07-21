@@ -118,7 +118,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
             .onSubmitPortVideo(ytbID)
             .then((newPortVideo) => {
                 if (newPortVideo) {
-                    this.setState({ ytbVideoID: newPortVideo.ytbID });
+                    this.setState({ ytbVideoID: newPortVideo.ytbID, previewYtbID: newPortVideo.ytbID });
                 }
             })
             .finally(() => {

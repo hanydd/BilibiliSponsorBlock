@@ -22,11 +22,16 @@ export class DescriptionPortPill {
     bvID: VideoID;
     ytbID: VideoID;
     portUUID: string;
+    sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean) => void;
 
     inputContainer: HTMLElement;
     buttonContainer: HTMLElement;
     ref: React.RefObject<DescriptionPortPillComponent>;
     root: Root;
+
+    constructor(sponsorsLookup: () => void) {
+        this.sponsorsLookup = sponsorsLookup;
+    }
 
     async setupDecription(videoId: VideoID) {
         if (this.bvID === videoId) {
@@ -140,7 +145,11 @@ export class DescriptionPortPill {
             this.ytbID = ytbID;
             this.portUUID = newPortVideo.UUID;
 
+            this.sponsorsLookup(true, true);
+
             return newPortVideo;
+        } else {
+            throw response.responseText;
         }
         return null;
     }

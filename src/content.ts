@@ -1008,7 +1008,7 @@ function setupCategoryPill() {
 
 function setupDescriptionPill() {
     if (!descriptionPill) {
-        descriptionPill = new DescriptionPortPill();
+        descriptionPill = new DescriptionPortPill(sponsorsLookup);
     }
     descriptionPill.setupDecription(getVideoID());
 }
