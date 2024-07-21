@@ -104,7 +104,6 @@ export class DescriptionPortPill {
         const newButtonImage = document.createElement("img");
         newButtonImage.id = "bsbPortButtonImage";
         newButtonImage.src = chrome.runtime.getURL("icons/youtubeLogo.svg");
-        newButtonImage.title = "绑定搬运视频";
         buttonContainer.appendChild(newButtonImage);
 
         const newButtonText = document.createElement("span");

@@ -806,7 +806,6 @@ input::-webkit-inner-spin-button {
 
 #bsbDescriptionPortVideoPill button {
 	padding: 0 8px;
-	cursor: pointer;
 	border-radius: 6px;
 	border: none;
 	outline: none;
@@ -815,6 +814,7 @@ input::-webkit-inner-spin-button {
 }
 
 #bsbDescriptionPortVideoPill button.active {
+	cursor: pointer;
 	background-color: var(--sb-brand-blue);
 }
 

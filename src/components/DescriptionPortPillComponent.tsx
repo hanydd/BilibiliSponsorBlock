@@ -3,7 +3,6 @@ import { VideoID } from "../types";
 import { PortVideo } from "../render/DesciptionPortPill";
 import { parseYouTubeVideoIDFromURL } from "../../maze-utils/src/video";
 import { AnimationUtils } from "../../maze-utils/src/animationUtils";
-import { sleep } from "../../maze-utils/src";
 
 export interface DescriptionPortPillProps {
     bvID: VideoID;
@@ -86,7 +85,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                         id="ytbPreviewFrame"
                         src={`https://www.youtube.com/embed/${this.state.previewYtbID}`}
                         title="YouTube video player"
-                        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                        allow="clipboard-write; encrypted-media; web-share"
                         referrerPolicy="strict-origin-when-cross-origin"
                         allowFullScreen
                     ></iframe>
@@ -118,7 +117,6 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
         this.props
             .onSubmitPortVideo(ytbID)
             .then((newPortVideo) => {
-                console.log(newPortVideo);
                 if (newPortVideo) {
                     this.setState({ ytbVideoID: newPortVideo.ytbID });
                 }
@@ -139,7 +137,11 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
     }
 }
 
-function togglePreviewYtbVideoButton(showButton: boolean, disabled: boolean, onClickCallback): React.ReactElement {
+function togglePreviewYtbVideoButton(
+    showButton: boolean,
+    disabled: boolean,
+    onClickCallback: () => void
+): React.ReactElement {
     return (
         showButton && (
             <button id="previewYtb" className={disabled ? "" : "active"} disabled={disabled} onClick={onClickCallback}>
