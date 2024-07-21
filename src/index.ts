@@ -21,6 +21,12 @@ export async function waitFor<T>(condition: () => T, timeout = 5000, check = 100
     });
 }
 
+export async function sleep(timeout: number): Promise<void> {
+    return await new Promise<void>((resolve) => {
+        setTimeout(resolve, timeout);
+    });
+}
+
 export function objectToURI<T>(url: string, data: T, includeQuestionMark: boolean): string {
     let counter = 0;
     for (const key in data) {
