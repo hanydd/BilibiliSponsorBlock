@@ -2,6 +2,8 @@ import * as React from "react";
 import { VideoID } from "../types";
 import { PortVideo } from "../render/DesciptionPortPill";
 import { parseYouTubeVideoIDFromURL } from "../../maze-utils/src/video";
+import { AnimationUtils } from "../../maze-utils/src/animationUtils";
+import { sleep } from "../../maze-utils/src";
 
 export interface DescriptionPortPillProps {
     bvID: VideoID;
@@ -53,13 +55,13 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                                 className="bsbVoteButton"
                                 title="点赞"
                                 src={chrome.runtime.getURL("icons/thumbs_up_blue.svg")}
-                                onClick={() => this.vote(1)}
+                                onClick={(e) => this.vote(e, 1)}
                             ></img>
                             <img
                                 className="bsbVoteButton"
                                 title="点踩"
                                 src={chrome.runtime.getURL("icons/thumbs_down_blue.svg")}
-                                onClick={() => this.vote(0)}
+                                onClick={(e) => this.vote(e, 0)}
                             ></img>
                         </>
                     )}
@@ -126,10 +128,10 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
             });
     }
 
-    private async vote(type: 0 | 1) {
-        this.setState({ loading: true });
+    private async vote(event: React.MouseEvent, type: 0 | 1) {
+        const stopAnimation = AnimationUtils.applyLoadingAnimation(event.target as HTMLElement, 0.5);
         await this.props.onVote(type);
-        this.setState({ loading: false });
+        stopAnimation();
     }
 
     private getVideoLink(): string {
