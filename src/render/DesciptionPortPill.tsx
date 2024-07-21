@@ -81,6 +81,7 @@ export class DescriptionPortPill {
                 ytbID={this.ytbID}
                 showYtbVideoButton={true}
                 onSubmitPortVideo={(ytbID) => this.submitPortVideo(ytbID)}
+                onVote={(type) => this.vote(type)}
             />
         );
 
@@ -143,5 +144,24 @@ export class DescriptionPortPill {
             return newPortVideo;
         }
         return null;
+    }
+
+    private async vote(voteType: number) {
+        if (!this.portUUID) {
+            console.error("No port video to vote on");
+            return;
+        }
+
+        const response = await asyncRequestToServer("POST", "/api/votePort", {
+            UUID: this.portUUID,
+            bvID: this.bvID,
+            userID: Config.config.userID,
+            type: voteType,
+        });
+        if (response?.ok) {
+            console.log("Vote successful", response);
+        } else {
+            console.error("Vote failed", response);
+        }
     }
 }

@@ -9,6 +9,7 @@ export interface DescriptionPortPillProps {
     showYtbVideoButton: boolean;
 
     onSubmitPortVideo: (ytbID: VideoID) => Promise<PortVideo>;
+    onVote(type: number): Promise<void>;
 }
 
 export interface DescriptionPortPillState {
@@ -48,6 +49,18 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                             <a id="ytbLink" href={this.getVideoLink()} target="blank">
                                 {this.state.ytbVideoID}
                             </a>
+                            <img
+                                className="bsbVoteButton"
+                                title="点赞"
+                                src={chrome.runtime.getURL("icons/thumbs_up_blue.svg")}
+                                onClick={() => this.vote(1)}
+                            ></img>
+                            <img
+                                className="bsbVoteButton"
+                                title="点踩"
+                                src={chrome.runtime.getURL("icons/thumbs_down_blue.svg")}
+                                onClick={() => this.vote(0)}
+                            ></img>
                         </>
                     )}
                     {!this.hasYtbVideo() && (
@@ -111,6 +124,12 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
             .finally(() => {
                 this.setState({ loading: false });
             });
+    }
+
+    private async vote(type: 0 | 1) {
+        this.setState({ loading: true });
+        await this.props.onVote(type);
+        this.setState({ loading: false });
     }
 
     private getVideoLink(): string {

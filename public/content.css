@@ -778,7 +778,7 @@ input::-webkit-inner-spin-button {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	gap: 2px;
+	gap: 4px;
 
 	line-height: 32px;
 	margin-top: -2px;
@@ -805,9 +805,9 @@ input::-webkit-inner-spin-button {
 }
 
 #bsbDescriptionPortVideoPill button {
-	padding: 0 5px;
+	padding: 0 8px;
 	cursor: pointer;
-	border-radius: 4px;
+	border-radius: 6px;
 	border: none;
 	outline: none;
 	color: var(--text_white);
@@ -824,6 +824,14 @@ input::-webkit-inner-spin-button {
 
 #bsbDescriptionPortVideoPill a#ytbLink {
 	color: var(--sb-brand-blue);
+	margin-right: 20px;
+}
+
+#bsbDescriptionPortVideoPill .bsbVoteButton {
+	cursor: pointer;
+	height: 24px;
+	padding: 0 3px;
+	animation: auto ease 0s 1 normal none running none;
 }
 
 #bsbDescriptionContainer #bsbDescriptionPortLoading {
@@ -831,6 +839,7 @@ input::-webkit-inner-spin-button {
 	width: 100%;
 	text-align: center;
 	backdrop-filter: blur(2px);
+	-webkit-backdrop-filter: blur(2px);
 	height: 44px;
     line-height: 32px;
 }
