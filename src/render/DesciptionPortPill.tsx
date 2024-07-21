@@ -41,17 +41,8 @@ export class DescriptionPortPill {
 
         this.cleanup();
 
-        // make request to get the port video
-        const response = await asyncRequestToServer("GET", "/api/portVideo", { videoID: videoId }).catch((e) => {
-            console.log(e);
-        });
-        if (response && response?.ok) {
-            const responseData = JSON.parse(response.responseText);
-            if (responseData?.bvID == this.bvID) {
-                this.ytbID = responseData.ytbID;
-                this.portUUID = responseData.UUID;
-            }
-        }
+        // make request to get the port video first, while waiting for the page to load
+        await this.getPortVideo(videoId);
 
         const referenceNode = await waitFor(() => document.querySelector("#v_desc .basic-desc-info") as HTMLElement);
         if (!referenceNode) {
@@ -132,6 +123,24 @@ export class DescriptionPortPill {
         this.portUUID = null;
     }
 
+    private async getPortVideo(videoId: VideoID, bypassCache = false) {
+        const response = await asyncRequestToServer("GET", "/api/portVideo", { videoID: videoId }, bypassCache).catch(
+            (e) => {
+                return e;
+            }
+        );
+        if (response && response?.ok) {
+            const responseData = JSON.parse(response?.responseText);
+            if (responseData?.bvID == this.bvID) {
+                this.ytbID = responseData.ytbID;
+                this.portUUID = responseData.UUID;
+            }
+        } else if (response?.status == 404) {
+            this.ytbID = null;
+            this.portUUID = null;
+        }
+    }
+
     private async submitPortVideo(ytbID: VideoID): Promise<PortVideo> {
         const response = await asyncRequestToServer("POST", "/api/portVideo", {
             bvID: getVideoID(),
@@ -171,5 +180,8 @@ export class DescriptionPortPill {
         } else {
             console.error("Vote failed", response);
         }
+
+        await this.getPortVideo(this.bvID, true);
+        this.ref.current.setState({ ytbVideoID: this.ytbID, previewYtbID: this.ytbID });
     }
 }
