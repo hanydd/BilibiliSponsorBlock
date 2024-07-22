@@ -1,5 +1,14 @@
 import * as CompileConfig from "../config.json";
-import { Category, CategorySelection, CategorySkipOption, NoticeVisbilityMode, PreviewBarOption, SponsorTime, VideoID, SponsorHideType } from "./types";
+import {
+    Category,
+    CategorySelection,
+    CategorySkipOption,
+    NoticeVisbilityMode,
+    PreviewBarOption,
+    SponsorTime,
+    VideoID,
+    SponsorHideType,
+} from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "../maze-utils/src/config";
 import { HashedValue } from "../maze-utils/src/hash";
 
@@ -77,7 +86,7 @@ interface SBConfig {
         [key in Category]: {
             lastColor: string;
             textColor: string;
-        }
+        };
     };
 
     skipKeybind: Keybind;
@@ -147,7 +156,7 @@ class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
             userID: this.config.userID,
             minutesSaved: this.config.minutesSaved,
             skipCount: this.config.skipCount,
-            sponsorTimesContributed: this.config.sponsorTimesContributed
+            sponsorTimesContributed: this.config.sponsorTimesContributed,
         });
 
         chrome.storage.local.set({
@@ -161,10 +170,8 @@ function migrateOldSyncFormats(config: SBConfig) {
     const keybinds = ["skipKeybind", "startSponsorKeybind", "submitKeybind"];
     for (let i = keybinds.length - 1; i >= 0; i--) {
         for (let j = 0; j < keybinds.length; j++) {
-            if (i == j)
-                continue;
-            if (keybindEquals(config[keybinds[i]], config[keybinds[j]]))
-                config[keybinds[i]] = null;
+            if (i == j) continue;
+            if (keybindEquals(config[keybinds[i]], config[keybinds[j]])) config[keybinds[i]] = null;
         }
     }
 
@@ -257,114 +264,142 @@ const syncDefaults = {
     previousFrameKeybind: { key: "," },
     closeSkipNoticeKeybind: { key: "Backspace" },
 
-    categorySelections: [{
-        name: "sponsor" as Category,
-        option: CategorySkipOption.AutoSkip
-    }, {
-        name: "poi_highlight" as Category,
-        option: CategorySkipOption.ManualSkip
-    }, {
-        name: "exclusive_access" as Category,
-        option: CategorySkipOption.ShowOverlay
-    }],
+    categorySelections: [
+        {
+            name: "sponsor" as Category,
+            option: CategorySkipOption.AutoSkip,
+        },
+        {
+            name: "selfpromo" as Category,
+            option: CategorySkipOption.ManualSkip,
+        },
+        {
+            name: "interaction" as Category,
+            option: CategorySkipOption.ManualSkip,
+        },
+        {
+            name: "intro" as Category,
+            option: CategorySkipOption.ManualSkip,
+        },
+        {
+            name: "outro" as Category,
+            option: CategorySkipOption.ManualSkip,
+        },
+        {
+            name: "preview" as Category,
+            option: CategorySkipOption.ShowOverlay,
+        },
+        {
+            name: "music_offtopic" as Category,
+            option: CategorySkipOption.AutoSkip,
+        },
+        {
+            name: "poi_highlight" as Category,
+            option: CategorySkipOption.ManualSkip,
+        },
+        {
+            name: "exclusive_access" as Category,
+            option: CategorySkipOption.ShowOverlay,
+        },
+    ],
 
     payments: {
         licenseKey: null,
         lastCheck: 0,
         lastFreeCheck: 0,
         freeAccess: false,
-        chaptersAllowed: false
+        chaptersAllowed: false,
     },
 
     colorPalette: {
         red: "#780303",
         white: "#ffffff",
-        locked: "#ffc83d"
+        locked: "#ffc83d",
     },
 
     // Preview bar
     barTypes: {
         "preview-chooseACategory": {
             color: "#ffffff",
-            opacity: "0.7"
+            opacity: "0.7",
         },
-        "sponsor": {
+        sponsor: {
             color: "#00d400",
-            opacity: "0.7"
+            opacity: "0.7",
         },
         "preview-sponsor": {
             color: "#007800",
-            opacity: "0.7"
+            opacity: "0.7",
         },
-        "selfpromo": {
+        selfpromo: {
             color: "#ffff00",
-            opacity: "0.7"
+            opacity: "0.7",
         },
         "preview-selfpromo": {
             color: "#bfbf35",
-            opacity: "0.7"
+            opacity: "0.7",
         },
-        "exclusive_access": {
+        exclusive_access: {
             color: "#008a5c",
-            opacity: "0.7"
+            opacity: "0.7",
         },
-        "interaction": {
+        interaction: {
             color: "#cc00ff",
-            opacity: "0.7"
+            opacity: "0.7",
         },
         "preview-interaction": {
             color: "#6c0087",
-            opacity: "0.7"
+            opacity: "0.7",
         },
-        "intro": {
+        intro: {
             color: "#00ffff",
-            opacity: "0.7"
+            opacity: "0.7",
         },
         "preview-intro": {
             color: "#008080",
-            opacity: "0.7"
+            opacity: "0.7",
         },
-        "outro": {
+        outro: {
             color: "#0202ed",
-            opacity: "0.7"
+            opacity: "0.7",
         },
         "preview-outro": {
             color: "#000070",
-            opacity: "0.7"
+            opacity: "0.7",
         },
-        "preview": {
+        preview: {
             color: "#008fd6",
-            opacity: "0.7"
+            opacity: "0.7",
         },
         "preview-preview": {
             color: "#005799",
-            opacity: "0.7"
+            opacity: "0.7",
         },
-        "music_offtopic": {
+        music_offtopic: {
             color: "#ff9900",
-            opacity: "0.7"
+            opacity: "0.7",
         },
         "preview-music_offtopic": {
             color: "#a6634a",
-            opacity: "0.7"
+            opacity: "0.7",
         },
-        "poi_highlight": {
+        poi_highlight: {
             color: "#ff1684",
-            opacity: "0.7"
+            opacity: "0.7",
         },
         "preview-poi_highlight": {
             color: "#9b044c",
-            opacity: "0.7"
+            opacity: "0.7",
         },
-        "filler": {
+        filler: {
             color: "#7300FF",
-            opacity: "0.9"
+            opacity: "0.9",
         },
         "preview-filler": {
             color: "#2E0066",
-            opacity: "0.7"
-        }
-    }
+            opacity: "0.7",
+        },
+    },
 };
 
 const localDefaults = {
@@ -372,7 +407,7 @@ const localDefaults = {
     navigationApiAvailable: null,
     alreadyInstalled: false,
 
-    unsubmittedSegments: {}
+    unsubmittedSegments: {},
 };
 
 const Config = new ConfigClass(syncDefaults, localDefaults, migrateOldSyncFormats);
