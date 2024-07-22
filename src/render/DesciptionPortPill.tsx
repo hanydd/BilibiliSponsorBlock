@@ -75,7 +75,7 @@ export class DescriptionPortPill {
                 ref={this.ref}
                 bvID={this.bvID}
                 ytbID={this.ytbID}
-                showYtbVideoButton={true}
+                showYtbVideoButton={Config.config.showPreviewYoutubeButton}
                 onSubmitPortVideo={(ytbID) => this.submitPortVideo(ytbID)}
                 onVote={(type) => this.vote(type)}
             />

@@ -69,6 +69,7 @@ interface SBConfig {
     useVirtualTime: boolean;
     showSegmentFailedToFetchWarning: boolean;
     allowScrollingToEdit: boolean;
+    showPreviewYoutubeButton: boolean;
     showZoomToFillError2: boolean;
     cleanPopup: boolean;
 
@@ -231,6 +232,7 @@ const syncDefaults = {
     useVirtualTime: true,
     showSegmentFailedToFetchWarning: true,
     allowScrollingToEdit: true,
+    showPreviewYoutubeButton: true,
     deArrowInstalled: false,
     showDeArrowPromotion: true,
     showDeArrowInSettings: true,

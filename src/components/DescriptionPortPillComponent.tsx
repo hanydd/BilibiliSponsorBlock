@@ -87,9 +87,8 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                         </>
                     )}
 
-                    {togglePreviewYtbVideoButton(this.props.showYtbVideoButton, !this.state.previewYtbID, () =>
-                        this.toggleYtbVideo()
-                    )}
+                    {this.props.showYtbVideoButton &&
+                        togglePreviewYtbVideoButton(!this.state.previewYtbID, () => this.toggleYtbVideo())}
                 </div>
 
                 {this.state.previewYtbID && this.props.showYtbVideoButton && (
@@ -165,16 +164,10 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
     }
 }
 
-function togglePreviewYtbVideoButton(
-    showButton: boolean,
-    disabled: boolean,
-    onClickCallback: () => void
-): React.ReactElement {
+function togglePreviewYtbVideoButton(disabled: boolean, onClickCallback: () => void): React.ReactElement {
     return (
-        showButton && (
-            <button id="previewYtb" className={disabled ? "" : "active"} disabled={disabled} onClick={onClickCallback}>
-                预览YouTube视频
-            </button>
-        )
+        <button id="previewYtb" className={disabled ? "" : "active"} disabled={disabled} onClick={onClickCallback}>
+            预览YouTube视频
+        </button>
     );
 }
