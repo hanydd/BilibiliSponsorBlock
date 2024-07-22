@@ -24,7 +24,7 @@ import SubmissionNotice from "./render/SubmissionNotice";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
 import { getStartTimeFromUrl } from "./utils/urlParser";
-import { getControls, getHashParams, isPlayingPlaylist, isVisible } from "./utils/pageUtils";
+import { getControls, getHashParams, getProgressBar, isPlayingPlaylist, isVisible } from "./utils/pageUtils";
 import { CategoryPill } from "./render/CategoryPill";
 import { AnimationUtils } from "../maze-utils/src/animationUtils";
 import { GenericUtils } from "./utils/genericUtils";
@@ -431,7 +431,7 @@ function resetValues() {
     }
 }
 
-function videoIDChange(): void {
+async function videoIDChange(): Promise<void> {
     //setup the preview bar
     if (previewBar === null) {
         waitFor(getControls).then(createPreviewBar);
@@ -446,15 +446,19 @@ function videoIDChange(): void {
 
     sponsorsLookup();
 
-    // Make sure all player buttons are properly added
-    updateVisibilityOfPlayerControlsButton();
-
     // Clear unsubmitted segments from the previous video
     sponsorTimesSubmitting = [];
     updateSponsorTimesSubmitting();
 
-    checkPreviewbarState();
 
+    // TODO use mutation observer to get the reloading of the video element
+    // wait for the video player to load and ready
+    await waitFor(() => document.querySelector(".bpx-player-loading-panel.bpx-state-loading"), 5000, 5);
+    await waitFor(getProgressBar, 20000, 200);
+
+    // Make sure all player buttons are properly added
+    updateVisibilityOfPlayerControlsButton();
+    checkPreviewbarState();
     setupDescriptionPill();
 }
 

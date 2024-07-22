@@ -15,6 +15,10 @@ export function getControls(): HTMLElement {
     return null;
 }
 
+export function getProgressBar(): HTMLElement {
+    return document.querySelector(".bpx-player-progress-schedule");
+}
+
 export function isInPreviewPlayer(element: Element): boolean {
     return !!element.closest(".v-recommend-inline-player");
 }
