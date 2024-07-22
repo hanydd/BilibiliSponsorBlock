@@ -5,6 +5,8 @@
 	--skip-notice-border-horizontal: 5px;
 	--skip-notice-border-vertical: 10px;
 	--sb-dark-outline: rgba(6, 80, 111, 0.9);
+	--sb-brand-blue: #00aeec;
+	--sb-brand-blue-rgb: 0, 174, 236;
 }
 
 .sbhidden {
@@ -783,4 +785,118 @@ input::-webkit-inner-spin-button {
 
 .sponsorblock-chapter-visible {
 	display: inherit !important;
+}
+
+/* Port Video Related */
+#bsbDescriptionPortVideoPill {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4px;
+
+	line-height: 32px;
+	margin-top: -2px;
+	padding-top: 2px;
+	padding-bottom: 10px;
+}
+
+#bsbDescriptionPortVideoPill .inputWrapper {
+	flex-grow: 1;
+	padding: 0 10px 0;
+	border: 1px solid var(--Ga1);
+	box-sizing: border-box;
+	border-radius: 6px;
+	background-color: var(--bg3);
+	transition: all 0.2s ease 0s;
+	cursor: text;
+}
+
+#bsbDescriptionPortVideoPill input {
+	width: 100%;
+	background-color: inherit;
+	border: none;
+	outline: none;
+}
+
+#bsbDescriptionPortVideoPill button {
+	padding: 0 8px;
+	border-radius: 6px;
+	border: none;
+	outline: none;
+	color: var(--text_white);
+	background-color: rgba(var(--sb-brand-blue-rgb), 0.5);
+}
+
+#bsbDescriptionPortVideoPill button.active {
+	cursor: pointer;
+	background-color: var(--sb-brand-blue);
+}
+
+#bsbDescriptionPortVideoPill button#previewYtb {
+	margin-left: auto;
+}
+
+#bsbDescriptionPortVideoPill a#ytbLink {
+	color: var(--sb-brand-blue);
+	margin-right: 20px;
+}
+
+#bsbDescriptionPortVideoPill .bsbVoteButton {
+	cursor: pointer;
+	height: 24px;
+	padding: 0 3px;
+	animation: auto ease 0s 1 normal none running none;
+}
+
+#bsbDescriptionContainer #bsbDescriptionPortLoading {
+	position: absolute;
+	width: 100%;
+	text-align: center;
+	backdrop-filter: blur(2px);
+	-webkit-backdrop-filter: blur(2px);
+	height: 44px;
+	line-height: 32px;
+}
+
+#bsbDescriptionContainer #bsbDescriptionPortErrorBox {
+	position: absolute;
+	left: 50%;
+	-webkit-transform: translate(-50%, -35px);
+	transform: translate(-50%, -35px);
+	z-index: 1000;
+
+	opacity: 0;
+	padding: 6px 15px;
+	color: var(--stress_red);
+	background: var(--stress_red_thin);
+	width: fit-content;
+	line-height: 1em;
+	border: 1px var(--stress_red) solid;
+	border-radius: 1em;
+}
+
+#bsbDescriptionContainer #bsbDescriptionPortErrorBox.active {
+	opacity: 1;
+	animation: fadeOut 5s ease-out;
+}
+
+#bsbDescriptionContainer #ytbPreviewFrame {
+	width: 100%;
+	box-sizing: border-box;
+	border: 1px solid var(--line_regular);
+	min-height: 300px;
+	max-height: 500px;
+}
+
+#bsbPortButton {
+	cursor: pointer;
+	margin-right: 18px;
+	display: inline-flex;
+	align-items: center;
+	color: var(--text2);
+}
+
+#bsbPortButtonImage {
+	height: 24px;
+	margin-right: 8px;
 }

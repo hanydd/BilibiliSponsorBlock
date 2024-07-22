@@ -108,6 +108,9 @@
     "icons/export.svg",
     "icons/PlayerInfoIconSponsorBlocker.svg",
     "icons/PlayerDeleteIconSponsorBlocker.svg",
+    "icons/youtubeLogo.svg",
+    "icons/thumbs_up_blue.svg",
+    "icons/thumbs_down_blue.svg",
     "popup.html",
     "popup.css",
     "content.css",
@@ -122,7 +125,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "{f10c197e-c2a4-43b6-a982-7e186f7c63d9}",
-      "strict_min_version": "102.0"
+      "strict_min_version": "103.0"
     },
     "gecko_android": {
       "strict_min_version": "113.0"

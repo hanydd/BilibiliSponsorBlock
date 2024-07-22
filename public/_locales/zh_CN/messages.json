@@ -948,7 +948,7 @@
         "message": "这会立即应用到您所有的片段"
     },
     "downvote": {
-        "message": "差评"
+        "message": "点踩"
     },
     "upvote": {
         "message": "点赞"
@@ -1115,6 +1115,9 @@
     "allowScrollingToEdit": {
         "message": "允许滚动编辑时间"
     },
+    "showPreviewYoutubeButton" : {
+        "message": "搬运视频区域显示“预览YouTube视频”按钮"
+    },
     "NoticeTimeAfterSkip": {
         "message": "{seconds}秒",
         "description": "This is used on the popup to show how much time left. It will look like \"5s\". The word {seconds} will be replaced, so keep it here. Translations should only change the \"s\""
@@ -1144,5 +1147,17 @@
     "previewSegmentRequired": {
         "message": "Please preview your segments before submitting. You can do this by clicking the preview button or using the following shortcut:",
         "description": "Appears when trying to submit a segment without previewing it first. After the colon, the shortcut will appear"
+    },
+    "hasbindedPortVideo": {
+        "message": "已绑定搬运视频："
+    },
+    "enterPortVideoURL": {
+        "message": "请输入搬运视频地址"
+    },
+    "previewYoutubeVideoButton": {
+        "message": "预览YouTube视频"
+    },
+    "bindPortVideoButton": {
+        "message": "绑定搬运视频"
     }
 }

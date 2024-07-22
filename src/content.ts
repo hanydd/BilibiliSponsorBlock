@@ -24,7 +24,7 @@ import SubmissionNotice from "./render/SubmissionNotice";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
 import { getStartTimeFromUrl } from "./utils/urlParser";
-import { getControls, getHashParams, isPlayingPlaylist, isVisible } from "./utils/pageUtils";
+import { getControls, getHashParams, getProgressBar, isPlayingPlaylist, isVisible } from "./utils/pageUtils";
 import { CategoryPill } from "./render/CategoryPill";
 import { AnimationUtils } from "../maze-utils/src/animationUtils";
 import { GenericUtils } from "./utils/genericUtils";
@@ -47,6 +47,7 @@ import { cleanPage } from "./utils/pageCleaner";
 import { addCleanupListener } from "../maze-utils/src/cleanup";
 import { asyncRequestToServer } from "./utils/requests";
 import { defaultPreviewTime } from "./utils/constants";
+import { DescriptionPortPill } from "./render/DesciptionPortPill";
 
 cleanPage();
 
@@ -103,6 +104,10 @@ let sponsorSkipped: boolean[] = [];
 let videoMuted = false; // Has it been attempted to be muted
 const controlsWithEventListeners: HTMLElement[] = [];
 
+// TODO: More robust way to check for page loaded
+let headerLoaded = false;
+setupPageLoadingListener();
+
 setupVideoModule({
     videoIDChange,
     channelIDChange,
@@ -120,6 +125,29 @@ setupVideoModule({
     documentScript: chrome.runtime.getManifest().manifest_version === 2 ? documentScript : undefined
 }, () => Config);
 setupThumbnailListener();
+
+/**
+ *  根据页面元素加载状态判断页面是否加载完成
+ */
+async function setupPageLoadingListener() {
+    // header栏会加载组件，登录后触发5次mutation，未登录触发4次mutation
+    const header = await waitFor(() => document.querySelector("#biliMainHeader"), 10000, 100);
+    let mutationCounter = 0;
+    const headerObserver = new MutationObserver(async () => {
+        mutationCounter += 1;
+        if (mutationCounter >= 4) {
+            headerObserver.disconnect();
+            // 再等待500ms，确保页面加载完成
+            await new Promise(resolve => setTimeout(resolve, 500));
+            headerLoaded = true;
+        }
+    });
+        headerObserver.observe(header, { childList: true, subtree: true });
+}
+
+export function getPageLoaded() {
+    return headerLoaded;
+}
 
 //the video id of the last preview bar update
 let lastPreviewBarUpdate: VideoID;
@@ -140,6 +168,8 @@ let previewBar: PreviewBar = null;
 let skipButtonControlBar: SkipButtonControlBar = null;
 // For full video sponsors/selfpromo
 let categoryPill: CategoryPill = null;
+
+let descriptionPill: DescriptionPortPill = null;
 
 /** Element containing the player controls on the Bilibili player. */
 let controls: HTMLElement | null = null;
@@ -401,7 +431,7 @@ function resetValues() {
     }
 }
 
-function videoIDChange(): void {
+async function videoIDChange(): Promise<void> {
     //setup the preview bar
     if (previewBar === null) {
         waitFor(getControls).then(createPreviewBar);
@@ -416,14 +446,20 @@ function videoIDChange(): void {
 
     sponsorsLookup();
 
-    // Make sure all player buttons are properly added
-    updateVisibilityOfPlayerControlsButton();
-
     // Clear unsubmitted segments from the previous video
     sponsorTimesSubmitting = [];
     updateSponsorTimesSubmitting();
 
+
+    // TODO use mutation observer to get the reloading of the video element
+    // wait for the video player to load and ready
+    await waitFor(() => document.querySelector(".bpx-player-loading-panel.bpx-state-loading"), 5000, 5);
+    await waitFor(getProgressBar, 20000, 200);
+
+    // Make sure all player buttons are properly added
+    updateVisibilityOfPlayerControlsButton();
     checkPreviewbarState();
+    setupDescriptionPill();
 }
 
 /**
@@ -974,14 +1010,21 @@ function setupCategoryPill() {
     categoryPill.attachToPage(voteAsync);
 }
 
-async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false) {
+function setupDescriptionPill() {
+    if (!descriptionPill) {
+        descriptionPill = new DescriptionPortPill(sponsorsLookup);
+    }
+    descriptionPill.setupDecription(getVideoID());
+}
+
+async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false, forceUpdatePreviewBar = false) {
     if (lookupWaiting) return;
     //there is still no video here
     if (!getVideo()) {
         lookupWaiting = true;
         setTimeout(() => {
             lookupWaiting = false;
-            sponsorsLookup(keepOldSubmissions, ignoreServerCache)
+            sponsorsLookup(keepOldSubmissions, ignoreServerCache, forceUpdatePreviewBar)
         }, 100);
         return;
     }
@@ -1065,7 +1108,8 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
 
             //update the preview bar
             //leave the type blank for now until categories are added
-            if (lastPreviewBarUpdate == getVideoID() || (lastPreviewBarUpdate == null && !isNaN(getVideo().duration))) {
+            if (forceUpdatePreviewBar
+                || (lastPreviewBarUpdate == getVideoID() || (lastPreviewBarUpdate == null && !isNaN(getVideo().duration)))) {
                 //set it now
                 //otherwise the listener can handle it
                 updatePreviewBar();
@@ -1281,6 +1325,7 @@ function videoElementChange(newVideo: boolean): void {
             setupVideoListeners();
             setupSkipButtonControlBar();
             setupCategoryPill();
+            setupDescriptionPill();
         }
 
         updatePreviewBar();
