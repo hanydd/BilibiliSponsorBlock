@@ -22,7 +22,7 @@ export class DescriptionPortPill {
     bvID: VideoID;
     ytbID: VideoID;
     portUUID: string;
-    sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean) => void;
+    sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean, forceUpdatePreviewBar: boolean) => void;
 
     inputContainer: HTMLElement;
     buttonContainer: HTMLElement;
@@ -154,7 +154,7 @@ export class DescriptionPortPill {
             this.ytbID = ytbID;
             this.portUUID = newPortVideo.UUID;
 
-            this.sponsorsLookup(true, true);
+            this.sponsorsLookup(true, true, true);
 
             return newPortVideo;
         } else {

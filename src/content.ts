@@ -1013,14 +1013,14 @@ function setupDescriptionPill() {
     descriptionPill.setupDecription(getVideoID());
 }
 
-async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false) {
+async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false, forceUpdatePreviewBar = false) {
     if (lookupWaiting) return;
     //there is still no video here
     if (!getVideo()) {
         lookupWaiting = true;
         setTimeout(() => {
             lookupWaiting = false;
-            sponsorsLookup(keepOldSubmissions, ignoreServerCache)
+            sponsorsLookup(keepOldSubmissions, ignoreServerCache, forceUpdatePreviewBar)
         }, 100);
         return;
     }
@@ -1104,7 +1104,8 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
 
             //update the preview bar
             //leave the type blank for now until categories are added
-            if (lastPreviewBarUpdate == getVideoID() || (lastPreviewBarUpdate == null && !isNaN(getVideo().duration))) {
+            if (forceUpdatePreviewBar
+                || (lastPreviewBarUpdate == getVideoID() || (lastPreviewBarUpdate == null && !isNaN(getVideo().duration)))) {
                 //set it now
                 //otherwise the listener can handle it
                 updatePreviewBar();
