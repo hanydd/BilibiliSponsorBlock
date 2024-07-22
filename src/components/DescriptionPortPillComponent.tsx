@@ -79,7 +79,12 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                     {!this.hasYtbVideo() && (
                         <>
                             <div className="inputWrapper">
-                                <input ref={this.inputRef} type="text" placeholder="请输入搬运视频地址"></input>
+                                <input
+                                    ref={this.inputRef}
+                                    type="text"
+                                    placeholder="请输入搬运视频地址"
+                                    onChange={this.handleYtbInput.bind(this)}
+                                ></input>
                             </div>
                             <button className="active" onClick={() => this.submitPortVideo()}>
                                 提交
@@ -122,6 +127,15 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
             this.errorMessage = "";
             clearTimeout(timeout);
         }, 4990);
+    }
+
+    private handleYtbInput(event: React.ChangeEvent<HTMLInputElement>): void {
+        const ytbID = parseYoutubeID(event.target.value);
+        if (ytbID) {
+            this.setState({ previewYtbID: ytbID });
+        } else {
+            this.setState({ previewYtbID: null });
+        }
     }
 
     private hasYtbVideo(): boolean {
