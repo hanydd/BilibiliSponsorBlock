@@ -5,7 +5,7 @@
 	--skip-notice-border-horizontal: 5px;
 	--skip-notice-border-vertical: 10px;
 	--sb-dark-outline: rgba(6, 80, 111, 0.9);
-	--sb-brand-blue: #00AEEC;
+	--sb-brand-blue: #00aeec;
 	--sb-brand-blue-rgb: 0, 174, 236;
 }
 
@@ -14,15 +14,15 @@
 }
 
 #previewbar {
-    overflow: hidden;
-    padding: 0;
-    margin: 0;
-    position: absolute;
-    width: 100%;
+	overflow: hidden;
+	padding: 0;
+	margin: 0;
+	position: absolute;
+	width: 100%;
 	height: 100%;
 	z-index: 1;
 
-	transition: transform .1s cubic-bezier(0,0,0.2,1);
+	transition: transform 0.1s cubic-bezier(0, 0, 0.2, 1);
 }
 
 .progress-bar-line > #previewbar {
@@ -91,13 +91,13 @@
 .autoHiding:not(.sbhidden) {
 	transform: translateX(0%) scale(1);
 	/* opacity is from YouTube page */
-	transition: transform 0.2s, width 0.2s, opacity .1s cubic-bezier(0.4,0.0,1,1) !important;
+	transition: transform 0.2s, width 0.2s, opacity 0.1s cubic-bezier(0.4, 0, 1, 1) !important;
 }
 
 .autoHiding.sbhidden {
 	transform: translateX(100%) scale(0);
 	/* opacity is from YouTube page */
-	transition: transform 0.2s, width 0.2s, opacity .1s cubic-bezier(0.4,0.0,1,1) !important;
+	transition: transform 0.2s, width 0.2s, opacity 0.1s cubic-bezier(0.4, 0, 1, 1) !important;
 
 	width: 0px !important;
 }
@@ -125,15 +125,19 @@
 
 #categoryPill .sbPillNoText .sponsorSkipLogo {
 	margin-top: calc(2.6rem - 18px);
-    margin-bottom: calc(2.6rem - 18px);
+	margin-bottom: calc(2.6rem - 18px);
 }
 
 @keyframes fadeIn {
-	from { opacity: 0; }
+	from {
+		opacity: 0;
+	}
 }
 
 @keyframes fadeOut {
-	to { opacity: 0; }
+	to {
+		opacity: 0;
+	}
 }
 
 .sponsorBlockSpacer {
@@ -154,7 +158,7 @@
 }
 
 .sponsorSkipNoticeParent {
-    position: absolute;
+	position: absolute;
 
 	bottom: 100px;
 	right: 10px;
@@ -162,7 +166,8 @@
 	line-height: normal;
 }
 
-.sponsorSkipNoticeParent, .sponsorSkipNotice {
+.sponsorSkipNoticeParent,
+.sponsorSkipNotice {
 	border-spacing: 5px 10px;
 	padding-left: 5px;
 	padding-right: 5px;
@@ -198,7 +203,9 @@
 }
 
 /* For Cloudtube */
-.sponsorSkipNotice td, .sponsorSkipNotice table, .sponsorSkipNotice th {
+.sponsorSkipNotice td,
+.sponsorSkipNotice table,
+.sponsorSkipNotice th {
 	border: none;
 }
 
@@ -224,26 +231,26 @@
 	color: #eeeeee;
 
 	border-radius: 4px;
-    padding: 2px 5px;
-    font-size: 12px;
+	padding: 2px 5px;
+	font-size: 12px;
 
 	display: flex;
-    align-items: center;
+	align-items: center;
 
 	border: 1px solid #eeeeee;
 }
 
 .sponsorSkipNoticeTimeLeft img {
 	vertical-align: middle;
-    height: 13px;
+	height: 13px;
 
 	padding-top: 7.8%;
-    padding-bottom: 7.8%;
+	padding-bottom: 7.8%;
 }
 
 .noticeLeftIcon {
 	display: flex;
-  	align-items: center;
+	align-items: center;
 }
 
 .sponsorSkipNotice .sponsorSkipNoticeUnskipSection {
@@ -263,11 +270,11 @@
 
 	margin-right: 10px;
 
-    padding: 2px 5px;
+	padding: 2px 5px;
 }
 
 .sponsorSkipNoticeButton:hover {
-	background-color: rgba(235, 235, 235,0.2);
+	background-color: rgba(235, 235, 235, 0.2);
 	border-radius: 4px;
 
 	transition: background-color 0.4s;
@@ -275,18 +282,18 @@
 
 .sponsorTimesVoteButtonsContainer {
 	float: left;
-	vertical-align:middle;
+	vertical-align: middle;
 	padding: 2px 5px;
 
 	margin-right: 4px;
 }
 
-.sponsorTimesVoteButtonsContainer div{
+.sponsorTimesVoteButtonsContainer div {
 	display: inline-block;
 }
 
 .sponsorSkipNoticeRightSection {
-    right: 0;
+	right: 0;
 	position: absolute;
 
 	float: right;
@@ -308,7 +315,7 @@
 	padding: 2px 5px;
 
 	margin-left: 2px;
-    float: right;
+	float: right;
 }
 
 .sponsorSkipNoticeCloseButton.biggerCloseButton {
@@ -328,7 +335,7 @@
 
 .sponsorSkipInfo {
 	font-size: 10px;
-    color: #000000;
+	color: #000000;
 	text-align: center;
 	margin-top: 0px;
 }
@@ -336,7 +343,7 @@
 #sponsorTimesThanksForVotingText {
 	font-size: 20px;
 	font-weight: bold;
-    color: #000000;
+	color: #000000;
 	text-align: center;
 	margin-top: 0px;
 	margin-bottom: 0px;
@@ -345,7 +352,7 @@
 #sponsorTimesThanksForVotingInfoText {
 	font-size: 12px;
 	font-weight: bold;
-    color: #000000;
+	color: #000000;
 	text-align: center;
 	margin-top: 0px;
 }
@@ -356,7 +363,7 @@
 
 .sponsorTimesInfoMessage {
 	font-size: 13.3333px;
-    color: rgb(235, 235, 235);
+	color: rgb(235, 235, 235);
 	overflow-wrap: anywhere;
 }
 
@@ -364,7 +371,7 @@
 	padding-left: 5px;
 	padding-top: 2px;
 	padding-bottom: 2px;
-    font-size: 15px;
+	font-size: 15px;
 
 	display: flex;
 	align-items: center;
@@ -373,7 +380,7 @@
 .sponsorTimesInfoIcon {
 	width: 30px;
 	padding-right: 10px;
-    padding-left: 10px;
+	padding-left: 10px;
 }
 
 .segmentSummary {
@@ -381,101 +388,105 @@
 }
 
 .submitButton {
-	background-color:#ec1c1c;
-	-moz-border-radius:28px;
-	-webkit-border-radius:28px;
-	border-radius:28px;
-	border:1px solid #d31919;
-	display:inline-block;
-	cursor:pointer;
-	color:#ffffff;
-	font-size:14px;
-	padding:4px 15px;
-	text-decoration:none;
-    text-shadow:0px 0px 0px #662727;
+	background-color: #ec1c1c;
+	-moz-border-radius: 28px;
+	-webkit-border-radius: 28px;
+	border-radius: 28px;
+	border: 1px solid #d31919;
+	display: inline-block;
+	cursor: pointer;
+	color: #ffffff;
+	font-size: 14px;
+	padding: 4px 15px;
+	text-decoration: none;
+	text-shadow: 0px 0px 0px #662727;
 
-    margin-top: 5px;
-    margin-right: 15px;
+	margin-top: 5px;
+	margin-right: 15px;
 }
 .submitButton:hover {
-	background-color:#bf2a2a;
+	background-color: #bf2a2a;
 }
 
 .submitButton:focus {
 	outline: none;
-	background-color:#bf2a2a;
+	background-color: #bf2a2a;
 }
 
 .submitButton:active {
-	position:relative;
-	top:1px;
+	position: relative;
+	top: 1px;
 }
 
 @keyframes rotate {
-	from { transform: rotate(0deg); }
-	  to { transform: rotate(360deg); }
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
 }
 
 .sponsorSkipButton {
-	background-color:#ec1c1c;
-	-moz-border-radius:28px;
-	-webkit-border-radius:28px;
-	border-radius:28px;
-	border:1px solid #d31919;
-	display:inline-block;
-	cursor:pointer;
-	color:#ffffff;
-	font-size:14px;
-	padding:4px 15px;
-	text-decoration:none;
-    text-shadow:0px 0px 0px #662727;
+	background-color: #ec1c1c;
+	-moz-border-radius: 28px;
+	-webkit-border-radius: 28px;
+	border-radius: 28px;
+	border: 1px solid #d31919;
+	display: inline-block;
+	cursor: pointer;
+	color: #ffffff;
+	font-size: 14px;
+	padding: 4px 15px;
+	text-decoration: none;
+	text-shadow: 0px 0px 0px #662727;
 
-    margin-top: 5px;
-    margin-right: 15px;
+	margin-top: 5px;
+	margin-right: 15px;
 }
 .sponsorSkipButton:hover {
-	background-color:#bf2a2a;
+	background-color: #bf2a2a;
 }
 
 .sponsorSkipButton:focus {
 	outline: none;
-	background-color:#bf2a2a;
+	background-color: #bf2a2a;
 }
 
 .sponsorSkipButton:active {
-	position:relative;
-	top:1px;
+	position: relative;
+	top: 1px;
 }
 
 .sponsorSkipDontShowButton {
-	-moz-box-shadow:inset 0px 1px 0px 0px #cf866c;
-	-webkit-box-shadow:inset 0px 1px 0px 0px #cf866c;
-	box-shadow:inset 0px 1px 0px 0px #cf866c;
-	background-color:#d0451b;
-	-moz-border-radius:3px;
-	-webkit-border-radius:3px;
-	border-radius:3px;
-	border:1px solid #942911;
-	display:inline-block;
-	cursor:pointer;
-	color:#ffffff;
-	font-size:13px;
-	padding:6px 24px;
-	text-decoration:none;
-	text-shadow:0px 1px 0px #854629;
+	-moz-box-shadow: inset 0px 1px 0px 0px #cf866c;
+	-webkit-box-shadow: inset 0px 1px 0px 0px #cf866c;
+	box-shadow: inset 0px 1px 0px 0px #cf866c;
+	background-color: #d0451b;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	border: 1px solid #942911;
+	display: inline-block;
+	cursor: pointer;
+	color: #ffffff;
+	font-size: 13px;
+	padding: 6px 24px;
+	text-decoration: none;
+	text-shadow: 0px 1px 0px #854629;
 }
 .sponsorSkipDontShowButton:hover {
-	background-color:#bc3315;
+	background-color: #bc3315;
 }
 
 .sponsorSkipDontShowButton:focus {
 	outline: none;
-	background-color:#bc3315;
+	background-color: #bc3315;
 }
 
 .sponsorSkipDontShowButton:active {
-	position:relative;
-	top:1px;
+	position: relative;
+	top: 1px;
 }
 
 /* Submission Notice */
@@ -508,8 +519,8 @@
 
 .sponsorTimeEdit > input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+	-webkit-appearance: none;
+	margin: 0;
 }
 
 .sponsorTimeMessagesRow {
@@ -548,10 +559,10 @@ input::-webkit-inner-spin-button {
 	margin-bottom: 5px;
 
 	background-color: rgba(28, 28, 28, 0.9);
-    border-color: var(--sb-dark-outline);
-    color: white;
-    border-width: 3px;
-    padding: 3px;
+	border-color: var(--sb-dark-outline);
+	color: white;
+	border-width: 3px;
+	padding: 3px;
 }
 
 .sponsorTimeEditSelector > option {
@@ -564,7 +575,10 @@ input::-webkit-inner-spin-button {
 .sbSelector {
 	position: absolute;
 	text-align: center;
-	width: calc(100% - var(--skip-notice-right) - var(--skip-notice-padding) * 2 - var(--skip-notice-margin) * 2 - var(--skip-notice-border-horizontal) * 2);
+	width: calc(
+		100% - var(--skip-notice-right) - var(--skip-notice-padding) * 2 - var(--skip-notice-margin) * 2 -
+			var(--skip-notice-border-horizontal) * 2
+	);
 
 	z-index: 1000;
 }
@@ -580,20 +594,20 @@ input::-webkit-inner-spin-button {
 }
 
 .sbSelectorOption {
-    cursor: pointer;
-    background-color: rgb(43, 43, 43);
-    padding: 5px;
+	cursor: pointer;
+	background-color: rgb(43, 43, 43);
+	padding: 5px;
 	margin: 5px;
-    color: white;
-    border-radius: 5px;
-    font-size: 14px;
+	color: white;
+	border-radius: 5px;
+	font-size: 14px;
 
 	margin-left: auto;
-    margin-right: auto;
+	margin-right: auto;
 }
 
 .sbSelectorOption:hover {
-    background-color: #3a0000;
+	background-color: #3a0000;
 }
 
 /* End SelectorComponent */
@@ -604,9 +618,9 @@ input::-webkit-inner-spin-button {
 	padding: 5px;
 
 	margin: auto;
-    top: 0;
-    bottom: 0;
-    position: absolute;
+	top: 0;
+	bottom: 0;
+	position: absolute;
 }
 .helpButton:hover {
 	opacity: 0.8;
@@ -615,7 +629,7 @@ input::-webkit-inner-spin-button {
 .skipButtonControlBarContainer {
 	cursor: pointer;
 	display: flex;
-    color: white;
+	color: white;
 }
 
 .skipButtonControlBarContainer.sbhidden {
@@ -624,21 +638,21 @@ input::-webkit-inner-spin-button {
 
 #sbSkipIconControlBarImage {
 	height: 60%;
-    top: 0px;
-    bottom: 0px;
-    display: block;
-    margin: auto;
+	top: 0px;
+	bottom: 0px;
+	display: block;
+	margin: auto;
 }
 
 .sponsorBlockTooltip {
-    position: absolute;
-    background-color: rgba(28, 28, 28, 0.7);
-    border-radius: 5px;
-    padding: 10px;
-    max-width: 300px;
+	position: absolute;
+	background-color: rgba(28, 28, 28, 0.7);
+	border-radius: 5px;
+	padding: 10px;
+	max-width: 300px;
 	width: max-content;
-    white-space: normal;
-    line-height: 1.5em;
+	white-space: normal;
+	line-height: 1.5em;
 	color: white;
 	font-size: 12px;
 	z-index: 10000;
@@ -650,14 +664,14 @@ input::-webkit-inner-spin-button {
 }
 
 .sponsorBlockTooltip.sbTriangle::after {
-    content: " ";
-    position: absolute;
-    top: 100%;
-    left: 15%;
-    margin-left: -15px;
-    border-width: 15px;
-    border-style: solid;
-    border-color: rgba(28, 28, 28, 0.7) transparent transparent transparent;
+	content: " ";
+	position: absolute;
+	top: 100%;
+	left: 15%;
+	margin-left: -15px;
+	border-width: 15px;
+	border-style: solid;
+	border-color: rgba(28, 28, 28, 0.7) transparent transparent transparent;
 }
 
 .sponsorBlockTooltip.sbTriangle.centeredSBTriangle::after {
@@ -676,26 +690,26 @@ input::-webkit-inner-spin-button {
 }
 
 .sponsorBlockRectangleTooltip {
-    position: absolute;
-    border-radius: 5px;
-    padding: 10px;
-    min-width: 250px;
-    min-height: 75px;
-    white-space: normal;
-    line-height: 1.5em;
+	position: absolute;
+	border-radius: 5px;
+	padding: 10px;
+	min-width: 250px;
+	min-height: 75px;
+	white-space: normal;
+	line-height: 1.5em;
 }
 
 #categoryPill {
 	height: fit-content;
-    margin-top: auto;
+	margin-top: auto;
 	margin-bottom: auto;
 	text-indent: 0;
 
-    position: relative;
+	position: relative;
 }
 
 .sponsorBlockCategoryPill {
-    border-radius: 25px;
+	border-radius: 25px;
 	padding-left: 8px;
 	padding-right: 8px;
 	margin-right: 3px;
@@ -841,33 +855,29 @@ input::-webkit-inner-spin-button {
 	backdrop-filter: blur(2px);
 	-webkit-backdrop-filter: blur(2px);
 	height: 44px;
-    line-height: 32px;
+	line-height: 32px;
 }
 
 #bsbDescriptionContainer #bsbDescriptionPortErrorBox {
 	position: absolute;
 	left: 50%;
-    -webkit-transform: translate(-50%, -35px);
-    transform: translate(-50%, -35px);
+	-webkit-transform: translate(-50%, -35px);
+	transform: translate(-50%, -35px);
 	z-index: 1000;
 
 	opacity: 0;
 	padding: 6px 15px;
 	color: var(--stress_red);
 	background: var(--stress_red_thin);
-    width: fit-content;
-    line-height: 1em;
-    border: 1px var(--stress_red) solid;
-    border-radius: 1em;
+	width: fit-content;
+	line-height: 1em;
+	border: 1px var(--stress_red) solid;
+	border-radius: 1em;
 }
 
 #bsbDescriptionContainer #bsbDescriptionPortErrorBox.active {
 	opacity: 1;
-	animation: fade-out 5s ease-out;
-}
-
-@keyframes fade-out {
-	to { opacity: 0; }
+	animation: fadeOut 5s ease-out;
 }
 
 #bsbDescriptionContainer #ytbPreviewFrame {
@@ -882,7 +892,7 @@ input::-webkit-inner-spin-button {
 	cursor: pointer;
 	margin-right: 18px;
 	display: inline-flex;
-    align-items: center;
+	align-items: center;
 	color: var(--text2);
 }
 

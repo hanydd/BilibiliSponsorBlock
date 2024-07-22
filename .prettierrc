@@ -2,5 +2,13 @@
     "printWidth": 120,
     "tabWidth": 4,
     "semi": true,
-    "endOfLine": "auto"
+    "endOfLine": "auto",
+    "overrides": [
+        {
+            "files": "*.css",
+            "options": {
+                "useTabs": true
+            }
+        }
+    ]
 }
