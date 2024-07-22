@@ -1,175 +1,184 @@
 :root {
-  --color-scheme: dark;
-  --background: #333333;
-  --header-color: #212121;
-  --dialog-background: #181818;
-  --dialog-border: white;
-  --text: #c4c4c4;
-  --title: #dad8d8;
-  --disabled: #08495e;
-  --black: black;
-  --white: white;
+	--color-scheme: dark;
+	--background: #333333;
+	--header-color: #212121;
+	--dialog-background: #181818;
+	--dialog-border: white;
+	--text: #c4c4c4;
+	--title: #dad8d8;
+	--disabled: #08495e;
+	--black: black;
+	--white: white;
 }
 
 [data-theme="light"] {
-  --color-scheme: light;
-  --background: #f9f9f9;
-  --header-color: white;
-  --dialog-background: #f9f9f9;
-  --dialog-border: #282828;
-  --text: #262626;
-  --title: #707070;
-  --disabled: #08495e;
-  --black: white;
-  --white: black;
+	--color-scheme: light;
+	--background: #f9f9f9;
+	--header-color: white;
+	--dialog-background: #f9f9f9;
+	--dialog-border: #282828;
+	--text: #262626;
+	--title: #707070;
+	--disabled: #08495e;
+	--black: white;
+	--white: black;
 }
 
 html {
-  color-scheme: var(--color-scheme);
+	color-scheme: var(--color-scheme);
 }
 
 .bigText {
-  font-size: 50px;
+	font-size: 50px;
 }
 
 body {
-  background-color: var(--background);
-  font-family: sans-serif;
+	background-color: var(--background);
+	font-family: sans-serif;
 }
 
 .center {
-  text-align: center;
+	text-align: center;
 }
 
 .inline {
-  display: inline-block;
+	display: inline-block;
 }
 
 .container {
-  max-width: 60%;
-  margin: auto;
+	max-width: 60%;
+	margin: auto;
 }
 
 .projectPreview {
-  position: relative;
+	position: relative;
 }
 
 .projectPreviewImage {
-  position: absolute;
-  left: -90px;
-  width: 80px;
-  top: 50%;
-  transform: translateY(-50%);
+	position: absolute;
+	left: -90px;
+	width: 80px;
+	top: 50%;
+	transform: translateY(-50%);
 }
 
 .projectPreviewImageLarge {
-  position: absolute;
-  left: -210px;
-  width: 200px;
-  top: 50%;
-  transform: translateY(-20%);
+	position: absolute;
+	left: -210px;
+	width: 200px;
+	top: 50%;
+	transform: translateY(-20%);
 }
 
 .createdBy {
-  font-size: 14px;
-  text-align: center;
-  padding-top: 0px;
-  padding-bottom: 0px;
+	font-size: 14px;
+	text-align: center;
+	padding-top: 0px;
+	padding-bottom: 0px;
 }
 
 #title {
-  background-color: #636363;
+	background-color: #636363;
 
-  text-align: center;
-  vertical-align: middle;
+	text-align: center;
+	vertical-align: middle;
 
-  font-size: 50px;
-  color: var(--header-color);
+	font-size: 50px;
+	color: var(--header-color);
 
-  padding: 20px;
+	padding: 20px;
 
-  text-decoration: none;
+	text-decoration: none;
 
-  border-radius: 15px;
+	border-radius: 15px;
 
-  transition: font-size 1s;
+	transition: font-size 1s;
 }
 
 .subtitle {
-  font-size: 40px;
-  color: #dad8d8;
+	font-size: 40px;
+	color: #dad8d8;
 
-  padding-top: 10px;
+	padding-top: 10px;
 
-  transition: font-size 0.4s;
+	transition: font-size 0.4s;
 }
 
 .subtitle:hover {
-  font-size: 45px;
+	font-size: 45px;
 
-  transition: font-size 0.4s;
+	transition: font-size 0.4s;
 }
 
 .profilepic {
-  background-color: #636363 !important;
-  vertical-align: middle;
+	background-color: #636363 !important;
+	vertical-align: middle;
 }
 
 .profilepiccircle {
-  vertical-align: middle;
-  overflow: hidden;
-  border-radius: 50%;
-  margin-right: 0.5em;
+	vertical-align: middle;
+	overflow: hidden;
+	border-radius: 50%;
+	margin-right: 0.5em;
 }
 
 a {
-  text-decoration: underline;
-  color: inherit;
+	text-decoration: underline;
+	color: inherit;
 }
 
 .link {
-  padding: 20px;
+	padding: 20px;
 
-  height: 80px;
+	height: 80px;
 
-  transition: height 0.2s;
+	transition: height 0.2s;
 }
 
 .link:hover {
-  height: 95px;
+	height: 95px;
 
-  transition: height 0.2s;
+	transition: height 0.2s;
 }
 
-#contact,.smalllink {
-  font-size: 25px;
-  color: #e8e8e8;
+#contact,
+.smalllink {
+	font-size: 25px;
+	color: #e8e8e8;
 
-  text-align: center;
+	text-align: center;
 
-  padding: 10px;
+	padding: 10px;
 }
 
 #contact {
-  text-decoration: none;
+	text-decoration: none;
 }
 
-p,li {
-  font-size: 16px;
+p,
+li {
+	font-size: 16px;
 }
 
-p,li,a,span,div {
-  color: var(--text);
+p,
+li,
+a,
+span,
+div {
+	color: var(--text);
 }
 
-p,li,code,a {
+p,
+li,
+code,
+a {
 	text-align: left;
 	overflow-wrap: break-word;
 }
 
 .optionsFrame {
-  width: 100%;
-  height: 500px;
+	width: 100%;
+	height: 500px;
 }
 
 .previewImage {
@@ -183,153 +192,162 @@ img {
 }
 
 #recentPostTitle {
-  font-size: 30px;
-  color: #dad8d8;
+	font-size: 30px;
+	color: #dad8d8;
 }
 
 #recentPostDate {
-  font-size: 15px;
-  color: #dad8d8;
+	font-size: 15px;
+	color: #dad8d8;
 }
 
-h1,h2,h3,h4,h5,h6 {
-  color: var(--title);
-  text-align: center;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	color: var(--title);
+	text-align: center;
 }
 
 svg {
- text-decoration: none;
+	text-decoration: none;
 }
 
 #sbDonate {
-  font-size: 10px;
+	font-size: 10px;
 }
 
-@media screen and (orientation:portrait) {
-  .projectPreviewImage {
-    position: unset;
-    width: 50%;
-    display: block;
-    margin: auto;
-    transform: none;
-  }
+@media screen and (orientation: portrait) {
+	.projectPreviewImage {
+		position: unset;
+		width: 50%;
+		display: block;
+		margin: auto;
+		transform: none;
+	}
 
-  .projectPreviewImageLarge {
-    position: unset;
-    left: 0;
-    width: 50%;
-    display: block;
-    margin: auto;
-    transform: unset;
-  }
+	.projectPreviewImageLarge {
+		position: unset;
+		left: 0;
+		width: 50%;
+		display: block;
+		margin: auto;
+		transform: unset;
+	}
 
-  .container {
-    max-width: 100%;
-    margin: 5px;
-    text-align: center;
-  }
+	.container {
+		max-width: 100%;
+		margin: 5px;
+		text-align: center;
+	}
 
-  p,li,code,a {
-    text-align: center;
-  }
+	p,
+	li,
+	code,
+	a {
+		text-align: center;
+	}
 }
 
 /* keybind dialog */
 .key {
-  border-width: 1px;
-  border-style: solid;
-  border-radius: 5px;
-  display: inline-block;
-  min-width: 33px;
-  text-align: center;
-  font-weight: bold;
-  border-color: var(--white);
-  box-sizing: border-box;
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 5px;
+	display: inline-block;
+	min-width: 33px;
+	text-align: center;
+	font-weight: bold;
+	border-color: var(--white);
+	box-sizing: border-box;
 }
 
-.unbound, .key {
-  padding: 8px;
+.unbound,
+.key {
+	padding: 8px;
 }
 
 #keybind-dialog .dialog {
-  position: fixed;
-  border-width: 3px;
-  border-style: solid;
-  border-radius: 15px;
-  max-height: 100vh;
-  width: 400px;
-  overflow-x: auto;
-  z-index: 100;
-  padding: 15px;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 14px;
-  background-color: var(--dialog-background);
-  border-color: var(--dialog-border);
+	position: fixed;
+	border-width: 3px;
+	border-style: solid;
+	border-radius: 15px;
+	max-height: 100vh;
+	width: 400px;
+	overflow-x: auto;
+	z-index: 100;
+	padding: 15px;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 14px;
+	background-color: var(--dialog-background);
+	border-color: var(--dialog-border);
 }
 
 #change-keybind-buttons {
-  float: right;
+	float: right;
 }
 
 #change-keybind-buttons > .option-button {
-  margin: 0 2px;
+	margin: 0 2px;
 }
 
 #change-keybind-settings {
-  margin: 15px 15px 30px;
+	margin: 15px 15px 30px;
 }
 
 #change-keybind-settings .key {
-  vertical-align: top;
-  margin: 15px 0 0 40px;
-  height: 34px;
+	vertical-align: top;
+	margin: 15px 0 0 40px;
+	height: 34px;
 }
 
 #change-keybind-error {
-  margin-bottom: 15px;
-  color: red;
-  font-weight: bold;
+	margin-bottom: 15px;
+	color: red;
+	font-weight: bold;
 }
 
 .blocker {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  z-index: 90;
-  background-color: #00000080;
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	z-index: 90;
+	background-color: #00000080;
 }
 
 .option-button {
-  cursor: pointer;
+	cursor: pointer;
 
-  background-color: #00a1d6;
-  padding: 10px;
-  color: white;
-  border-radius: 5px;
-  font-size: 14px;
+	background-color: #00a1d6;
+	padding: 10px;
+	color: white;
+	border-radius: 5px;
+	font-size: 14px;
 
-  width: max-content;
+	width: max-content;
 }
 
 .option-button:hover:not(.disabled) {
-  background-color: #086f91;
+	background-color: #086f91;
 }
 
 .option-button.disabled {
-  cursor: default;
-  background-color: var(--disabled);
-  color: grey;
+	cursor: default;
+	background-color: var(--disabled);
+	color: grey;
 }
 
 .hidden {
-  display: none;
+	display: none;
 }
 
 .divider {
-  margin: 200px 0 0;
-  border-bottom: 1px solid var(--header-color);
+	margin: 200px 0 0;
+	border-bottom: 1px solid var(--header-color);
 }

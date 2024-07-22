@@ -1,11 +1,12 @@
 .sponsorSkipNoticeParent {
-    position: absolute;
+	position: absolute;
 
 	bottom: 100px;
 	right: var(--skip-notice-right);
 }
 
-.sponsorSkipNoticeParent, .sponsorSkipNotice {
+.sponsorSkipNoticeParent,
+.sponsorSkipNotice {
 	border-spacing: var(--skip-notice-border-horizontal) var(--skip-notice-border-vertical) !important;
 	padding-left: var(--skip-notice-padding);
 	padding-right: var(--skip-notice-padding);
@@ -41,7 +42,9 @@
 }
 
 /* For Cloudtube */
-.sponsorSkipNotice td, .sponsorSkipNotice table, .sponsorSkipNotice th {
+.sponsorSkipNotice td,
+.sponsorSkipNotice table,
+.sponsorSkipNotice th {
 	border: none;
 }
 
@@ -63,21 +66,21 @@
 	color: #eeeeee;
 
 	border-radius: 4px;
-    padding: 2px 5px;
-    font-size: 12px;
+	padding: 2px 5px;
+	font-size: 12px;
 
 	display: flex;
-    align-items: center;
+	align-items: center;
 
 	border: 1px solid #eeeeee;
 }
 
 .sponsorSkipNoticeTimeLeft img {
 	vertical-align: middle;
-    height: 13px;
+	height: 13px;
 
 	padding-top: 7.8%;
-    padding-bottom: 7.8%;
+	padding-bottom: 7.8%;
 }
 
 /* if two are very close to eachother */
@@ -87,7 +90,7 @@
 
 .noticeLeftIcon {
 	display: flex;
-  	align-items: center;
+	align-items: center;
 }
 
 .sponsorSkipNotice .sponsorSkipNoticeUnskipSection {
@@ -107,11 +110,11 @@
 
 	margin-right: 10px;
 
-    padding: 2px 5px;
+	padding: 2px 5px;
 }
 
 .sponsorSkipNoticeButton:hover {
-	background-color: rgba(235, 235, 235,0.2);
+	background-color: rgba(235, 235, 235, 0.2);
 	border-radius: 4px;
 
 	transition: background-color 0.4s;
@@ -124,18 +127,18 @@
 
 .sponsorTimesVoteButtonsContainer {
 	float: left;
-	vertical-align:middle;
+	vertical-align: middle;
 	padding: 2px 5px;
 
 	margin-right: 4px;
 }
 
-.sponsorTimesVoteButtonsContainer div{
+.sponsorTimesVoteButtonsContainer div {
 	display: inline-block;
 }
 
 .sponsorSkipNoticeRightSection {
-    right: 0;
+	right: 0;
 	position: absolute;
 
 	float: right;
@@ -157,7 +160,7 @@
 	padding: 2px 5px;
 
 	margin-left: 2px;
-    float: right;
+	float: right;
 }
 
 .sponsorSkipNoticeCloseButton.biggerCloseButton {
@@ -177,7 +180,7 @@
 
 .sponsorSkipInfo {
 	font-size: 10px;
-    color: #000000;
+	color: #000000;
 	text-align: center;
 	margin-top: 0px;
 }
@@ -185,7 +188,7 @@
 #sponsorTimesThanksForVotingText {
 	font-size: 20px;
 	font-weight: bold;
-    color: #000000;
+	color: #000000;
 	text-align: center;
 	margin-top: 0px;
 	margin-bottom: 0px;
@@ -194,7 +197,7 @@
 #sponsorTimesThanksForVotingInfoText {
 	font-size: 12px;
 	font-weight: bold;
-    color: #000000;
+	color: #000000;
 	text-align: center;
 	margin-top: 0px;
 }
@@ -205,14 +208,14 @@
 
 .sponsorTimesInfoMessage {
 	font-size: 13.3333px;
-    color: rgb(235, 235, 235);
+	color: rgb(235, 235, 235);
 }
 
 .sb-guidelines-notice .sponsorTimesInfoMessage td {
 	padding-left: 5px;
 	padding-top: 2px;
 	padding-bottom: 2px;
-    font-size: 15px;
+	font-size: 15px;
 
 	display: flex;
 	align-items: center;

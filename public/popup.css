@@ -1,375 +1,378 @@
 :root {
-  --sb-main-font-family: "Source Sans Pro", sans-serif;
-  --sb-main-bg-color: #222;
-  --sb-main-fg-color: #fff;
-  --sb-grey-bg-color: #333;
-  --sb-grey-fg-color: #999;
-  --sb-red-bg-color: #00a1d6;
+	--sb-main-font-family: "Source Sans Pro", sans-serif;
+	--sb-main-bg-color: #222;
+	--sb-main-fg-color: #fff;
+	--sb-grey-bg-color: #333;
+	--sb-grey-fg-color: #999;
+	--sb-red-bg-color: #00a1d6;
 }
 
 /*
  * Generic utilities
  */
 .grey-text {
-  color: var(--sb-grey-fg-color);
+	color: var(--sb-grey-fg-color);
 }
 .white-text {
-  color: var(--sb-main-fg-color);
+	color: var(--sb-main-fg-color);
 }
 .sbHeader {
-  font-size: 20px;
-  font-weight: bold;
-  text-align: left;
-  margin: 0;
+	font-size: 20px;
+	font-weight: bold;
+	text-align: left;
+	margin: 0;
 }
 #sponsorBlockPopupBody .u-mZ {
-  margin: 0 !important;
-  position: relative;
+	margin: 0 !important;
+	position: relative;
 }
 
-#sponsorBlockPopupBody .hidden, #sponsorBlockPopupBody .sbhidden {
-  display: none !important;
+#sponsorBlockPopupBody .hidden,
+#sponsorBlockPopupBody .sbhidden {
+	display: none !important;
 }
 
 /*
  * <button> elements that have icons
  */
- #setUsernameButton,
- #copyUserID,
- #submitUsername {
-   color: var(--sb-main-fg-color);
-   background: transparent;
-   width: fit-content;
-   padding: 0;
-   border: none;
- }
+#setUsernameButton,
+#copyUserID,
+#submitUsername {
+	color: var(--sb-main-fg-color);
+	background: transparent;
+	width: fit-content;
+	padding: 0;
+	border: none;
+}
 
 /*
  * Main containers
  */
 #sponsorBlockPopupHTML {
-  color-scheme: dark;
-  max-height: 600px;
-  overflow-y: auto;
+	color-scheme: dark;
+	max-height: 600px;
+	overflow-y: auto;
 }
 
 #sponsorBlockPopupBody {
-  margin: 0;
-  width: 374px;
-  max-width: 100%; /* NOTE: Ensures content doesn't exceed restricted popup widths in Firefox */
-  font-size: 14px;
-  font-family: var(--sb-main-font-family);
-  background-color: var(--sb-main-bg-color);
-  color: var(--sb-main-fg-color);
-  color-scheme: dark;
+	margin: 0;
+	width: 374px;
+	max-width: 100%; /* NOTE: Ensures content doesn't exceed restricted popup widths in Firefox */
+	font-size: 14px;
+	font-family: var(--sb-main-font-family);
+	background-color: var(--sb-main-bg-color);
+	color: var(--sb-main-fg-color);
+	color-scheme: dark;
 }
 
 #sponsorblockPopup {
-  text-align: center;
+	text-align: center;
 }
 
 #sponsorblockPopup a,
 #sponsorblockPopup button {
-  cursor: pointer;
+	cursor: pointer;
 }
 
 /*
  * Disable transition on all elements until the extension has loaded
  */
 .sb-preload * {
-  transition: none !important;
+	transition: none !important;
 }
 
 /*
  * Alert indicating that Beta server is enabled
  */
 #sbBetaServerWarning {
-  padding: 8px;
-  font-size: 1em;
-  font-weight: 700;
-  color: var(--sb-main-fg-color);
-  background-color: var(--sb-red-bg-color);
-  cursor: pointer;
+	padding: 8px;
+	font-size: 1em;
+	font-weight: 700;
+	color: var(--sb-main-fg-color);
+	background-color: var(--sb-red-bg-color);
+	cursor: pointer;
 }
 
 /*
  * Container when popup displayed in-page (content.ts)
  */
 #sponsorBlockPopupContainer {
-  position: relative;
-  margin-bottom: 16px;
+	position: relative;
+	margin-bottom: 16px;
 }
 
 #sponsorBlockPopupContainer iframe {
-  width: 100%;
+	width: 100%;
 }
 
 /*
  * Disable popup max height when displayed in-page (content.ts)
  */
 #sponsorBlockPopupContainer #sponsorBlockPopupHTML {
-  max-height: none;
+	max-height: none;
 }
 
 /*
  * Disable fixed popup width when displayed in-page (content.ts)
  */
 #sponsorBlockPopupBody.is-embedded {
-  width: auto;
+	width: auto;
 }
 
 /*
  * Close popup button when displayed in-page (top-right corner)
  */
 .sbCloseButton {
-  background: transparent;
-  border: 0;
-  padding: 8px;
-  cursor: pointer;
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  opacity: 0.5;
-  z-index: 1;
+	background: transparent;
+	border: 0;
+	padding: 8px;
+	cursor: pointer;
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	opacity: 0.5;
+	z-index: 1;
 }
 
 .sbCloseButton:hover {
-  opacity: 1;
+	opacity: 1;
 }
 
 /*
  * Header logo
  */
 .sbPopupLogo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  user-select: none;
-  padding: 10px 0px 0px;
-  font-size: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: bold;
+	user-select: none;
+	padding: 10px 0px 0px;
+	font-size: 32px;
 }
 .sbPopupLogo img {
-  margin: 8px;
+	margin: 8px;
 }
 
 #refreshSegmentsButton {
-  display: flex;
-  align-items: center;
-  padding: 5px;
-  margin: 5px auto;
+	display: flex;
+	align-items: center;
+	padding: 5px;
+	margin: 5px auto;
 }
 
 #issueReporterImportExport {
-  position: relative;
+	position: relative;
 }
 
-#refreshSegmentsButton, #issueReporterImportExport button {
-  background: transparent;
-  border-radius: 50%;
-  border: none;
+#refreshSegmentsButton,
+#issueReporterImportExport button {
+	background: transparent;
+	border-radius: 50%;
+	border: none;
 }
 
-#refreshSegmentsButton:hover, #issueReporterImportExport button:hover {
-  background-color: var(--sb-grey-bg-color);
+#refreshSegmentsButton:hover,
+#issueReporterImportExport button:hover {
+	background-color: var(--sb-grey-bg-color);
 }
 
 #issueReporterImportExport button {
-  padding: 5px;
-  margin-right: 15px;
-  margin-left: 15px;
+	padding: 5px;
+	margin-right: 15px;
+	margin-left: 15px;
 }
 
 #issueReporterImportExport img {
-  width: 24px;
-  display: block;
+	width: 24px;
+	display: block;
 }
 
 #importSegmentsText {
-  margin-top: 7px;
+	margin-top: 7px;
 }
 
 #importSegmentsMenu button {
-  padding: 10px;
+	padding: 10px;
 }
 
 /*
  * <details> wrapper around each segment
  */
 .votingButtons {
-  font-family: Arial, Helvetica, sans-serif;
-  border-radius: 8px;
-  margin: 1px 16px;
+	font-family: Arial, Helvetica, sans-serif;
+	border-radius: 8px;
+	margin: 1px 16px;
 }
 .votingButtons[open] {
-  padding-bottom: 5px;
+	padding-bottom: 5px;
 }
 .votingButtons:hover {
-  background-color: var(--sb-grey-bg-color);
+	background-color: var(--sb-grey-bg-color);
 }
 
 /*
  * Individual segments summaries (clickable <summary>)
  */
 .segmentSummary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  white-space: nowrap;
-  font-weight: bold;
-  list-style: none;
-  cursor: pointer;
-  padding: 4px 8px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	white-space: nowrap;
+	font-weight: bold;
+	list-style: none;
+	cursor: pointer;
+	padding: 4px 8px;
 }
 .segmentSummary > div {
-  text-align: left;
+	text-align: left;
 }
 
 .segmentSummary::-webkit-details-marker {
-  display: none !important;
+	display: none !important;
 }
 
 .segmentActive {
-  color: #bdfffb;
+	color: #bdfffb;
 }
 
 .segmentPassed {
-  color: #adadad;
+	color: #adadad;
 }
 
 /*
  * Category dot in segment
  */
 .sponsorTimesCategoryColorCircle {
-  margin-right: 8px;
+	margin-right: 8px;
 }
 .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	display: inline-block;
 }
 /*
  * Category name in segment
  */
 .summaryLabel {
-  overflow-wrap: break-word;
-  white-space: normal;
+	overflow-wrap: break-word;
+	white-space: normal;
 }
 
 .sbVoteButtonsContainer {
-  text-align: right;
+	text-align: right;
 }
 
 /*
  * "Voted!" text that appears after voting on a segment
  */
 .sponsorTimesThanksForVotingText {
-  font-size: large;
+	font-size: large;
 }
 
 /*
  * Main controls menu
  */
 .sbControlsMenu {
-  margin: 16px;
-  margin-top: 6px;
-  border-radius: 8px;
-  background-color: var(--sb-grey-bg-color);
-  justify-content: space-evenly;
-  overflow: hidden;
-  display: flex;
+	margin: 16px;
+	margin-top: 6px;
+	border-radius: 8px;
+	background-color: var(--sb-grey-bg-color);
+	justify-content: space-evenly;
+	overflow: hidden;
+	display: flex;
 }
 .sbControlsMenu-item {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: center;
-  background: transparent;
-  user-select: none;
-  cursor: pointer;
-  border: none;
-  flex: 1;
-  padding: 10px 15px;
-  transition: background-color 0.2s ease-in-out;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	justify-content: center;
+	background: transparent;
+	user-select: none;
+	cursor: pointer;
+	border: none;
+	flex: 1;
+	padding: 10px 15px;
+	transition: background-color 0.2s ease-in-out;
 }
 .sbControlsMenu-item:hover {
-  background-color: #444;
+	background-color: #444;
 }
 .sbControlsMenu-itemIcon {
-  margin-bottom: 6px;
+	margin-bottom: 6px;
 }
 
 /*
  * Whitelist add/remove icon
  */
 .SBWhitelistIcon > path {
-  fill: var(--sb-main-fg-color);
+	fill: var(--sb-main-fg-color);
 }
 .SBWhitelistIcon.rotated {
-  transform: rotate(45deg);
+	transform: rotate(45deg);
 }
 @keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
 }
 
 /*
  * "Skipping is enabled" toggle
  */
 .toggleSwitchContainer {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
 }
 .toggleSwitchContainer-switch {
-  display: flex;
-  margin-bottom: 6px;
+	display: flex;
+	margin-bottom: 6px;
 }
 .switchBg {
-  width: 50px;
-  height: 23px;
-  display: block;
-  border-radius: 18.5px;
+	width: 50px;
+	height: 23px;
+	display: block;
+	border-radius: 18.5px;
 }
 .switchBg.shadow {
-  box-shadow: 0.75px 0.75px 10px 0px rgba(50, 50, 50, 0.5);
-  opacity: 1;
+	box-shadow: 0.75px 0.75px 10px 0px rgba(50, 50, 50, 0.5);
+	opacity: 1;
 }
 .switchBg.white {
-  opacity: 1;
-  position: absolute;
-  background-color: #ccc;
+	opacity: 1;
+	position: absolute;
+	background-color: #ccc;
 }
 .switchBg.green {
-  opacity: 0;
-  position: absolute;
-  background-color: #00a205;
-  transition: opacity 0.2s ease-out;
+	opacity: 0;
+	position: absolute;
+	background-color: #00a205;
+	transition: opacity 0.2s ease-out;
 }
 .switchDot {
-  width: 15px;
-  margin: 4px;
-  height: 15px;
-  border-radius: 50%;
-  position: absolute;
-  transition: transform 0.2s ease-out;
-  background-color: var(--sb-main-fg-color);
-  box-shadow: 0.75px 0.75px 3.8px 0px rgba(50, 50, 50, 0.45);
+	width: 15px;
+	margin: 4px;
+	height: 15px;
+	border-radius: 50%;
+	position: absolute;
+	transition: transform 0.2s ease-out;
+	background-color: var(--sb-main-fg-color);
+	box-shadow: 0.75px 0.75px 3.8px 0px rgba(50, 50, 50, 0.45);
 }
 #toggleSwitch:checked ~ .switchDot {
-  transform: translateX(27px);
+	transform: translateX(27px);
 }
 #toggleSwitch:checked ~ .switchBg.green {
-  opacity: 1;
+	opacity: 1;
 }
 #toggleSwitch:checked ~ .switchBg.white {
-  transition: opacity 0.2s step-end;
-  opacity: 0;
+	transition: opacity 0.2s step-end;
+	opacity: 0;
 }
 
 /*
@@ -377,84 +380,84 @@
  * enabling the "Force Channel Check Before Skipping" option
  */
 #whitelistForceCheck {
-  background-color: #fff3cd;
-  padding: 10px 15px;
-  display: block;
-  color: #664d03;
+	background-color: #fff3cd;
+	padding: 10px 15px;
+	display: block;
+	color: #664d03;
 }
 #whitelistForceCheck:hover {
-  background-color: #f2e4b7;
+	background-color: #f2e4b7;
 }
 
 /*
  * Submit box
  */
 #mainControls {
-  margin: 16px;
-  padding: 8px 14px;
-  text-align: left;
-  border-radius: 8px;
-  border: 2px solid var(--sb-grey-bg-color);
+	margin: 16px;
+	padding: 8px 14px;
+	text-align: left;
+	border-radius: 8px;
+	border: 2px solid var(--sb-grey-bg-color);
 }
 .sponsorStartHint {
-  display: block;
-  text-align: left;
-  padding-top: 3px;
+	display: block;
+	text-align: left;
+	padding-top: 3px;
 }
 
 /*
  * Generic red buttons used for "Start Segment Now", "Submit Times" etc.
  */
 .sbMediumButton {
-  border: none;
-  font-size: 16px;
-  padding: 8px 16px;
-  border-radius: 28px;
-  display: inline-block;
-  -moz-border-radius: 28px;
-  -webkit-border-radius: 28px;
-  color: var(--sb-main-fg-color);
-  transition: 0.01s background-color;
-  font-family: var(--sb-main-font-family);
-  background-color: var(--sb-red-bg-color);
+	border: none;
+	font-size: 16px;
+	padding: 8px 16px;
+	border-radius: 28px;
+	display: inline-block;
+	-moz-border-radius: 28px;
+	-webkit-border-radius: 28px;
+	color: var(--sb-main-fg-color);
+	transition: 0.01s background-color;
+	font-family: var(--sb-main-font-family);
+	background-color: var(--sb-red-bg-color);
 }
 .sbMediumButton:hover,
 .sbMediumButton:focus {
-  background-color: #00a1d6;
-  outline: none;
+	background-color: #00a1d6;
+	outline: none;
 }
 .sbMediumButton:active {
-  position: relative;
-  top: 1px;
+	position: relative;
+	top: 1px;
 }
 /*
  * "Submit Times" button
  */
 #submitTimes {
-  margin-top: 12px;
+	margin-top: 12px;
 }
 
 /*
  * Your Work box
  */
 .sbYourWorkBox {
-  margin: 16px;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  border: 2px solid var(--sb-grey-bg-color);
+	margin: 16px;
+	margin-bottom: 8px;
+	border-radius: 8px;
+	border: 2px solid var(--sb-grey-bg-color);
 }
 .sbYourWorkCols {
-  display: flex;
-  border-top: 2px solid var(--sb-grey-bg-color);
-  border-bottom: 2px solid var(--sb-grey-bg-color);
+	display: flex;
+	border-top: 2px solid var(--sb-grey-bg-color);
+	border-bottom: 2px solid var(--sb-grey-bg-color);
 }
 
 .sbStatsSentence {
-  padding: 6px 14px;
+	padding: 6px 14px;
 }
 
 .sbExtraInfo {
-  display: inline-block;
+	display: inline-block;
 }
 
 /*
@@ -462,160 +465,160 @@
  */
 #usernameValue,
 #usernameInput {
-  font-size: 16px;
-  flex: 1 0;
+	font-size: 16px;
+	flex: 1 0;
 }
 #sponsorTimesContributionsDisplay {
-  font-size: 16px;
+	font-size: 16px;
 }
- /*
+/*
  * Improve alignment of username and submissions
  */
 #usernameElement > p,
 #sponsorTimesContributionsContainer {
-  text-align: left;
+	text-align: left;
 }
 
 /*
  * Username
  */
 #usernameElement {
-  padding: 8px 14px;
-  min-width: 50%;
-  width: 100%;
+	padding: 8px 14px;
+	min-width: 50%;
+	width: 100%;
 }
 #setUsernameContainer {
-  display: flex;
-  align-items: center;
-  width: fit-content;
+	display: flex;
+	align-items: center;
+	width: fit-content;
 }
 #setUsernameContainer > button {
-  display: flex;
+	display: flex;
 }
 #setUsernameButton {
-  margin-right: 5px;
-  flex: 0 1;
+	margin-right: 5px;
+	flex: 0 1;
 }
 #submitUsername {
-  padding-left: 16px;
+	padding-left: 16px;
 }
 #copyUserID {
-  width: 100%;
-  flex: 0 1;
+	width: 100%;
+	flex: 0 1;
 }
 /*
  * Truncate username display
  */
 #usernameValue {
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  margin: 0 8px 0 0;
-  max-width: 165px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	margin: 0 8px 0 0;
+	max-width: 165px;
 }
 /*
  * Set username form container with "expanded" state
  */
 #setUsername.SBExpanded {
-  text-align: left;
+	text-align: left;
 }
 /*
  * Set username input
  */
 #usernameInput {
-  border: none;
-  padding: 4px 8px;
-  border-radius: 4px;
-  width: calc(100% - 68px);
-  text-overflow: ellipsis;
-  color: var(--sb-main-fg-color);
-  background-color: var(--sb-grey-bg-color);
+	border: none;
+	padding: 4px 8px;
+	border-radius: 4px;
+	width: calc(100% - 68px);
+	text-overflow: ellipsis;
+	color: var(--sb-main-fg-color);
+	background-color: var(--sb-grey-bg-color);
 }
 
 /*
  * Submissions
 */
 #sponsorTimesContributionsContainer {
-  padding: 8px 14px;
-  border-left: 2px solid var(--sb-grey-bg-color);
+	padding: 8px 14px;
+	border-left: 2px solid var(--sb-grey-bg-color);
 }
 
 /*
  * Footer
  */
 #sbFooter {
-  padding: 8px 0;
+	padding: 8px 0;
 }
 #sbFooter a {
-  transition: background 0.3s ease !important;
-  color: var(--sb-main-fg-color);
-  display: inline-block;
-  text-decoration: none;
-  border-radius: 4px;
-  background-color: #333;
-  padding: 4px 8px;
-  font-weight: 500;
-  margin: 2px 1px;
+	transition: background 0.3s ease !important;
+	color: var(--sb-main-fg-color);
+	display: inline-block;
+	text-decoration: none;
+	border-radius: 4px;
+	background-color: #333;
+	padding: 4px 8px;
+	font-weight: 500;
+	margin: 2px 1px;
 }
 #sbFooter a:hover {
-  background-color: #444;
+	background-color: #444;
 }
 
 #sponsorTimesDonateContainer a {
-  color: var(--sb-main-fg-color);
-  text-decoration: none;
+	color: var(--sb-main-fg-color);
+	text-decoration: none;
 }
 
 /*
  * "Show Notice Again" button
  */
 #showNoticeAgain {
-  background: transparent;
-  border: 1px solid #fff;
-  border-radius: 5px;
-  color: var(--sb-main-fg-color);
-  margin-bottom: 20px;
-  padding: 5px;
+	background: transparent;
+	border: 1px solid #fff;
+	border-radius: 5px;
+	color: var(--sb-main-fg-color);
+	margin-bottom: 20px;
+	padding: 5px;
 }
 
 #sponsorBlockPopupBody .u-mZ {
-  margin: 0 !important;
+	margin: 0 !important;
 }
 
 #sponsorBlockPopupBody .hidden {
-  display: none !important;
+	display: none !important;
 }
 
 #issueReporterTabs {
-  margin: 5px;
+	margin: 5px;
 }
 
 #issueReporterTabs > span {
-  padding: 2px 4px;
-  margin: 0 3px;
-  cursor: pointer;
-  background-color: #444848;
-  border-radius: 10px;
+	padding: 2px 4px;
+	margin: 0 3px;
+	cursor: pointer;
+	background-color: #444848;
+	border-radius: 10px;
 }
 
 #issueReporterTabs > span > span {
-  position: relative;
-  padding: 0.2em 0;
+	position: relative;
+	padding: 0.2em 0;
 }
 
 #issueReporterTabs > span > span::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 0.1em;
-  background-color: rgb(145, 0, 0);
-  transition: transform 300ms;
-  transform: scaleX(0);
-  transform-origin: center;
+	content: "";
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 0.1em;
+	background-color: rgb(145, 0, 0);
+	transition: transform 300ms;
+	transform: scaleX(0);
+	transform-origin: center;
 }
 
 #issueReporterTabs > span.sbSelected > span::after {
-  transform: scaleX(0.8);
+	transform: scaleX(0.8);
 }
