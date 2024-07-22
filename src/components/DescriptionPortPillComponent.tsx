@@ -19,27 +19,39 @@ export interface DescriptionPortPillState {
     loading: boolean;
     ytbVideoID: VideoID;
     previewYtbID: VideoID;
+    showErrorMessage: boolean;
 }
 
 export class DescriptionPortPillComponent extends React.Component<DescriptionPortPillProps, DescriptionPortPillState> {
     inputRef: React.RefObject<HTMLInputElement>;
+    errorMessage: string;
 
     constructor(props: DescriptionPortPillProps) {
         super(props);
         this.inputRef = React.createRef();
+        this.errorMessage = "";
         this.state = {
             show: false,
             ytbVideoID: props.ytbID,
             loading: false,
             showPreviewYtbVideo: false,
             previewYtbID: props.ytbID,
+            showErrorMessage: false,
         };
     }
 
     render(): React.ReactElement {
         return (
             <>
-                <div hidden={!this.state.loading || !this.state.show} id="bsbDescriptionPortLoading">
+                <div
+                    hidden={!(this.state.show && this.state.showErrorMessage)}
+                    className={this.state.showErrorMessage ? "active" : ""}
+                    id="bsbDescriptionPortErrorBox"
+                >
+                    {this.errorMessage}
+                </div>
+
+                <div hidden={!(this.state.loading && this.state.show)} id="bsbDescriptionPortLoading">
                     加载中...
                 </div>
 
@@ -79,6 +91,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                         this.toggleYtbVideo()
                     )}
                 </div>
+
                 {this.state.previewYtbID && this.props.showYtbVideoButton && (
                     <iframe
                         hidden={!this.state.showPreviewYtbVideo}
@@ -102,6 +115,16 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
         this.setState({ showPreviewYtbVideo: !this.state.showPreviewYtbVideo });
     }
 
+    private showErrorMessage(message: string): void {
+        this.errorMessage = message;
+        this.setState({ showErrorMessage: true });
+        const timeout = setTimeout(() => {
+            this.setState({ showErrorMessage: false });
+            this.errorMessage = "";
+            clearTimeout(timeout);
+        }, 4990);
+    }
+
     private hasYtbVideo(): boolean {
         // TODO: add validation
         return !!this.state.ytbVideoID;
@@ -121,6 +144,9 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                     this.setState({ ytbVideoID: newPortVideo.ytbID, previewYtbID: newPortVideo.ytbID });
                 }
             })
+            .catch((e) => {
+                this.showErrorMessage(e);
+            })
             .finally(() => {
                 this.setState({ loading: false });
             });
@@ -128,7 +154,9 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
 
     private async vote(event: React.MouseEvent, type: 0 | 1) {
         const stopAnimation = AnimationUtils.applyLoadingAnimation(event.target as HTMLElement, 0.5);
-        await this.props.onVote(type);
+        await this.props.onVote(type).catch((e) => {
+            this.showErrorMessage(e);
+        });
         stopAnimation();
     }
 

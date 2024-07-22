@@ -178,7 +178,7 @@ export class DescriptionPortPill {
         if (response?.ok) {
             console.log("Vote successful", response);
         } else {
-            console.error("Vote failed", response);
+            throw response?.responseText ? response.responseText : "投票失败！";
         }
 
         await this.getPortVideo(this.bvID, true);

@@ -844,6 +844,32 @@ input::-webkit-inner-spin-button {
     line-height: 32px;
 }
 
+#bsbDescriptionContainer #bsbDescriptionPortErrorBox {
+	position: absolute;
+	left: 50%;
+    -webkit-transform: translate(-50%, -35px);
+    transform: translate(-50%, -35px);
+	z-index: 1000;
+
+	opacity: 0;
+	padding: 6px 15px;
+	color: var(--stress_red);
+	background: var(--stress_red_thin);
+    width: fit-content;
+    line-height: 1em;
+    border: 1px var(--stress_red) solid;
+    border-radius: 1em;
+}
+
+#bsbDescriptionContainer #bsbDescriptionPortErrorBox.active {
+	opacity: 1;
+	animation: fade-out 5s ease-out;
+}
+
+@keyframes fade-out {
+	to { opacity: 0; }
+}
+
 #bsbDescriptionContainer #ytbPreviewFrame {
 	width: 100%;
 	box-sizing: border-box;
