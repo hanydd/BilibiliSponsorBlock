@@ -40,7 +40,6 @@ export function parseYouTubeVideoIDFromURL(url: string): VideoID | null {
     try {
         urlObject = new URL(url);
     } catch (e) {
-        console.error("[SB] Unable to parse URL: " + url);
         return null;
     }
 
