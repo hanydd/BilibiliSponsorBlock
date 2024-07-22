@@ -104,7 +104,7 @@ export class DescriptionPortPill {
 
         const newButtonText = document.createElement("span");
         newButtonText.id = "bsbPortButtonText";
-        newButtonText.textContent = "绑定搬运视频";
+        newButtonText.textContent = chrome.i18n.getMessage("bindPortVideoButton");
         buttonContainer.appendChild(newButtonText);
 
         referenceNode.prepend(buttonContainer);

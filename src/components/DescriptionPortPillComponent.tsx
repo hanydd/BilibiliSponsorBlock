@@ -52,25 +52,25 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                 </div>
 
                 <div hidden={!(this.state.loading && this.state.show)} id="bsbDescriptionPortLoading">
-                    加载中...
+                    {chrome.i18n.getMessage("Loading")}
                 </div>
 
                 <div hidden={!this.state.show} id="bsbDescriptionPortVideoPill">
                     {this.hasYtbVideo() && (
                         <>
-                            <span>已绑定搬运视频：</span>
+                            <span>{chrome.i18n.getMessage("hasbindedPortVideo")}</span>
                             <a id="ytbLink" href={this.getVideoLink()} target="blank">
                                 {this.state.ytbVideoID}
                             </a>
                             <img
                                 className="bsbVoteButton"
-                                title="点赞"
+                                title={chrome.i18n.getMessage("upvote")}
                                 src={chrome.runtime.getURL("icons/thumbs_up_blue.svg")}
                                 onClick={(e) => this.vote(e, 1)}
                             ></img>
                             <img
                                 className="bsbVoteButton"
-                                title="点踩"
+                                title={chrome.i18n.getMessage("downvote")}
                                 src={chrome.runtime.getURL("icons/thumbs_down_blue.svg")}
                                 onClick={(e) => this.vote(e, 0)}
                             ></img>
@@ -82,12 +82,12 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                                 <input
                                     ref={this.inputRef}
                                     type="text"
-                                    placeholder="请输入搬运视频地址"
+                                    placeholder={chrome.i18n.getMessage("enterPortVideoURL")}
                                     onChange={this.handleYtbInput.bind(this)}
                                 ></input>
                             </div>
                             <button className="active" onClick={() => this.submitPortVideo()}>
-                                提交
+                                {chrome.i18n.getMessage("submit")}
                             </button>
                         </>
                     )}
@@ -181,7 +181,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
 function togglePreviewYtbVideoButton(disabled: boolean, onClickCallback: () => void): React.ReactElement {
     return (
         <button id="previewYtb" className={disabled ? "" : "active"} disabled={disabled} onClick={onClickCallback}>
-            预览YouTube视频
+            {chrome.i18n.getMessage("previewYoutubeVideoButton")}
         </button>
     );
 }

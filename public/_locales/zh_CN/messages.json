@@ -942,7 +942,7 @@
         "message": "这会立即应用到您所有的片段"
     },
     "downvote": {
-        "message": "差评"
+        "message": "点踩"
     },
     "upvote": {
         "message": "点赞"
@@ -1141,5 +1141,17 @@
     "previewSegmentRequired": {
         "message": "Please preview your segments before submitting. You can do this by clicking the preview button or using the following shortcut:",
         "description": "Appears when trying to submit a segment without previewing it first. After the colon, the shortcut will appear"
+    },
+    "hasbindedPortVideo": {
+        "message": "已绑定搬运视频："
+    },
+    "enterPortVideoURL": {
+        "message": "请输入搬运视频地址"
+    },
+    "previewYoutubeVideoButton": {
+        "message": "预览YouTube视频"
+    },
+    "bindPortVideoButton": {
+        "message": "绑定搬运视频"
     }
 }

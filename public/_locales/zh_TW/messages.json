@@ -1141,5 +1141,17 @@
     "previewSegmentRequired": {
         "message": "請在提交之前預覽您的片段。您可以點擊預覽按鈕或使用以下快捷鍵：",
         "description": "Appears when trying to submit a segment without previewing it first. After the colon, the shortcut will appear"
+    },
+    "hasbindedPortVideo": {
+        "message": "已綁定搬運視頻："
+    },
+    "enterPortVideoURL": {
+        "message": "請輸入搬運視頻地址"
+    },
+    "previewYoutubeVideoButton": {
+        "message": "預覽YouTube視頻"
+    },
+    "bindPortVideoButton": {
+        "message": "綁定搬運視頻"
     }
 }
