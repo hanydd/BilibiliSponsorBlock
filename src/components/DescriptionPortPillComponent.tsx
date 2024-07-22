@@ -1,7 +1,7 @@
 import * as React from "react";
 import { VideoID } from "../types";
 import { PortVideo } from "../render/DesciptionPortPill";
-import { parseYouTubeVideoIDFromURL } from "../../maze-utils/src/video";
+import { parseYoutubeID } from "../../maze-utils/src/youtubeID";
 import { AnimationUtils } from "../../maze-utils/src/animationUtils";
 
 export interface DescriptionPortPillProps {
@@ -134,7 +134,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
         if (!YtbInput) {
             return;
         }
-        const ytbID = parseYouTubeVideoIDFromURL(YtbInput).videoID;
+        const ytbID = parseYoutubeID(YtbInput);
         this.setState({ loading: true });
         this.props
             .onSubmitPortVideo(ytbID)
