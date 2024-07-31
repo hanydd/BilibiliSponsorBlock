@@ -10,8 +10,12 @@ let thumbnailListener: ThumbnailListener | null = null;
 let thumbnailContainerObserver: MutationObserver | null = null;
 let selector = getThumbnailSelectors();
 
-export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad: () => void,
-        configReady: () => boolean, selectorParam?: string): void {
+export function setThumbnailListener(
+    listener: ThumbnailListener,
+    onInitialLoad: () => void,
+    configReady: () => boolean,
+    selectorParam?: string
+): void {
     thumbnailListener = listener;
     if (selectorParam) selector = selectorParam;
 
@@ -25,8 +29,11 @@ export function setThumbnailListener(listener: ThumbnailListener, onInitialLoad:
                     newThumbnails(); // fire thumbnail check once when the container is loaded
                     if (!thumbnailContainer) return;
                     thumbnailContainerObserver ??= new MutationObserver(() => newThumbnails());
-                    thumbnailContainerObserver?.observe(thumbnailContainer, { childList: true, subtree: true })
-                }).catch((err) => { console.log(err) })
+                    thumbnailContainerObserver?.observe(thumbnailContainer, { childList: true, subtree: true });
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
         });
     };
 

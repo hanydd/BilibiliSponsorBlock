@@ -62,7 +62,7 @@ export class GenericTooltip {
         props.textBoxMaxHeight ??= "inherit";
         this.text = props.text;
 
-        this.container = document.createElement('div');
+        this.container = document.createElement("div");
         this.container.id = "sponsorTooltip" + props.text;
         if (props.positionRealtive) this.container.style.position = "relative";
         if (props.containerAbsolute) this.container.style.position = "absolute";
@@ -88,54 +88,67 @@ export class GenericTooltip {
 
         this.root = createRoot(this.container);
         this.root.render(
-            <div style={{
+            <div
+                style={{
                     bottom: props.bottomOffset,
                     top: props.topOffset,
                     left: props.leftOffset,
                     right: props.rightOffset,
                     backgroundColor,
-                    margin: props.center ? "auto" : undefined
+                    margin: props.center ? "auto" : undefined,
                 }}
-                className={"sponsorBlockTooltip" +
+                className={
+                    "sponsorBlockTooltip" +
                     (props.displayTriangle || props.topTriangle ? " sbTriangle" : "") +
                     (props.topTriangle ? " sbTopTriangle" : "") +
                     (props.opacity === 1 ? " sbSolid" : "") +
-                    ` ${props.extraClass}`}>
-                <div style={{
-                    marginBottom: props.innerBottomMargin,
-                    maxHeight: props.textBoxMaxHeight,
-                    overflowY: "auto"
-                }}>
-                    {props.showLogo ?
-                        <img className="sponsorSkipLogo sponsorSkipObject"
-                            src={chrome.runtime.getURL(logoUrl)}>
-                        </img>
-                    : null}
-                    {this.text ?
+                    ` ${props.extraClass}`
+                }
+            >
+                <div
+                    style={{
+                        marginBottom: props.innerBottomMargin,
+                        maxHeight: props.textBoxMaxHeight,
+                        overflowY: "auto",
+                    }}
+                >
+                    {props.showLogo ? (
+                        <img className="sponsorSkipLogo sponsorSkipObject" src={chrome.runtime.getURL(logoUrl)}></img>
+                    ) : null}
+                    {this.text ? (
                         <span className={`sponsorSkipObject${!props.showLogo ? ` sponsorSkipObjectFirst` : ``}`}>
                             {this.getTextElements(this.text + (props.link ? ". " : ""))}
-                            {props.link ?
-                                <a style={{textDecoration: "underline"}}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        href={props.link}>
+                            {props.link ? (
+                                <a
+                                    style={{ textDecoration: "underline" }}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    href={props.link}
+                                >
                                     {chrome.i18n.getMessage("LearnMore")}
                                 </a>
-                            : (props.linkOnClick ?
-                                <a style={{textDecoration: "underline", marginLeft: "5px", cursor: "pointer"}}
-                                        onClick={props.linkOnClick} onAuxClick={props.linkOnClick}>
+                            ) : props.linkOnClick ? (
+                                <a
+                                    style={{ textDecoration: "underline", marginLeft: "5px", cursor: "pointer" }}
+                                    onClick={props.linkOnClick}
+                                    onAuxClick={props.linkOnClick}
+                                >
                                     {chrome.i18n.getMessage("LearnMore")}
                                 </a>
-                            : null)}
+                            ) : null}
                         </span>
-                    : null}
+                    ) : null}
 
-                    {props.textBoxes ? props.textBoxes.map((text, index) => (
-                        <div key={index}
-                            className={`sponsorSkipObject${!props.showLogo ? ` sponsorSkipObjectFirst` : ``}`}>
-                            {text || String.fromCharCode(8203)} {/* Zero width space */}
-                        </div>
-                    )) : null}
+                    {props.textBoxes
+                        ? props.textBoxes.map((text, index) => (
+                              <div
+                                  key={index}
+                                  className={`sponsorSkipObject${!props.showLogo ? ` sponsorSkipObjectFirst` : ``}`}
+                              >
+                                  {text || String.fromCharCode(8203)} {/* Zero width space */}
+                              </div>
+                          ))
+                        : null}
 
                     {props.elements}
 
@@ -144,27 +157,27 @@ export class GenericTooltip {
 
                 {props.buttonsAtBottom && this.getButtons(props.buttons, props.buttonsAtBottom)}
 
-                {props.showGotIt ?
-                    <button className="sponsorSkipObject sponsorSkipNoticeButton"
-                        style ={{float: "right" }}
-                        onClick={() => this.close()}>
-
+                {props.showGotIt ? (
+                    <button
+                        className="sponsorSkipObject sponsorSkipNoticeButton"
+                        style={{ float: "right" }}
+                        onClick={() => this.close()}
+                    >
                         {chrome.i18n.getMessage("GotIt")}
                     </button>
-                : null}
+                ) : null}
 
-                {
-                    props.secondButtonText ?
-                        <button className="sponsorSkipObject sponsorSkipNoticeButton"
-                            style ={{float: "right" }}
-                            onClick={() => props.secondButtonOnClick?.()}>
-
-                            {props.secondButtonText}
-                        </button>
-                    : null
-                }
+                {props.secondButtonText ? (
+                    <button
+                        className="sponsorSkipObject sponsorSkipNoticeButton"
+                        style={{ float: "right" }}
+                        onClick={() => props.secondButtonOnClick?.()}
+                    >
+                        {props.secondButtonText}
+                    </button>
+                ) : null}
             </div>
-        )
+        );
     }
 
     private getTextElements(text: string): JSX.Element[] {
@@ -174,10 +187,12 @@ export class GenericTooltip {
 
         for (const line of text.split("\n")) {
             result.push(
-                <div style={{
-                    padding: "5px"
-                }}
-                key={line}>
+                <div
+                    style={{
+                        padding: "5px",
+                    }}
+                    key={line}
+                >
                     {line}
                 </div>
             );
@@ -197,14 +212,15 @@ export class GenericTooltip {
 
             for (const button of buttons) {
                 result.push(
-                    <button className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
-                            style={style}
-                            key={button.name}
-                            onClick={(e) => button.listener(e)}>
-
-                            {button.name}
+                    <button
+                        className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
+                        style={style}
+                        key={button.name}
+                        onClick={(e) => button.listener(e)}
+                    >
+                        {button.name}
                     </button>
-                )
+                );
             }
 
             return result;

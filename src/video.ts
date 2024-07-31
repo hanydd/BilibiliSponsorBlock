@@ -8,20 +8,20 @@ import { injectScript } from "./scriptInjector";
 
 export enum PageType {
     Unknown = "unknown",
-    Main = 'main',
+    Main = "main",
     Video = "video",
     Search = "search",
     Dynamic = "dynamic",
     Channel = "channel",
     Message = "message",
-    Embed = "embed"
+    Embed = "embed",
 }
 export type VideoID = string & { __videoID: never };
 export type ChannelID = string & { __channelID: never };
 export enum ChannelIDStatus {
     Fetching,
     Found,
-    Failed
+    Failed,
 }
 export interface ChannelIDInfo {
     id: ChannelID | null;
@@ -51,7 +51,7 @@ const videosSetup: HTMLVideoElement[] = [];
 let waitingForNewVideo = false;
 
 // if video is live or premiere
-let isLivePremiere: boolean
+let isLivePremiere: boolean;
 
 let videoID: VideoID | null = null;
 let pageType: PageType = PageType.Unknown;
@@ -67,10 +67,13 @@ let params: VideoModuleParams = {
     windowListenerHandler: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     newVideosLoaded: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
     documentScript: "",
-    allowClipPage: false
+    allowClipPage: false,
 };
 let getConfig: () => ProtoConfig<SyncStorage, LocalStorage>;
-export function setupVideoModule(moduleParams: VideoModuleParams, config: () => ProtoConfig<SyncStorage, LocalStorage>) {
+export function setupVideoModule(
+    moduleParams: VideoModuleParams,
+    config: () => ProtoConfig<SyncStorage, LocalStorage>
+) {
     params = moduleParams;
     getConfig = config;
 
@@ -96,11 +99,16 @@ export function setupVideoModule(moduleParams: VideoModuleParams, config: () => 
     if (navigationApiAvailable) {
         // TODO: Remove type cast once type declarations are updated
         const navigationListener = (e) =>
-            void videoIDChange(getBilibiliVideoID((e as unknown as Record<string, Record<string, string>>).destination.url));
+            void videoIDChange(
+                getBilibiliVideoID((e as unknown as Record<string, Record<string, string>>).destination.url)
+            );
         (window as unknown as { navigation: EventTarget }).navigation.addEventListener("navigate", navigationListener);
 
         addCleanupListener(() => {
-            (window as unknown as { navigation: EventTarget }).navigation.removeEventListener("navigate", navigationListener);
+            (window as unknown as { navigation: EventTarget }).navigation.removeEventListener(
+                "navigate",
+                navigationListener
+            );
         });
     }
     // Record availability of Navigation API
@@ -151,7 +159,7 @@ async function videoIDChange(id: VideoID | null): Promise<boolean> {
     resetValues();
     videoID = id;
 
-	//id is not valid
+    //id is not valid
     if (!id) return false;
 
     // Wait for options to be ready
@@ -172,15 +180,18 @@ function resetValues() {
     pageType = PageType.Unknown;
     channelIDInfo = {
         status: ChannelIDStatus.Fetching,
-        id: null
+        id: null,
     };
     isLivePremiere = false;
 
     // Reset the last media session link
-    window.postMessage({
-        type: "sb-reset-media-session-link",
-        videoID: null
-    }, "/");
+    window.postMessage(
+        {
+            type: "sb-reset-media-session-link",
+            videoID: null,
+        },
+        "/"
+    );
 }
 
 export function getBilibiliVideoID(url?: string): VideoID | null {
@@ -190,11 +201,11 @@ export function getBilibiliVideoID(url?: string): VideoID | null {
     if (url.includes("bilibili.com/video")) {
         return getBvIDFromWindow() ?? getBvIDFromURL(url);
     }
-    return null
+    return null;
 }
 
 function getBvIDFromWindow(): VideoID | null {
-    return (window as any)?.__INITIAL_STATE__?.videoData?.bvid
+    return (window as any)?.__INITIAL_STATE__?.videoData?.bvid;
 }
 
 /**
@@ -219,7 +230,7 @@ export function getBvIDFromURL(url: string): VideoID | null {
     // video BV id
     if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/video/")) {
         const id = urlObject.pathname.replace("/video/", "").replace("/", "");
-        return (id?.length == 12 && id?.startsWith("BV")) ? id as VideoID : null;
+        return id?.length == 12 && id?.startsWith("BV") ? (id as VideoID) : null;
     }
 
     return null;
@@ -233,22 +244,24 @@ export async function whitelistCheck() {
     // Bilibili watch page
     const channelNameCard = await Promise.race([
         waitForElement("div.membersinfo-upcard > a.avatar"), // collab video with multiple up
-        waitForElement("a.up-name")]);
+        waitForElement("a.up-name"),
+    ]);
     const channelIDFallback = channelNameCard
         // TODO: more types of pages?
         // ?? document.querySelector("a.ytp-title-channel-logo") // YouTube Embed
-            ?.getAttribute("href")?.match(/(?:space\.bilibili\.com\/)([1-9][0-9]{0,11})/)?.[1];
+        ?.getAttribute("href")
+        ?.match(/(?:space\.bilibili\.com\/)([1-9][0-9]{0,11})/)?.[1];
 
     if (channelIDFallback) {
         channelIDInfo = {
             status: ChannelIDStatus.Found,
             // id: (pageMangerChannelID ?? channelIDFallback) as ChannelID
-            id: (channelIDFallback) as ChannelID
+            id: channelIDFallback as ChannelID,
         };
     } else {
         channelIDInfo = {
             status: ChannelIDStatus.Failed,
-            id: null
+            id: null,
         };
     }
     // }
@@ -261,11 +274,13 @@ let lastMutationListenerCheck = 0;
 let checkTimeout: NodeJS.Timeout | null = null;
 function setupVideoMutationListener() {
     if (videoMutationObserver === null || !isVisible(videoMutationListenerElement!.parentElement)) {
-
         // Delay it if it was checked recently
         if (checkTimeout) clearTimeout(checkTimeout);
         if (Date.now() - lastMutationListenerCheck < 2000) {
-            checkTimeout = setTimeout(setupVideoMutationListener, Math.max(1000, Date.now() - lastMutationListenerCheck));
+            checkTimeout = setTimeout(
+                setupVideoMutationListener,
+                Math.max(1000, Date.now() - lastMutationListenerCheck)
+            );
             return;
         }
 
@@ -284,7 +299,7 @@ function setupVideoMutationListener() {
         videoMutationObserver.observe(videoContainer, {
             attributes: true,
             childList: true,
-            subtree: true
+            subtree: true,
         });
     }
 }
@@ -298,8 +313,9 @@ async function refreshVideoAttachments(): Promise<void> {
 
     waitingForNewVideo = true;
     // Compatibility for Vinegar extension
-    const newVideo = (isSafari() && document.querySelector('video[vinegared="true"]') as HTMLVideoElement)
-        || await waitForElement("#bilibili-player video", false) as HTMLVideoElement;
+    const newVideo =
+        (isSafari() && (document.querySelector('video[vinegared="true"]') as HTMLVideoElement)) ||
+        ((await waitForElement("#bilibili-player video", false)) as HTMLVideoElement);
     waitingForNewVideo = false;
 
     if (video === newVideo) return;
@@ -320,13 +336,19 @@ async function refreshVideoAttachments(): Promise<void> {
         }
         waitingForEmbed = true;
 
-        const waiting = waitForElement(embedTitleSelector)
-            .then((e) => waitFor(() => e, undefined, undefined, (e) => e.getAttribute("href") !== embedLastUrl
-                && !!e.getAttribute("href") && !!e.textContent));
+        const waiting = waitForElement(embedTitleSelector).then((e) =>
+            waitFor(
+                () => e,
+                undefined,
+                undefined,
+                (e) => e.getAttribute("href") !== embedLastUrl && !!e.getAttribute("href") && !!e.textContent
+            )
+        );
 
-        void waiting.catch(() => waitingForEmbed = false);
-        void waiting.then((e) => embedLastUrl = e.getAttribute("href")!)
-            .then(() => waitingForEmbed = false)
+        void waiting.catch(() => (waitingForEmbed = false));
+        void waiting
+            .then((e) => (embedLastUrl = e.getAttribute("href")!))
+            .then(() => (waitingForEmbed = false))
             .then(() => videoIDChange(getBilibiliVideoID()));
     } else {
         void videoIDChange(getBilibiliVideoID());
@@ -349,7 +371,7 @@ function windowListenerHandler(event: MessageEvent): void {
         if (data.channelID) {
             channelIDInfo = {
                 id: data.channelID,
-                status: ChannelIDStatus.Found
+                status: ChannelIDStatus.Found,
             };
 
             if (!waitingForChannelID) {
@@ -361,7 +383,7 @@ function windowListenerHandler(event: MessageEvent): void {
     } else if (dataType === "data" && data.videoID) {
         void videoIDChange(data.videoID);
 
-        isLivePremiere = data.isLive || data.isPremiere
+        isLivePremiere = data.isLive || data.isPremiere;
     } else if (dataType === "newElement") {
         newThumbnails();
     } else if (dataType === "videoIDsLoaded") {

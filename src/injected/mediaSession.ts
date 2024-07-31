@@ -7,11 +7,13 @@ export function setMediaSessionInfo(data: MediaMetadataInit) {
         mediaSessionThumbnailData ||= {};
         mediaSessionThumbnailData = {
             ...mediaSessionThumbnailData,
-            ...data
+            ...data,
         };
 
-        if (navigator.mediaSession.metadata?.artwork?.[0]?.src
-                && !navigator.mediaSession.metadata.artwork[0].src.includes("dearrow-thumb")){
+        if (
+            navigator.mediaSession.metadata?.artwork?.[0]?.src &&
+            !navigator.mediaSession.metadata.artwork[0].src.includes("dearrow-thumb")
+        ) {
             lastArtworkSrc = navigator.mediaSession.metadata.artwork[0].src;
         }
 
@@ -23,13 +25,15 @@ export function setMediaSessionInfo(data: MediaMetadataInit) {
             }
 
             mediaSessionThumbnailWaitingTimeout = setTimeout(() => {
-                if (mediaSessionThumbnailData && checkIfDifference(navigator.mediaSession.metadata, mediaSessionThumbnailData)) {
+                if (
+                    mediaSessionThumbnailData &&
+                    checkIfDifference(navigator.mediaSession.metadata, mediaSessionThumbnailData)
+                ) {
                     setMediaSessionWithDefaults(mediaSessionThumbnailData);
                 }
 
                 mediaSessionThumbnailWaitingTimeout = null;
             }, 500);
-
         }
     }
 }
@@ -38,9 +42,11 @@ export function resetMediaSessionThumbnail() {
     if (lastArtworkSrc) {
         setMediaSessionInfo({
             title: (mediaSessionThumbnailData?.title ?? navigator.mediaSession.metadata?.title)?.trim(),
-            artwork: [{
-                src: lastArtworkSrc
-            }]
+            artwork: [
+                {
+                    src: lastArtworkSrc,
+                },
+            ],
         });
     }
 }
@@ -48,14 +54,17 @@ export function resetMediaSessionThumbnail() {
 function setMediaSessionWithDefaults(data: MediaMetadataInit) {
     if ("mediaSession" in navigator) {
         const newData = {
-            ...copyMediaSession()
+            ...copyMediaSession(),
         };
         for (const key in data) {
             // Doing this instead of spread operator due to Firefox bug
             newData[key] = data[key];
         }
 
-        if (newData.artwork?.[0]?.src && newData.artwork?.[0]?.src !== navigator.mediaSession.metadata?.artwork?.[0]?.src) {
+        if (
+            newData.artwork?.[0]?.src &&
+            newData.artwork?.[0]?.src !== navigator.mediaSession.metadata?.artwork?.[0]?.src
+        ) {
             // Extra space to force it to reload the thumbnail
             if (newData.title?.endsWith(" ")) {
                 newData.title = newData.title.trim();
@@ -80,14 +89,13 @@ function checkIfDifference(original: unknown, newData: unknown) {
         }
     }
 
-
     return false;
 }
 
 function copyMediaSession(): MediaMetadataInit {
     const copiedData = {
         ...navigator.mediaSession.metadata!,
-        artwork: [...(navigator.mediaSession.metadata?.artwork ?? [])]
+        artwork: [...(navigator.mediaSession.metadata?.artwork ?? [])],
     };
 
     // Firefox compatibility mode
@@ -96,8 +104,8 @@ function copyMediaSession(): MediaMetadataInit {
             title: navigator.mediaSession.metadata?.title ?? "",
             artist: navigator.mediaSession.metadata?.artist ?? "",
             album: navigator.mediaSession.metadata?.album ?? "",
-            artwork: [...(navigator.mediaSession.metadata?.artwork ?? [])]
-        }
+            artwork: [...(navigator.mediaSession.metadata?.artwork ?? [])],
+        };
     }
 
     return copiedData;

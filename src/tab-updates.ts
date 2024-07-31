@@ -2,12 +2,10 @@ import { waitFor } from ".";
 import { LocalStorage, ProtoConfig, SyncStorage } from "./config";
 
 function onTabUpdatedListener(tabId: number) {
-    chrome.tabs.sendMessage(tabId, {
-        message: 'update',
-    }, () => void chrome.runtime.lastError ); // Suppress error on Firefox
+    chrome.tabs.sendMessage(tabId, { message: "update" }, () => void chrome.runtime.lastError); // Suppress error on Firefox
 }
 
-function onNavigationApiAvailableChange(changes: {[key: string]: chrome.storage.StorageChange}) {
+function onNavigationApiAvailableChange(changes: { [key: string]: chrome.storage.StorageChange }) {
     if (changes.navigationApiAvailable) {
         if (changes.navigationApiAvailable.newValue) {
             chrome.tabs.onUpdated.removeListener(onTabUpdatedListener);

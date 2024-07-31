@@ -1,4 +1,4 @@
- /**
+/**
  * Starts a spinning animation and returns a function to be called when it should be stopped
  * The callback will be called when the animation is finished
  * It waits until a full rotation is complete
@@ -6,26 +6,32 @@
 function applyLoadingAnimation(element: HTMLElement, time: number, callback?: () => void): () => Promise<void> {
     element.style.animation = `rotate ${time}s 0s infinite`;
 
-    return async () => new Promise((resolve) => {
-        // Make the animation finite
-        element.style.animation = `rotate ${time}s`;
+    return async () =>
+        new Promise((resolve) => {
+            // Make the animation finite
+            element.style.animation = `rotate ${time}s`;
 
-        // When the animation is over, hide the button
-        const animationEndListener = () => {
-            if (callback) callback();
+            // When the animation is over, hide the button
+            const animationEndListener = () => {
+                if (callback) callback();
 
-            element.style.animation = "none";
+                element.style.animation = "none";
 
-            element.removeEventListener("animationend", animationEndListener);
+                element.removeEventListener("animationend", animationEndListener);
 
-            resolve();
-        };
+                resolve();
+            };
 
-        element.addEventListener("animationend", animationEndListener);
-    });
+            element.addEventListener("animationend", animationEndListener);
+        });
 }
 
-function setupCustomHideAnimation(element: Element, container: Element, enabled = true, rightSlide = true): { hide: () => void; show: () => void } {
+function setupCustomHideAnimation(
+    element: Element,
+    container: Element,
+    enabled = true,
+    rightSlide = true
+): { hide: () => void; show: () => void } {
     if (enabled) element.classList.add("autoHiding");
     element.classList.add("sbhidden");
     element.classList.add("animationDone");
@@ -46,9 +52,9 @@ function setupCustomHideAnimation(element: Element, container: Element, enabled 
 
             // Wait for next event loop
             setTimeout(() => {
-                if (mouseEntered) element.classList.remove("sbhidden")
+                if (mouseEntered) element.classList.remove("sbhidden");
             }, 10);
-        }
+        },
     };
 }
 
@@ -74,5 +80,5 @@ export const AnimationUtils = {
     setupAutoHideAnimation,
     setupCustomHideAnimation,
     enableAutoHideAnimation,
-    disableAutoHideAnimation
+    disableAutoHideAnimation,
 };

@@ -4,10 +4,14 @@ export function isVisible(element: HTMLElement | null, ignoreWidth = false): boo
     }
 
     // Special case for when a video is first loaded, and the main video element is technically hidden
-    if (element.tagName === "VIDEO"
-        && (element.classList.contains("html5-main-video") || element.id === "player" || element.id === "player_html5_api")
-        && [...document.querySelectorAll("video")].filter((v) => v.duration).length === 1
-        && (element as HTMLVideoElement).duration) {
+    if (
+        element.tagName === "VIDEO" &&
+        (element.classList.contains("html5-main-video") ||
+            element.id === "player" ||
+            element.id === "player_html5_api") &&
+        [...document.querySelectorAll("video")].filter((v) => v.duration).length === 1 &&
+        (element as HTMLVideoElement).duration
+    ) {
         return true;
     }
 
@@ -16,19 +20,21 @@ export function isVisible(element: HTMLElement | null, ignoreWidth = false): boo
     }
 
     const boundingRect = element?.getBoundingClientRect();
-    const elementAtPoint = document.elementFromPoint(boundingRect.left + boundingRect.width / 2,
-        boundingRect.top + boundingRect.height / 2)
-        || document.elementFromPoint(boundingRect.left, boundingRect.top);
+    const elementAtPoint =
+        document.elementFromPoint(
+            boundingRect.left + boundingRect.width / 2,
+            boundingRect.top + boundingRect.height / 2
+        ) || document.elementFromPoint(boundingRect.left, boundingRect.top);
 
-    if (!elementAtPoint
-            && element.id === "movie_player"
-            && boundingRect.top < 0) {
+    if (!elementAtPoint && element.id === "movie_player" && boundingRect.top < 0) {
         return true;
     }
 
-    if (elementAtPoint === element
-            || (!!elementAtPoint && element.contains(elementAtPoint))
-            || (!!elementAtPoint && elementAtPoint.contains(element))) {
+    if (
+        elementAtPoint === element ||
+        (!!elementAtPoint && element.contains(elementAtPoint)) ||
+        (!!elementAtPoint && elementAtPoint.contains(element))
+    ) {
         return true;
     }
 
@@ -47,13 +53,20 @@ export function findValidElementFromSelector(selectors: string[], ignoreWidth = 
     return findValidElementFromGenerator(selectors, ignoreWidth, (selector) => document.querySelector(selector));
 }
 
-export function findValidElement(elements: HTMLElement[] | NodeListOf<HTMLElement>, ignoreWidth = false): HTMLElement | null {
+export function findValidElement(
+    elements: HTMLElement[] | NodeListOf<HTMLElement>,
+    ignoreWidth = false
+): HTMLElement | null {
     return findValidElementFromGenerator(elements, ignoreWidth);
 }
 
-function findValidElementFromGenerator<T>(objects: T[] | NodeListOf<HTMLElement>, ignoreWidth = false, generator?: (obj: T) => HTMLElement | null): HTMLElement | null {
+function findValidElementFromGenerator<T>(
+    objects: T[] | NodeListOf<HTMLElement>,
+    ignoreWidth = false,
+    generator?: (obj: T) => HTMLElement | null
+): HTMLElement | null {
     for (const obj of objects) {
-        const element = generator ? generator(obj as T) : obj as HTMLElement;
+        const element = generator ? generator(obj as T) : (obj as HTMLElement);
         if (element && isVisible(element, ignoreWidth)) {
             return element;
         }
@@ -84,8 +97,9 @@ export async function waitForElement(selector: string, visibleCheck = false, ign
             return;
         }
 
-        const existingWaitingElement = waitingElements.find((waitingElement) => waitingElement.selector === selector
-            && waitingElement.visibleCheck === visibleCheck);
+        const existingWaitingElement = waitingElements.find(
+            (waitingElement) => waitingElement.selector === selector && waitingElement.visibleCheck === visibleCheck
+        );
 
         if (existingWaitingElement) {
             existingWaitingElement.callbacks.push(resolve);
@@ -94,7 +108,7 @@ export async function waitForElement(selector: string, visibleCheck = false, ign
                 selector,
                 visibleCheck,
                 ignoreWidth,
-                callbacks: [resolve]
+                callbacks: [resolve],
             });
         }
 
@@ -124,15 +138,19 @@ function setupWaitingMutationListener(): void {
                     let found = false;
                     for (const mutation of mutations) {
                         if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-                            if (mutation.target instanceof HTMLElement
-                                    && (mutation.target.matches(selector) || mutation.target.querySelector(selector))) {
+                            if (
+                                mutation.target instanceof HTMLElement &&
+                                (mutation.target.matches(selector) || mutation.target.querySelector(selector))
+                            ) {
                                 found = true;
                                 break;
                             }
 
                             for (const node of mutation.addedNodes) {
-                                if (node instanceof HTMLElement
-                                        && (node.matches(selector) || node.querySelector(selector))) {
+                                if (
+                                    node instanceof HTMLElement &&
+                                    (node.matches(selector) || node.querySelector(selector))
+                                ) {
                                     found = true;
                                     break;
                                 }
@@ -149,12 +167,15 @@ function setupWaitingMutationListener(): void {
                     }
                 }
 
-                const possibleElements: NodeListOf<HTMLElement> | undefined =
-                    updatePossibleElements ? document.querySelectorAll(selector) : waitingElement.elements;
+                const possibleElements: NodeListOf<HTMLElement> | undefined = updatePossibleElements
+                    ? document.querySelectorAll(selector)
+                    : waitingElement.elements;
                 if (possibleElements && possibleElements.length > 0) {
                     waitingElement.elements = possibleElements;
 
-                    const element = visibleCheck ? findValidElement(possibleElements, ignoreWidth) : possibleElements[0] as HTMLElement;
+                    const element = visibleCheck
+                        ? findValidElement(possibleElements, ignoreWidth)
+                        : (possibleElements[0] as HTMLElement);
                     if (element) {
                         if (chrome.runtime?.id) {
                             for (const callback of callbacks) {
@@ -184,12 +205,14 @@ function setupWaitingMutationListener(): void {
 
             waitingMutationObserver.observe(document.body, {
                 childList: true,
-                subtree: true
+                subtree: true,
             });
         }
     }
 }
 
 export function getElement(selector: string, visibleCheck: boolean, ignoreWidth = false) {
-    return visibleCheck ? findValidElement(document.querySelectorAll(selector), ignoreWidth) : document.querySelector(selector) as HTMLElement;
+    return visibleCheck
+        ? findValidElement(document.querySelectorAll(selector), ignoreWidth)
+        : (document.querySelector(selector) as HTMLElement);
 }

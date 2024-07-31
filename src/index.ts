@@ -1,5 +1,10 @@
 /** Function that can be used to wait for a condition before returning. */
-export async function waitFor<T>(condition: () => T, timeout = 5000, check = 100, predicate?: (obj: T) => boolean): Promise<T> {
+export async function waitFor<T>(
+    condition: () => T,
+    timeout = 5000,
+    check = 100,
+    predicate?: (obj: T) => boolean
+): Promise<T> {
     return await new Promise((resolve, reject) => {
         setTimeout(() => {
             clearInterval(interval);
@@ -30,8 +35,8 @@ export async function sleep(timeout: number): Promise<void> {
 export function objectToURI<T>(url: string, data: T, includeQuestionMark: boolean): string {
     let counter = 0;
     for (const key in data) {
-        const seperator = (url.includes("?") || counter > 0) ? "&" : (includeQuestionMark ? "?" : "");
-        const value = (typeof(data[key]) === "string") ? data[key] as unknown as string : JSON.stringify(data[key]);
+        const seperator = url.includes("?") || counter > 0 ? "&" : includeQuestionMark ? "?" : "";
+        const value = typeof data[key] === "string" ? (data[key] as unknown as string) : JSON.stringify(data[key]);
         url += seperator + encodeURIComponent(key) + "=" + encodeURIComponent(value);
 
         counter++;
@@ -61,9 +66,9 @@ export function timeoutPomise<T>(timeout?: number): Promise<T> {
 }
 
 /**
-* web-extensions
-*/
+ * web-extensions
+ */
 export function isFirefoxOrSafari(): boolean {
     // @ts-ignore
-    return typeof(browser) !== "undefined";
+    return typeof browser !== "undefined";
 }

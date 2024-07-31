@@ -13,7 +13,7 @@ export class DataCache<T extends string, V> {
         this.cacheLimit = cacheLimit;
     }
 
-    public getFromCache(key: T): V & CacheRecord | undefined {
+    public getFromCache(key: T): (V & CacheRecord) | undefined {
         return this.cache[key];
     }
 
@@ -21,11 +21,11 @@ export class DataCache<T extends string, V> {
         if (!this.cache[key]) {
             this.cache[key] = {
                 ...this.init(),
-                lastUsed: Date.now()
+                lastUsed: Date.now(),
             };
 
             if (Object.keys(this.cache).length > this.cacheLimit) {
-                const oldest = Object.entries(this.cache).reduce((a, b) => a[1].lastUsed < b[1].lastUsed ? a : b);
+                const oldest = Object.entries(this.cache).reduce((a, b) => (a[1].lastUsed < b[1].lastUsed ? a : b));
                 delete this.cache[oldest[0]];
             }
         }
