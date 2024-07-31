@@ -8,12 +8,9 @@ export interface NoticeTextSelectionProps {
     children?: React.ReactNode;
 }
 
-export interface NoticeTextSelectionState {
-
-}
+export interface NoticeTextSelectionState {}
 
 class NoticeTextSelectionComponent extends React.Component<NoticeTextSelectionProps, NoticeTextSelectionState> {
-
     constructor(props: NoticeTextSelectionProps) {
         super(props);
     }
@@ -22,23 +19,22 @@ class NoticeTextSelectionComponent extends React.Component<NoticeTextSelectionPr
         const style: React.CSSProperties = {};
         if (this.props.onClick) {
             style.cursor = "pointer";
-            style.textDecoration = "underline"
+            style.textDecoration = "underline";
         }
 
         return (
-            <tr id={"sponsorTimesInfoMessage" + this.props.idSuffix}
+            <tr
+                id={"sponsorTimesInfoMessage" + this.props.idSuffix}
                 onClick={this.props.onClick}
                 style={style}
-                className="sponsorTimesInfoMessage">
-
+                className="sponsorTimesInfoMessage"
+            >
                 <td>
-                    {this.props.icon ?
+                    {this.props.icon ? (
                         <img src={chrome.runtime.getURL(this.props.icon)} className="sponsorTimesInfoIcon" />
-                    : null}
+                    ) : null}
 
-                    <span>
-                        {this.getTextElements(this.props.text)}
-                    </span>
+                    <span>{this.getTextElements(this.props.text)}</span>
                 </td>
             </tr>
         );
@@ -57,7 +53,6 @@ class NoticeTextSelectionComponent extends React.Component<NoticeTextSelectionPr
             } else {
                 elements.push(textPart);
             }
-
         }
 
         return elements;

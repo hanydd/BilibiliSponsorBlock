@@ -1115,7 +1115,7 @@
     "allowScrollingToEdit": {
         "message": "允许滚动编辑时间"
     },
-    "showPreviewYoutubeButton" : {
+    "showPreviewYoutubeButton": {
         "message": "搬运视频区域显示“预览YouTube视频”按钮"
     },
     "NoticeTimeAfterSkip": {

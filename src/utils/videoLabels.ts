@@ -36,13 +36,13 @@ async function getLabelHashBlock(hashPrefix: string): Promise<LabelCacheEntry | 
 
         const newEntry: LabelCacheEntry = {
             timestamp: Date.now(),
-            videos: Object.fromEntries(data.map(video => [video.videoID, video.segments[0].category])),
+            videos: Object.fromEntries(data.map((video) => [video.videoID, video.segments[0].category])),
         };
         labelCache[hashPrefix] = newEntry;
 
         if (Object.keys(labelCache).length > cacheLimit) {
             // Remove oldest entry
-            const oldestEntry = Object.entries(labelCache).reduce((a, b) => a[1].timestamp < b[1].timestamp ? a : b);
+            const oldestEntry = Object.entries(labelCache).reduce((a, b) => (a[1].timestamp < b[1].timestamp ? a : b));
             delete labelCache[oldestEntry[0]];
         }
 

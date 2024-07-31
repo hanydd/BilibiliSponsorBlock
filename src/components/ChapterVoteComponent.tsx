@@ -30,7 +30,7 @@ class ChapterVoteComponent extends React.Component<ChapterVoteProps, ChapterVote
         this.state = {
             segment: null,
             show: false,
-            size: props.size ?? "22px"
+            size: props.size ?? "22px",
         };
     }
 
@@ -43,34 +43,46 @@ class ChapterVoteComponent extends React.Component<ChapterVoteProps, ChapterVote
         return (
             <>
                 {/* Upvote Button */}
-                <button id={"sponsorTimesDownvoteButtonsContainerUpvoteChapter"}
-                        className={"playerButton sbPlayerUpvote ytp-button " + (!this.state.show ? "sbhidden" : "")}
-                        draggable="false"
-                        title={chrome.i18n.getMessage("upvoteButtonInfo")}
-                        onClick={(e) => this.vote(e, 1)}>
-                    <ThumbsUpSvg className="playerButtonImage"
+                <button
+                    id={"sponsorTimesDownvoteButtonsContainerUpvoteChapter"}
+                    className={"playerButton sbPlayerUpvote ytp-button " + (!this.state.show ? "sbhidden" : "")}
+                    draggable="false"
+                    title={chrome.i18n.getMessage("upvoteButtonInfo")}
+                    onClick={(e) => this.vote(e, 1)}
+                >
+                    <ThumbsUpSvg
+                        className="playerButtonImage"
                         fill={Config.config.colorPalette.white}
-                        width={this.state.size} height={this.state.size} />
+                        width={this.state.size}
+                        height={this.state.size}
+                    />
                 </button>
 
                 {/* Downvote Button */}
-                <button id={"sponsorTimesDownvoteButtonsContainerDownvoteChapter"}
-                        className={"playerButton sbPlayerDownvote ytp-button " + (!this.state.show ? "sbhidden" : "")}
-                        draggable="false"
-                        title={chrome.i18n.getMessage("reportButtonInfo")}
-                        onClick={(e) => {
-                            if (this.tooltip) {
-                                this.tooltip.close();
-                                this.tooltip = null;
-                            } else {
-                                this.vote(e, 0, e.target as HTMLElement)
-                            }
-                        }}>
+                <button
+                    id={"sponsorTimesDownvoteButtonsContainerDownvoteChapter"}
+                    className={"playerButton sbPlayerDownvote ytp-button " + (!this.state.show ? "sbhidden" : "")}
+                    draggable="false"
+                    title={chrome.i18n.getMessage("reportButtonInfo")}
+                    onClick={(e) => {
+                        if (this.tooltip) {
+                            this.tooltip.close();
+                            this.tooltip = null;
+                        } else {
+                            this.vote(e, 0, e.target as HTMLElement);
+                        }
+                    }}
+                >
                     <ThumbsDownSvg
                         className="playerButtonImage"
-                        fill={downvoteButtonColor(this.state.segment ? [this.state.segment] : null, SkipNoticeAction.Downvote, SkipNoticeAction.Downvote)}
+                        fill={downvoteButtonColor(
+                            this.state.segment ? [this.state.segment] : null,
+                            SkipNoticeAction.Downvote,
+                            SkipNoticeAction.Downvote
+                        )}
                         width={this.state.size}
-                        height={this.state.size} />
+                        height={this.state.size}
+                    />
                 </button>
             </>
         );
@@ -79,14 +91,17 @@ class ChapterVoteComponent extends React.Component<ChapterVoteProps, ChapterVote
     private async vote(event: React.MouseEvent, type: number, element?: HTMLElement): Promise<void> {
         event.stopPropagation();
         if (this.state.segment) {
-            const stopAnimation = AnimationUtils.applyLoadingAnimation(element ?? event.currentTarget as HTMLElement, 0.3);
+            const stopAnimation = AnimationUtils.applyLoadingAnimation(
+                element ?? (event.currentTarget as HTMLElement),
+                0.3
+            );
 
             const response = await this.props.vote(type, this.state.segment.UUID);
             await stopAnimation();
 
             if (response.successType == 1 || (response.successType == -1 && response.statusCode == 429)) {
                 this.setState({
-                    show: type === 1
+                    show: type === 1,
                 });
             } else if (response.statusCode !== 403) {
                 alert(getErrorMessage(response.statusCode, response.responseText));

@@ -9,7 +9,12 @@ import { FetchResponse, sendRequestToCustomServer } from "../../maze-utils/src/b
  * @param address The address to add to the SponsorBlock server address
  * @param callback
  */
-export function asyncRequestToCustomServer(type: string, url: string, data = {}, ignoreServerCache = false): Promise<FetchResponse> {
+export function asyncRequestToCustomServer(
+    type: string,
+    url: string,
+    data = {},
+    ignoreServerCache = false
+): Promise<FetchResponse> {
     return sendRequestToCustomServer(type, url, data, ignoreServerCache);
 }
 
@@ -20,10 +25,17 @@ export function asyncRequestToCustomServer(type: string, url: string, data = {},
  * @param address The address to add to the SponsorBlock server address
  * @param callback
  */
-export async function asyncRequestToServer(type: string, address: string, data = {}, ignoreServerCache = false): Promise<FetchResponse> {
-    const serverAddress = Config.config.testingServer ? CompileConfig.testingServerAddress : Config.config.serverAddress;
+export async function asyncRequestToServer(
+    type: string,
+    address: string,
+    data = {},
+    ignoreServerCache = false
+): Promise<FetchResponse> {
+    const serverAddress = Config.config.testingServer
+        ? CompileConfig.testingServerAddress
+        : Config.config.serverAddress;
 
-    return await (asyncRequestToCustomServer(type, serverAddress + address, data, ignoreServerCache));
+    return await asyncRequestToCustomServer(type, serverAddress + address, data, ignoreServerCache);
 }
 
 /**
@@ -34,14 +46,19 @@ export async function asyncRequestToServer(type: string, address: string, data =
  * @param callback
  */
 export function sendRequestToServer(type: string, address: string, callback?: (response: FetchResponse) => void): void {
-    const serverAddress = Config.config.testingServer ? CompileConfig.testingServerAddress : Config.config.serverAddress;
+    const serverAddress = Config.config.testingServer
+        ? CompileConfig.testingServerAddress
+        : Config.config.serverAddress;
 
     // Ask the background script to do the work
-    chrome.runtime.sendMessage({
-        message: "sendRequest",
-        type,
-        url: serverAddress + address
-    }, (response) => {
-        callback(response);
-    });
+    chrome.runtime.sendMessage(
+        {
+            message: "sendRequest",
+            type,
+            url: serverAddress + address,
+        },
+        (response) => {
+            callback(response);
+        }
+    );
 }

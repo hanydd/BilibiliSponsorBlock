@@ -33,7 +33,7 @@ export class CategoryPill {
         // this mutation observer listens to the change to title bar
         // bilibili will set the textContent of the title after loading for some reason.
         // If the node is inserted before this reset of title, it will be removed
-        const mutationCounter = () => this.mutationCount += 1;
+        const mutationCounter = () => (this.mutationCount += 1);
         mutationCounter.bind(this);
         this.mutationObserver = new MutationObserver(mutationCounter);
 
@@ -44,7 +44,9 @@ export class CategoryPill {
         });
     }
 
-    async attachToPage(vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>): Promise<void> {
+    async attachToPage(
+        vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>
+    ): Promise<void> {
         this.vote = vote;
         this.mutationCount = 0;
         const referenceNode = await waitFor(() => getBilibiliTitleNode());
@@ -53,13 +55,15 @@ export class CategoryPill {
             return;
         }
         this.mutationObserver.disconnect();
-        this.mutationObserver.observe(referenceNode, { attributes: true, childList: true })
+        this.mutationObserver.observe(referenceNode, { attributes: true, childList: true });
 
         try {
             // wait for bilibili to finish loading
             await waitFor(getPageLoaded, 10000, 10);
             // if setSegment is called after node attachment, it won't render sometimes
-            await waitFor(() => this.isSegmentSet, 10000, 100).catch(() => { console.log("No segment found") });
+            await waitFor(() => this.isSegmentSet, 10000, 100).catch(() => {
+                console.log("No segment found");
+            });
             this.attachToPageInternal();
         } catch (error) {
             if (error !== "TIMEOUT") console.log("Category Pill attachment error ", error);
@@ -71,7 +75,7 @@ export class CategoryPill {
 
         if (referenceNode && !referenceNode.contains(this.container)) {
             if (!this.container) {
-                this.container = document.createElement('span');
+                this.container = document.createElement("span");
                 this.container.id = id;
                 this.container.style.display = "relative";
 
@@ -83,11 +87,14 @@ export class CategoryPill {
                         vote={this.vote}
                         showTextByDefault={true}
                         showTooltipOnClick={false}
-                    />);
+                    />
+                );
             }
 
             if (this.lastState) {
-                waitFor(() => this.ref.current).then(() => { this.ref.current?.setState(this.lastState) });
+                waitFor(() => this.ref.current).then(() => {
+                    this.ref.current?.setState(this.lastState);
+                });
             }
 
             referenceNode.prepend(this.container);
@@ -103,7 +110,7 @@ export class CategoryPill {
     setVisibility(show: boolean): void {
         const newState = {
             show,
-            open: show ? this.ref.current?.state.open : false
+            open: show ? this.ref.current?.state.open : false,
         };
 
         this.ref.current?.setState(newState);
@@ -115,7 +122,7 @@ export class CategoryPill {
             const newState = {
                 segment,
                 show: true,
-                open: false
+                open: false,
             };
 
             this.ref.current?.setState(newState);
@@ -133,7 +140,7 @@ export class CategoryPill {
                         prependElement: watchDiv.firstChild as HTMLElement,
                         bottomOffset: "-10px",
                         opacity: 0.95,
-                        timeout: 50000
+                        timeout: 50000,
                     });
                 }
             }

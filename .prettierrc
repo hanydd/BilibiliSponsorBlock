@@ -4,6 +4,7 @@
     "semi": true,
     "singleQuote": false,
     "endOfLine": "auto",
+    "quoteProps": "preserve",
     "overrides": [
         {
             "files": "*.css",

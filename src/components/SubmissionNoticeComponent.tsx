@@ -1,5 +1,5 @@
 import * as React from "react";
-import Config from "../config"
+import Config from "../config";
 import GenericNotice from "../render/GenericNotice";
 import { Category, ContentContainer } from "../types";
 import * as CompileConfig from "../../config.json";
@@ -56,7 +56,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
         this.state = {
             noticeTitle,
             messages: [],
-            idSuffix: "SubmissionNotice"
+            idSuffix: "SubmissionNotice",
         };
     }
 
@@ -68,15 +68,19 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
         });
 
         this.videoObserver.observe(getVideo(), {
-            attributes: true
+            attributes: true,
         });
 
         // Prevent zooming while changing times
-        document.getElementById("sponsorSkipNoticeMiddleRow" + this.state.idSuffix).addEventListener('wheel', function (event) {
-            if (event.ctrlKey) {
-                event.preventDefault();
-            }
-        }, {passive: false});
+        document.getElementById("sponsorSkipNoticeMiddleRow" + this.state.idSuffix).addEventListener(
+            "wheel",
+            function (event) {
+                if (event.ctrlKey) {
+                    event.preventDefault();
+                }
+            },
+            { passive: false }
+        );
     }
 
     componentWillUnmount(): void {
@@ -95,72 +99,79 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
     }
 
     scrollToBottom() {
-        const scrollElement = this.noticeRef.current.getElement().current.querySelector("#sponsorSkipNoticeMiddleRowSubmissionNotice");
+        const scrollElement = this.noticeRef.current
+            .getElement()
+            .current.querySelector("#sponsorSkipNoticeMiddleRowSubmissionNotice");
         scrollElement.scrollTo({
-            top: scrollElement.scrollHeight + 1000
+            top: scrollElement.scrollHeight + 1000,
         });
     }
 
     render(): React.ReactElement {
-        const sortButton =
-            <img id={"sponsorSkipSortButton" + this.state.idSuffix}
+        const sortButton = (
+            <img
+                id={"sponsorSkipSortButton" + this.state.idSuffix}
                 className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipSmallButton"
                 onClick={() => this.sortSegments()}
                 title={chrome.i18n.getMessage("sortSegments")}
                 key="sortButton"
-                src={chrome.runtime.getURL("icons/sort.svg")}>
-            </img>;
-        const exportButton =
-            <img id={"sponsorSkipExportButton" + this.state.idSuffix}
+                src={chrome.runtime.getURL("icons/sort.svg")}
+            ></img>
+        );
+        const exportButton = (
+            <img
+                id={"sponsorSkipExportButton" + this.state.idSuffix}
                 className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipSmallButton"
                 onClick={() => this.exportSegments()}
                 title={chrome.i18n.getMessage("exportSegments")}
                 key="exportButton"
-                src={chrome.runtime.getURL("icons/export.svg")}>
-            </img>;
+                src={chrome.runtime.getURL("icons/export.svg")}
+            ></img>
+        );
         return (
-            <NoticeComponent noticeTitle={this.state.noticeTitle}
+            <NoticeComponent
+                noticeTitle={this.state.noticeTitle}
                 idSuffix={this.state.idSuffix}
                 ref={this.noticeRef}
                 closeListener={this.cancel.bind(this)}
                 zIndex={5000}
-                firstColumn={[sortButton, exportButton]}>
-
+                firstColumn={[sortButton, exportButton]}
+            >
                 {/* Text Boxes */}
                 {this.getMessageBoxes()}
 
                 {/* Sponsor Time List */}
-                <tr id={"sponsorSkipNoticeMiddleRow" + this.state.idSuffix}
+                <tr
+                    id={"sponsorSkipNoticeMiddleRow" + this.state.idSuffix}
                     className="sponsorTimeMessagesRow"
-                    style={{maxHeight: (getVideo()?.offsetHeight - 200) + "px"}}
-                    onMouseDown={(e) => e.stopPropagation()}>
-                    <td style={{width: "100%"}}>
-                        {this.getSponsorTimeMessages()}
-                    </td>
+                    style={{ maxHeight: getVideo()?.offsetHeight - 200 + "px" }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                >
+                    <td style={{ width: "100%" }}>{this.getSponsorTimeMessages()}</td>
                 </tr>
 
                 {/* Last Row */}
                 <tr id={"sponsorSkipNoticeSecondRow" + this.state.idSuffix}>
-
-                    <td className="sponsorSkipNoticeRightSection"
-                        style={{position: "relative"}}>
-
+                    <td className="sponsorSkipNoticeRightSection" style={{ position: "relative" }}>
                         {/* Guidelines button */}
-                        <button className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
-                            onClick={() => window.open("https://wiki.sponsor.ajay.app/w/Guidelines")}>
-
-                            {chrome.i18n.getMessage(Config.config.submissionCountSinceCategories > 3 ? "guidelines" : "readTheGuidelines")}
+                        <button
+                            className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
+                            onClick={() => window.open("https://wiki.sponsor.ajay.app/w/Guidelines")}
+                        >
+                            {chrome.i18n.getMessage(
+                                Config.config.submissionCountSinceCategories > 3 ? "guidelines" : "readTheGuidelines"
+                            )}
                         </button>
 
                         {/* Submit Button */}
-                        <button className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
-                            onClick={this.submit.bind(this)}>
-
+                        <button
+                            className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
+                            onClick={this.submit.bind(this)}
+                        >
                             {chrome.i18n.getMessage("submit")}
                         </button>
                     </td>
                 </tr>
-
             </NoticeComponent>
         );
     }
@@ -175,14 +186,15 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
             const timeRef = React.createRef<SponsorTimeEditComponent>();
 
             elements.push(
-                <SponsorTimeEditComponent key={sponsorTimes[i].UUID}
+                <SponsorTimeEditComponent
+                    key={sponsorTimes[i].UUID}
                     idSuffix={this.state.idSuffix + i}
                     index={i}
                     contentContainer={this.props.contentContainer}
                     submissionNotice={this}
                     categoryChangeListener={this.categoryChangeListener.bind(this)}
-                    ref={timeRef}>
-                </SponsorTimeEditComponent>
+                    ref={timeRef}
+                ></SponsorTimeEditComponent>
             );
 
             this.timeEditRefs.push(timeRef);
@@ -196,10 +208,11 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
 
         for (let i = 0; i < this.state.messages.length; i++) {
             elements.push(
-                <NoticeTextSelectionComponent idSuffix={this.state.idSuffix + i}
+                <NoticeTextSelectionComponent
+                    idSuffix={this.state.idSuffix + i}
                     text={this.state.messages[i]}
-                    key={i}>
-                </NoticeTextSelectionComponent>
+                    key={i}
+                ></NoticeTextSelectionComponent>
             );
         }
 
@@ -258,7 +271,8 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
     }
 
     exportSegments() {
-        const sponsorTimesSubmitting = this.props.contentContainer()
+        const sponsorTimesSubmitting = this.props
+            .contentContainer()
             .sponsorTimesSubmitting.sort((a, b) => a.segment[0] - b.segment[0]);
         window.navigator.clipboard.writeText(exportTimes(sponsorTimesSubmitting));
 
@@ -273,24 +287,28 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                 bottom: 0,
                 minWidth: 0,
                 right: "30px",
-                margin: "auto"
+                margin: "auto",
             },
             hideLogo: true,
             hideRightInfo: true,
-            extraClass: "exportCopiedNotice"
+            extraClass: "exportCopiedNotice",
         });
     }
 
     categoryChangeListener(index: number, category: Category): void {
         const dialogWidth = this.noticeRef?.current?.getElement()?.current?.offsetWidth;
-        if (category !== "chooseACategory" && Config.config.showCategoryGuidelines
-                && getVideo().offsetWidth > dialogWidth * 2) {
+        if (
+            category !== "chooseACategory" &&
+            Config.config.showCategoryGuidelines &&
+            getVideo().offsetWidth > dialogWidth * 2
+        ) {
             const options = {
-                title:  chrome.i18n.getMessage(`category_${category}`),
+                title: chrome.i18n.getMessage(`category_${category}`),
                 textBoxes: getGuidelineInfo(category),
-                buttons: [{
+                buttons: [
+                    {
                         name: chrome.i18n.getMessage("FullDetails"),
-                        listener: () => window.open(CompileConfig.wikiLinks[category])
+                        listener: () => window.open(CompileConfig.wikiLinks[category]),
                     },
                     {
                         name: chrome.i18n.getMessage("Hide"),
@@ -298,13 +316,14 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                             Config.config.showCategoryGuidelines = false;
                             this.guidelinesReminder?.close();
                             this.guidelinesReminder = null;
-                        }
-                }],
+                        },
+                    },
+                ],
                 timed: false,
                 style: {
                     right: `${dialogWidth + 10}px`,
                 },
-                extraClass: "sb-guidelines-notice"
+                extraClass: "sb-guidelines-notice",
             };
 
             if (options.textBoxes) {

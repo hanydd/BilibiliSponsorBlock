@@ -1,4 +1,6 @@
 import { SBObject } from "./config";
 declare global {
-    interface Window { SB: SBObject }
+    interface Window {
+        SB: SBObject;
+    }
 }

@@ -2,14 +2,14 @@
 <!-- Link to specific tabs by using their ID in the URL like: options.html#keybinds -->
 
 <head>
-  <title>__MSG_Options__ - SponsorBlock</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="../icons/IconSponsorBlocker32px.png" type="image/png">
+	<title>__MSG_Options__ - SponsorBlock</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="icon" href="../icons/IconSponsorBlocker32px.png" type="image/png">
 
-  <link href="options.css" rel="stylesheet"/>
+	<link href="options.css" rel="stylesheet" />
 
-  <script src="../js/options.js"></script>
+	<script src="../js/options.js"></script>
 </head>
 
 <body class="sponsorBlockPageBody">
@@ -19,7 +19,7 @@
 		<div id="menubar" class="center">
 
 			<div id="title" class="titleBar">
-				<img src="../icons/LogoSponsorBlocker256px.png" class="profilepic" alt="SponsorBlock logo"/>
+				<img src="../icons/LogoSponsorBlocker256px.png" class="profilepic" alt="SponsorBlock logo" />
 				__MSG_fullName__
 				<div id="version"></div>
 			</div>
@@ -44,15 +44,17 @@
 				<div class="tab-heading" data-for="advanced">
 					__MSG_optionsTabAdvanced__
 				</div>
-		</div>
+			</div>
 
 			<div id="createdBy" class="titleBar">
 				<div>
-					<img src="../icons/creator.png" height="30" class="profilepiccircle" alt="profile picture of creator"/>
+					<img src="../icons/creator.png" height="30" class="profilepiccircle"
+						alt="profile picture of creator" />
 					__MSG_createdBy__
 					<a href="https://github.com/HanYaodong">Han Yaodong</a>
 				</div>
-				<a href="https://github.com/HanYaodong" target="_blank" rel="noopener" id="sbDonate">(__MSG_Donate__)</a>
+				<a href="https://github.com/HanYaodong" target="_blank" rel="noopener"
+					id="sbDonate">(__MSG_Donate__)</a>
 			</div>
 
 		</div>
@@ -87,8 +89,7 @@
 					</div>
 				</div>
 
-				<div data-type="toggle" data-sync="fullVideoLabelsOnThumbnails"
-						data-dependent-on="fullVideoSegments">
+				<div data-type="toggle" data-sync="fullVideoLabelsOnThumbnails" data-dependent-on="fullVideoSegments">
 					<div class="switch-container">
 						<label class="switch">
 							<input id="fullVideoLabelsOnThumbnails" type="checkbox" checked>
@@ -190,11 +191,11 @@
 					</div>
 
 					<div data-type="selector" data-sync="noticeVisibilityMode" data-dependent-on="dontShowNotice">
-						<br/>
+						<br />
 
 						<label class="optionLabel" for="noticeVisibilityMode">__MSG_noticeVisibilityLabel__:</label>
 
-						<select id="noticeVisibilityMode" class="selector-element optionsSelector" >
+						<select id="noticeVisibilityMode" class="selector-element optionsSelector">
 							<option value="0">__MSG_noticeVisibilityMode0__</option>
 							<option value="1">__MSG_noticeVisibilityMode1__</option>
 							<option value="2">__MSG_noticeVisibilityMode2__</option>
@@ -207,7 +208,7 @@
 				<div data-type="selector" data-sync="noticeVisibilityMode">
 					<label class="optionLabel" for="noticeVisibilityMode">__MSG_noticeVisibilityLabel__:</label>
 
-					<select id="noticeVisibilityMode" class="selector-element optionsSelector" >
+					<select id="noticeVisibilityMode" class="selector-element optionsSelector">
 						<option value="0">__MSG_noticeVisibilityMode0__</option>
 						<option value="1">__MSG_noticeVisibilityMode1__</option>
 						<option value="2">__MSG_noticeVisibilityMode2__</option>
@@ -242,7 +243,8 @@
 					<div class="small-description">__MSG_hideButtonsDescription__</div>
 				</div>
 
-				<div data-type="toggle" data-toggle-type="reverse" data-sync="hideDeleteButtonPlayerControls" data-dependent-on="hideVideoPlayerControls">
+				<div data-type="toggle" data-toggle-type="reverse" data-sync="hideDeleteButtonPlayerControls"
+					data-dependent-on="hideVideoPlayerControls">
 					<div class="switch-container">
 						<label class="switch">
 							<input id="hideDeleteButtonPlayerControls" type="checkbox" checked>
@@ -254,7 +256,8 @@
 					</div>
 				</div>
 
-				<div data-type="toggle" data-toggle-type="reverse" data-sync="hideUploadButtonPlayerControls" data-dependent-on="hideVideoPlayerControls">
+				<div data-type="toggle" data-toggle-type="reverse" data-sync="hideUploadButtonPlayerControls"
+					data-dependent-on="hideVideoPlayerControls">
 					<div class="switch-container">
 						<label class="switch">
 							<input id="hideUploadButtonPlayerControls" type="checkbox" checked>
@@ -500,7 +503,8 @@
 					</div>
 				</div>
 
-				<div data-type="private-text-change" data-sync-type="local" data-sync="*" data-confirm-message="exportOptionsWarning">
+				<div data-type="private-text-change" data-sync-type="local" data-sync="*"
+					data-confirm-message="exportOptionsWarning">
 					<h2>__MSG_exportOtherData__</h2>
 
 					<div>
@@ -549,7 +553,8 @@
 					<div class="small-description">__MSG_whatViewTracking__</div>
 				</div>
 
-				<div data-type="toggle" data-sync="trackViewCountInPrivate" data-dependent-on="trackViewCount" data-private-only="true">
+				<div data-type="toggle" data-sync="trackViewCountInPrivate" data-dependent-on="trackViewCount"
+					data-private-only="true">
 					<div class="switch-container">
 						<label class="switch">
 							<input id="trackViewCountInPrivate" type="checkbox" checked>
@@ -561,7 +566,8 @@
 					</div>
 				</div>
 
-				<div data-type="toggle" data-sync="trackDownvotes" data-confirm-on="false" data-confirm-message="trackDownvotesWarning">
+				<div data-type="toggle" data-sync="trackDownvotes" data-confirm-on="false"
+					data-confirm-message="trackDownvotesWarning">
 					<div class="switch-container">
 						<label class="switch">
 							<input id="trackDownvotes" type="checkbox" checked>
@@ -587,7 +593,8 @@
 					</div>
 				</div>
 
-				<div data-type="button-press" data-sync="copyDebugInformation" data-confirm-message="copyDebugInformation">
+				<div data-type="button-press" data-sync="copyDebugInformation"
+					data-confirm-message="copyDebugInformation">
 					<div class="option-button trigger-button">
 						__MSG_copyDebugInformation__
 					</div>
@@ -595,7 +602,8 @@
 					<div class="small-description">__MSG_copyDebugInformationOptions__</div>
 				</div>
 
-				<div data-type="toggle" data-sync="testingServer" data-confirm-message="testingServerWarning" data-no-safari="true">
+				<div data-type="toggle" data-sync="testingServer" data-confirm-message="testingServerWarning"
+					data-no-safari="true">
 					<div class="switch-container">
 						<label class="switch">
 							<input id="testingServer" type="checkbox">
@@ -609,7 +617,8 @@
 					<div class="small-description">__MSG_whatEnableTestingServer__</div>
 				</div>
 
-				<div data-type="text-change" data-sync="serverAddress" data-dependent-on="testingServer" data-dependent-on-inverted="true">
+				<div data-type="text-change" data-sync="serverAddress" data-dependent-on="testingServer"
+					data-dependent-on-inverted="true">
 					<label class="optionLabel inline">
 						<span class="optionLabel">__MSG_customServerAddress__:</span>
 

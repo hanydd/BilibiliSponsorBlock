@@ -3,14 +3,14 @@ Based on code from
 https://github.com/videosegments/videosegments/commits/f1e111bdfe231947800c6efdd51f62a4e7fef4d4/segmentsbar/segmentsbar.js
 */
 
-'use strict';
+"use strict";
 
 import Config from "../config";
 import { ChapterVote } from "../render/ChapterVote";
 import { ActionType, Category, SponsorHideType, SponsorSourceType, SponsorTime } from "../types";
 import { DEFAULT_CATEGORY, shortCategoryName } from "../utils/categoryUtils";
 
-const TOOLTIP_VISIBLE_CLASS = 'sponsorCategoryTooltipVisible';
+const TOOLTIP_VISIBLE_CLASS = "sponsorCategoryTooltipVisible";
 
 export interface PreviewBarSegment {
     segment: [number, number];
@@ -31,10 +31,13 @@ class PreviewBar {
     shadowContainer: HTMLUListElement;
     categoryTooltip?: HTMLDivElement;
     categoryTooltipContainer?: HTMLElement;
-    lastSmallestSegment: Record<string, {
-        index: number;
-        segment: PreviewBarSegment;
-    }> = {};
+    lastSmallestSegment: Record<
+        string,
+        {
+            index: number;
+            segment: PreviewBarSegment;
+        }
+    > = {};
 
     parent: HTMLElement;
     shadowParent: HTMLElement;
@@ -45,12 +48,12 @@ class PreviewBar {
 
     chapterVote: ChapterVote;
 
-    constructor(parent: HTMLElement, shadowParent: HTMLElement, chapterVote: ChapterVote, test=false) {
+    constructor(parent: HTMLElement, shadowParent: HTMLElement, chapterVote: ChapterVote, test = false) {
         if (test) return;
-        this.container = document.createElement('ul');
-        this.container.id = 'previewbar';
-        this.shadowContainer = document.createElement('ul');
-        this.shadowContainer.id = 'shadowPreviewbar';
+        this.container = document.createElement("ul");
+        this.container.id = "previewbar";
+        this.shadowContainer = document.createElement("ul");
+        this.shadowContainer.id = "shadowPreviewbar";
 
         this.parent = parent;
         this.shadowParent = shadowParent;
@@ -62,8 +65,7 @@ class PreviewBar {
 
     setupHoverText(): void {
         // delete old ones
-        document.querySelectorAll(`.sponsorCategoryTooltip`)
-            .forEach((e) => e.remove());
+        document.querySelectorAll(`.sponsorCategoryTooltip`).forEach((e) => e.remove());
 
         // Create label placeholder
         this.categoryTooltip = document.createElement("div");
@@ -71,7 +73,9 @@ class PreviewBar {
         this.categoryTooltip.className = "bpx-player-progress-preview-time sponsorCategoryTooltip";
 
         // global chaper tooltip or duration tooltip
-        this.categoryTooltipContainer = document.querySelector(".bpx-player-progress-area .bpx-player-progress-wrap .bpx-player-progress-popup");
+        this.categoryTooltipContainer = document.querySelector(
+            ".bpx-player-progress-area .bpx-player-progress-wrap .bpx-player-progress-popup"
+        );
         const tooltipTextWrapper = this.categoryTooltipContainer.querySelector(".bpx-player-progress-preview");
         const biliChapterWrapper = this.categoryTooltipContainer.querySelector(".bpx-player-progress-hotspot");
         if (!this.categoryTooltipContainer || !tooltipTextWrapper) return;
@@ -96,9 +100,12 @@ class PreviewBar {
         });
 
         seekBar.addEventListener("mousemove", (e: MouseEvent) => {
-            if (!mouseOnSeekBar || !this.categoryTooltip || !this.categoryTooltipContainer || !chrome.runtime?.id) return;
+            if (!mouseOnSeekBar || !this.categoryTooltip || !this.categoryTooltipContainer || !chrome.runtime?.id)
+                return;
 
-            const timeInSeconds = this.decimalToTime((e.clientX - seekBar.getBoundingClientRect().x) / seekBar.clientWidth);
+            const timeInSeconds = this.decimalToTime(
+                (e.clientX - seekBar.getBoundingClientRect().x) / seekBar.clientWidth
+            );
 
             // Find the segment at that location, using the shortest if multiple found
             const mainSegment = this.getSmallestSegment(timeInSeconds, this.segments, "normal");
@@ -162,7 +169,7 @@ class PreviewBar {
 
         const sortedSegments = this.segments.sort(({ segment: a }, { segment: b }) => {
             // Sort longer segments before short segments to make shorter segments render later
-            return (b[1] - b[0]) - (a[1] - a[0]);
+            return b[1] - b[0] - (a[1] - a[0]);
         });
         for (const segment of sortedSegments) {
             const bar = this.createBar(segment);
@@ -178,14 +185,14 @@ class PreviewBar {
     createBar(barSegment: PreviewBarSegment): HTMLLIElement {
         const { category, unsubmitted, segment, showLarger } = barSegment;
 
-        const bar = document.createElement('li');
-        bar.classList.add('previewbar');
+        const bar = document.createElement("li");
+        bar.classList.add("previewbar");
         if (barSegment.requiredSegment) bar.classList.add("requiredSegment");
         if (barSegment.selectedSegment) bar.classList.add("selectedSegment");
-        bar.innerHTML = showLarger ? '&nbsp;&nbsp;' : '&nbsp;';
+        bar.innerHTML = showLarger ? "&nbsp;&nbsp;" : "&nbsp;";
 
-        const fullCategoryName = (unsubmitted ? 'preview-' : '') + category;
-        bar.setAttribute('sponsorblock-category', fullCategoryName);
+        const fullCategoryName = (unsubmitted ? "preview-" : "") + category;
+        bar.setAttribute("sponsorblock-category", fullCategoryName);
 
         // Handled by setCategoryColorCSSVariables() of content.ts
         bar.style.backgroundColor = `var(--sb-category-${fullCategoryName})`;
@@ -205,8 +212,10 @@ class PreviewBar {
     }
 
     updateChapterText(segments: SponsorTime[], submittingSegments: SponsorTime[], currentTime: number): SponsorTime[] {
-        if (!Config.config.showSegmentNameInChapterBar
-                || ((!segments || segments.length <= 0) && submittingSegments?.length <= 0)) {
+        if (
+            !Config.config.showSegmentNameInChapterBar ||
+            ((!segments || segments.length <= 0) && submittingSegments?.length <= 0)
+        ) {
             const chaptersContainer = this.getChaptersContainer();
             if (chaptersContainer) {
                 chaptersContainer.querySelector(".sponsorChapterText")?.remove();
@@ -222,9 +231,12 @@ class PreviewBar {
         segments ??= [];
         if (submittingSegments?.length > 0) segments = segments.concat(submittingSegments);
         const activeSegments = segments.filter((segment) => {
-            return segment.hidden === SponsorHideType.Visible
-                && segment.segment[0] <= currentTime && segment.segment[1] > currentTime
-                && segment.category !== DEFAULT_CATEGORY;
+            return (
+                segment.hidden === SponsorHideType.Visible &&
+                segment.segment[0] <= currentTime &&
+                segment.segment[1] > currentTime &&
+                segment.category !== DEFAULT_CATEGORY
+            );
         });
 
         this.setActiveSegments(activeSegments);
@@ -242,7 +254,7 @@ class PreviewBar {
                 chaptersContainer.classList.add("sponsorblock-chapter-visible");
 
                 const chosenSegment = segments.sort((a, b) => {
-                    return (b.segment[0] - a.segment[0]);
+                    return b.segment[0] - a.segment[0];
                 })[0];
 
                 const chapterButton = this.getChapterButton(chaptersContainer);
@@ -252,18 +264,19 @@ class PreviewBar {
                 const chapterTitle = chaptersContainer.querySelector(".ytp-chapter-title-content") as HTMLDivElement;
                 chapterTitle.style.display = "none";
 
-                const chapterCustomText = (chapterTitle.parentElement.querySelector(".sponsorChapterText") || (() => {
-                    const elem = document.createElement("div");
-                    chapterTitle.parentElement.insertBefore(elem, chapterTitle);
-                    elem.classList.add("sponsorChapterText");
-                    return elem;
-                })()) as HTMLDivElement;
+                const chapterCustomText = (chapterTitle.parentElement.querySelector(".sponsorChapterText") ||
+                    (() => {
+                        const elem = document.createElement("div");
+                        chapterTitle.parentElement.insertBefore(elem, chapterTitle);
+                        elem.classList.add("sponsorChapterText");
+                        return elem;
+                    })()) as HTMLDivElement;
                 chapterCustomText.innerText = chosenSegment.description || shortCategoryName(chosenSegment.category);
 
                 // if (chosenSegment.actionType !== ActionType.Chapter) {
                 //     chapterTitle.classList.add("sponsorBlock-segment-title");
                 // } else {
-                    chapterTitle.classList.remove("sponsorBlock-segment-title");
+                chapterTitle.classList.remove("sponsorBlock-segment-title");
                 // }
 
                 if (chosenSegment.source === SponsorSourceType.Server) {
@@ -299,8 +312,9 @@ class PreviewBar {
     }
 
     private getChapterButton(chaptersContainer: HTMLElement): HTMLButtonElement {
-        return (chaptersContainer ?? this.getChaptersContainer())
-            ?.querySelector("button.ytp-chapter-title") as HTMLButtonElement;
+        return (chaptersContainer ?? this.getChaptersContainer())?.querySelector(
+            "button.ytp-chapter-title"
+        ) as HTMLButtonElement;
     }
 
     remove(): void {
@@ -323,15 +337,15 @@ class PreviewBar {
     }
 
     intervalToDecimal(startTime: number, endTime: number) {
-        return (this.timeToDecimal(endTime) - this.timeToDecimal(startTime));
+        return this.timeToDecimal(endTime) - this.timeToDecimal(startTime);
     }
 
     timeToPercentage(time: number): string {
-        return `${this.timeToDecimal(time) * 100}%`
+        return `${this.timeToDecimal(time) * 100}%`;
     }
 
     timeToRightPercentage(time: number): string {
-        return `${(1 - this.timeToDecimal(time)) * 100}%`
+        return `${(1 - this.timeToDecimal(time)) * 100}%`;
     }
 
     timeToDecimal(time: number): number {
@@ -354,17 +368,23 @@ class PreviewBar {
     }
 
     /*
-    * Approximate size on preview bar for smallest element (due to &nbsp)
-    */
+     * Approximate size on preview bar for smallest element (due to &nbsp)
+     */
     getMinimumSize(showLarger = false): number {
         return this.videoDuration * (showLarger ? 0.006 : 0.003);
     }
 
     // Name parameter used for cache
-    private getSmallestSegment(timeInSeconds: number, segments: PreviewBarSegment[], name?: string): PreviewBarSegment | null {
+    private getSmallestSegment(
+        timeInSeconds: number,
+        segments: PreviewBarSegment[],
+        name?: string
+    ): PreviewBarSegment | null {
         const proposedIndex = name ? this.lastSmallestSegment[name]?.index : null;
-        const startSearchIndex = proposedIndex && segments[proposedIndex] === this.lastSmallestSegment[name].segment ? proposedIndex : 0;
-        const direction = startSearchIndex > 0 && timeInSeconds < this.lastSmallestSegment[name].segment.segment[0] ? -1 : 1;
+        const startSearchIndex =
+            proposedIndex && segments[proposedIndex] === this.lastSmallestSegment[name].segment ? proposedIndex : 0;
+        const direction =
+            startSearchIndex > 0 && timeInSeconds < this.lastSmallestSegment[name].segment.segment[0] ? -1 : 1;
 
         let segment: PreviewBarSegment | null = null;
         let index = -1;
@@ -393,7 +413,7 @@ class PreviewBar {
         if (segment) {
             this.lastSmallestSegment[name] = {
                 index: index,
-                segment: segment
+                segment: segment,
             };
         }
 

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createRoot, Root } from 'react-dom/client';
+import { createRoot, Root } from "react-dom/client";
 
 import Utils from "../utils";
 const utils = new Utils();
@@ -39,7 +39,8 @@ class SubmissionNotice {
                 contentContainer={contentContainer}
                 callback={callback}
                 ref={this.noticeRef}
-                closeListener={() => this.close(false)} />
+                closeListener={() => this.close(false)}
+            />
         );
     }
 

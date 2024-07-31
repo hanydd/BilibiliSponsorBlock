@@ -32,7 +32,7 @@ export enum CategorySkipOption {
     Disabled = -1,
     ShowOverlay,
     ManualSkip,
-    AutoSkip
+    AutoSkip,
 }
 
 export interface CategorySelection {
@@ -51,18 +51,18 @@ export enum ActionType {
     Skip = "skip",
     Mute = "mute",
     Full = "full",
-    Poi = "poi"
+    Poi = "poi",
 }
 
 export const ActionTypes = [ActionType.Skip, ActionType.Mute];
 
-export type SegmentUUID = string  & { __segmentUUIDBrand: unknown };
+export type SegmentUUID = string & { __segmentUUIDBrand: unknown };
 export type Category = string & { __categoryBrand: unknown };
 
 export enum SponsorSourceType {
     Server = undefined,
     Local = 1,
-    YouTube = 2
+    YouTube = 2,
 }
 
 export interface SegmentContainer {
@@ -91,7 +91,6 @@ export interface PreviewBarOption {
     opacity: string;
 }
 
-
 export interface Registration {
     message: string;
     id: string;
@@ -108,7 +107,7 @@ export interface BackgroundScriptContainer {
 
 export interface VideoInfo {
     responseContext: {
-        serviceTrackingParams: Array<{service: string; params: Array<{key: string; value: string}>}>;
+        serviceTrackingParams: Array<{ service: string; params: Array<{ key: string; value: string }> }>;
         webResponseContextExtensionData: {
             hasDecorated: boolean;
         };
@@ -134,7 +133,7 @@ export interface VideoInfo {
         shortDescription: string;
         isCrawlable: boolean;
         thumbnail: {
-            thumbnails: Array<{url: string; width: number; height: number}>;
+            thumbnails: Array<{ url: string; width: number; height: number }>;
         };
         averageRating: number;
         allowRatings: boolean;
@@ -149,7 +148,7 @@ export interface VideoInfo {
     microformat: {
         playerMicroformatRenderer: {
             thumbnail: {
-                thumbnails: Array<{url: string; width: number; height: number}>;
+                thumbnails: Array<{ url: string; width: number; height: number }>;
             };
             embed: {
                 iframeUrl: string;
@@ -189,7 +188,7 @@ export type UnEncodedSegmentTimes = [string, SponsorTime[]][];
 export enum ChannelIDStatus {
     Fetching,
     Found,
-    Failed
+    Failed,
 }
 
 export interface ChannelIDInfo {
@@ -216,5 +215,5 @@ export enum NoticeVisbilityMode {
     MiniForAutoSkip = 1,
     MiniForAll = 2,
     FadedForAutoSkip = 3,
-    FadedForAll = 4
+    FadedForAll = 4,
 }

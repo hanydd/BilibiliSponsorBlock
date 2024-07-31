@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createRoot, Root } from 'react-dom/client';
+import { createRoot, Root } from "react-dom/client";
 
 export interface RectangleTooltipProps {
     text: string;
@@ -32,7 +32,7 @@ export class RectangleTooltip {
         this.text = props.text;
         props.fontSize ??= "10px";
 
-        this.container = document.createElement('div');
+        this.container = document.createElement("div");
         props.htmlId ??= "sponsorRectangleTooltip" + props.text;
         this.container.id = props.htmlId;
         this.container.style.display = "relative";
@@ -49,41 +49,48 @@ export class RectangleTooltip {
 
         this.root = createRoot(this.container);
         this.root.render(
-            <div style={{
-                bottom: props.bottomOffset,
-                left: props.leftOffset,
-                maxHeight: props.maxHeight,
-                maxWidth: props.maxWidth,
-                backgroundColor: props.backgroundColor,
-                fontSize: props.fontSize}}
-                    className="sponsorBlockRectangleTooltip" >
-                    <div>
-                        <img className="sponsorSkipLogo sponsorSkipObject"
-                            src={chrome.runtime.getURL("icons/IconSponsorBlocker256px.png")}>
-                        </img>
-                        <span className="sponsorSkipObject">
-                            {this.text + (props.link ? ". " : "")}
-                            {props.link ?
-                                <a style={{textDecoration: "underline"}}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        href={props.link}>
-                                    {chrome.i18n.getMessage("LearnMore")}
-                                    </a>
-                            : null}
-                        </span>
-                    </div>
-                    <button className="sponsorSkipObject sponsorSkipNoticeButton"
-                        style ={{float: "right" }}
-                        onClick={() => {
-                            if (props.buttonFunction) props.buttonFunction();
-                            this.close();
-                        }}>
-
-                        {chrome.i18n.getMessage("GotIt")}
-                    </button>
+            <div
+                style={{
+                    bottom: props.bottomOffset,
+                    left: props.leftOffset,
+                    maxHeight: props.maxHeight,
+                    maxWidth: props.maxWidth,
+                    backgroundColor: props.backgroundColor,
+                    fontSize: props.fontSize,
+                }}
+                className="sponsorBlockRectangleTooltip"
+            >
+                <div>
+                    <img
+                        className="sponsorSkipLogo sponsorSkipObject"
+                        src={chrome.runtime.getURL("icons/IconSponsorBlocker256px.png")}
+                    ></img>
+                    <span className="sponsorSkipObject">
+                        {this.text + (props.link ? ". " : "")}
+                        {props.link ? (
+                            <a
+                                style={{ textDecoration: "underline" }}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                href={props.link}
+                            >
+                                {chrome.i18n.getMessage("LearnMore")}
+                            </a>
+                        ) : null}
+                    </span>
+                </div>
+                <button
+                    className="sponsorSkipObject sponsorSkipNoticeButton"
+                    style={{ float: "right" }}
+                    onClick={() => {
+                        if (props.buttonFunction) props.buttonFunction();
+                        this.close();
+                    }}
+                >
+                    {chrome.i18n.getMessage("GotIt")}
+                </button>
             </div>
-        )
+        );
     }
 
     close(): void {

@@ -1,25 +1,25 @@
 import Config, { VideoDownvotes } from "./config";
-import { CategorySelection, SponsorTime, BackgroundScriptContainer, Registration, VideoID, SponsorHideType, CategorySkipOption } from "./types";
+import {
+    CategorySelection,
+    SponsorTime,
+    BackgroundScriptContainer,
+    Registration,
+    VideoID,
+    SponsorHideType,
+    CategorySkipOption,
+} from "./types";
 
 import { getHash, HashedValue } from "../maze-utils/src/hash";
 import { findValidElementFromSelector } from "../maze-utils/src/dom";
 import { isSafari } from "../maze-utils/src/config";
 
 export default class Utils {
-
     // Contains functions needed from the background script
     backgroundScriptContainer: BackgroundScriptContainer | null;
 
     // Used to add content scripts and CSS required
-    js = [
-        "./js/content.js"
-    ];
-    css = [
-        "content.css",
-        "./libs/Source+Sans+Pro.css",
-        "popup.css",
-        "shared.css"
-    ];
+    js = ["./js/content.js"];
+    css = ["content.css", "./libs/Source+Sans+Pro.css", "popup.css", "shared.css"];
 
     constructor(backgroundScriptContainer: BackgroundScriptContainer = null) {
         this.backgroundScriptContainer = backgroundScriptContainer;
@@ -27,7 +27,7 @@ export default class Utils {
 
     containsPermission(permissions: chrome.permissions.Permissions): Promise<boolean> {
         return new Promise((resolve) => {
-            chrome.permissions.contains(permissions, resolve)
+            chrome.permissions.contains(permissions, resolve);
         });
     }
 
@@ -45,18 +45,21 @@ export default class Utils {
             permissions.push("webNavigation");
         }
 
-        chrome.permissions.request({
-            origins: this.getPermissionRegex(),
-            permissions: permissions
-        }, async (granted) => {
-            if (granted) {
-                this.setupExtraSiteContentScripts();
-            } else {
-                this.removeExtraSiteRegistration();
-            }
+        chrome.permissions.request(
+            {
+                origins: this.getPermissionRegex(),
+                permissions: permissions,
+            },
+            async (granted) => {
+                if (granted) {
+                    this.setupExtraSiteContentScripts();
+                } else {
+                    this.removeExtraSiteRegistration();
+                }
 
-            callback(granted);
-        });
+                callback(granted);
+            }
+        );
     }
 
     getExtraSiteRegistration(): Registration {
@@ -66,7 +69,7 @@ export default class Utils {
             allFrames: true,
             js: this.js,
             css: this.css,
-            matches: this.getPermissionRegex()
+            matches: this.getPermissionRegex(),
         };
     }
 
@@ -98,12 +101,12 @@ export default class Utils {
         } else {
             chrome.runtime.sendMessage({
                 message: "unregisterContentScript",
-                id: id
+                id: id,
             });
         }
 
         chrome.permissions.remove({
-            origins: this.getPermissionRegex()
+            origins: this.getPermissionRegex(),
         });
     }
 
@@ -178,7 +181,7 @@ export default class Utils {
                 return selection;
             }
         }
-        return { name: category, option: CategorySkipOption.Disabled} as CategorySelection;
+        return { name: category, option: CategorySkipOption.Disabled } as CategorySelection;
     }
 
     /**
@@ -200,10 +203,10 @@ export default class Utils {
 
     findReferenceNode(): HTMLElement {
         const selectors = [
-            ".bpx-player-video-area" // bilibili video
+            ".bpx-player-video-area", // bilibili video
         ];
 
-        let referenceNode = findValidElementFromSelector(selectors)
+        let referenceNode = findValidElementFromSelector(selectors);
         if (referenceNode == null) {
             //for embeds
             const player = document.getElementById("player");
@@ -212,7 +215,11 @@ export default class Utils {
                 let index = 1;
 
                 //find the child that is the video player (sometimes it is not the first)
-                while (index < player.children.length && (!referenceNode.classList?.contains("html5-video-player") || !referenceNode.classList?.contains("ytp-embed"))) {
+                while (
+                    index < player.children.length &&
+                    (!referenceNode.classList?.contains("html5-video-player") ||
+                        !referenceNode.classList?.contains("ytp-embed"))
+                ) {
                     referenceNode = player.children[index] as HTMLElement;
 
                     index++;
@@ -232,8 +239,11 @@ export default class Utils {
     }
 
     async addHiddenSegment(videoID: VideoID, segmentUUID: string, hidden: SponsorHideType) {
-        if ((chrome.extension.inIncognitoContext && !Config.config.trackDownvotesInPrivate)
-                || !Config.config.trackDownvotes) return;
+        if (
+            (chrome.extension.inIncognitoContext && !Config.config.trackDownvotesInPrivate) ||
+            !Config.config.trackDownvotes
+        )
+            return;
 
         const hashedVideoID = (await getHash(videoID, 1)).slice(0, 4) as VideoID & HashedValue;
         const UUIDHash = await getHash(segmentUUID, 1);
@@ -255,7 +265,7 @@ export default class Utils {
             } else {
                 currentVideoData.segments.push({
                     uuid: UUIDHash,
-                    hidden
+                    hidden,
                 });
             }
 

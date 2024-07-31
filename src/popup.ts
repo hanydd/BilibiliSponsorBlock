@@ -1,11 +1,6 @@
 import Config from "./config";
 
-import {
-    ActionType,
-    SegmentUUID,
-    SponsorHideType,
-    SponsorTime,
-} from "./types";
+import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "./types";
 import {
     GetChannelIDResponse,
     IsChannelWhitelistedResponse,
@@ -53,14 +48,15 @@ class MessageHandler {
     query(config, callback) {
         if (this.messageListener || !chrome.tabs) {
             // Send back dummy info
-            callback([{
-                url: document.URL,
-                id: -1
-            }]);
+            callback([
+                {
+                    url: document.URL,
+                    id: -1,
+                },
+            ]);
         } else {
             chrome.tabs.query(config, callback);
         }
-
     }
 }
 
@@ -68,7 +64,7 @@ class MessageHandler {
 let allowPopup = window === window.top;
 window.addEventListener("message", async (e): Promise<void> => {
     if (e.source !== window.parent) return;
-    if (e.origin.endsWith('.bilibili.com')) {
+    if (e.origin.endsWith(".bilibili.com")) {
         allowPopup = true;
 
         if (e.data && e.data?.type === "style") {
@@ -89,7 +85,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         toggleSwitch?: HTMLInputElement;
         usernameInput?: HTMLInputElement;
     };
-    type PageElements = { [key: string]: HTMLElement } & InputPageElements
+    type PageElements = { [key: string]: HTMLElement } & InputPageElements;
 
     let stopLoadingAnimation = null;
     // For loading video info from the page
@@ -105,7 +101,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     let port: chrome.runtime.Port = null;
 
     //saves which detail elemts are opened, by saving the uuids
-    const openedUUIDs: SegmentUUID[] =  [];
+    const openedUUIDs: SegmentUUID[] = [];
 
     const PageElements: PageElements = {};
 
@@ -175,9 +171,8 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         "exportSegmentsButton",
         "importSegmentsMenu",
         "importSegmentsText",
-        "importSegmentsSubmit"
-
-    ].forEach(id => PageElements[id] = document.getElementById(id));
+        "importSegmentsSubmit",
+    ].forEach((id) => (PageElements[id] = document.getElementById(id)));
 
     getSegmentsFromContentScript(false);
     await waitFor(() => Config.config !== null && allowPopup, 5000, 5);
@@ -188,7 +183,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
     PageElements.sbCloseButton.addEventListener("click", () => {
         sendTabMessage({
-            message: "closePopup"
+            message: "closePopup",
         });
     });
 
@@ -201,7 +196,10 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     // if (!showDonationLink()) {
     PageElements.sbDonate.style.display = "none";
     // }
-    PageElements.sbDonate.addEventListener("click", () => Config.config.donateClicked = Config.config.donateClicked + 1);
+    PageElements.sbDonate.addEventListener(
+        "click",
+        () => (Config.config.donateClicked = Config.config.donateClicked + 1)
+    );
 
     if (Config.config.cleanPopup) {
         PageElements.sbPopupLogo.classList.add("hidden");
@@ -221,8 +219,9 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     }
 
     PageElements.exportSegmentsButton.addEventListener("click", exportSegments);
-    PageElements.importSegmentsButton.addEventListener("click",
-        () => PageElements.importSegmentsMenu.classList.toggle("hidden"));
+    PageElements.importSegmentsButton.addEventListener("click", () =>
+        PageElements.importSegmentsMenu.classList.toggle("hidden")
+    );
     PageElements.importSegmentsSubmit.addEventListener("click", importSegments);
 
     PageElements.sponsorStart.addEventListener("click", sendSponsorStartMessage);
@@ -233,7 +232,9 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             unwhitelistChannel();
         }
     });
-    PageElements.whitelistForceCheck.addEventListener("click", () => {openOptionsAt("behavior")});
+    PageElements.whitelistForceCheck.addEventListener("click", () => {
+        openOptionsAt("behavior");
+    });
     PageElements.toggleSwitch.addEventListener("change", function () {
         toggleSkipping(!this.checked);
     });
@@ -245,16 +246,20 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     PageElements.optionsButton.addEventListener("click", openOptions);
     PageElements.helpButton.addEventListener("click", openHelp);
     PageElements.refreshSegmentsButton.addEventListener("click", refreshSegments);
-    PageElements.sbPopupIconCopyUserID.addEventListener("click", async () => copyToClipboard(await getHash(Config.config.userID)));
+    PageElements.sbPopupIconCopyUserID.addEventListener("click", async () =>
+        copyToClipboard(await getHash(Config.config.userID))
+    );
 
     // Forward click events
     if (window !== window.top) {
         document.addEventListener("keydown", (e) => {
             const target = e.target as HTMLElement;
-            if (target.tagName === "INPUT"
-                || target.tagName === "TEXTAREA"
-                || e.key === "ArrowUp"
-                || e.key === "ArrowDown") {
+            if (
+                target.tagName === "INPUT" ||
+                target.tagName === "TEXTAREA" ||
+                e.key === "ArrowUp" ||
+                e.key === "ArrowDown"
+            ) {
                 return;
             }
 
@@ -272,7 +277,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
                 shiftKey: e.shiftKey,
                 ctrlKey: e.ctrlKey,
                 altKey: e.altKey,
-                metaKey: e.metaKey
+                metaKey: e.metaKey,
             });
         });
     }
@@ -298,7 +303,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
     asyncRequestToServer("GET", "/api/userInfo", {
         publicUserID: await getHash(Config.config.userID),
-        values
+        values,
     }).then((res) => {
         if (res.status === 200) {
             const userInfo = JSON.parse(res.responseText);
@@ -328,7 +333,10 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             }
 
             //get the amount of times this user has contributed and display it to thank them
-            PageElements.sponsorTimesContributionsDisplay.innerText = Math.max(Config.config.sponsorTimesContributed ?? 0, userInfo.segmentCount).toLocaleString();
+            PageElements.sponsorTimesContributionsDisplay.innerText = Math.max(
+                Config.config.sponsorTimesContributed ?? 0,
+                userInfo.segmentCount
+            ).toLocaleString();
             PageElements.sponsorTimesContributionsContainer.classList.remove("hidden");
 
             PageElements.sponsorTimesOthersTimeSavedEndWord.innerText = chrome.i18n.getMessage("minsLower");
@@ -337,8 +345,6 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             Config.config.permissions = userInfo.permissions;
         }
     });
-
-
 
     //get the amount of times this user has skipped a sponsor
     if (Config.config.skipCount != undefined) {
@@ -372,8 +378,14 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     });
 
     function showDonateWidget(viewCount: number) {
-        if (Config.config.showDonationLink && Config.config.donateClicked <= 0 && Config.config.showPopupDonationCount < 5
-                && viewCount < 50000 && !Config.config.isVip && Config.config.skipCount > 10) {
+        if (
+            Config.config.showDonationLink &&
+            Config.config.donateClicked <= 0 &&
+            Config.config.showPopupDonationCount < 5 &&
+            viewCount < 50000 &&
+            !Config.config.isVip &&
+            Config.config.skipCount > 10
+        ) {
             PageElements.sponsorTimesDonateContainer.style.display = "flex";
             PageElements.sbConsiderDonateLink.addEventListener("click", () => {
                 Config.config.donateClicked = Config.config.donateClicked + 1;
@@ -389,7 +401,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     }
 
     function onTabs(tabs, updating: boolean): void {
-        messageHandler.sendMessage(tabs[0].id, { message: 'getVideoID' }, function (result) {
+        messageHandler.sendMessage(tabs[0].id, { message: "getVideoID" }, function (result) {
             if (result !== undefined && result.videoID) {
                 currentVideoID = result.videoID;
 
@@ -421,18 +433,17 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
         updateSegmentEditingUI();
 
-        messageHandler.sendMessage(
-            tabs[0].id,
-            { message: 'isInfoFound', updating },
-            infoFound
-        );
+        messageHandler.sendMessage(tabs[0].id, { message: "isInfoFound", updating }, infoFound);
     }
 
     function getSegmentsFromContentScript(updating: boolean): void {
-        messageHandler.query({
-            active: true,
-            currentWindow: true
-        }, (tabs) => onTabs(tabs, updating));
+        messageHandler.query(
+            {
+                active: true,
+                currentWindow: true,
+            },
+            (tabs) => onTabs(tabs, updating)
+        );
     }
 
     async function infoFound(request: IsInfoFoundMessageResponse) {
@@ -473,18 +484,23 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         }
 
         //see if whitelist button should be swapped
-        const response = await sendTabMessageAsync({ message: 'isChannelWhitelisted' }) as IsChannelWhitelistedResponse;
+        const response = (await sendTabMessageAsync({
+            message: "isChannelWhitelisted",
+        })) as IsChannelWhitelistedResponse;
         if (response.value) {
             PageElements.whitelistChannel.style.display = "none";
             PageElements.unwhitelistChannel.style.display = "unset";
             PageElements.whitelistToggle.checked = true;
-            document.querySelectorAll('.SBWhitelistIcon')[0].classList.add("rotated");
+            document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
         }
     }
 
     async function sendSponsorStartMessage() {
         //the content script will get the message if a Bilibili page is open
-        const response = await sendTabMessageAsync({ from: 'popup', message: 'sponsorStart' }) as SponsorStartResponse;
+        const response = (await sendTabMessageAsync({
+            from: "popup",
+            message: "sponsorStart",
+        })) as SponsorStartResponse;
         startSponsorCallback(response);
 
         // Perform a second update after the config changes take effect as a workaround for a race condition
@@ -575,10 +591,14 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             if (downloadedTimes[i].actionType === ActionType.Full) {
                 segmentTimeFromToNode.innerText = chrome.i18n.getMessage("full");
             } else {
-                segmentTimeFromToNode.innerText = getFormattedTime(downloadedTimes[i].segment[0], true) +
-                        (actionType !== ActionType.Poi
-                            ? " " + chrome.i18n.getMessage("to") + " " + getFormattedTime(downloadedTimes[i].segment[1], true)
-                            : "");
+                segmentTimeFromToNode.innerText =
+                    getFormattedTime(downloadedTimes[i].segment[0], true) +
+                    (actionType !== ActionType.Poi
+                        ? " " +
+                          chrome.i18n.getMessage("to") +
+                          " " +
+                          getFormattedTime(downloadedTimes[i].segment[1], true)
+                        : "");
             }
 
             segmentTimeFromToNode.style.margin = "5px";
@@ -587,7 +607,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             const labelContainer = document.createElement("div");
             labelContainer.appendChild(categoryColorCircle);
 
-            const span = document.createElement('span');
+            const span = document.createElement("span");
             span.className = "summaryLabel";
             span.appendChild(textNode);
             labelContainer.appendChild(span);
@@ -627,7 +647,10 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             downvoteButton.id = "sponsorTimesDownvoteButtonsContainer" + UUID;
             downvoteButton.className = "voteButton";
             downvoteButton.title = chrome.i18n.getMessage("downvote");
-            downvoteButton.src = locked && isVip ? chrome.runtime.getURL("icons/thumbs_down_locked.svg") : chrome.runtime.getURL("icons/thumbs_down.svg");
+            downvoteButton.src =
+                locked && isVip
+                    ? chrome.runtime.getURL("icons/thumbs_down_locked.svg")
+                    : chrome.runtime.getURL("icons/thumbs_down.svg");
             downvoteButton.addEventListener("click", () => vote(0, UUID));
 
             const uuidButton = document.createElement("img");
@@ -665,8 +688,8 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
                 sendTabMessage({
                     message: "hideSegment",
                     type: downloadedTimes[i].hidden,
-                    UUID: UUID
-                })
+                    UUID: UUID,
+                });
             });
 
             const skipButton = document.createElement("img");
@@ -683,9 +706,12 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             voteButtonsContainer.appendChild(upvoteButton);
             voteButtonsContainer.appendChild(downvoteButton);
             voteButtonsContainer.appendChild(uuidButton);
-            if (downloadedTimes[i].actionType === ActionType.Skip || downloadedTimes[i].actionType === ActionType.Mute
-                    || downloadedTimes[i].actionType === ActionType.Poi
-                    && [SponsorHideType.Visible, SponsorHideType.Hidden].includes(downloadedTimes[i].hidden)) {
+            if (
+                downloadedTimes[i].actionType === ActionType.Skip ||
+                downloadedTimes[i].actionType === ActionType.Mute ||
+                (downloadedTimes[i].actionType === ActionType.Poi &&
+                    [SponsorHideType.Visible, SponsorHideType.Hidden].includes(downloadedTimes[i].hidden))
+            ) {
                 voteButtonsContainer.appendChild(hideButton);
             }
             if (downloadedTimes[i].actionType !== ActionType.Full) {
@@ -715,7 +741,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
     function submitTimes() {
         if (sponsorTimes.length > 0) {
-            sendTabMessage({ message: 'submitTimes' })
+            sendTabMessage({ message: "submitTimes" });
         }
     }
 
@@ -734,7 +760,9 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
     /** Updates any UI related to segment editing and submission according to the current state. */
     function updateSegmentEditingUI() {
-        PageElements.sponsorStart.innerText = chrome.i18n.getMessage(isCreatingSegment() ? "sponsorEnd" : "sponsorStart");
+        PageElements.sponsorStart.innerText = chrome.i18n.getMessage(
+            isCreatingSegment() ? "sponsorEnd" : "sponsorStart"
+        );
 
         PageElements.submitTimes.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
         PageElements.submissionHint.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
@@ -742,33 +770,31 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
     //make the options div visible
     function openOptions() {
-        chrome.runtime.sendMessage({ "message": "openConfig" });
+        chrome.runtime.sendMessage({ message: "openConfig" });
     }
 
     function openOptionsAt(location) {
-        chrome.runtime.sendMessage({ "message": "openConfig", "hash": location });
+        chrome.runtime.sendMessage({ message: "openConfig", hash: location });
     }
 
     function openHelp() {
-        chrome.runtime.sendMessage({ "message": "openHelp" });
+        chrome.runtime.sendMessage({ message: "openHelp" });
     }
 
     function sendTabMessage(data: Message, callback?) {
-        messageHandler.query({
-            active: true,
-            currentWindow: true
-        }, tabs => {
-            messageHandler.sendMessage(
-                tabs[0].id,
-                data,
-                callback
-            );
-        }
+        messageHandler.query(
+            {
+                active: true,
+                currentWindow: true,
+            },
+            (tabs) => {
+                messageHandler.sendMessage(tabs[0].id, data, callback);
+            }
         );
     }
 
     function sendTabMessageAsync(data: Message): Promise<unknown> {
-        return new Promise((resolve) => sendTabMessage(data, (response) => resolve(response)))
+        return new Promise((resolve) => sendTabMessage(data, (response) => resolve(response)));
     }
 
     //make the options username setting option visible
@@ -793,24 +819,27 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         PageElements.setUsernameStatus.style.display = "unset";
         PageElements.setUsernameStatus.innerText = chrome.i18n.getMessage("Loading");
 
-        sendRequestToServer("POST", "/api/setUsername?userID=" + Config.config.userID + "&username=" + PageElements.usernameInput.value, function (response) {
-            if (response.status == 200) {
-                //submitted
-                PageElements.submitUsername.style.display = "none";
-                PageElements.usernameInput.style.display = "none";
+        sendRequestToServer(
+            "POST",
+            "/api/setUsername?userID=" + Config.config.userID + "&username=" + PageElements.usernameInput.value,
+            function (response) {
+                if (response.status == 200) {
+                    //submitted
+                    PageElements.submitUsername.style.display = "none";
+                    PageElements.usernameInput.style.display = "none";
 
-                PageElements.setUsernameContainer.style.removeProperty("display");
-                PageElements.setUsername.classList.remove("SBExpanded");
-                PageElements.usernameValue.innerText = PageElements.usernameInput.value;
+                    PageElements.setUsernameContainer.style.removeProperty("display");
+                    PageElements.setUsername.classList.remove("SBExpanded");
+                    PageElements.usernameValue.innerText = PageElements.usernameInput.value;
 
-                PageElements.setUsernameStatus.style.display = "none";
+                    PageElements.setUsernameStatus.style.display = "none";
 
-                PageElements.sponsorTimesContributionsContainer.classList.remove("hidden");
-            } else {
-                PageElements.setUsernameStatus.innerText = getErrorMessage(response.status, response.responseText);
+                    PageElements.sponsorTimesContributionsContainer.classList.remove("hidden");
+                } else {
+                    PageElements.setUsernameStatus.innerText = getErrorMessage(response.status, response.responseText);
+                }
             }
-        });
-
+        );
 
         PageElements.setUsernameContainer.style.display = "none";
         PageElements.setUsername.style.display = "unset";
@@ -848,11 +877,11 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     async function vote(type, UUID) {
         //add loading info
         addVoteMessage(chrome.i18n.getMessage("Loading"), UUID);
-        const response = await sendTabMessageAsync({
+        const response = (await sendTabMessageAsync({
             message: "submitVote",
             type: type,
-            UUID: UUID
-        }) as VoteResponse;
+            UUID: UUID,
+        })) as VoteResponse;
 
         if (response != undefined) {
             //see if it was a success or failure
@@ -868,9 +897,12 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
     async function whitelistChannel() {
         //get the channel url
-        const response = await sendTabMessageAsync({ message: 'getChannelID' }) as GetChannelIDResponse;
+        const response = (await sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
         if (!response.channelID) {
-            alert(chrome.i18n.getMessage("channelDataNotFound") + " https://github.com/HanYaodong/BilibiliSponsorBlock/issues/1");
+            alert(
+                chrome.i18n.getMessage("channelDataNotFound") +
+                    " https://github.com/HanYaodong/BilibiliSponsorBlock/issues/1"
+            );
             return;
         }
 
@@ -886,7 +918,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         //change button
         PageElements.whitelistChannel.style.display = "none";
         PageElements.unwhitelistChannel.style.display = "unset";
-        document.querySelectorAll('.SBWhitelistIcon')[0].classList.add("rotated");
+        document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
 
         //show 'consider force channel check' alert
         if (!Config.config.forceChannelCheck) PageElements.whitelistForceCheck.classList.remove("hidden");
@@ -896,14 +928,14 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
         //send a message to the client
         sendTabMessage({
-            message: 'whitelistChange',
-            value: true
+            message: "whitelistChange",
+            value: true,
         });
     }
 
     async function unwhitelistChannel() {
         //get the channel url
-        const response = await sendTabMessageAsync({ message: 'getChannelID' }) as GetChannelIDResponse;
+        const response = (await sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
 
         //get whitelisted channels
         let whitelistedChannels = Config.config.whitelistedChannels;
@@ -918,7 +950,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         //change button
         PageElements.whitelistChannel.style.display = "unset";
         PageElements.unwhitelistChannel.style.display = "none";
-        document.querySelectorAll('.SBWhitelistIcon')[0].classList.remove("rotated");
+        document.querySelectorAll(".SBWhitelistIcon")[0].classList.remove("rotated");
 
         //hide 'consider force channel check' alert
         PageElements.whitelistForceCheck.classList.add("hidden");
@@ -928,8 +960,8 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
         //send a message to the client
         sendTabMessage({
-            message: 'whitelistChange',
-            value: false
+            message: "whitelistChange",
+            value: false,
         });
     }
 
@@ -939,7 +971,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
     async function refreshSegments() {
         startLoadingAnimation();
-        const response = await sendTabMessageAsync({ message: 'refreshSegments' }) as RefreshSegmentsResponse;
+        const response = (await sendTabMessageAsync({ message: "refreshSegments" })) as RefreshSegmentsResponse;
 
         if (response == null || !response.hasVideo) {
             if (stopLoadingAnimation != null) {
@@ -953,7 +985,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     function skipSegment(actionType: ActionType, UUID: SegmentUUID, element?: HTMLElement): void {
         sendTabMessage({
             message: "reskip",
-            UUID: UUID
+            UUID: UUID,
         });
 
         if (element) {
@@ -965,7 +997,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     function selectSegment(UUID: SegmentUUID | null): void {
         sendTabMessage({
             message: "selectSegment",
-            UUID: UUID
+            UUID: UUID,
         });
     }
 
@@ -993,7 +1025,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         } else {
             sendTabMessage({
                 message: "copyToClipboard",
-                text
+                text,
             });
         }
     }
@@ -1003,7 +1035,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
 
         sendTabMessage({
             message: "importSegments",
-            data: text
+            data: text,
         });
 
         PageElements.importSegmentsMenu.classList.add("hidden");
@@ -1015,7 +1047,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         const stopAnimation = AnimationUtils.applyLoadingAnimation(PageElements.exportSegmentsButton, 0.3);
         stopAnimation();
         new GenericNotice(null, "exportCopied", {
-            title:  chrome.i18n.getMessage(`CopiedExclamation`),
+            title: chrome.i18n.getMessage(`CopiedExclamation`),
             timed: true,
             maxCountdownTime: () => 0.6,
             referenceNode: PageElements.exportSegmentsButton.parentElement,
@@ -1026,10 +1058,10 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
                 minWidth: 0,
                 right: "30px",
                 margin: "auto",
-                height: "max-content"
+                height: "max-content",
             },
             hideLogo: true,
-            hideRightInfo: true
+            hideRightInfo: true,
         });
     }
 
@@ -1045,12 +1077,17 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         const years = Math.floor(minutes / 525600); // Assumes 365.0 days in a year
         const days = Math.floor(minutes / 1440) % 365;
         const hours = Math.floor(minutes / 60) % 24;
-        return (years > 0 ? years + chrome.i18n.getMessage("yearAbbreviation") + " " : "") + (days > 0 ? days + chrome.i18n.getMessage("dayAbbreviation") + " " : "") + (hours > 0 ? hours + chrome.i18n.getMessage("hourAbbreviation") + " " : "") + (minutes % 60).toFixed(1);
+        return (
+            (years > 0 ? years + chrome.i18n.getMessage("yearAbbreviation") + " " : "") +
+            (days > 0 ? days + chrome.i18n.getMessage("dayAbbreviation") + " " : "") +
+            (hours > 0 ? hours + chrome.i18n.getMessage("hourAbbreviation") + " " : "") +
+            (minutes % 60).toFixed(1)
+        );
     }
 
     function contentConfigUpdateListener(changes: StorageChangesObject) {
         for (const key in changes) {
-            switch(key) {
+            switch (key) {
                 case "unsubmittedSegments":
                     sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
                     updateSegmentEditingUI();
@@ -1068,8 +1105,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     function updateCurrentTime(currentTime: number) {
         // Create a map of segment UUID -> segment object for easy access
         const segmentMap: Record<string, SponsorTime> = {};
-        for (const segment of downloadedTimes)
-            segmentMap[segment.UUID] = segment
+        for (const segment of downloadedTimes) segmentMap[segment.UUID] = segment;
 
         // Iterate over segment elements and update their classes
         const segmentList = document.getElementById("issueReporterTimeButtons");
@@ -1077,11 +1113,11 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
             const UUID = segmentElement.getAttribute("data-uuid");
             if (UUID == null || segmentMap[UUID] == undefined) continue;
 
-            const summaryElement = segmentElement.querySelector("summary")
+            const summaryElement = segmentElement.querySelector("summary");
             if (summaryElement == null) continue;
 
-            const segment = segmentMap[UUID]
-            summaryElement.classList.remove("segmentActive", "segmentPassed")
+            const segment = segmentMap[UUID];
+            summaryElement.classList.remove("segmentActive", "segmentPassed");
             if (currentTime >= segment.segment[0]) {
                 if (currentTime < segment.segment[1]) {
                     summaryElement.classList.add("segmentActive");
@@ -1101,7 +1137,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
                 infoFound(msg);
                 break;
             case "videoChanged":
-                currentVideoID = msg.videoID
+                currentVideoID = msg.videoID;
                 sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
                 updateSegmentEditingUI();
 
@@ -1109,7 +1145,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
                     PageElements.whitelistChannel.style.display = "none";
                     PageElements.unwhitelistChannel.style.display = "unset";
                     PageElements.whitelistToggle.checked = true;
-                    document.querySelectorAll('.SBWhitelistIcon')[0].classList.add("rotated");
+                    document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
                 }
 
                 // Clear segments list & start loading animation

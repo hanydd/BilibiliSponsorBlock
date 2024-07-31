@@ -7,15 +7,17 @@ import { generateUserID } from "../../maze-utils/src/setup";
 const inTest = typeof chrome === "undefined";
 
 const chapterNames = CompileConfig.categoryList.map((code) => ({
-        code,
-        names: !inTest ? [chrome.i18n.getMessage("category_" + code), shortCategoryName(code)] : [code]
-    }));
+    code,
+    names: !inTest ? [chrome.i18n.getMessage("category_" + code), shortCategoryName(code)] : [code],
+}));
 
 export function exportTimes(segments: SponsorTime[]): string {
     let result = "";
     for (const segment of segments) {
-        if (![ActionType.Full, ActionType.Mute].includes(segment.actionType)
-                && segment.source !== SponsorSourceType.YouTube) {
+        if (
+            ![ActionType.Full, ActionType.Mute].includes(segment.actionType) &&
+            segment.source !== SponsorSourceType.YouTube
+        ) {
             result += exportTime(segment) + "\n";
         }
     }
@@ -28,7 +30,9 @@ function exportTime(segment: SponsorTime): string {
 
     return `${getFormattedTime(segment.segment[0], true)}${
         segment.segment[1] && segment.segment[0] !== segment.segment[1]
-            ? ` - ${getFormattedTime(segment.segment[1], true)}` : ""} ${name}`;
+            ? ` - ${getFormattedTime(segment.segment[1], true)}`
+            : ""
+    } ${name}`;
 }
 
 export function importTimes(data: string, videoDuration: number): SponsorTime[] {
@@ -40,20 +44,23 @@ export function importTimes(data: string, videoDuration: number): SponsorTime[] 
             const startTime = getFormattedTimeToSeconds(match[0]);
             if (startTime !== null) {
                 // Remove "seconds", "at", special characters, and ")" if there was a "("
-                const specialCharMatchers = [{
-                    matcher: /^(?:\s+seconds?)?[-:()\s]*|(?:\s+at)?[-:(\s]+$/g
-                }, {
-                    matcher: /[-:()\s]*$/g,
-                    condition: (value) => !!value.match(/^\s*\(/)
-                }];
+                const specialCharMatchers = [
+                    {
+                        matcher: /^(?:\s+seconds?)?[-:()\s]*|(?:\s+at)?[-:(\s]+$/g,
+                    },
+                    {
+                        matcher: /[-:()\s]*$/g,
+                        condition: (value) => !!value.match(/^\s*\(/),
+                    },
+                ];
                 const titleLeft = removeIf(line.split(match[0])[0], specialCharMatchers);
                 let titleRight = null;
                 const split2 = line.split(match[1] || match[0]);
-                titleRight = removeIf(split2[split2.length - 1], specialCharMatchers)
+                titleRight = removeIf(split2[split2.length - 1], specialCharMatchers);
 
                 const title = titleLeft?.length > titleRight?.length ? titleLeft : titleRight;
                 if (title) {
-                    const determinedCategory = chapterNames.find(c => c.names.includes(title))?.code as Category;
+                    const determinedCategory = chapterNames.find((c) => c.names.includes(title))?.code as Category;
 
                     const segment: SponsorTime = {
                         segment: [startTime, getFormattedTimeToSeconds(match[1])],
@@ -61,7 +68,7 @@ export function importTimes(data: string, videoDuration: number): SponsorTime[] 
                         actionType: ActionType.Skip,
                         description: title,
                         source: SponsorSourceType.Local,
-                        UUID: generateUserID() as SegmentUUID
+                        UUID: generateUserID() as SegmentUUID,
                     };
 
                     if (result.length > 0 && result[result.length - 1].segment[1] === null) {
@@ -93,17 +100,19 @@ function removeIf(value: string, matchers: Array<{ matcher: RegExp; condition?: 
 }
 
 export function exportTimesAsHashParam(segments: SponsorTime[]): string {
-    const hashparamSegments = segments.map(segment => ({
+    const hashparamSegments = segments.map((segment) => ({
         actionType: segment.actionType,
         category: segment.category,
         segment: segment.segment,
-        ...(segment.description ? {description: segment.description} : {})  // don't include the description param if empty
+        ...(segment.description ? { description: segment.description } : {}), // don't include the description param if empty
     }));
 
     return `#segments=${JSON.stringify(hashparamSegments)}`;
 }
 
-
 export function normalizeChapterName(description: string): string {
-    return description.toLowerCase().replace(/[.:'’`‛‘"‟”-]/ug, "").replace(/\s+/g, " ");
+    return description
+        .toLowerCase()
+        .replace(/[.:'’`‛‘"‟”-]/gu, "")
+        .replace(/\s+/g, " ");
 }

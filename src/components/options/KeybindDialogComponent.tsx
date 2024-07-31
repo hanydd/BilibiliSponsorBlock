@@ -19,7 +19,6 @@ interface ErrorMessage {
 }
 
 class KeybindDialogComponent extends React.Component<KeybindDialogProps, KeybindDialogState> {
-
     constructor(props: KeybindDialogProps) {
         super(props);
         this.state = {
@@ -28,17 +27,17 @@ class KeybindDialogComponent extends React.Component<KeybindDialogProps, Keybind
                 code: null,
                 ctrl: false,
                 alt: false,
-                shift: false
+                shift: false,
             },
             error: {
                 message: null,
-                blocking: false
-            }
+                blocking: false,
+            },
         };
     }
 
     render(): React.ReactElement {
-        return(
+        return (
             <>
                 <div className="blocker"></div>
                 <div className="dialog">
@@ -46,7 +45,11 @@ class KeybindDialogComponent extends React.Component<KeybindDialogProps, Keybind
                     <div id="change-keybind-settings">
                         <div id="change-keybind-modifiers" className="inline">
                             <div>
-                                <input id="change-keybind-ctrl" type="checkbox" onChange={this.keybindModifierChecked} />
+                                <input
+                                    id="change-keybind-ctrl"
+                                    type="checkbox"
+                                    onChange={this.keybindModifierChecked}
+                                />
                                 <label htmlFor="change-keybind-ctrl">Ctrl</label>
                             </div>
                             <div>
@@ -54,7 +57,11 @@ class KeybindDialogComponent extends React.Component<KeybindDialogProps, Keybind
                                 <label htmlFor="change-keybind-alt">Alt</label>
                             </div>
                             <div>
-                                <input id="change-keybind-shift" type="checkbox" onChange={this.keybindModifierChecked} />
+                                <input
+                                    id="change-keybind-shift"
+                                    type="checkbox"
+                                    onChange={this.keybindModifierChecked}
+                                />
                                 <label htmlFor="change-keybind-shift">Shift</label>
                             </div>
                         </div>
@@ -62,10 +69,19 @@ class KeybindDialogComponent extends React.Component<KeybindDialogProps, Keybind
                     </div>
                     <div id="change-keybind-error">{this.state.error?.message}</div>
                     <div id="change-keybind-buttons">
-                        <div className={"option-button save-button inline" + ((this.state.error?.blocking || this.state.key.key == null) ? " disabled" : "")} onClick={() => this.save()}>
+                        <div
+                            className={
+                                "option-button save-button inline" +
+                                (this.state.error?.blocking || this.state.key.key == null ? " disabled" : "")
+                            }
+                            onClick={() => this.save()}
+                        >
                             {chrome.i18n.getMessage("save")}
                         </div>
-                        <div className="option-button cancel-button inline" onClick={() => this.props.closeListener(null)}>
+                        <div
+                            className="option-button cancel-button inline"
+                            onClick={() => this.props.closeListener(null)}
+                        >
                             {chrome.i18n.getMessage("cancel")}
                         </div>
                     </div>
@@ -91,60 +107,91 @@ class KeybindDialogComponent extends React.Component<KeybindDialogProps, Keybind
                 return;
             }
 
-            this.setState({
-                key: {
-                    key: e.key,
-                    code: e.code,
-                    ctrl: this.state.key.ctrl,
-                    alt: this.state.key.alt,
-                    shift: this.state.key.shift}
-            }, () => this.setState({ error: this.isKeybindAvailable() }));
+            this.setState(
+                {
+                    key: {
+                        key: e.key,
+                        code: e.code,
+                        ctrl: this.state.key.ctrl,
+                        alt: this.state.key.alt,
+                        shift: this.state.key.shift,
+                    },
+                },
+                () => this.setState({ error: this.isKeybindAvailable() })
+            );
         }
-    }
+    };
 
     keybindModifierChecked = (e: ChangeEvent<HTMLInputElement>): void => {
         const id = e.target.id;
         const val = e.target.checked;
 
-        this.setState({
-            key: {
-                key: this.state.key.key,
-                code: this.state.key.code,
-                ctrl: id == "change-keybind-ctrl" ? val: this.state.key.ctrl,
-                alt: id == "change-keybind-alt" ? val: this.state.key.alt,
-                shift: id == "change-keybind-shift" ? val: this.state.key.shift}
-        }, () => this.setState({ error: this.isKeybindAvailable() }));
-    }
+        this.setState(
+            {
+                key: {
+                    key: this.state.key.key,
+                    code: this.state.key.code,
+                    ctrl: id == "change-keybind-ctrl" ? val : this.state.key.ctrl,
+                    alt: id == "change-keybind-alt" ? val : this.state.key.alt,
+                    shift: id == "change-keybind-shift" ? val : this.state.key.shift,
+                },
+            },
+            () => this.setState({ error: this.isKeybindAvailable() })
+        );
+    };
 
     isKeybindAvailable(): ErrorMessage {
-        if (this.state.key.key == null)
-            return null;
+        if (this.state.key.key == null) return null;
 
         let bilibiliShortcuts: Keybind[];
         if (/[a-zA-Z0-9,.+\-\][:]/.test(this.state.key.key)) {
-            bilibiliShortcuts = [{key: "q"}, {key: "w"}, {key: "e"}, {key: "r"}, {key: "ArrowRight"},
-                {key: "ArrowLeft"}, {key: "ArrowUp"}, {key: "ArrowDown"}, {key: "f"}, {key: "m"},
-                {key: "d"}, {key: "]"}, {key: "["}];
+            bilibiliShortcuts = [
+                { key: "q" },
+                { key: "w" },
+                { key: "e" },
+                { key: "r" },
+                { key: "ArrowRight" },
+                { key: "ArrowLeft" },
+                { key: "ArrowUp" },
+                { key: "ArrowDown" },
+                { key: "f" },
+                { key: "m" },
+                { key: "d" },
+                { key: "]" },
+                { key: "[" },
+            ];
         } else {
-            bilibiliShortcuts = [{key: null, code: "KeyQ"}, {key: null, code: "KeyW"}, {key: null, code: "KeyE"},
-                {key: null, code: "KeyR"}, {key: null, code: "KeyF"}, {key: null, code: "Comma"},
-                {key: null, code: "Period"}, {key: null, code: "Space"}, {key: null, code: "KeyM"},
-                {key: null, code: "KeyD"}, {key: null, code: "Minus"}, {key: null, code: "BracketLeft"},
-                {key: null, code: "BracketRight"}];
+            bilibiliShortcuts = [
+                { key: null, code: "KeyQ" },
+                { key: null, code: "KeyW" },
+                { key: null, code: "KeyE" },
+                { key: null, code: "KeyR" },
+                { key: null, code: "KeyF" },
+                { key: null, code: "Comma" },
+                { key: null, code: "Period" },
+                { key: null, code: "Space" },
+                { key: null, code: "KeyM" },
+                { key: null, code: "KeyD" },
+                { key: null, code: "Minus" },
+                { key: null, code: "BracketLeft" },
+                { key: null, code: "BracketRight" },
+            ];
         }
 
         for (const shortcut of bilibiliShortcuts) {
             if (this.equals(shortcut))
-                return {message: chrome.i18n.getMessage("bilibiliKeybindWarning"), blocking: false};
+                return { message: chrome.i18n.getMessage("bilibiliKeybindWarning"), blocking: false };
         }
 
-        if (this.props.option !== "skipKeybind" && this.equals(Config.config['skipKeybind']) ||
-                this.props.option !== "submitKeybind" && this.equals(Config.config['submitKeybind']) ||
-                this.props.option !== "actuallySubmitKeybind" && this.equals(Config.config['actuallySubmitKeybind']) ||
-                this.props.option !== "previewKeybind" && this.equals(Config.config['previewKeybind']) ||
-                this.props.option !== "closeSkipNoticeKeybind" && this.equals(Config.config['closeSkipNoticeKeybind']) ||
-                this.props.option !== "startSponsorKeybind" && this.equals(Config.config['startSponsorKeybind']))
-            return {message: chrome.i18n.getMessage("keyAlreadyUsed"), blocking: true};
+        if (
+            (this.props.option !== "skipKeybind" && this.equals(Config.config["skipKeybind"])) ||
+            (this.props.option !== "submitKeybind" && this.equals(Config.config["submitKeybind"])) ||
+            (this.props.option !== "actuallySubmitKeybind" && this.equals(Config.config["actuallySubmitKeybind"])) ||
+            (this.props.option !== "previewKeybind" && this.equals(Config.config["previewKeybind"])) ||
+            (this.props.option !== "closeSkipNoticeKeybind" && this.equals(Config.config["closeSkipNoticeKeybind"])) ||
+            (this.props.option !== "startSponsorKeybind" && this.equals(Config.config["startSponsorKeybind"]))
+        )
+            return { message: chrome.i18n.getMessage("keyAlreadyUsed"), blocking: true };
 
         return null;
     }

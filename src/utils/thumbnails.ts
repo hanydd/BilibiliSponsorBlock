@@ -16,9 +16,12 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
 
     // find all links in the thumbnail, reduce to only one video ID
     const links = Array.from(thumbnail.querySelectorAll("a[href]")) as Array<HTMLAnchorElement>;
-    const videoIDs = new Set(links.filter((link) => link && link.href)
-        .map((link) => getBvIDFromURL(link.href))
-        .filter((id) => id));
+    const videoIDs = new Set(
+        links
+            .filter((link) => link && link.href)
+            .map((link) => getBvIDFromURL(link.href))
+            .filter((id) => id)
+    );
     if (videoIDs.size !== 1) {
         // none or multiple video IDs found
         hideThumbnailLabel(thumbnail);
@@ -34,8 +37,14 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
 
     const { overlay, text } = await createOrGetThumbnail(thumbnail);
 
-    overlay.style.setProperty('--category-color', `var(--sb-category-preview-${category}, var(--sb-category-${category}))`);
-    overlay.style.setProperty('--category-text-color', `var(--sb-category-text-preview-${category}, var(--sb-category-text-${category}))`);
+    overlay.style.setProperty(
+        "--category-color",
+        `var(--sb-category-preview-${category}, var(--sb-category-${category}))`
+    );
+    overlay.style.setProperty(
+        "--category-text-color",
+        `var(--sb-category-text-preview-${category}, var(--sb-category-text-${category}))`
+    );
     text.innerText = chrome.i18n.getMessage(`category_${category}`);
     overlay.classList.add("sponsorThumbnailLabelVisible");
 
@@ -58,7 +67,7 @@ async function createOrGetThumbnail(thumbnail: HTMLImageElement): Promise<{ over
     if (oldLabelElement) {
         return {
             overlay: oldLabelElement as HTMLElement,
-            text: oldLabelElement.querySelector("span") as HTMLElement
+            text: oldLabelElement.querySelector("span") as HTMLElement,
         };
     }
 
@@ -76,7 +85,9 @@ async function createOrGetThumbnail(thumbnail: HTMLImageElement): Promise<{ over
 
     // try append after image element, exclude avatar in feed popup
     // wait unitl there is an anchor point, or the label might get inserted elsewhere and break the header
-    const labelAnchor = await waitFor(() => thumbnail.querySelector("picture img:not(.bili-avatar-img)"), 10000, 1000) ?? thumbnail.lastChild;
+    const labelAnchor =
+        (await waitFor(() => thumbnail.querySelector("picture img:not(.bili-avatar-img)"), 10000, 1000)) ??
+        thumbnail.lastChild;
     const icon = createSBIconElement();
     const text = document.createElement("span");
     overlay.appendChild(icon);
@@ -85,7 +96,7 @@ async function createOrGetThumbnail(thumbnail: HTMLImageElement): Promise<{ over
 
     return {
         overlay,
-        text
+        text,
     };
 }
 
@@ -97,7 +108,6 @@ function createSBIconElement(): SVGSVGElement {
     svg.appendChild(use);
     return svg;
 }
-
 
 // Inserts the icon svg definition, so it can be used elsewhere
 function insertSBIconDefinition() {
@@ -117,7 +127,11 @@ function insertSBIconDefinition() {
 }
 
 export function setupThumbnailListener(): void {
-    setThumbnailListener(labelThumbnails, () => {
-        insertSBIconDefinition();
-    }, () => Config.isReady());
+    setThumbnailListener(
+        labelThumbnails,
+        () => {
+            insertSBIconDefinition();
+        },
+        () => Config.isReady()
+    );
 }

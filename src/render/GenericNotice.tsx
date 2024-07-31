@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createRoot, Root } from 'react-dom/client';
+import { createRoot, Root } from "react-dom/client";
 import NoticeComponent from "../components/NoticeComponent";
 
 import Utils from "../utils";
@@ -72,32 +72,27 @@ export default class GenericNotice {
                 dontPauseCountdown={options.dontPauseCountdown}
                 hideLogo={options.hideLogo}
                 hideRightInfo={options.hideRightInfo}
-                closeListener={() => this.close()} >
-                    {options.textBoxes?.length > 0 ?
-                        <tr id={"sponsorSkipNoticeMiddleRow" + this.idSuffix}
-                            className="sponsorTimeMessagesRow"
-                            style={{maxHeight: getVideo() ? (getVideo().offsetHeight - 200) + "px" : null}}>
-                            <td style={{width: "100%"}}>
-                                {this.getMessageBoxes(this.idSuffix, options.textBoxes)}
-                            </td>
+                closeListener={() => this.close()}
+            >
+                {options.textBoxes?.length > 0 ? (
+                    <tr
+                        id={"sponsorSkipNoticeMiddleRow" + this.idSuffix}
+                        className="sponsorTimeMessagesRow"
+                        style={{ maxHeight: getVideo() ? getVideo().offsetHeight - 200 + "px" : null }}
+                    >
+                        <td style={{ width: "100%" }}>{this.getMessageBoxes(this.idSuffix, options.textBoxes)}</td>
+                    </tr>
+                ) : null}
+
+                {!options.hideLogo ? (
+                    <>
+                        <tr id={"sponsorSkipNoticeSpacer" + this.idSuffix} className="sponsorBlockSpacer"></tr>
+
+                        <tr className="sponsorSkipNoticeRightSection" style={{ position: "relative" }}>
+                            <td>{this.getButtons(options.buttons)}</td>
                         </tr>
-                    : null}
-
-                    {!options.hideLogo ?
-                        <>
-                            <tr id={"sponsorSkipNoticeSpacer" + this.idSuffix}
-                                className="sponsorBlockSpacer">
-                            </tr>
-
-                            <tr className="sponsorSkipNoticeRightSection"
-                                style={{position: "relative"}}>
-                                <td>
-                                    {this.getButtons(options.buttons)}
-                                </td>
-                            </tr>
-                        </>
-                    : null}
-
+                    </>
+                ) : null}
             </NoticeComponent>
         );
     }
@@ -107,11 +102,13 @@ export default class GenericNotice {
             const result = [];
             for (let i = 0; i < textBoxes.length; i++) {
                 result.push(
-                    <NoticeTextSelectionComponent idSuffix={idSuffix}
+                    <NoticeTextSelectionComponent
+                        idSuffix={idSuffix}
                         key={i}
                         icon={textBoxes[i].icon}
-                        text={textBoxes[i].text} />
-                )
+                        text={textBoxes[i].text}
+                    />
+                );
             }
 
             return result;
@@ -126,13 +123,14 @@ export default class GenericNotice {
 
             for (const button of buttons) {
                 result.push(
-                    <button className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
-                            key={button.name}
-                            onClick={(e) => button.listener(e)}>
-
-                            {button.name}
+                    <button
+                        className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
+                        key={button.name}
+                        onClick={(e) => button.listener(e)}
+                    >
+                        {button.name}
                     </button>
-                )
+                );
             }
 
             return result;

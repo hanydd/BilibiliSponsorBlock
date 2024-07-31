@@ -12,29 +12,28 @@ export interface SelectorProps {
     onMouseLeave?: () => void;
 }
 
-export interface SelectorState {
-
-}
+export interface SelectorState {}
 
 class SelectorComponent extends React.Component<SelectorProps, SelectorState> {
-
     constructor(props: SelectorProps) {
         super(props);
 
         // Setup state
-        this.state = {
-
-        }
+        this.state = {};
     }
 
     render(): React.ReactElement {
         return (
-            <div id={this.props.id}
-                style={{display: this.props.options.length > 0 ? "inherit" : "none"}}
-                className="sbSelector">
-                <div onMouseEnter={this.props.onMouseEnter}
+            <div
+                id={this.props.id}
+                style={{ display: this.props.options.length > 0 ? "inherit" : "none" }}
+                className="sbSelector"
+            >
+                <div
+                    onMouseEnter={this.props.onMouseEnter}
                     onMouseLeave={this.props.onMouseLeave}
-                    className="sbSelectorBackground">
+                    className="sbSelectorBackground"
+                >
                     {this.getOptions()}
                 </div>
             </div>
@@ -45,12 +44,14 @@ class SelectorComponent extends React.Component<SelectorProps, SelectorState> {
         const result: React.ReactElement[] = [];
         for (const option of this.props.options) {
             result.push(
-                <div className="sbSelectorOption"
+                <div
+                    className="sbSelectorOption"
                     onClick={(e) => {
                         e.stopPropagation();
                         this.props.onChange(option.label);
                     }}
-                    key={option.label}>
+                    key={option.label}
+                >
                     {option.label}
                 </div>
             );

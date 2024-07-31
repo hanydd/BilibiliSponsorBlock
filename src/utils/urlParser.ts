@@ -1,7 +1,6 @@
-
 export function getStartTimeFromUrl(url: string): number {
     const urlParams = new URLSearchParams(url);
-    const time = urlParams?.get('t') || urlParams?.get('time_continue');
+    const time = urlParams?.get("t") || urlParams?.get("time_continue");
 
     return urlTimeToSeconds(time);
 }
@@ -15,9 +14,9 @@ export function urlTimeToSeconds(time: string): number {
     const match = re.exec(time);
 
     if (match) {
-        const hours = parseInt(match[1] ?? '0', 10);
-        const minutes = parseInt(match[2] ?? '0', 10);
-        const seconds = parseInt(match[3] ?? '0', 10);
+        const hours = parseInt(match[1] ?? "0", 10);
+        const minutes = parseInt(match[2] ?? "0", 10);
+        const seconds = parseInt(match[3] ?? "0", 10);
 
         return hours * 3600 + minutes * 60 + seconds;
     } else if (/\d+/.test(time)) {

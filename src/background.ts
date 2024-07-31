@@ -20,15 +20,17 @@ setupBackgroundRequestProxy();
 setupTabUpdates(Config);
 
 chrome.runtime.onMessage.addListener(function (request, sender, callback) {
-    switch(request.message) {
+    switch (request.message) {
         case "openConfig":
-            chrome.tabs.create({url: chrome.runtime.getURL('options/options.html' + (request.hash ? '#' + request.hash : ''))});
+            chrome.tabs.create({
+                url: chrome.runtime.getURL("options/options.html" + (request.hash ? "#" + request.hash : "")),
+            });
             return false;
         case "openHelp":
-            chrome.tabs.create({url: chrome.runtime.getURL('help/index.html')});
+            chrome.tabs.create({ url: chrome.runtime.getURL("help/index.html") });
             return false;
         case "openPage":
-            chrome.tabs.create({url: chrome.runtime.getURL(request.url)});
+            chrome.tabs.create({ url: chrome.runtime.getURL(request.url) });
             return false;
         case "submitVote":
             submitVote(request.type, request.UUID, request.category).then(callback);
@@ -39,21 +41,20 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
             registerFirefoxContentScript(request);
             return false;
         case "unregisterContentScript":
-            unregisterFirefoxContentScript(request.id)
+            unregisterFirefoxContentScript(request.id);
             return false;
         case "tabs": {
-            chrome.tabs.query({
-                active: true,
-                currentWindow: true
-            }, tabs => {
-                chrome.tabs.sendMessage(
-                    tabs[0].id,
-                    request.data,
-                    (response) => {
+            chrome.tabs.query(
+                {
+                    active: true,
+                    currentWindow: true,
+                },
+                (tabs) => {
+                    chrome.tabs.sendMessage(tabs[0].id, request.data, (response) => {
                         callback(response);
-                    }
-                );
-            });
+                    });
+                }
+            );
             return true;
         }
         case "time":
@@ -69,17 +70,20 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
             return false;
         default:
             return false;
-	}
+    }
 });
 
 chrome.runtime.onConnect.addListener((port) => {
     if (port.name === "popup") {
-        chrome.tabs.query({
-            active: true,
-            currentWindow: true
-        }, tabs => {
-            popupPort[tabs[0].id] = port;
-        });
+        chrome.tabs.query(
+            {
+                active: true,
+                currentWindow: true,
+            },
+            (tabs) => {
+                popupPort[tabs[0].id] = port;
+            }
+        );
     }
 });
 
@@ -91,9 +95,9 @@ chrome.runtime.onInstalled.addListener(function () {
         const userID = Config.config.userID;
 
         // If there is no userID, then it is the first install.
-        if (!userID && !Config.local.alreadyInstalled){
+        if (!userID && !Config.local.alreadyInstalled) {
             //open up the install page
-            chrome.tabs.create({url: chrome.runtime.getURL("/help/index.html")});
+            chrome.tabs.create({ url: chrome.runtime.getURL("/help/index.html") });
 
             //generate a userID
             const newUserID = generateUserID();
@@ -104,7 +108,6 @@ chrome.runtime.onInstalled.addListener(function () {
             // Don't show update notification
             Config.config.categoryPillUpdate = true;
         }
-
     }, 1500);
 
     if (!isFirefoxOrSafari()) {
@@ -120,12 +123,17 @@ chrome.runtime.onInstalled.addListener(function () {
  */
 async function registerFirefoxContentScript(options: Registration) {
     if ("scripting" in chrome && "getRegisteredContentScripts" in chrome.scripting) {
-        const existingRegistrations = await chromeP.scripting.getRegisteredContentScripts({
-            ids: [options.id]
-        }).catch(() => []);
+        const existingRegistrations = await chromeP.scripting
+            .getRegisteredContentScripts({
+                ids: [options.id],
+            })
+            .catch(() => []);
 
-        if (existingRegistrations && existingRegistrations.length > 0
-            && options.matches.every((match) => existingRegistrations[0].matches.includes(match))) {
+        if (
+            existingRegistrations &&
+            existingRegistrations.length > 0 &&
+            options.matches.every((match) => existingRegistrations[0].matches.includes(match))
+        ) {
             // No need to register another script, already registered
             return;
         }
@@ -134,35 +142,38 @@ async function registerFirefoxContentScript(options: Registration) {
     await unregisterFirefoxContentScript(options.id);
 
     if ("scripting" in chrome && "getRegisteredContentScripts" in chrome.scripting) {
-        await chromeP.scripting.registerContentScripts([{
-            id: options.id,
-            runAt: "document_start",
-            matches: options.matches,
-            allFrames: options.allFrames,
-            js: options.js,
-            css: options.css,
-            persistAcrossSessions: true,
-        }]);
+        await chromeP.scripting.registerContentScripts([
+            {
+                id: options.id,
+                runAt: "document_start",
+                matches: options.matches,
+                allFrames: options.allFrames,
+                js: options.js,
+                css: options.css,
+                persistAcrossSessions: true,
+            },
+        ]);
     } else {
-        chrome.contentScripts.register({
-            allFrames: options.allFrames,
-            js: options.js?.map?.(file => ({file})),
-            css: options.css?.map?.(file => ({file})),
-            matches: options.matches
-        }).then((registration) => void (contentScriptRegistrations[options.id] = registration));
+        chrome.contentScripts
+            .register({
+                allFrames: options.allFrames,
+                js: options.js?.map?.((file) => ({ file })),
+                css: options.css?.map?.((file) => ({ file })),
+                matches: options.matches,
+            })
+            .then((registration) => void (contentScriptRegistrations[options.id] = registration));
     }
-
 }
 
 /**
  * Only works on Firefox.
  * Firefox requires that this is handled by the background script
  */
-async function  unregisterFirefoxContentScript(id: string) {
+async function unregisterFirefoxContentScript(id: string) {
     if ("scripting" in chrome && "getRegisteredContentScripts" in chrome.scripting) {
         try {
             await chromeP.scripting.unregisterContentScripts({
-                ids: [id]
+                ids: [id],
             });
         } catch (e) {
             // Not registered yet
@@ -184,29 +195,32 @@ async function submitVote(type: number, UUID: string, category: string) {
         Config.config.userID = userID;
     }
 
-    const typeSection = (type !== undefined) ? "&type=" + type : "&category=" + category;
+    const typeSection = type !== undefined ? "&type=" + type : "&category=" + category;
 
     try {
-        const response = await asyncRequestToServer("POST", "/api/voteOnSponsorTime?UUID=" + UUID + "&userID=" + userID + typeSection);
+        const response = await asyncRequestToServer(
+            "POST",
+            "/api/voteOnSponsorTime?UUID=" + UUID + "&userID=" + userID + typeSection
+        );
 
         if (response.ok) {
             return {
                 successType: 1,
-                responseText: await response.text()
+                responseText: await response.text(),
             };
         } else if (response.status == 405) {
             //duplicate vote
             return {
                 successType: 0,
                 statusCode: response.status,
-                responseText: await response.text()
+                responseText: await response.text(),
             };
         } else {
             //error while connect
             return {
                 successType: -1,
                 statusCode: response.status,
-                responseText: await response.text()
+                responseText: await response.text(),
             };
         }
     } catch (e) {
@@ -214,14 +228,15 @@ async function submitVote(type: number, UUID: string, category: string) {
         return {
             successType: -1,
             statusCode: -1,
-            responseText: ""
+            responseText: "",
         };
     }
 }
 
-
 async function asyncRequestToServer(type: string, address: string, data = {}) {
-    const serverAddress = Config.config.testingServer ? CompileConfig.testingServerAddress : Config.config.serverAddress;
+    const serverAddress = Config.config.testingServer
+        ? CompileConfig.testingServerAddress
+        : Config.config.serverAddress;
 
-    return await (sendRealRequestToCustomServer(type, serverAddress + address, data));
+    return await sendRealRequestToCustomServer(type, serverAddress + address, data);
 }

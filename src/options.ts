@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createRoot } from 'react-dom/client';
+import { createRoot } from "react-dom/client";
 
 import Config from "./config";
 import * as CompileConfig from "../config.json";
@@ -34,8 +34,7 @@ async function init() {
     if (location.hash != "") {
         const substr = location.hash.slice(1);
         let menuItem = document.querySelector(`[data-for='${substr}']`);
-        if (menuItem == null)
-            menuItem = document.querySelector(`[data-for='behavior']`);
+        if (menuItem == null) menuItem = document.querySelector(`[data-for='behavior']`);
         menuItem.classList.add("selected");
     } else {
         document.querySelector(`[data-for='behavior']`).classList.add("selected");
@@ -69,13 +68,18 @@ async function init() {
     }
 
     const donate = document.getElementById("sbDonate");
-    donate.addEventListener("click", () => Config.config.donateClicked = Config.config.donateClicked + 1);
+    donate.addEventListener("click", () => (Config.config.donateClicked = Config.config.donateClicked + 1));
     if (!showDonationLink()) {
         donate.classList.add("hidden");
     }
 
-    const skipToHighlightKeybind = document.querySelector(`[data-sync="skipToHighlightKeybind"] .optionLabel`) as HTMLElement;
-    skipToHighlightKeybind.innerText = `${chrome.i18n.getMessage("skip_to_category").replace("{0}", chrome.i18n.getMessage("category_poi_highlight")).replace("?", "")}:`;
+    const skipToHighlightKeybind = document.querySelector(
+        `[data-sync="skipToHighlightKeybind"] .optionLabel`
+    ) as HTMLElement;
+    skipToHighlightKeybind.innerText = `${chrome.i18n
+        .getMessage("skip_to_category")
+        .replace("{0}", chrome.i18n.getMessage("category_poi_highlight"))
+        .replace("?", "")}:`;
 
     // Set all of the toggle options to the correct option
     const optionsContainer = document.getElementById("options");
@@ -86,12 +90,16 @@ async function init() {
         const dependentOn = optionsContainer.querySelector(`[data-sync='${dependentOnName}']`);
         let isDependentOnReversed = false;
         if (dependentOn)
-            isDependentOnReversed = dependentOn.getAttribute("data-toggle-type") === "reverse" || optionsElements[i].getAttribute("data-dependent-on-inverted") === "true";
+            isDependentOnReversed =
+                dependentOn.getAttribute("data-toggle-type") === "reverse" ||
+                optionsElements[i].getAttribute("data-dependent-on-inverted") === "true";
 
-        if (await shouldHideOption(optionsElements[i]) || (dependentOn && (isDependentOnReversed ? Config.config[dependentOnName] : !Config.config[dependentOnName]))) {
+        if (
+            (await shouldHideOption(optionsElements[i])) ||
+            (dependentOn && (isDependentOnReversed ? Config.config[dependentOnName] : !Config.config[dependentOnName]))
+        ) {
             optionsElements[i].classList.add("hidden", "hiding");
-            if (!dependentOn)
-                continue;
+            if (!dependentOn) continue;
         }
 
         const option = optionsElements[i].getAttribute("data-sync");
@@ -106,14 +114,16 @@ async function init() {
                 const confirmMessage = optionsElements[i].getAttribute("data-confirm-message");
                 const confirmOnTrue = optionsElements[i].getAttribute("data-confirm-on") !== "false";
 
-                if (optionResult != undefined)
-                    checkbox.checked =  reverse ? !optionResult : optionResult;
+                if (optionResult != undefined) checkbox.checked = reverse ? !optionResult : optionResult;
 
                 // Add click listener
                 checkbox.addEventListener("click", async () => {
                     // Confirm if required
-                    if (confirmMessage && ((confirmOnTrue && checkbox.checked) || (!confirmOnTrue && !checkbox.checked))
-                            && !confirm(chrome.i18n.getMessage(confirmMessage))){
+                    if (
+                        confirmMessage &&
+                        ((confirmOnTrue && checkbox.checked) || (!confirmOnTrue && !checkbox.checked)) &&
+                        !confirm(chrome.i18n.getMessage(confirmMessage))
+                    ) {
                         checkbox.checked = !checkbox.checked;
                         return;
                     }
@@ -127,15 +137,15 @@ async function init() {
                                 // Enable the notice
                                 Config.config["dontShowNotice"] = false;
 
-                                const showNoticeSwitch = <HTMLInputElement> document.querySelector("[data-sync='dontShowNotice'] > div > label > input");
+                                const showNoticeSwitch = <HTMLInputElement>(
+                                    document.querySelector("[data-sync='dontShowNotice'] > div > label > input")
+                                );
                                 showNoticeSwitch.checked = true;
                             }
                             break;
                         case "showDonationLink":
-                            if (checkbox.checked)
-                                document.getElementById("sbDonate").classList.add("hidden");
-                            else
-                                document.getElementById("sbDonate").classList.remove("hidden");
+                            if (checkbox.checked) document.getElementById("sbDonate").classList.add("hidden");
+                            else document.getElementById("sbDonate").classList.remove("hidden");
                             break;
                         case "darkMode":
                             if (checkbox.checked) {
@@ -155,7 +165,10 @@ async function init() {
                     const dependents = optionsContainer.querySelectorAll(`[data-dependent-on='${option}']`);
                     for (let j = 0; j < dependents.length; j++) {
                         const disableWhenChecked = dependents[j].getAttribute("data-dependent-on-inverted") === "true";
-                        if (!await shouldHideOption(dependents[j]) && (!disableWhenChecked && checkbox.checked || disableWhenChecked && !checkbox.checked)) {
+                        if (
+                            !(await shouldHideOption(dependents[j])) &&
+                            ((!disableWhenChecked && checkbox.checked) || (disableWhenChecked && !checkbox.checked))
+                        ) {
                             dependents[j].classList.remove("hidden");
                             setTimeout(() => dependents[j].classList.remove("hiding"), 1);
                         } else {
@@ -167,9 +180,9 @@ async function init() {
                 break;
             }
             case "text-change": {
-                const textChangeInput = <HTMLInputElement> optionsElements[i].querySelector(".option-text-box");
+                const textChangeInput = <HTMLInputElement>optionsElements[i].querySelector(".option-text-box");
 
-                const textChangeSetButton = <HTMLElement> optionsElements[i].querySelector(".text-change-set");
+                const textChangeSetButton = <HTMLElement>optionsElements[i].querySelector(".text-change-set");
 
                 textChangeInput.value = Config.config[option];
 
@@ -188,10 +201,13 @@ async function init() {
                             // Permission needed on Firefox
                             if (isFirefoxOrSafari()) {
                                 const permissionSuccess = await new Promise((resolve) => {
-                                    chrome.permissions.request({
-                                        origins: [textChangeInput.value + "/"],
-                                        permissions: []
-                                    }, resolve);
+                                    chrome.permissions.request(
+                                        {
+                                            origins: [textChangeInput.value + "/"],
+                                            permissions: [],
+                                        },
+                                        resolve
+                                    );
                                 });
 
                                 if (!permissionSuccess) return;
@@ -205,7 +221,7 @@ async function init() {
                 });
 
                 // Reset to the default if needed
-                const textChangeResetButton = <HTMLElement> optionsElements[i].querySelector(".text-change-reset");
+                const textChangeResetButton = <HTMLElement>optionsElements[i].querySelector(".text-change-reset");
                 textChangeResetButton.addEventListener("click", () => {
                     if (!confirm(chrome.i18n.getMessage("areYouSureReset"))) return;
 
@@ -218,9 +234,9 @@ async function init() {
             }
             case "private-text-change": {
                 const button = optionsElements[i].querySelector(".trigger-button");
-                button.addEventListener("click", () => activatePrivateTextChange(<HTMLElement> optionsElements[i]));
+                button.addEventListener("click", () => activatePrivateTextChange(<HTMLElement>optionsElements[i]));
 
-                if (option == "*")  {
+                if (option == "*") {
                     const downloadButton = optionsElements[i].querySelector(".download-button");
                     downloadButton.addEventListener("click", () => downloadConfig(optionsElements[i]));
 
@@ -232,7 +248,7 @@ async function init() {
                 // See if anything extra must be done
                 switch (privateTextChangeOption) {
                     case "invidiousInstances":
-                        invidiousInstanceAddInit(<HTMLElement> optionsElements[i], privateTextChangeOption);
+                        invidiousInstanceAddInit(<HTMLElement>optionsElements[i], privateTextChangeOption);
                 }
 
                 break;
@@ -260,11 +276,11 @@ async function init() {
             }
             case "keybind-change": {
                 const root = createRoot(optionsElements[i].querySelector("div"));
-                root.render(React.createElement(KeybindComponent, {option: option}));
+                root.render(React.createElement(KeybindComponent, { option: option }));
                 break;
             }
             case "display": {
-                updateDisplayElement(<HTMLElement> optionsElements[i])
+                updateDisplayElement(<HTMLElement>optionsElements[i]);
                 break;
             }
             case "number-change": {
@@ -310,16 +326,19 @@ async function init() {
     for (let i = 0; i < tabElements.length; i++) {
         const tabFor = tabElements[i].getAttribute("data-for");
 
-        if (tabElements[i].classList.contains("selected"))
-            document.getElementById(tabFor).classList.remove("hidden");
+        if (tabElements[i].classList.contains("selected")) document.getElementById(tabFor).classList.remove("hidden");
 
         tabElements[i].addEventListener("click", () => {
             if (!embed) location.hash = tabFor;
 
             createStickyHeader();
 
-            document.querySelectorAll(".tab-heading").forEach(element => { element.classList.remove("selected"); });
-            optionsContainer.querySelectorAll(".option-group").forEach(element => { element.classList.add("hidden"); });
+            document.querySelectorAll(".tab-heading").forEach((element) => {
+                element.classList.remove("selected");
+            });
+            optionsContainer.querySelectorAll(".option-group").forEach((element) => {
+                element.classList.add("hidden");
+            });
 
             tabElements[i].classList.add("selected");
             document.getElementById(tabFor).classList.remove("hidden");
@@ -337,7 +356,7 @@ function createStickyHeader() {
 
     if (!embed && window.pageYOffset > 90 && (window.innerHeight <= 770 || window.innerWidth <= 1200)) {
         if (!container.classList.contains("sticky")) {
-            options.style.marginTop = options.offsetTop.toString()+"px";
+            options.style.marginTop = options.offsetTop.toString() + "px";
             container.classList.add("sticky");
         }
     } else {
@@ -352,8 +371,10 @@ function createStickyHeader() {
  * @param {String} element
  */
 async function shouldHideOption(element: Element): Promise<boolean> {
-    return (element.getAttribute("data-private-only") === "true" && !(await isIncognitoAllowed()))
-            || (element.getAttribute("data-no-safari") === "true" && navigator.vendor === "Apple Computer, Inc.");
+    return (
+        (element.getAttribute("data-private-only") === "true" && !(await isIncognitoAllowed())) ||
+        (element.getAttribute("data-no-safari") === "true" && navigator.vendor === "Apple Computer, Inc.")
+    );
 }
 
 /**
@@ -366,7 +387,7 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
     for (let i = 0; i < optionsElements.length; i++) {
         switch (optionsElements[i].getAttribute("data-type")) {
             case "display":
-                updateDisplayElement(<HTMLElement> optionsElements[i])
+                updateDisplayElement(<HTMLElement>optionsElements[i]);
                 break;
         }
     }
@@ -392,7 +413,7 @@ function optionsLocalConfigUpdateListener(changes: StorageChangesObject) {
  * @param element
  */
 function updateDisplayElement(element: HTMLElement) {
-    const displayOption = element.getAttribute("data-sync")
+    const displayOption = element.getAttribute("data-sync");
     const displayText = Config.config[displayOption];
     element.innerText = displayText;
 }
@@ -404,13 +425,13 @@ function updateDisplayElement(element: HTMLElement) {
  * @param option
  */
 function invidiousInstanceAddInit(element: HTMLElement, option: string) {
-    const textBox = <HTMLInputElement> element.querySelector(".option-text-box");
+    const textBox = <HTMLInputElement>element.querySelector(".option-text-box");
     const button = element.querySelector(".trigger-button");
 
     const setButton = element.querySelector(".text-change-set");
     const cancelButton = element.querySelector(".text-change-reset");
     const resetButton = element.querySelector(".invidious-instance-reset");
-    setButton.addEventListener("click", async function() {
+    setButton.addEventListener("click", async function () {
         if (textBox.value == "" || textBox.value.includes("/") || textBox.value.includes("http")) {
             alert(chrome.i18n.getMessage("addInvidiousInstanceError"));
         } else {
@@ -427,7 +448,7 @@ function invidiousInstanceAddInit(element: HTMLElement, option: string) {
 
             Config.config[option] = instanceList;
 
-            const checkbox = <HTMLInputElement> document.querySelector("#support-invidious input");
+            const checkbox = <HTMLInputElement>document.querySelector("#support-invidious input");
             checkbox.checked = true;
 
             resetButton.classList.remove("hidden");
@@ -439,7 +460,7 @@ function invidiousInstanceAddInit(element: HTMLElement, option: string) {
         }
     });
 
-    cancelButton.addEventListener("click", async function() {
+    cancelButton.addEventListener("click", async function () {
         textBox.value = "";
         element.querySelector(".option-hidden-section").classList.add("hidden");
         button.classList.remove("disabled");
@@ -457,7 +478,7 @@ function activatePrivateTextChange(element: HTMLElement) {
 
     button.classList.add("disabled");
 
-    const textBox = <HTMLInputElement> element.querySelector(".option-text-box");
+    const textBox = <HTMLInputElement>element.querySelector(".option-text-box");
     const option = element.getAttribute("data-sync");
     const optionType = element.getAttribute("data-sync-type");
 
@@ -494,7 +515,7 @@ function activatePrivateTextChange(element: HTMLElement) {
             if (Config.config[option]) {
                 asyncRequestToServer("GET", "/api/userInfo", {
                     publicUserID: getHash(Config.config[option]),
-                    values: ["warnings", "banned"]
+                    values: ["warnings", "banned"],
                 }).then((result) => {
                     const userInfo = JSON.parse(result.responseText);
                     if (userInfo.warnings > 0 || userInfo.banned) {
@@ -522,7 +543,6 @@ async function setTextOption(option: string, element: HTMLElement, value: string
     const optionType = element.getAttribute("data-sync-type");
 
     if (confirmMessage === null || confirm(chrome.i18n.getMessage(confirmMessage))) {
-
         // See if anything extra must be done
         switch (option) {
             case "*":
@@ -546,8 +566,7 @@ async function setTextOption(option: string, element: HTMLElement, value: string
                 Config.config[option] = value;
         }
     } else {
-        if (typeof callbackOnError == "function")
-            callbackOnError();
+        if (typeof callbackOnError == "function") callbackOnError();
     }
 }
 
@@ -555,10 +574,15 @@ function downloadConfig(element: Element) {
     const optionType = element.getAttribute("data-sync-type");
 
     const file = document.createElement("a");
-    const jsonData = JSON.parse(JSON.stringify(optionType === "local" ? Config.cachedLocalStorage : Config.cachedSyncConfig));
-    const dateTimeString = new Date().toJSON().replace("T", "_").replace(/:/g, ".").replace(/.\d+Z/g, "")
+    const jsonData = JSON.parse(
+        JSON.stringify(optionType === "local" ? Config.cachedLocalStorage : Config.cachedSyncConfig)
+    );
+    const dateTimeString = new Date().toJSON().replace("T", "_").replace(/:/g, ".").replace(/.\d+Z/g, "");
     file.setAttribute("href", `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(jsonData))}`);
-    file.setAttribute("download", `SponsorBlock${optionType === "local" ? "OtherData" : "Config"}_${dateTimeString}.json`);
+    file.setAttribute(
+        "download",
+        `SponsorBlock${optionType === "local" ? "OtherData" : "Config"}_${dateTimeString}.json`
+    );
     document.body.append(file);
     file.click();
     file.remove();
@@ -569,7 +593,7 @@ function uploadConfig(e: Event, element: HTMLElement) {
     if (target.files.length == 1) {
         const file = target.files[0];
         const reader = new FileReader();
-        reader.onload = function(ev) {
+        reader.onload = function (ev) {
             setTextOption("*", element, ev.target.result as string, () => {
                 target.value = null;
             });
@@ -591,8 +615,7 @@ function validateServerAddress(input: string): string {
     input = input.replace(/\/+$/, "");
 
     // If it isn't HTTP protocol
-    if ((!input.startsWith("https://") && !input.startsWith("http://"))) {
-
+    if (!input.startsWith("https://") && !input.startsWith("http://")) {
         alert(chrome.i18n.getMessage("customAddressError"));
 
         return null;
@@ -608,26 +631,29 @@ function copyDebugOutputToClipboard() {
             userAgent: navigator.userAgent,
             platform: navigator.platform,
             language: navigator.language,
-            extensionVersion: chrome.runtime.getManifest().version
+            extensionVersion: chrome.runtime.getManifest().version,
         },
-        config: JSON.parse(JSON.stringify(Config.cachedSyncConfig)) // Deep clone config object
+        config: JSON.parse(JSON.stringify(Config.cachedSyncConfig)), // Deep clone config object
     };
 
     // Sanitise sensitive user config values
     delete output.config.userID;
-    output.config.serverAddress = (output.config.serverAddress === CompileConfig.serverAddress)
-        ? "Default server address" : "Custom server address";
+    output.config.serverAddress =
+        output.config.serverAddress === CompileConfig.serverAddress
+            ? "Default server address"
+            : "Custom server address";
     output.config.invidiousInstances = output.config.invidiousInstances.length;
     output.config.whitelistedChannels = output.config.whitelistedChannels.length;
 
     // Copy object to clipboard
-    navigator.clipboard.writeText(JSON.stringify(output, null, 4))
-      .then(() => {
-        alert(chrome.i18n.getMessage("copyDebugInformationComplete"));
-      })
-      .catch(() => {
-        alert(chrome.i18n.getMessage("copyDebugInformationFailed"));
-      });
+    navigator.clipboard
+        .writeText(JSON.stringify(output, null, 4))
+        .then(() => {
+            alert(chrome.i18n.getMessage("copyDebugInformationComplete"));
+        })
+        .catch(() => {
+            alert(chrome.i18n.getMessage("copyDebugInformationFailed"));
+        });
 }
 
 function isIncognitoAllowed(): Promise<boolean> {

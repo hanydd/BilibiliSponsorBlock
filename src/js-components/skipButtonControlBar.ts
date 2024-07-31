@@ -10,7 +10,6 @@ export interface SkipButtonControlBarProps {
 }
 
 export class SkipButtonControlBar {
-
     container: HTMLElement;
     skipIcon: HTMLImageElement;
     textContainer: HTMLElement;
@@ -109,7 +108,10 @@ export class SkipButtonControlBar {
 
     startTimer(): void {
         this.stopTimer();
-        this.timeout = setTimeout(() => this.disableText(), Math.max(Config.config.skipNoticeDuration, this.duration) * 1000);
+        this.timeout = setTimeout(
+            () => this.disableText(),
+            Math.max(Config.config.skipNoticeDuration, this.duration) * 1000
+        );
     }
 
     disable(): void {
@@ -148,7 +150,10 @@ export class SkipButtonControlBar {
     }
 
     private getTitle(): string {
-        return getSkippingText([this.segment], false) + (this.showKeybindHint ? " (" + keybindToString(Config.config.skipToHighlightKeybind) + ")" : "");
+        return (
+            getSkippingText([this.segment], false) +
+            (this.showKeybindHint ? " (" + keybindToString(Config.config.skipToHighlightKeybind) + ")" : "")
+        );
     }
 
     private getChapterPrefix(): HTMLElement {

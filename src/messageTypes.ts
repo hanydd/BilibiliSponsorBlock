@@ -10,7 +10,7 @@ interface BaseMessage {
 
 interface DefaultMessage {
     message:
-        "update"
+        | "update"
         | "sponsorStart"
         | "getVideoID"
         | "getChannelID"
@@ -69,7 +69,18 @@ interface KeyDownMessage {
     metaKey: boolean;
 }
 
-export type Message = BaseMessage & (DefaultMessage | BoolValueMessage | IsInfoFoundMessage | SkipMessage | SubmitVoteMessage | HideSegmentMessage | CopyToClipboardMessage | ImportSegmentsMessage | KeyDownMessage);
+export type Message = BaseMessage &
+    (
+        | DefaultMessage
+        | BoolValueMessage
+        | IsInfoFoundMessage
+        | SkipMessage
+        | SubmitVoteMessage
+        | HideSegmentMessage
+        | CopyToClipboardMessage
+        | ImportSegmentsMessage
+        | KeyDownMessage
+    );
 
 export interface IsInfoFoundMessageResponse {
     found: boolean;
@@ -95,7 +106,7 @@ export interface IsChannelWhitelistedResponse {
 }
 
 export type MessageResponse =
-    IsInfoFoundMessageResponse
+    | IsInfoFoundMessageResponse
     | GetVideoIdResponse
     | GetChannelIDResponse
     | SponsorStartResponse
@@ -126,7 +137,7 @@ export interface TimeUpdateMessage {
 
 export type InfoUpdatedMessage = IsInfoFoundMessageResponse & {
     message: "infoUpdated";
-}
+};
 
 export interface VideoChangedPopupMessage {
     message: "videoChanged";
