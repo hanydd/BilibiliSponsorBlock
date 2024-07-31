@@ -32,7 +32,7 @@ import { logDebug } from "./utils/logger";
 import { importTimes } from "./utils/exporter";
 import { ChapterVote } from "./render/ChapterVote";
 import { openWarningDialog } from "./utils/warnings";
-import { isFirefoxOrSafari, waitFor } from "../maze-utils/src";
+import { isFirefoxOrSafari, sleep, waitFor } from "../maze-utils/src";
 import { getErrorMessage, getFormattedTime } from "../maze-utils/src/formating";
 import { getChannelIDInfo, getVideo, getIsLivePremiere, checkVideoIDChange, getVideoID, getBilibiliVideoID, setupVideoModule, checkIfNewVideoID } from "../maze-utils/src/video";
 import { Keybind, StorageChangesObject, isSafari, keybindEquals, keybindToString } from "../maze-utils/src/config";
@@ -138,7 +138,7 @@ async function setupPageLoadingListener() {
         if (mutationCounter >= 4) {
             headerObserver.disconnect();
             // 再等待500ms，确保页面加载完成
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await sleep(500);
             headerLoaded = true;
         }
     });
