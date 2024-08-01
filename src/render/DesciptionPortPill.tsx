@@ -7,6 +7,7 @@ import { getPageLoaded } from "../content";
 import { asyncRequestToServer } from "../utils/requests";
 import { getVideo, getVideoID } from "../../maze-utils/src/video";
 import Config from "../config";
+import { getPortVideo } from "../requests/portVideo";
 
 const id = "bsbDescriptionContainer";
 
@@ -124,18 +125,11 @@ export class DescriptionPortPill {
     }
 
     private async getPortVideo(videoId: VideoID, bypassCache = false) {
-        const response = await asyncRequestToServer("GET", "/api/portVideo", { videoID: videoId }, bypassCache).catch(
-            (e) => {
-                return e;
-            }
-        );
-        if (response && response?.ok) {
-            const responseData = JSON.parse(response?.responseText);
-            if (responseData?.bvID == this.bvID) {
-                this.ytbID = responseData.ytbID;
-                this.portUUID = responseData.UUID;
-            }
-        } else if (response?.status == 404) {
+        const portVideo = await getPortVideo(videoId, { bypassCache });
+        if (portVideo) {
+            this.ytbID = portVideo.ytbID;
+            this.portUUID = portVideo.UUID;
+        } else {
             this.ytbID = null;
             this.portUUID = null;
         }
