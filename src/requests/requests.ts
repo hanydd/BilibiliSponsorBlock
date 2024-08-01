@@ -1,6 +1,6 @@
 import Config from "../config";
 import * as CompileConfig from "../../config.json";
-import { FetchResponse, sendRequestToCustomServer } from "../../maze-utils/src/background-request-proxy";
+import { FetchResponse, sendRequestToCustomServer } from "./background-request-proxy";
 
 /**
  * Sends a request to a custom server

@@ -21,7 +21,7 @@ import GenericNotice from "./render/GenericNotice";
 import { getErrorMessage, getFormattedTime } from "../maze-utils/src/formating";
 import { StorageChangesObject } from "../maze-utils/src/config";
 import { getHash } from "../maze-utils/src/hash";
-import { asyncRequestToServer, sendRequestToServer } from "./utils/requests";
+import { asyncRequestToServer, sendRequestToServer } from "./requests/requests";
 import { waitFor } from "../maze-utils/src";
 
 interface MessageListener {

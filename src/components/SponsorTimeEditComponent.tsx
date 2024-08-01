@@ -7,7 +7,7 @@ import { RectangleTooltip } from "../render/RectangleTooltip";
 import { SelectorOption } from "./SelectorComponent";
 import { DEFAULT_CATEGORY } from "../utils/categoryUtils";
 import { getFormattedTime, getFormattedTimeToSeconds } from "../../maze-utils/src/formating";
-import { asyncRequestToServer } from "../utils/requests";
+import { asyncRequestToServer } from "../requests/requests";
 import { defaultPreviewTime } from "../utils/constants";
 import { getVideo } from "../../maze-utils/src/video";
 

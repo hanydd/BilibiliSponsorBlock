@@ -3,7 +3,7 @@ import { getHash } from "../../maze-utils/src/hash";
 import Config from "../config";
 import GenericNotice, { NoticeOptions } from "../render/GenericNotice";
 import { ContentContainer } from "../types";
-import { asyncRequestToServer } from "./requests";
+import { asyncRequestToServer } from "../requests/requests";
 
 export interface ChatConfig {
     displayName: string;

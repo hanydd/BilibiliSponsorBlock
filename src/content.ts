@@ -54,7 +54,7 @@ import * as documentScript from "../dist/js/document.js";
 import { runCompatibilityChecks } from "./utils/compatibility";
 import { cleanPage } from "./utils/pageCleaner";
 import { addCleanupListener } from "../maze-utils/src/cleanup";
-import { asyncRequestToServer } from "./utils/requests";
+import { asyncRequestToServer } from "./requests/requests";
 import { defaultPreviewTime } from "./utils/constants";
 import { DescriptionPortPill } from "./render/DesciptionPortPill";
 

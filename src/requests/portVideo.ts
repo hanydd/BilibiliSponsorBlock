@@ -1,6 +1,6 @@
 import { getHash } from "../../maze-utils/src/hash";
 import { VideoID } from "../types";
-import { asyncRequestToServer } from "../utils/requests";
+import { asyncRequestToServer } from "./requests";
 
 interface RequestOptions {
     bypassCache?: boolean;

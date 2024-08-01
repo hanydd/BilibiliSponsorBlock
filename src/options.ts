@@ -15,7 +15,7 @@ import { localizeHtmlPage } from "../maze-utils/src/setup";
 import { StorageChangesObject } from "../maze-utils/src/config";
 import { getHash } from "../maze-utils/src/hash";
 import { isFirefoxOrSafari, waitFor } from "../maze-utils/src";
-import { asyncRequestToServer } from "./utils/requests";
+import { asyncRequestToServer } from "./requests/requests";
 let embed = false;
 
 const categoryChoosers: CategoryChooser[] = [];

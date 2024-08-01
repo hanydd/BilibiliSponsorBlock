@@ -4,7 +4,7 @@ import { DescriptionPortPillComponent } from "../components/DescriptionPortPillC
 import { VideoID } from "../types";
 import { waitFor } from "../../maze-utils/src";
 import { getPageLoaded } from "../content";
-import { asyncRequestToServer } from "../utils/requests";
+import { asyncRequestToServer } from "../requests/requests";
 import { getVideo, getVideoID } from "../../maze-utils/src/video";
 import Config from "../config";
 import { getPortVideoByHash } from "../requests/portVideo";
