@@ -581,7 +581,7 @@ function downloadConfig(element: Element) {
     file.setAttribute("href", `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(jsonData))}`);
     file.setAttribute(
         "download",
-        `SponsorBlock${optionType === "local" ? "OtherData" : "Config"}_${dateTimeString}.json`
+        `BilibiliSponsorBlock${optionType === "local" ? "OtherData" : "Config"}_${dateTimeString}.json`
     );
     document.body.append(file);
     file.click();
