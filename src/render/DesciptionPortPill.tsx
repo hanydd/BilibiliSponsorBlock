@@ -101,12 +101,13 @@ export class DescriptionPortPill {
         const newButtonImage = document.createElement("img");
         newButtonImage.id = "bsbPortButtonImage";
         newButtonImage.src = chrome.runtime.getURL("icons/youtubeLogo.svg");
+        newButtonImage.title = chrome.i18n.getMessage("bindPortVideoButton");
         buttonContainer.appendChild(newButtonImage);
 
-        const newButtonText = document.createElement("span");
-        newButtonText.id = "bsbPortButtonText";
-        newButtonText.textContent = chrome.i18n.getMessage("bindPortVideoButton");
-        buttonContainer.appendChild(newButtonText);
+        // const newButtonText = document.createElement("span");
+        // newButtonText.id = "bsbPortButtonText";
+        // newButtonText.textContent = chrome.i18n.getMessage("bindPortVideoButton");
+        // buttonContainer.appendChild(newButtonText);
 
         referenceNode.prepend(buttonContainer);
         this.buttonContainer = buttonContainer;
