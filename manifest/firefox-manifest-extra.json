@@ -9,6 +9,22 @@
   "optional_permissions": [
     "*://*/*"
   ],
+  "content_scripts": [
+    {
+      "run_at": "document_start",
+      "matches": [
+        "https://*.bilibili.com/*"
+      ],
+      "all_frames": true,
+      "js": [
+        "./js/content.js"
+      ],
+      "css": [
+        "content.css",
+        "shared.css"
+      ]
+    }
+  ],
   "background": {
     "scripts": [
       "./js/background.js"

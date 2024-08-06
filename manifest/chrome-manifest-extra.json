@@ -15,9 +15,36 @@
   "optional_host_permissions": [
     "*://*/*"
   ],
+  "content_scripts": [
+    {
+      "world": "ISOLATED",
+      "run_at": "document_start",
+      "matches": [
+        "https://*.bilibili.com/*"
+      ],
+      "all_frames": true,
+      "js": [
+        "./js/content.js"
+      ],
+      "css": [
+        "content.css",
+        "shared.css"
+      ]
+    },
+    {
+      "world": "MAIN",
+      "run_at": "document_start",
+      "matches": [
+        "https://*.bilibili.com/*"
+      ],
+      "all_frames": true,
+      "js": [
+        "./js/document.js"
+      ]
+    }
+  ],
   "background": {
-    "service_worker": "./js/background.js",
-    "type": "module"
+    "service_worker": "./js/background.js"
   },
   "action": {
     "default_title": "SponsorBlock",

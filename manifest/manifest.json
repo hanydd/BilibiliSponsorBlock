@@ -4,22 +4,6 @@
     "version": "0.2.1",
     "default_locale": "zh_CN",
     "description": "__MSG_Description__",
-    "content_scripts": [
-        {
-            "run_at": "document_start",
-            "matches": [
-                "https://*.bilibili.com/*"
-            ],
-            "all_frames": true,
-            "js": [
-                "./js/content.js"
-            ],
-            "css": [
-                "content.css",
-                "shared.css"
-            ]
-        }
-    ],
     "icons": {
         "16": "icons/IconSponsorBlocker16px.png",
         "32": "icons/IconSponsorBlocker32px.png",
