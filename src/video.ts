@@ -255,7 +255,16 @@ export function getBvIDFromURL(url: string): VideoID | null {
     // video BV id
     if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/video/")) {
         const id = urlObject.pathname.replace("/video/", "").replace("/", "");
-        return id?.length == 12 && id?.startsWith("BV") ? (id as VideoID) : null;
+        if (!id) {
+            return null;
+        }
+        if (id.length == 12 && id.startsWith("BV")) {
+            return id as VideoID;
+        } else if (id.match(/^av\d+$/)) {
+            // if matches av number, return a placeholder value
+            // TODO: support both av and BV queries
+            return "-1" as VideoID;
+        }
     }
 
     return null;
