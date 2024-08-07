@@ -3,6 +3,7 @@ import { addCleanupListener, setupCleanupListener } from "./cleanup";
 import { LocalStorage, ProtoConfig, SyncStorage, isSafari } from "./config";
 import { BILI_DOMAINS } from "./const";
 import { getElement, isVisible, waitForElement } from "./dom";
+import { sourceId } from "./injected/document";
 import { injectScript } from "./scriptInjector";
 import { newThumbnails } from "./thumbnailManagement";
 
@@ -210,22 +211,18 @@ export async function getBilibiliVideoID(url?: string): Promise<VideoID | null> 
  */
 export function getBvIDFromWindow(timeout = 200): Promise<VideoID | null> {
     return new Promise((resolve) => {
-        const id = "getBvID_" + Date.now() + Math.random().toString(36).substring(7);
+        const id = `getBvID_${Date.now()}_${Math.random().toString(36).substring(7)}`;
         const bvIDMessageListener = (message: MessageEvent) => {
-            if (
-                message.data?.source == "biliSponsorBlock" &&
-                message.data?.type === "returnBvID" &&
-                message.data?.id === id
-            ) {
+            if (message.data?.source == sourceId && message.data?.type === "returnBvID" && message.data?.id === id) {
                 clearTimeout(messageTimeout);
                 window.removeEventListener("message", bvIDMessageListener);
-                console.log("found bvid", message.data.bvID);
                 resolve(message.data.bvID as VideoID);
             }
         };
         window.addEventListener("message", bvIDMessageListener);
-        window.postMessage({ source: "biliSponsorBlock", type: "getBvID", id: id }, "/");
+        window.postMessage({ source: sourceId, type: "getBvID", id: id }, "/");
 
+        // count as failed if no response after certain time
         const messageTimeout = setTimeout(() => {
             window.removeEventListener("message", bvIDMessageListener);
             resolve(null);
