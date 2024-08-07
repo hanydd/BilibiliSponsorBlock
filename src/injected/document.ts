@@ -1,10 +1,19 @@
-import { versionHigher } from "../versionHigher";
 import { version } from "../version.json";
+import { versionHigher } from "../versionHigher";
 import { resetLastArtworkSrc } from "./mediaSession";
+
+const id = "biliSponsorBlock";
+const sendMessage = (message): void => {
+    window.postMessage({ source: id, ...message }, "/");
+};
 
 function windowMessageListener(message: MessageEvent) {
     if (message.data?.source && message.data?.source === "sb-reset-media-session-link") {
         resetLastArtworkSrc();
+    } else if (message.data?.source && message.data?.source === id) {
+        if (message.data?.type === "getBvID") {
+            sendMessage({ type: "returnBvID", id: message.data.id, bvID: window?.__INITIAL_STATE__?.bvid });
+        }
     }
 }
 

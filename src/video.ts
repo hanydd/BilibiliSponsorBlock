@@ -1,10 +1,10 @@
 import { waitFor } from ".";
-import { LocalStorage, ProtoConfig, SyncStorage, isSafari } from "./config";
-import { getElement, isVisible, waitForElement } from "./dom";
-import { newThumbnails } from "./thumbnailManagement";
-import { BILI_DOMAINS } from "./const";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
+import { LocalStorage, ProtoConfig, SyncStorage, isSafari } from "./config";
+import { BILI_DOMAINS } from "./const";
+import { getElement, isVisible, waitForElement } from "./dom";
 import { injectScript } from "./scriptInjector";
+import { newThumbnails } from "./thumbnailManagement";
 
 export enum PageType {
     Unknown = "unknown",
@@ -80,14 +80,14 @@ export function setupVideoModule(
     setupCleanupListener();
 
     // Direct Links after the config is loaded
-    void waitFor(() => getConfig().isReady(), 1000, 1).then(() => videoIDChange(getBilibiliVideoID()));
+    void waitFor(() => getConfig().isReady(), 1000, 1).then(async () => videoIDChange(await getBilibiliVideoID()));
 
     // Can't use onInvidious at this point, the configuration might not be ready.
     //TODO: What does this wait for?
     if (BILI_DOMAINS.includes(location.host)) {
         waitForElement(embedTitleSelector)
             .then((e) => waitFor(() => e.getAttribute("href")))
-            .then(() => videoIDChange(getBilibiliVideoID()))
+            .then(async () => videoIDChange(await getBilibiliVideoID()))
             // Ignore if not an embed
             .catch(() => {}); // eslint-disable-line @typescript-eslint/no-empty-function
     }
@@ -98,9 +98,9 @@ export function setupVideoModule(
     const navigationApiAvailable = "navigation" in window;
     if (navigationApiAvailable) {
         // TODO: Remove type cast once type declarations are updated
-        const navigationListener = (e) =>
+        const navigationListener = async (e) =>
             void videoIDChange(
-                getBilibiliVideoID((e as unknown as Record<string, Record<string, string>>).destination.url)
+                await getBilibiliVideoID((e as unknown as Record<string, Record<string, string>>).destination.url)
             );
         (window as unknown as { navigation: EventTarget }).navigation.addEventListener("navigate", navigationListener);
 
@@ -130,14 +130,14 @@ export function setupVideoModule(
 }
 
 export async function checkIfNewVideoID(): Promise<boolean> {
-    const id = getBilibiliVideoID();
+    const id = await getBilibiliVideoID();
 
     if (id === videoID) return false;
     return await videoIDChange(id);
 }
 
 export async function checkVideoIDChange(): Promise<boolean> {
-    const id = getBilibiliVideoID();
+    const id = await getBilibiliVideoID();
 
     return await videoIDChange(id);
 }
@@ -194,18 +194,43 @@ function resetValues() {
     );
 }
 
-export function getBilibiliVideoID(url?: string): VideoID | null {
+export async function getBilibiliVideoID(url?: string): Promise<VideoID | null> {
     url ||= document?.URL;
 
     // video page
     if (url.includes("bilibili.com/video")) {
-        return getBvIDFromWindow() ?? getBvIDFromURL(url);
+        return (await getBvIDFromWindow()) ?? getBvIDFromURL(url);
     }
     return null;
 }
 
-function getBvIDFromWindow(): VideoID | null {
-    return (window as any)?.__INITIAL_STATE__?.videoData?.bvid;
+/**
+ * communicate with the injected script via messages
+ * get video info from `window.__INITIAL_STATE__` object
+ */
+export function getBvIDFromWindow(timeout = 200): Promise<VideoID | null> {
+    return new Promise((resolve) => {
+        const id = "getBvID_" + Date.now() + Math.random().toString(36).substring(7);
+        const bvIDMessageListener = (message: MessageEvent) => {
+            if (
+                message.data?.source == "biliSponsorBlock" &&
+                message.data?.type === "returnBvID" &&
+                message.data?.id === id
+            ) {
+                clearTimeout(messageTimeout);
+                window.removeEventListener("message", bvIDMessageListener);
+                console.log("found bvid", message.data.bvID);
+                resolve(message.data.bvID as VideoID);
+            }
+        };
+        window.addEventListener("message", bvIDMessageListener);
+        window.postMessage({ source: "biliSponsorBlock", type: "getBvID", id: id }, "/");
+
+        const messageTimeout = setTimeout(() => {
+            window.removeEventListener("message", bvIDMessageListener);
+            resolve(null);
+        }, timeout);
+    });
 }
 
 /**
@@ -349,9 +374,9 @@ async function refreshVideoAttachments(): Promise<void> {
         void waiting
             .then((e) => (embedLastUrl = e.getAttribute("href")!))
             .then(() => (waitingForEmbed = false))
-            .then(() => videoIDChange(getBilibiliVideoID()));
+            .then(async () => videoIDChange(await getBilibiliVideoID()));
     } else {
-        void videoIDChange(getBilibiliVideoID());
+        void videoIDChange(await getBilibiliVideoID());
     }
 }
 
