@@ -1,4 +1,34 @@
+import * as documentScript from "../dist/js/document.js";
+import { isFirefoxOrSafari, sleep, waitFor } from "../maze-utils/src";
+import { AnimationUtils } from "../maze-utils/src/animationUtils";
+import { addCleanupListener } from "../maze-utils/src/cleanup";
+import { isSafari, Keybind, keybindEquals, keybindToString, StorageChangesObject } from "../maze-utils/src/config";
+import { findValidElement } from "../maze-utils/src/dom";
+import { getErrorMessage, getFormattedTime } from "../maze-utils/src/formating";
+import { getHash, HashedValue } from "../maze-utils/src/hash";
+import { generateUserID } from "../maze-utils/src/setup";
+import { updateAll } from "../maze-utils/src/thumbnailManagement";
+import {
+    checkIfNewVideoID,
+    checkVideoIDChange,
+    getBilibiliVideoID,
+    getChannelIDInfo,
+    getIsLivePremiere,
+    getVideo,
+    getVideoID,
+    setupVideoModule,
+} from "../maze-utils/src/video";
+import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import Config from "./config";
+import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";
+import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
+import { Message, MessageResponse, VoteResponse } from "./messageTypes";
+import { CategoryPill } from "./render/CategoryPill";
+import { ChapterVote } from "./render/ChapterVote";
+import { DescriptionPortPill } from "./render/DesciptionPortPill";
+import SkipNotice from "./render/SkipNotice";
+import SubmissionNotice from "./render/SubmissionNotice";
+import { asyncRequestToServer } from "./requests/requests";
 import {
     ActionType,
     Category,
@@ -17,46 +47,16 @@ import {
     VideoInfo,
 } from "./types";
 import Utils from "./utils";
-import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";
-import SkipNotice from "./render/SkipNotice";
-import SkipNoticeComponent from "./components/SkipNoticeComponent";
-import SubmissionNotice from "./render/SubmissionNotice";
-import { Message, MessageResponse, VoteResponse } from "./messageTypes";
-import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
-import { getStartTimeFromUrl } from "./utils/urlParser";
-import { getControls, getHashParams, getProgressBar, isPlayingPlaylist, isVisible } from "./utils/pageUtils";
-import { CategoryPill } from "./render/CategoryPill";
-import { AnimationUtils } from "../maze-utils/src/animationUtils";
+import { runCompatibilityChecks } from "./utils/compatibility";
+import { defaultPreviewTime } from "./utils/constants";
+import { importTimes } from "./utils/exporter";
 import { GenericUtils } from "./utils/genericUtils";
 import { logDebug } from "./utils/logger";
-import { importTimes } from "./utils/exporter";
-import { ChapterVote } from "./render/ChapterVote";
-import { openWarningDialog } from "./utils/warnings";
-import { isFirefoxOrSafari, sleep, waitFor } from "../maze-utils/src";
-import { getErrorMessage, getFormattedTime } from "../maze-utils/src/formating";
-import {
-    getChannelIDInfo,
-    getVideo,
-    getIsLivePremiere,
-    checkVideoIDChange,
-    getVideoID,
-    getBilibiliVideoID,
-    setupVideoModule,
-    checkIfNewVideoID,
-} from "../maze-utils/src/video";
-import { Keybind, StorageChangesObject, isSafari, keybindEquals, keybindToString } from "../maze-utils/src/config";
-import { findValidElement } from "../maze-utils/src/dom";
-import { getHash, HashedValue } from "../maze-utils/src/hash";
-import { generateUserID } from "../maze-utils/src/setup";
-import { updateAll } from "../maze-utils/src/thumbnailManagement";
-import { setupThumbnailListener } from "./utils/thumbnails";
-import * as documentScript from "../dist/js/document.js";
-import { runCompatibilityChecks } from "./utils/compatibility";
 import { cleanPage } from "./utils/pageCleaner";
-import { addCleanupListener } from "../maze-utils/src/cleanup";
-import { asyncRequestToServer } from "./requests/requests";
-import { defaultPreviewTime } from "./utils/constants";
-import { DescriptionPortPill } from "./render/DesciptionPortPill";
+import { getControls, getHashParams, getProgressBar, isPlayingPlaylist, isVisible } from "./utils/pageUtils";
+import { setupThumbnailListener } from "./utils/thumbnails";
+import { getStartTimeFromUrl } from "./utils/urlParser";
+import { openWarningDialog } from "./utils/warnings";
 
 cleanPage();
 
@@ -620,7 +620,7 @@ async function startSponsorSchedule(
         return;
     }
 
-    if (incorrectVideoCheck()) return;
+    if (await incorrectVideoCheck()) return;
 
     // Find all indexes in between the start and end
     let skippingSegments = [skipInfo.array[skipInfo.index]];
@@ -646,12 +646,12 @@ async function startSponsorSchedule(
         )}`
     );
 
-    const skippingFunction = (forceVideoTime?: number) => {
+    const skippingFunction = async (forceVideoTime?: number) => {
         let forcedSkipTime: number = null;
         let forcedIncludeIntersectingSegments = false;
         let forcedIncludeNonIntersectingSegments = true;
 
-        if (incorrectVideoCheck(videoID, currentSkip)) return;
+        if (await incorrectVideoCheck(videoID, currentSkip)) return;
         forceVideoTime ||= Math.max(getVideo().currentTime, getVirtualTime());
 
         if (
@@ -709,7 +709,7 @@ async function startSponsorSchedule(
     };
 
     if (timeUntilSponsor < skipBuffer) {
-        skippingFunction(currentTime);
+        await skippingFunction(currentTime);
     } else {
         let delayTime = timeUntilSponsor * 1000 * (1 / getVideo().playbackRate);
         if (delayTime < (isFirefoxOrSafari() && !isSafari() ? 750 : 300)) {
@@ -812,8 +812,8 @@ function inMuteSegment(currentTime: number, includeOverlap: boolean): boolean {
 /**
  * This makes sure the videoID is still correct and if the sponsorTime is included
  */
-function incorrectVideoCheck(videoID?: string, sponsorTime?: SponsorTime): boolean {
-    const currentVideoID = getBilibiliVideoID();
+async function incorrectVideoCheck(videoID?: string, sponsorTime?: SponsorTime): Promise<boolean> {
+    const currentVideoID = await getBilibiliVideoID();
     const recordedVideoID = videoID || getVideoID();
     if (
         currentVideoID !== recordedVideoID ||
