@@ -66,18 +66,6 @@ jobs:
           path: ./builds/FirefoxExtension.zip
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Create Safari artifacts
-      # - name: Create Safari artifacts
-      #   run: npm run build:safari
-      # - name: Zip Artifacts
-      #   run: cd ./dist ; zip -r ../builds/SafariExtension.zip *
-      # - name: Upload SafariExtension to release
-      #   uses: Shopify/upload-to-release@v2.0.0
-      #   with:
-      #     name: SafariExtension.zip
-      #     path: ./builds/SafariExtension.zip
-      #     repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       # Create Edge artifacts
       - name: Clear dist for Edge
         run: rm -rf ./dist
