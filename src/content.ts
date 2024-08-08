@@ -1,4 +1,8 @@
 import * as documentScript from "../dist/js/document.js";
+import SkipNoticeComponent from "./components/SkipNoticeComponent";
+import Config from "./config";
+import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";
+import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
 import { isFirefoxOrSafari, sleep, waitFor } from "./maze-utils/";
 import { AnimationUtils } from "./maze-utils/animationUtils";
 import { addCleanupListener } from "./maze-utils/cleanup";
@@ -6,22 +10,18 @@ import { isSafari, Keybind, keybindEquals, keybindToString, StorageChangesObject
 import { findValidElement } from "./maze-utils/dom";
 import { getErrorMessage, getFormattedTime } from "./maze-utils/formating";
 import { getHash, HashedValue } from "./maze-utils/hash";
+import { getBilibiliVideoID } from "./maze-utils/parseVideoID";
 import { generateUserID } from "./maze-utils/setup";
 import { updateAll } from "./maze-utils/thumbnailManagement";
 import {
     checkIfNewVideoID,
     checkVideoIDChange,
-    getBilibiliVideoID,
     getChannelIDInfo,
     getIsLivePremiere,
     getVideo,
     getVideoID,
     setupVideoModule,
 } from "./maze-utils/video";
-import SkipNoticeComponent from "./components/SkipNoticeComponent";
-import Config from "./config";
-import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";
-import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";

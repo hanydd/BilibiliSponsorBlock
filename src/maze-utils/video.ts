@@ -1,10 +1,9 @@
 import { waitFor } from ".";
-import { getBvIDfromAvIDBiliApi } from "../requests/bilibiliApi";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
 import { LocalStorage, ProtoConfig, SyncStorage, isSafari } from "./config";
 import { BILI_DOMAINS } from "./const";
 import { getElement, isVisible, waitForElement } from "./dom";
-import { sourceId } from "./injected/document";
+import { getBilibiliVideoID } from "./parseVideoID";
 import { injectScript } from "./scriptInjector";
 import { newThumbnails } from "./thumbnailManagement";
 
@@ -195,93 +194,6 @@ function resetValues() {
         },
         "/"
     );
-}
-
-export async function getBilibiliVideoID(url?: string): Promise<VideoID | null> {
-    url ||= document?.URL;
-
-    // video page
-    if (url.includes("bilibili.com/video")) {
-        return (await getBvIDFromWindow()) ?? getBvIDFromURL(url);
-    }
-    return null;
-}
-
-/**
- * communicate with the injected script via messages
- * get video info from `window.__INITIAL_STATE__` object
- */
-export function getBvIDFromWindow(timeout = 200): Promise<VideoID | null> {
-    return new Promise((resolve) => {
-        const id = `getBvID_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-        const bvIDMessageListener = (message: MessageEvent) => {
-            if (message.data?.source == sourceId && message.data?.type === "returnBvID" && message.data?.id === id) {
-                clearTimeout(messageTimeout);
-                window.removeEventListener("message", bvIDMessageListener);
-                resolve(message.data.bvID as VideoID);
-            }
-        };
-        window.addEventListener("message", bvIDMessageListener);
-        window.postMessage({ source: sourceId, type: "getBvID", id: id }, "/");
-
-        // count as failed if no response after certain time
-        const messageTimeout = setTimeout(() => {
-            window.removeEventListener("message", bvIDMessageListener);
-            resolve(null);
-        }, timeout);
-    });
-}
-
-const BILIBILI_VIDEO_URL_REGEX = /^\/video\/((BV1[a-zA-Z0-9]{9})|(av\d+))\/?/;
-/**
- * Parse without side effects
- */
-export function getBvIDFromURL(url: string): VideoID | null {
-    //Attempt to parse url
-    let urlObject: URL | null = null;
-    try {
-        urlObject = new URL(url);
-    } catch (e) {
-        console.error("[BSB] Unable to parse URL: " + url);
-        return null;
-    }
-
-    // Check if valid hostname
-    if (!BILI_DOMAINS.includes(urlObject.host)) {
-        return null;
-    }
-
-    // Get ID from url
-    // video page
-    if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/video/")) {
-        const idMatch = urlObject.pathname.match(BILIBILI_VIDEO_URL_REGEX);
-        if (idMatch && idMatch[2]) {
-            // BV id
-            return idMatch[2] as VideoID;
-        } else if (idMatch && idMatch[3]) {
-            // av id
-            return getBvIDFromCache(idMatch[3], "-1" as VideoID);
-        }
-    }
-
-    return null;
-}
-
-const AvToBvMapCache = new Map<string, VideoID>();
-const AvToBvLoading = new Set<string>();
-function getBvIDFromCache(avID: string, placeholder: null | VideoID = null): VideoID | null {
-    const bvID = AvToBvMapCache.get(avID);
-    if (bvID) return bvID;
-
-    if (!AvToBvLoading.has(avID)) {
-        AvToBvLoading.add(avID);
-        getBvIDfromAvIDBiliApi(avID.replace("av", "")).then((bvID) => {
-            AvToBvMapCache.set(avID, bvID as VideoID);
-            AvToBvLoading.delete(avID);
-        });
-    }
-
-    return placeholder;
 }
 
 //checks if this channel is whitelisted, should be done only after the channelID has been loaded
