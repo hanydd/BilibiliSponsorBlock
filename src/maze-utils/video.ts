@@ -1,4 +1,5 @@
 import { waitFor } from ".";
+import { getBvIDfromAvIDBiliApi } from "../requests/bilibiliApi";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
 import { LocalStorage, ProtoConfig, SyncStorage, isSafari } from "./config";
 import { BILI_DOMAINS } from "./const";
@@ -259,13 +260,28 @@ export function getBvIDFromURL(url: string): VideoID | null {
             return idMatch[2] as VideoID;
         } else if (idMatch && idMatch[3]) {
             // av id
-            // if matches av number, return a placeholder value
-            // TODO: support both av and BV queries
-            return "-1" as VideoID;
+            return getBvIDFromCache(idMatch[3], "-1" as VideoID);
         }
     }
 
     return null;
+}
+
+const AvToBvMapCache = new Map<string, VideoID>();
+const AvToBvLoading = new Set<string>();
+function getBvIDFromCache(avID: string, placeholder: null | VideoID = null): VideoID | null {
+    const bvID = AvToBvMapCache.get(avID);
+    if (bvID) return bvID;
+
+    if (!AvToBvLoading.has(avID)) {
+        AvToBvLoading.add(avID);
+        getBvIDfromAvIDBiliApi(avID.replace("av", "")).then((bvID) => {
+            AvToBvMapCache.set(avID, bvID as VideoID);
+            AvToBvLoading.delete(avID);
+        });
+    }
+
+    return placeholder;
 }
 
 //checks if this channel is whitelisted, should be done only after the channelID has been loaded
