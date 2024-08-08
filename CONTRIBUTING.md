@@ -5,7 +5,7 @@
 本插件是在 [SponsorBlock](https://github.com/ajayyy/SponsorBlock) v5.4 版本基础上开发而来，从 SponsorBlock v5.5.9 版本开始不再进行功能同步，部分原项目中有价值的功能会手动添加到本项目中。
 
 ## 环境和准备
-1. 安装 Node.js 16 及以上版本
+1. 安装 Node.js 16 及以上版本（建议使用Node 20LTS版本）
 1. 了解 Git，Node.js，npm 和命令行工具的基本使用方法
 1. 安装主流浏览器（Chrome以及Chromium内核的浏览器、Edge、Firefox、Safari……）
 
@@ -15,11 +15,7 @@
 
     执行下面的命令。
     ```bash
-    git clone --recursive https://github.com/HanYaodong/BilibiliSponsorBlock.git
-    ```
-    完成后执行下面的命令更新 submodule。
-    ```bash
-    git submodule update --init --recursive
+    git clone https://github.com/HanYaodong/BilibiliSponsorBlock.git
     ```
 
 1. 复制文件 `config.json.example`，并重命名为 `config.json`。你也可以根据需要，调整里面的选项。
