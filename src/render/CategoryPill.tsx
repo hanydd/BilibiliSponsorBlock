@@ -2,13 +2,13 @@ import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
 import CategoryPillComponent, { CategoryPillState } from "../components/CategoryPillComponent";
 import Config from "../config";
+import { getPageLoaded } from "../content";
+import { waitFor } from "../maze-utils";
+import { addCleanupListener } from "../maze-utils/cleanup";
+import { getBilibiliTitleNode } from "../maze-utils/elements";
 import { VoteResponse } from "../messageTypes";
 import { Category, SegmentUUID, SponsorTime } from "../types";
 import { Tooltip } from "./Tooltip";
-import { waitFor } from "../../maze-utils/src";
-import { getBilibiliTitleNode } from "../../maze-utils/src/elements";
-import { addCleanupListener } from "../../maze-utils/src/cleanup";
-import { getPageLoaded } from "../content";
 
 const id = "categoryPill";
 

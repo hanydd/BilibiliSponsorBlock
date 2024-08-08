@@ -1,8 +1,8 @@
 import * as React from "react";
 import { VideoID } from "../types";
 import { PortVideo } from "../render/DesciptionPortPill";
-import { parseYoutubeID } from "../../maze-utils/src/youtubeID";
-import { AnimationUtils } from "../../maze-utils/src/animationUtils";
+import { parseYoutubeID } from "../maze-utils/youtubeID";
+import { AnimationUtils } from "../maze-utils/animationUtils";
 
 export interface DescriptionPortPillProps {
     bvID: VideoID;

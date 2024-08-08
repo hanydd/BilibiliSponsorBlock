@@ -1,13 +1,13 @@
 import * as documentScript from "../dist/js/document.js";
-import { isFirefoxOrSafari, sleep, waitFor } from "../maze-utils/src";
-import { AnimationUtils } from "../maze-utils/src/animationUtils";
-import { addCleanupListener } from "../maze-utils/src/cleanup";
-import { isSafari, Keybind, keybindEquals, keybindToString, StorageChangesObject } from "../maze-utils/src/config";
-import { findValidElement } from "../maze-utils/src/dom";
-import { getErrorMessage, getFormattedTime } from "../maze-utils/src/formating";
-import { getHash, HashedValue } from "../maze-utils/src/hash";
-import { generateUserID } from "../maze-utils/src/setup";
-import { updateAll } from "../maze-utils/src/thumbnailManagement";
+import { isFirefoxOrSafari, sleep, waitFor } from "./maze-utils/";
+import { AnimationUtils } from "./maze-utils/animationUtils";
+import { addCleanupListener } from "./maze-utils/cleanup";
+import { isSafari, Keybind, keybindEquals, keybindToString, StorageChangesObject } from "./maze-utils/config";
+import { findValidElement } from "./maze-utils/dom";
+import { getErrorMessage, getFormattedTime } from "./maze-utils/formating";
+import { getHash, HashedValue } from "./maze-utils/hash";
+import { generateUserID } from "./maze-utils/setup";
+import { updateAll } from "./maze-utils/thumbnailManagement";
 import {
     checkIfNewVideoID,
     checkVideoIDChange,
@@ -17,7 +17,7 @@ import {
     getVideo,
     getVideoID,
     setupVideoModule,
-} from "../maze-utils/src/video";
+} from "./maze-utils/video";
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import Config from "./config";
 import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";

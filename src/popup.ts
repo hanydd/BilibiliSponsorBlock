@@ -13,16 +13,16 @@ import {
     VoteResponse,
 } from "./messageTypes";
 // import { showDonationLink } from "./utils/configUtils";
-import { AnimationUtils } from "../maze-utils/src/animationUtils";
+import { AnimationUtils } from "./maze-utils/animationUtils";
 import { shortCategoryName } from "./utils/categoryUtils";
-import { localizeHtmlPage } from "../maze-utils/src/setup";
+import { localizeHtmlPage } from "./maze-utils/setup";
 import { exportTimes } from "./utils/exporter";
 import GenericNotice from "./render/GenericNotice";
-import { getErrorMessage, getFormattedTime } from "../maze-utils/src/formating";
-import { StorageChangesObject } from "../maze-utils/src/config";
-import { getHash } from "../maze-utils/src/hash";
+import { getErrorMessage, getFormattedTime } from "./maze-utils/formating";
+import { StorageChangesObject } from "./maze-utils/config";
+import { getHash } from "./maze-utils/hash";
 import { asyncRequestToServer, sendRequestToServer } from "./requests/requests";
-import { waitFor } from "../maze-utils/src";
+import { waitFor } from "./maze-utils/";
 
 interface MessageListener {
     (request: Message, sender: unknown, sendResponse: (response: MessageResponse) => void): void;

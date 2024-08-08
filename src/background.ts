@@ -4,12 +4,12 @@ import Config from "./config";
 import { Registration } from "./types";
 import "content-scripts-register-polyfill";
 import { sendRealRequestToCustomServer, setupBackgroundRequestProxy } from "./requests/background-request-proxy";
-import { setupTabUpdates } from "../maze-utils/src/tab-updates";
-import { generateUserID } from "../maze-utils/src/setup";
-import { isFirefoxOrSafari } from "../maze-utils/src";
-import { injectUpdatedScripts } from "../maze-utils/src/cleanup";
+import { setupTabUpdates } from "./maze-utils/tab-updates";
+import { generateUserID } from "./maze-utils/setup";
+import { isFirefoxOrSafari } from "./maze-utils/";
+import { injectUpdatedScripts } from "./maze-utils/cleanup";
 import { logWarn } from "./utils/logger";
-import { chromeP } from "../maze-utils/src/browserApi";
+import { chromeP } from "./maze-utils/browserApi";
 
 const popupPort: Record<string, chrome.runtime.Port> = {};
 

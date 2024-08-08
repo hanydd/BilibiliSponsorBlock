@@ -11,10 +11,10 @@ import CategoryChooser from "./render/CategoryChooser";
 import UnsubmittedVideos from "./render/UnsubmittedVideos";
 import KeybindComponent from "./components/options/KeybindComponent";
 import { showDonationLink } from "./utils/configUtils";
-import { localizeHtmlPage } from "../maze-utils/src/setup";
-import { StorageChangesObject } from "../maze-utils/src/config";
-import { getHash } from "../maze-utils/src/hash";
-import { isFirefoxOrSafari, waitFor } from "../maze-utils/src";
+import { localizeHtmlPage } from "./maze-utils/setup";
+import { StorageChangesObject } from "./maze-utils/config";
+import { getHash } from "./maze-utils/hash";
+import { isFirefoxOrSafari, waitFor } from "./maze-utils/";
 import { asyncRequestToServer } from "./requests/requests";
 let embed = false;
 

@@ -1,5 +1,5 @@
 import Config from "./config";
-import { localizeHtmlPage } from "../maze-utils/src/setup";
+import { localizeHtmlPage } from "./maze-utils/setup";
 
 // This is needed, if Config is not imported before Utils, things break.
 // Probably due to cyclic dependencies

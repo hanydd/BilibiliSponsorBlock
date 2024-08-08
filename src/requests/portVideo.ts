@@ -1,4 +1,4 @@
-import { getHash } from "../../maze-utils/src/hash";
+import { getHash } from "../maze-utils/hash";
 import { VideoID } from "../types";
 import { asyncRequestToServer } from "./requests";
 

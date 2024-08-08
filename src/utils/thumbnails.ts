@@ -1,8 +1,8 @@
-import { getBvIDFromURL } from "../../maze-utils/src/video";
+import { getBvIDFromURL } from "../maze-utils/video";
 import Config from "../config";
 import { getVideoLabel } from "./videoLabels";
-import { setThumbnailListener } from "../../maze-utils/src/thumbnailManagement";
-import { waitFor } from "../../maze-utils/src";
+import { setThumbnailListener } from "../maze-utils/thumbnailManagement";
+import { waitFor } from "../maze-utils";
 
 export async function labelThumbnails(thumbnails: HTMLImageElement[]): Promise<void> {
     await Promise.all(thumbnails.map((t) => labelThumbnail(t)));

@@ -1,5 +1,5 @@
-import { objectToURI } from "../../maze-utils/src";
-import { getHash } from "../../maze-utils/src/hash";
+import { objectToURI } from "../maze-utils";
+import { getHash } from "../maze-utils/hash";
 
 export interface FetchResponse {
     responseText: string;

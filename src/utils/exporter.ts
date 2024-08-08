@@ -1,8 +1,8 @@
 import { ActionType, Category, SegmentUUID, SponsorSourceType, SponsorTime } from "../types";
 import { shortCategoryName } from "./categoryUtils";
 import * as CompileConfig from "../../config.json";
-import { getFormattedTime, getFormattedTimeToSeconds } from "../../maze-utils/src/formating";
-import { generateUserID } from "../../maze-utils/src/setup";
+import { getFormattedTime, getFormattedTimeToSeconds } from "../maze-utils/formating";
+import { generateUserID } from "../maze-utils/setup";
 
 const inTest = typeof chrome === "undefined";
 

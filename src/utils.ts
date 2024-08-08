@@ -9,9 +9,9 @@ import {
     CategorySkipOption,
 } from "./types";
 
-import { getHash, HashedValue } from "../maze-utils/src/hash";
-import { findValidElementFromSelector } from "../maze-utils/src/dom";
-import { isSafari } from "../maze-utils/src/config";
+import { getHash, HashedValue } from "./maze-utils/hash";
+import { findValidElementFromSelector } from "./maze-utils/dom";
+import { isSafari } from "./maze-utils/config";
 
 export default class Utils {
     // Contains functions needed from the background script

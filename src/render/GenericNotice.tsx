@@ -7,8 +7,8 @@ const utils = new Utils();
 
 import { ContentContainer } from "../types";
 import NoticeTextSelectionComponent from "../components/NoticeTextSectionComponent";
-import { ButtonListener } from "../../maze-utils/src/components/component-types";
-import { getVideo } from "../../maze-utils/src/video";
+import { ButtonListener } from "../maze-utils/components/component-types";
+import { getVideo } from "../maze-utils/video";
 
 export interface TextBox {
     icon: string;
