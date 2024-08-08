@@ -231,6 +231,7 @@ export function getBvIDFromWindow(timeout = 200): Promise<VideoID | null> {
     });
 }
 
+const BILIBILI_VIDEO_URL_REGEX = /^\/video\/((BV1[a-zA-Z0-9]{9})|(av\d+))\/?/;
 /**
  * Parse without side effects
  */
@@ -240,7 +241,7 @@ export function getBvIDFromURL(url: string): VideoID | null {
     try {
         urlObject = new URL(url);
     } catch (e) {
-        console.error("[SB] Unable to parse URL: " + url);
+        console.error("[BSB] Unable to parse URL: " + url);
         return null;
     }
 
@@ -250,15 +251,14 @@ export function getBvIDFromURL(url: string): VideoID | null {
     }
 
     // Get ID from url
-    // video BV id
+    // video page
     if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/video/")) {
-        const id = urlObject.pathname.replace("/video/", "").replace("/", "");
-        if (!id) {
-            return null;
-        }
-        if (id.length == 12 && id.startsWith("BV")) {
-            return id as VideoID;
-        } else if (id.match(/^av\d+$/)) {
+        const idMatch = urlObject.pathname.match(BILIBILI_VIDEO_URL_REGEX);
+        if (idMatch && idMatch[2]) {
+            // BV id
+            return idMatch[2] as VideoID;
+        } else if (idMatch && idMatch[3]) {
+            // av id
             // if matches av number, return a placeholder value
             // TODO: support both av and BV queries
             return "-1" as VideoID;
