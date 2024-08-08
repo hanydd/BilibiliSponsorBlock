@@ -1,7 +1,8 @@
 import { getBvIDfromAvIDBiliApi } from "../requests/bilibiliApi";
 import { BILI_DOMAINS } from "./const";
-import { sourceId } from "./injected/document";
 import { VideoID } from "./video";
+
+export const sourceId = "biliSponsorBlock";
 
 export async function getBilibiliVideoID(url?: string): Promise<VideoID | null> {
     url ||= document?.URL;
