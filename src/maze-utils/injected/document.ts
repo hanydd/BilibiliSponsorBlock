@@ -12,7 +12,7 @@ function windowMessageListener(message: MessageEvent) {
         resetLastArtworkSrc();
     } else if (message.data?.source && message.data?.source === sourceId) {
         if (message.data?.type === "getBvID") {
-            sendMessage({ type: "returnBvID", id: message.data.id, bvID: (window as any)?.__INITIAL_STATE__?.bvid });
+            sendMessage({ type: "returnBvID", id: message.data.id, bvID: window?.__INITIAL_STATE__?.bvid });
         }
     }
 }

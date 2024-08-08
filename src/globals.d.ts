@@ -1,6 +1,7 @@
-import { SBObject } from "./config";
+import SBObject from "./config";
 declare global {
     interface Window {
-        SB: SBObject;
+        SB: typeof SBObject;
+        __INITIAL_STATE__: any;
     }
 }
