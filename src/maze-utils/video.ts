@@ -55,6 +55,7 @@ let waitingForNewVideo = false;
 let isLivePremiere: boolean;
 
 let videoID: VideoID | null = null;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let pageType: PageType = PageType.Unknown;
 let channelIDInfo: ChannelIDInfo;
 let waitingForChannelID = false;
