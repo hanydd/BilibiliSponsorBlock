@@ -1,5 +1,5 @@
-import { waitFor } from ".";
-import { LocalStorage, ProtoConfig, SyncStorage } from "./config";
+import { waitFor } from "./";
+import { LocalStorage, ProtoConfig, SyncStorage } from "../config/config";
 
 function onTabUpdatedListener(tabId: number) {
     chrome.tabs.sendMessage(tabId, { message: "update" }, () => void chrome.runtime.lastError); // Suppress error on Firefox

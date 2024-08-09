@@ -1,6 +1,5 @@
 import Config from "./config";
 
-import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "./types";
 import {
     GetChannelIDResponse,
     IsChannelWhitelistedResponse,
@@ -12,17 +11,18 @@ import {
     SponsorStartResponse,
     VoteResponse,
 } from "./messageTypes";
+import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "./types";
 // import { showDonationLink } from "./utils/configUtils";
-import { AnimationUtils } from "./maze-utils/animationUtils";
-import { shortCategoryName } from "./utils/categoryUtils";
-import { localizeHtmlPage } from "./maze-utils/setup";
-import { exportTimes } from "./utils/exporter";
+import { StorageChangesObject } from "./config/config";
 import GenericNotice from "./render/GenericNotice";
-import { getErrorMessage, getFormattedTime } from "./maze-utils/formating";
-import { StorageChangesObject } from "./maze-utils/config";
-import { getHash } from "./maze-utils/hash";
 import { asyncRequestToServer, sendRequestToServer } from "./requests/requests";
-import { waitFor } from "./maze-utils/";
+import { waitFor } from "./utils/";
+import { AnimationUtils } from "./utils/animationUtils";
+import { shortCategoryName } from "./utils/categoryUtils";
+import { exportTimes } from "./utils/exporter";
+import { getErrorMessage, getFormattedTime } from "./utils/formating";
+import { getHash } from "./utils/hash";
+import { localizeHtmlPage } from "./utils/setup";
 
 interface MessageListener {
     (request: Message, sender: unknown, sendResponse: (response: MessageResponse) => void): void;

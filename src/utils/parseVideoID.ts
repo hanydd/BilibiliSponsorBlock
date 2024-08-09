@@ -1,5 +1,5 @@
 import { getBvIDfromAvIDBiliApi } from "../requests/bilibiliApi";
-import { BILI_DOMAINS } from "./const";
+import { BILI_DOMAINS } from "./constants";
 import { VideoID } from "./video";
 
 export const sourceId = "biliSponsorBlock";

@@ -1,21 +1,21 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 
-import Config from "./config";
 import * as CompileConfig from "../config.json";
+import Config from "./config";
 
 // Make the config public for debugging purposes
 window.SB = Config;
 
+import KeybindComponent from "./components/options/KeybindComponent";
+import { StorageChangesObject } from "./config/config";
+import { showDonationLink } from "./config/configUtils";
 import CategoryChooser from "./render/CategoryChooser";
 import UnsubmittedVideos from "./render/UnsubmittedVideos";
-import KeybindComponent from "./components/options/KeybindComponent";
-import { showDonationLink } from "./utils/configUtils";
-import { localizeHtmlPage } from "./maze-utils/setup";
-import { StorageChangesObject } from "./maze-utils/config";
-import { getHash } from "./maze-utils/hash";
-import { isFirefoxOrSafari, waitFor } from "./maze-utils/";
 import { asyncRequestToServer } from "./requests/requests";
+import { isFirefoxOrSafari, waitFor } from "./utils/";
+import { getHash } from "./utils/hash";
+import { localizeHtmlPage } from "./utils/setup";
 let embed = false;
 
 const categoryChoosers: CategoryChooser[] = [];

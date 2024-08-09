@@ -1,8 +1,8 @@
 import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { ButtonListener } from "./component-types";
-import { isFirefoxOrSafari } from "..";
-import { isSafari } from "../config";
+import { isFirefoxOrSafari } from "../utils/";
+import { isSafari } from "../config/config";
 
 export interface TooltipProps {
     text?: string;

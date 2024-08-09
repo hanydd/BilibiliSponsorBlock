@@ -1,4 +1,4 @@
-import { GenericTooltip, TooltipProps } from "../maze-utils/components/Tooltip";
+import { GenericTooltip, TooltipProps } from "../components/Tooltip";
 
 export class Tooltip extends GenericTooltip {
     constructor(props: TooltipProps) {

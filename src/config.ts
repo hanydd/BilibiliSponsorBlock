@@ -9,8 +9,8 @@ import {
     VideoID,
     SponsorHideType,
 } from "./types";
-import { Keybind, ProtoConfig, keybindEquals } from "./maze-utils/config";
-import { HashedValue } from "./maze-utils/hash";
+import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
+import { HashedValue } from "./utils/hash";
 
 export interface Permission {
     canSubmit: boolean;

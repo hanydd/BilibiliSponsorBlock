@@ -1,6 +1,8 @@
 import { TextBox } from "../render/GenericNotice";
 import { Category } from "../types";
 
+export const BILI_DOMAINS = ["m.bilibili.com", "www.bilibili.com", "t.bilibili.com", "live.bilibili.com"];
+
 export function getGuidelineInfo(category: Category): TextBox[] {
     switch (category) {
         case "sponsor":

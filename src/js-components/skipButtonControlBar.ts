@@ -1,8 +1,8 @@
 import Config from "../config";
 import { SegmentUUID, SponsorTime } from "../types";
 import { getSkippingText } from "../utils/categoryUtils";
-import { AnimationUtils } from "../maze-utils/animationUtils";
-import { keybindToString } from "../maze-utils/config";
+import { AnimationUtils } from "../utils/animationUtils";
+import { keybindToString } from "../config/config";
 
 export interface SkipButtonControlBarProps {
     skip: (segment: SponsorTime) => void;

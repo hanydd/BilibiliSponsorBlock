@@ -6,10 +6,10 @@ import SubmissionNoticeComponent from "./SubmissionNoticeComponent";
 import { RectangleTooltip } from "../render/RectangleTooltip";
 import { SelectorOption } from "./SelectorComponent";
 import { DEFAULT_CATEGORY } from "../utils/categoryUtils";
-import { getFormattedTime, getFormattedTimeToSeconds } from "../maze-utils/formating";
+import { getFormattedTime, getFormattedTimeToSeconds } from "../utils/formating";
 import { asyncRequestToServer } from "../requests/requests";
 import { defaultPreviewTime } from "../utils/constants";
-import { getVideo } from "../maze-utils/video";
+import { getVideo } from "../utils/video";
 
 export interface SponsorTimeEditProps {
     index: number;

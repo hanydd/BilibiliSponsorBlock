@@ -2,10 +2,10 @@ import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { DescriptionPortPillComponent } from "../components/DescriptionPortPillComponent";
 import { VideoID } from "../types";
-import { waitFor } from "../maze-utils";
+import { waitFor } from "../utils/";
 import { getPageLoaded } from "../content";
 import { asyncRequestToServer } from "../requests/requests";
-import { getVideo, getVideoID } from "../maze-utils/video";
+import { getVideo, getVideoID } from "../utils/video";
 import Config from "../config";
 import { getPortVideoByHash } from "../requests/portVideo";
 

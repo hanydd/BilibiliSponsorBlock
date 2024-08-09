@@ -1,17 +1,17 @@
 import Config, { VideoDownvotes } from "./config";
 import {
-    CategorySelection,
-    SponsorTime,
     BackgroundScriptContainer,
-    Registration,
-    VideoID,
-    SponsorHideType,
+    CategorySelection,
     CategorySkipOption,
+    Registration,
+    SponsorHideType,
+    SponsorTime,
+    VideoID,
 } from "./types";
 
-import { getHash, HashedValue } from "./maze-utils/hash";
-import { findValidElementFromSelector } from "./maze-utils/dom";
-import { isSafari } from "./maze-utils/config";
+import { isSafari } from "./config/config";
+import { findValidElementFromSelector } from "./utils/dom";
+import { getHash, HashedValue } from "./utils/hash";
 
 export default class Utils {
     // Contains functions needed from the background script

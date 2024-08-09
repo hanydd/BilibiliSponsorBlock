@@ -1,8 +1,8 @@
-import { Category, CategorySkipOption, VideoID } from "../types";
-import { getHash } from "../maze-utils/hash";
-import Utils from "../utils";
-import { logWarn } from "./logger";
 import { asyncRequestToServer } from "../requests/requests";
+import { Category, CategorySkipOption, VideoID } from "../types";
+import Utils from "../utils";
+import { getHash } from "../utils/hash";
+import { logWarn } from "./logger";
 
 const utils = new Utils();
 

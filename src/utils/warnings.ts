@@ -1,9 +1,9 @@
-import { objectToURI } from "../maze-utils";
-import { getHash } from "../maze-utils/hash";
+import { objectToURI } from ".";
 import Config from "../config";
 import GenericNotice, { NoticeOptions } from "../render/GenericNotice";
-import { ContentContainer } from "../types";
 import { asyncRequestToServer } from "../requests/requests";
+import { ContentContainer } from "../types";
+import { getHash } from "../utils/hash";
 
 export interface ChatConfig {
     displayName: string;

@@ -1,5 +1,5 @@
-import { getHash } from "../maze-utils/hash";
 import { VideoID } from "../types";
+import { getHash } from "../utils/hash";
 import { asyncRequestToServer } from "./requests";
 
 interface RequestOptions {

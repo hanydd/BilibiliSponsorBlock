@@ -2,13 +2,13 @@ import * as React from "react";
 import Config from "../config";
 import { Category, SegmentUUID, SponsorTime } from "../types";
 
-import ThumbsUpSvg from "../svg-icons/thumbs_up_svg";
-import ThumbsDownSvg from "../svg-icons/thumbs_down_svg";
-import { downvoteButtonColor, SkipNoticeAction } from "../utils/noticeUtils";
 import { VoteResponse } from "../messageTypes";
-import { AnimationUtils } from "../maze-utils/animationUtils";
 import { Tooltip } from "../render/Tooltip";
-import { getErrorMessage } from "../maze-utils/formating";
+import ThumbsDownSvg from "../svg-icons/thumbs_down_svg";
+import ThumbsUpSvg from "../svg-icons/thumbs_up_svg";
+import { AnimationUtils } from "../utils/animationUtils";
+import { getErrorMessage } from "../utils/formating";
+import { downvoteButtonColor, SkipNoticeAction } from "../utils/noticeUtils";
 
 export interface CategoryPillProps {
     vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>;

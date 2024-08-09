@@ -1,27 +1,9 @@
 import * as documentScript from "../dist/js/document.js";
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import Config from "./config";
+import { isSafari, Keybind, keybindEquals, keybindToString, StorageChangesObject } from "./config/config";
 import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";
 import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
-import { isFirefoxOrSafari, sleep, waitFor } from "./maze-utils/";
-import { AnimationUtils } from "./maze-utils/animationUtils";
-import { addCleanupListener } from "./maze-utils/cleanup";
-import { isSafari, Keybind, keybindEquals, keybindToString, StorageChangesObject } from "./maze-utils/config";
-import { findValidElement } from "./maze-utils/dom";
-import { getErrorMessage, getFormattedTime } from "./maze-utils/formating";
-import { getHash, HashedValue } from "./maze-utils/hash";
-import { getBilibiliVideoID } from "./maze-utils/parseVideoID";
-import { generateUserID } from "./maze-utils/setup";
-import { updateAll } from "./maze-utils/thumbnailManagement";
-import {
-    checkIfNewVideoID,
-    checkVideoIDChange,
-    getChannelIDInfo,
-    getIsLivePremiere,
-    getVideo,
-    getVideoID,
-    setupVideoModule,
-} from "./maze-utils/video";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";
@@ -29,6 +11,8 @@ import { DescriptionPortPill } from "./render/DesciptionPortPill";
 import SkipNotice from "./render/SkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
 import { asyncRequestToServer } from "./requests/requests";
+import { updateAll } from "./thumbnail-utils/thumbnailManagement";
+import { setupThumbnailListener } from "./thumbnail-utils/thumbnails";
 import {
     ActionType,
     Category,
@@ -47,15 +31,31 @@ import {
     VideoInfo,
 } from "./types";
 import Utils from "./utils";
+import { AnimationUtils } from "./utils/animationUtils";
+import { addCleanupListener } from "./utils/cleanup";
 import { runCompatibilityChecks } from "./utils/compatibility";
 import { defaultPreviewTime } from "./utils/constants";
+import { findValidElement } from "./utils/dom";
 import { importTimes } from "./utils/exporter";
+import { getErrorMessage, getFormattedTime } from "./utils/formating";
 import { GenericUtils } from "./utils/genericUtils";
+import { getHash, HashedValue } from "./utils/hash";
+import { isFirefoxOrSafari, sleep, waitFor } from "./utils/";
 import { logDebug } from "./utils/logger";
 import { cleanPage } from "./utils/pageCleaner";
 import { getControls, getHashParams, getProgressBar, isPlayingPlaylist, isVisible } from "./utils/pageUtils";
-import { setupThumbnailListener } from "./utils/thumbnails";
+import { getBilibiliVideoID } from "./utils/parseVideoID";
+import { generateUserID } from "./utils/setup";
 import { getStartTimeFromUrl } from "./utils/urlParser";
+import {
+    checkIfNewVideoID,
+    checkVideoIDChange,
+    getChannelIDInfo,
+    getIsLivePremiere,
+    getVideo,
+    getVideoID,
+    setupVideoModule,
+} from "./utils/video";
 import { openWarningDialog } from "./utils/warnings";
 
 cleanPage();

@@ -1,5 +1,5 @@
-import { waitFor } from ".";
-import { addCleanupListener } from "./cleanup";
+import { waitFor } from "../utils/";
+import { addCleanupListener } from "../utils/cleanup";
 import { getThumbnailContainerElements, getThumbnailLink, getThumbnailSelectors } from "./thumbnail-selectors";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;

@@ -2,28 +2,28 @@ import * as React from "react";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
 import {
+    ActionType,
     Category,
     ContentContainer,
-    SponsorTime,
     NoticeVisbilityMode,
-    ActionType,
-    SponsorSourceType,
     SegmentUUID,
+    SponsorSourceType,
+    SponsorTime,
 } from "../types";
+import Utils from "../utils";
+import { getSkippingText } from "../utils/categoryUtils";
 import NoticeComponent from "./NoticeComponent";
 import NoticeTextSelectionComponent from "./NoticeTextSectionComponent";
-import Utils from "../utils";
 const utils = new Utils();
-import { getSkippingText } from "../utils/categoryUtils";
 
-import ThumbsUpSvg from "../svg-icons/thumbs_up_svg";
-import ThumbsDownSvg from "../svg-icons/thumbs_down_svg";
+import { keybindToString } from "../config/config";
+import { getVideo } from "../utils/video";
 import PencilSvg from "../svg-icons/pencil_svg";
+import ThumbsDownSvg from "../svg-icons/thumbs_down_svg";
+import ThumbsUpSvg from "../svg-icons/thumbs_up_svg";
+import { getFormattedTime } from "../utils/formating";
 import { downvoteButtonColor, SkipNoticeAction } from "../utils/noticeUtils";
-import { generateUserID } from "../maze-utils/setup";
-import { keybindToString } from "../maze-utils/config";
-import { getFormattedTime } from "../maze-utils/formating";
-import { getVideo } from "../maze-utils/video";
+import { generateUserID } from "../utils/setup";
 
 enum SkipButtonState {
     Undo, // Unskip

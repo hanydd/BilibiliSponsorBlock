@@ -1,4 +1,4 @@
-import { isFirefoxOrSafari } from ".";
+import { isFirefoxOrSafari } from "../utils/";
 
 export interface SyncStorage {
     invidiousInstances: string[];

@@ -1,15 +1,15 @@
 import * as CompileConfig from "../config.json";
 
-import Config from "./config";
-import { Registration } from "./types";
 import "content-scripts-register-polyfill";
+import Config from "./config";
+import { isFirefoxOrSafari } from "./utils/";
+import { chromeP } from "./utils/browserApi";
+import { setupTabUpdates } from "./utils/tab-updates";
 import { sendRealRequestToCustomServer, setupBackgroundRequestProxy } from "./requests/background-request-proxy";
-import { setupTabUpdates } from "./maze-utils/tab-updates";
-import { generateUserID } from "./maze-utils/setup";
-import { isFirefoxOrSafari } from "./maze-utils/";
-import { injectUpdatedScripts } from "./maze-utils/cleanup";
+import { Registration } from "./types";
+import { injectUpdatedScripts } from "./utils/cleanup";
 import { logWarn } from "./utils/logger";
-import { chromeP } from "./maze-utils/browserApi";
+import { generateUserID } from "./utils/setup";
 
 const popupPort: Record<string, chrome.runtime.Port> = {};
 

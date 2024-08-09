@@ -1,4 +1,4 @@
-import { sourceId } from "./maze-utils/parseVideoID";
+import { sourceId } from "./utils/parseVideoID";
 
 const sendMessage = (message): void => {
     window.postMessage({ source: sourceId, ...message }, "/");

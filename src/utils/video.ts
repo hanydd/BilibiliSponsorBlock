@@ -1,11 +1,11 @@
-import { LocalStorage, ProtoConfig, SyncStorage, isSafari } from "../config/config";
+import { waitFor } from "./";
 import { newThumbnails } from "../thumbnail-utils/thumbnailManagement";
-import { waitFor } from "../utils/";
-import { addCleanupListener, setupCleanupListener } from "../utils/cleanup";
-import { BILI_DOMAINS } from "../utils/constants";
-import { getElement, isVisible, waitForElement } from "../utils/dom";
-import { getBilibiliVideoID } from "../utils/parseVideoID";
-import { injectScript } from "../utils/scriptInjector";
+import { addCleanupListener, setupCleanupListener } from "./cleanup";
+import { BILI_DOMAINS } from "./constants";
+import { getElement, isVisible, waitForElement } from "./dom";
+import { injectScript } from "./scriptInjector";
+import { LocalStorage, ProtoConfig, SyncStorage, isSafari } from "../config/config";
+import { getBilibiliVideoID } from "./parseVideoID";
 
 export enum PageType {
     Unknown = "unknown",
