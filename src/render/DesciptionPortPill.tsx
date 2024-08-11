@@ -35,6 +35,9 @@ export class DescriptionPortPill {
     }
 
     async setupDecription(videoId: VideoID) {
+        if (!Config.config.showPortVideoButton) {
+            return;
+        }
         if (this.bvID === videoId) {
             return;
         }
@@ -92,6 +95,7 @@ export class DescriptionPortPill {
             return;
         }
 
+        document.querySelector("#bsbPortButton")?.remove();
         const buttonContainer = document.createElement("div");
         buttonContainer.id = "bsbPortButton";
         buttonContainer.addEventListener("click", () => {

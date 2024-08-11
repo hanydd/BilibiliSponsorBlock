@@ -1118,6 +1118,9 @@
     "showPreviewYoutubeButton": {
         "message": "搬運視頻區域顯示“預覽YouTube視頻”按鈕"
     },
+    "showPortVideoButton": {
+        "message": "顯示綁定搬運視頻按鈕"
+    },
     "NoticeTimeAfterSkip": {
         "message": "{seconds}秒",
         "description": "This is used on the popup to show how much time left. It will look like \"5s\". The word {seconds} will be replaced, so keep it here. Translations should only change the \"s\""

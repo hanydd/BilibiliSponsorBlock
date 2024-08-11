@@ -79,6 +79,7 @@ interface SBConfig {
     showSegmentFailedToFetchWarning: boolean;
     allowScrollingToEdit: boolean;
     showPreviewYoutubeButton: boolean;
+    showPortVideoButton: boolean;
     showZoomToFillError2: boolean;
     cleanPopup: boolean;
 
@@ -240,6 +241,7 @@ const syncDefaults = {
     showSegmentFailedToFetchWarning: true,
     allowScrollingToEdit: true,
     showPreviewYoutubeButton: true,
+    showPortVideoButton: true,
     deArrowInstalled: false,
     showDeArrowPromotion: true,
     showDeArrowInSettings: true,
