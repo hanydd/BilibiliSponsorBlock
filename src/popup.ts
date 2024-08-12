@@ -1,5 +1,7 @@
 import Config from "./config";
 
+import { StorageChangesObject } from "./config/config";
+import { showDonationLink } from "./config/configUtils";
 import {
     GetChannelIDResponse,
     IsChannelWhitelistedResponse,
@@ -11,11 +13,9 @@ import {
     SponsorStartResponse,
     VoteResponse,
 } from "./messageTypes";
-import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "./types";
-// import { showDonationLink } from "./utils/configUtils";
-import { StorageChangesObject } from "./config/config";
 import GenericNotice from "./render/GenericNotice";
 import { asyncRequestToServer, sendRequestToServer } from "./requests/requests";
+import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "./types";
 import { waitFor } from "./utils/";
 import { AnimationUtils } from "./utils/animationUtils";
 import { shortCategoryName } from "./utils/categoryUtils";
@@ -192,10 +192,10 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         PageElements.sponsorBlockPopupBody.classList.add("is-embedded");
     }
 
-    // Hide donate button if wanted (Safari, or user choice)
-    // if (!showDonationLink()) {
-    PageElements.sbDonate.style.display = "none";
-    // }
+    // Hide donate button if wanted
+    if (!showDonationLink()) {
+        PageElements.sbDonate.style.display = "none";
+    }
     PageElements.sbDonate.addEventListener(
         "click",
         () => (Config.config.donateClicked = Config.config.donateClicked + 1)
