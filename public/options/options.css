@@ -130,11 +130,37 @@ body {
 	color: white;
 }
 
-.option-group > div {
+.option-group > div,
+.option-group > div.section > div {
 	min-height: 50px;
 	padding: 20px 0;
 	border-bottom: 1px solid var(--border-color);
 	border-image: linear-gradient(to right, var(--border-color), #00000000 80%) 1;
+}
+
+.option-group > div.section > div:last-child {
+	border-bottom: none;
+}
+
+.option-group > div.section {
+	padding: 0 2em;
+	border-image: linear-gradient(
+			to bottom,
+			#00000000 0%,
+			#00000000 25px,
+			var(--border-color) 100px,
+			var(--border-color) 100%
+		)
+		1;
+	border-left: 1px solid var(--border-color);
+}
+
+.option-group > div.section + div.section {
+	margin-top: 40px;
+}
+
+.option-group > div.section > h3 {
+	text-indent: -2em;
 }
 
 .categoryExtraOptions {

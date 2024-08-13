@@ -75,6 +75,20 @@
 					</div>
 				</div>
 
+				<div data-type="toggle" data-sync="audioNotificationOnSkip">
+					<div class="switch-container">
+						<label class="switch">
+							<input id="audioNotificationOnSkip" type="checkbox" checked>
+							<span class="slider round"></span>
+						</label>
+						<label class="switch-label" for="audioNotificationOnSkip">
+							__MSG_audioNotification__
+						</label>
+					</div>
+
+					<div class="small-description">__MSG_audioNotificationDescription__</div>
+				</div>
+
 				<div data-type="toggle" data-sync="fullVideoSegments" class="no-bottom-border">
 					<div class="switch-container">
 						<label class="switch">
@@ -168,265 +182,259 @@
 
 			<div id="interface" class="option-group hidden">
 
-				<div data-type="number-change" data-sync="skipNoticeDuration">
-					<label class="number-container">
-						<span class="optionLabel">__MSG_skipNoticeDuration__</span>
-						<input type="number" step="1" min="1">
-					</label>
+				<div class="section">
+					<h3>跳过提醒弹窗</h3>
 
-					<div class="small-description">__MSG_skipNoticeDurationDescription__</div>
-				</div>
+					<div data-type="number-change" data-sync="skipNoticeDuration">
+						<label class="number-container">
+							<span class="optionLabel">__MSG_skipNoticeDuration__</span>
+							<input type="number" step="1" min="1">
+						</label>
 
-				<div data-type="toggle" data-toggle-type="reverse" data-sync="dontShowNotice">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="dontShowNotice" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="dontShowNotice">
-							__MSG_showSkipNotice__
-						</label>
+						<div class="small-description">__MSG_skipNoticeDurationDescription__</div>
 					</div>
 
-					<div data-type="selector" data-sync="noticeVisibilityMode" data-dependent-on="dontShowNotice">
-						<br />
+					<div data-type="toggle" data-toggle-type="reverse" data-sync="dontShowNotice">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="dontShowNotice" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="dontShowNotice">
+								__MSG_showSkipNotice__
+							</label>
+						</div>
 
-						<label class="optionLabel" for="noticeVisibilityMode">__MSG_noticeVisibilityLabel__:</label>
+						<div data-type="selector" data-sync="noticeVisibilityMode" data-dependent-on="dontShowNotice">
+							<br />
 
-						<select id="noticeVisibilityMode" class="selector-element optionsSelector">
-							<option value="0">__MSG_noticeVisibilityMode0__</option>
-							<option value="1">__MSG_noticeVisibilityMode1__</option>
-							<option value="2">__MSG_noticeVisibilityMode2__</option>
-							<option value="3">__MSG_noticeVisibilityMode3__</option>
-							<option value="4">__MSG_noticeVisibilityMode4__</option>
-						</select>
-					</div>
-				</div>
+							<label class="optionLabel" for="noticeVisibilityMode">__MSG_noticeVisibilityLabel__:</label>
 
-				<div data-type="selector" data-sync="noticeVisibilityMode">
-					<label class="optionLabel" for="noticeVisibilityMode">__MSG_noticeVisibilityLabel__:</label>
-
-					<select id="noticeVisibilityMode" class="selector-element optionsSelector">
-						<option value="0">__MSG_noticeVisibilityMode0__</option>
-						<option value="1">__MSG_noticeVisibilityMode1__</option>
-						<option value="2">__MSG_noticeVisibilityMode2__</option>
-						<option value="3">__MSG_noticeVisibilityMode3__</option>
-						<option value="4">__MSG_noticeVisibilityMode4__</option>
-					</select>
-				</div>
-
-				<div data-type="toggle" data-sync="showCategoryGuidelines">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="showCategoryGuidelines" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="showCategoryGuidelines">
-							__MSG_showCategoryGuidelines__
-						</label>
-					</div>
-				</div>
-
-				<div data-type="toggle" data-toggle-type="reverse" data-sync="hideVideoPlayerControls">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="hideVideoPlayerControls" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="hideVideoPlayerControls">
-							__MSG_showButtons__
-						</label>
-						<div class="switch-label">
-							<img class="playerButtonImage" src="../icons/PlayerStartIconSponsorBlocker.svg">
+							<select id="noticeVisibilityMode" class="selector-element optionsSelector">
+								<option value="0">__MSG_noticeVisibilityMode0__</option>
+								<option value="1">__MSG_noticeVisibilityMode1__</option>
+								<option value="2">__MSG_noticeVisibilityMode2__</option>
+								<option value="3">__MSG_noticeVisibilityMode3__</option>
+								<option value="4">__MSG_noticeVisibilityMode4__</option>
+							</select>
 						</div>
 					</div>
 
-					<div class="small-description">__MSG_hideButtonsDescription__</div>
-				</div>
-
-				<div data-type="toggle" data-toggle-type="reverse" data-sync="hideDeleteButtonPlayerControls"
-					data-dependent-on="hideVideoPlayerControls">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="hideDeleteButtonPlayerControls" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="hideDeleteButtonPlayerControls">
-							__MSG_showDeleteButton__
-						</label>
-						<div class="switch-label">
-							<img class="playerButtonImage" src="../icons/PlayerDeleteIconSponsorBlocker.svg">
+					<div data-type="toggle" data-sync="showCategoryGuidelines">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="showCategoryGuidelines" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="showCategoryGuidelines">
+								__MSG_showCategoryGuidelines__
+							</label>
 						</div>
 					</div>
-				</div>
 
-				<div data-type="toggle" data-toggle-type="reverse" data-sync="hideUploadButtonPlayerControls"
-					data-dependent-on="hideVideoPlayerControls">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="hideUploadButtonPlayerControls" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="hideUploadButtonPlayerControls">
-							__MSG_showUploadButton__
-						</label>
-						<div class="switch-label">
-							<img class="playerButtonImage" src="../icons/PlayerUploadIconSponsorBlocker.svg">
+					<div data-type="toggle" data-sync="cleanPopup" data-no-safari="true">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="cleanPopup" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="cleanPopup">
+								__MSG_cleanPopup__
+							</label>
 						</div>
 					</div>
+
 				</div>
 
-				<div data-type="toggle" data-toggle-type="reverse" data-sync="hideSkipButtonPlayerControls">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="hideSkipButtonPlayerControls" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="hideSkipButtonPlayerControls">
-							__MSG_showSkipButton__
-						</label>
-						<div class="switch-label">
-							<img class="playerButtonImage" src="../icons/skip.svg">
+				<div class="section">
+					<h3>播放器和按钮区</h3>
+
+					<div data-type="toggle" data-toggle-type="reverse" data-sync="hideVideoPlayerControls">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="hideVideoPlayerControls" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="hideVideoPlayerControls">
+								__MSG_showButtons__
+							</label>
+							<div class="switch-label">
+								<img class="playerButtonImage" src="../icons/PlayerStartIconSponsorBlocker.svg">
+							</div>
+						</div>
+
+						<div class="small-description">__MSG_hideButtonsDescription__</div>
+					</div>
+
+					<div data-type="toggle" data-toggle-type="reverse" data-sync="hideDeleteButtonPlayerControls"
+						data-dependent-on="hideVideoPlayerControls">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="hideDeleteButtonPlayerControls" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="hideDeleteButtonPlayerControls">
+								__MSG_showDeleteButton__
+							</label>
+							<div class="switch-label">
+								<img class="playerButtonImage" src="../icons/PlayerDeleteIconSponsorBlocker.svg">
+							</div>
 						</div>
 					</div>
-				</div>
 
-				<div data-type="toggle" data-toggle-type="reverse" data-sync="hideInfoButtonPlayerControls">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="hideInfoButtonPlayerControls" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="hideInfoButtonPlayerControls">
-							__MSG_showInfoButton__
-						</label>
-						<div class="switch-label">
-							<img class="playerButtonImage" src="../icons/PlayerInfoIconSponsorBlocker.svg">
+					<div data-type="toggle" data-toggle-type="reverse" data-sync="hideUploadButtonPlayerControls"
+						data-dependent-on="hideVideoPlayerControls">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="hideUploadButtonPlayerControls" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="hideUploadButtonPlayerControls">
+								__MSG_showUploadButton__
+							</label>
+							<div class="switch-label">
+								<img class="playerButtonImage" src="../icons/PlayerUploadIconSponsorBlocker.svg">
+							</div>
 						</div>
 					</div>
-				</div>
 
-				<div data-type="toggle" data-sync="autoHideInfoButton" data-dependent-on="hideInfoButtonPlayerControls">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="autoHideInfoButton" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="autoHideInfoButton">
-							__MSG_autoHideInfoButton__
-						</label>
-					</div>
-				</div>
-
-				<div data-type="toggle" data-sync="allowScrollingToEdit">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="allowScrollingToEdit" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="allowScrollingToEdit">
-							__MSG_allowScrollingToEdit__
-						</label>
-					</div>
-				</div>
-
-				<div data-type="toggle" data-sync="showPortVideoButton">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="showPortVideoButton" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="showPortVideoButton">
-							__MSG_showPortVideoButton__
-						</label>
-					</div>
-				</div>
-
-				<div data-type="toggle" data-sync="showPreviewYoutubeButton">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="showPreviewYoutubeButton" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="showPreviewYoutubeButton">
-							__MSG_showPreviewYoutubeButton__
-						</label>
-					</div>
-				</div>
-
-				<div data-type="toggle" data-sync="audioNotificationOnSkip">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="audioNotificationOnSkip" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="audioNotificationOnSkip">
-							__MSG_audioNotification__
-						</label>
+					<div data-type="toggle" data-toggle-type="reverse" data-sync="hideSkipButtonPlayerControls">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="hideSkipButtonPlayerControls" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="hideSkipButtonPlayerControls">
+								__MSG_showSkipButton__
+							</label>
+							<div class="switch-label">
+								<img class="playerButtonImage" src="../icons/skip.svg">
+							</div>
+						</div>
 					</div>
 
-					<div class="small-description">__MSG_audioNotificationDescription__</div>
-				</div>
-
-				<div data-type="toggle" data-sync="showTimeWithSkips">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="showTimeWithSkips" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="showTimeWithSkips">
-							__MSG_showTimeWithSkips__
-						</label>
+					<div data-type="toggle" data-toggle-type="reverse" data-sync="hideInfoButtonPlayerControls">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="hideInfoButtonPlayerControls" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="hideInfoButtonPlayerControls">
+								__MSG_showInfoButton__
+							</label>
+							<div class="switch-label">
+								<img class="playerButtonImage" src="../icons/PlayerInfoIconSponsorBlocker.svg">
+							</div>
+						</div>
 					</div>
 
-					<div class="small-description">__MSG_showTimeWithSkipsDescription__</div>
-				</div>
-
-				<div data-type="toggle" data-sync="cleanPopup" data-no-safari="true">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="cleanPopup" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="cleanPopup">
-							__MSG_cleanPopup__
-						</label>
+					<div data-type="toggle" data-sync="autoHideInfoButton" data-dependent-on="hideInfoButtonPlayerControls">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="autoHideInfoButton" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="autoHideInfoButton">
+								__MSG_autoHideInfoButton__
+							</label>
+						</div>
 					</div>
-				</div>
 
-				<div data-type="toggle" data-sync="darkMode">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="darkMode" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="darkMode">
-							__MSG_darkModeOptionsPage__
-						</label>
+					<div data-type="toggle" data-sync="showTimeWithSkips">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="showTimeWithSkips" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="showTimeWithSkips">
+								__MSG_showTimeWithSkips__
+							</label>
+						</div>
+						<div class="small-description">__MSG_showTimeWithSkipsDescription__</div>
 					</div>
+
 				</div>
 
-				<div data-type="toggle" data-toggle-type="reverse" data-sync="showNewFeaturePopups">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="showNewFeaturePopups" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="showNewFeaturePopups">
-							__MSG_hideNewFeatureUpdates__
-						</label>
+				<div class="section">
+					<h3>搬运视频绑定</h3>
+
+					<div data-type="toggle" data-sync="allowScrollingToEdit">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="allowScrollingToEdit" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="allowScrollingToEdit">
+								__MSG_allowScrollingToEdit__
+							</label>
+						</div>
 					</div>
+
+
+
+					<div data-type="toggle" data-sync="showPortVideoButton">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="showPortVideoButton" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="showPortVideoButton">
+								__MSG_showPortVideoButton__
+							</label>
+						</div>
+					</div>
+
+					<div data-type="toggle" data-sync="showPreviewYoutubeButton">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="showPreviewYoutubeButton" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="showPreviewYoutubeButton">
+								__MSG_showPreviewYoutubeButton__
+							</label>
+						</div>
+					</div>
+
 				</div>
 
-				<div data-type="toggle" data-toggle-type="reverse" data-sync="showDonationLink" data-no-safari="true">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="showDonationLink" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="showDonationLink">
-							__MSG_hideDonationLink__
-						</label>
+				<div class="section">
+					<h3>插件选项和弹出页面</h3>
+
+					<div data-type="toggle" data-sync="darkMode">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="darkMode" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="darkMode">
+								__MSG_darkModeOptionsPage__
+							</label>
+						</div>
+					</div>
+
+					<div data-type="toggle" data-toggle-type="reverse" data-sync="showNewFeaturePopups">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="showNewFeaturePopups" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="showNewFeaturePopups">
+								__MSG_hideNewFeatureUpdates__
+							</label>
+						</div>
+					</div>
+
+					<div data-type="toggle" data-toggle-type="reverse" data-sync="showDonationLink" data-no-safari="true">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="showDonationLink" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="showDonationLink">
+								__MSG_hideDonationLink__
+							</label>
+						</div>
 					</div>
 				</div>
 
