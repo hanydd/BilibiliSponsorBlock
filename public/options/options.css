@@ -143,16 +143,12 @@ body {
 }
 
 .option-group > div.section {
+	margin-top: 13px;
 	padding: 0 2em;
-	border-image: linear-gradient(
-			to bottom,
-			#00000000 0%,
-			#00000000 25px,
-			var(--border-color) 100px,
-			var(--border-color) 100%
-		)
-		1;
+	border-image: linear-gradient(to bottom, var(--border-color) 0, var(--border-color) 70%, #00000000 95%) 1;
 	border-left: 1px solid var(--border-color);
+	border-top: 1px solid var(--border-color);
+	border-bottom: none;
 }
 
 .option-group > div.section + div.section {
@@ -160,7 +156,11 @@ body {
 }
 
 .option-group > div.section > h3 {
-	text-indent: -2em;
+	margin: -13px 0 -10px -2em;
+	padding: 0 15px 10px 0;
+	width: fit-content;
+	z-index: 10;
+	background: var(--background);
 }
 
 .categoryExtraOptions {
