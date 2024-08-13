@@ -733,3 +733,8 @@ svg {
 .promotion-container {
 	width: fit-content;
 }
+
+.playerButtonImage {
+	height: 18px;
+	vertical-align: middle;
+}

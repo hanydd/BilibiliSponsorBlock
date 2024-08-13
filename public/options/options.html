@@ -48,10 +48,9 @@
 
 			<div id="createdBy" class="titleBar">
 				<div>
-					<img src="../icons/creator.png" height="30" class="profilepiccircle"
-						alt="profile picture of creator" />
+					<img src="../icons/creator.png" height="30" class="profilepiccircle" alt="profile picture of creator" />
 					__MSG_createdBy__
-					<a href="https://github.com/HanYaodong">Han Yaodong</a>
+					<a href="https://github.com/HanYaodong">hanyd</a>
 				</div>
 				<a href="https://bsbsb.top/donate/" target="_blank" rel="noopener" id="sbDonate">(__MSG_Donate__)</a>
 			</div>
@@ -237,6 +236,9 @@
 						<label class="switch-label" for="hideVideoPlayerControls">
 							__MSG_showButtons__
 						</label>
+						<div class="switch-label">
+							<img class="playerButtonImage" src="../icons/PlayerStartIconSponsorBlocker.svg">
+						</div>
 					</div>
 
 					<div class="small-description">__MSG_hideButtonsDescription__</div>
@@ -252,6 +254,9 @@
 						<label class="switch-label" for="hideDeleteButtonPlayerControls">
 							__MSG_showDeleteButton__
 						</label>
+						<div class="switch-label">
+							<img class="playerButtonImage" src="../icons/PlayerDeleteIconSponsorBlocker.svg">
+						</div>
 					</div>
 				</div>
 
@@ -265,6 +270,9 @@
 						<label class="switch-label" for="hideUploadButtonPlayerControls">
 							__MSG_showUploadButton__
 						</label>
+						<div class="switch-label">
+							<img class="playerButtonImage" src="../icons/PlayerUploadIconSponsorBlocker.svg">
+						</div>
 					</div>
 				</div>
 
@@ -277,6 +285,9 @@
 						<label class="switch-label" for="hideSkipButtonPlayerControls">
 							__MSG_showSkipButton__
 						</label>
+						<div class="switch-label">
+							<img class="playerButtonImage" src="../icons/skip.svg">
+						</div>
 					</div>
 				</div>
 
@@ -289,6 +300,9 @@
 						<label class="switch-label" for="hideInfoButtonPlayerControls">
 							__MSG_showInfoButton__
 						</label>
+						<div class="switch-label">
+							<img class="playerButtonImage" src="../icons/PlayerInfoIconSponsorBlocker.svg">
+						</div>
 					</div>
 				</div>
 
@@ -316,18 +330,6 @@
 					</div>
 				</div>
 
-				<div data-type="toggle" data-sync="showPreviewYoutubeButton">
-					<div class="switch-container">
-						<label class="switch">
-							<input id="showPreviewYoutubeButton" type="checkbox" checked>
-							<span class="slider round"></span>
-						</label>
-						<label class="switch-label" for="showPreviewYoutubeButton">
-							__MSG_showPreviewYoutubeButton__
-						</label>
-					</div>
-				</div>
-
 				<div data-type="toggle" data-sync="showPortVideoButton">
 					<div class="switch-container">
 						<label class="switch">
@@ -336,6 +338,18 @@
 						</label>
 						<label class="switch-label" for="showPortVideoButton">
 							__MSG_showPortVideoButton__
+						</label>
+					</div>
+				</div>
+
+				<div data-type="toggle" data-sync="showPreviewYoutubeButton">
+					<div class="switch-container">
+						<label class="switch">
+							<input id="showPreviewYoutubeButton" type="checkbox" checked>
+							<span class="slider round"></span>
+						</label>
+						<label class="switch-label" for="showPreviewYoutubeButton">
+							__MSG_showPreviewYoutubeButton__
 						</label>
 					</div>
 				</div>
@@ -604,8 +618,7 @@
 					</div>
 				</div>
 
-				<div data-type="button-press" data-sync="copyDebugInformation"
-					data-confirm-message="copyDebugInformation">
+				<div data-type="button-press" data-sync="copyDebugInformation" data-confirm-message="copyDebugInformation">
 					<div class="option-button trigger-button">
 						__MSG_copyDebugInformation__
 					</div>
