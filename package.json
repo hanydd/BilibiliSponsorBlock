@@ -4,6 +4,7 @@
   "description": "",
   "main": "background.js",
   "dependencies": {
+    "antd": "^5.20.1",
     "content-scripts-register-polyfill": "^4.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -23,7 +24,6 @@
     "@types/wicg-mediasession": "^1.1.4",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
-    "chromedriver": "^126.0.2",
     "concurrently": "^7.6.0",
     "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.57.0",
