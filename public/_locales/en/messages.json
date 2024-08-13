@@ -180,7 +180,7 @@
         "message": "选项"
     },
     "showButtons": {
-        "message": "在播放器上显示信息按钮"
+        "message": "在播放器上显示按钮"
     },
     "hideButtons": {
         "message": "在播放器上隐藏按钮"
@@ -199,6 +199,9 @@
     },
     "autoHideInfoButton": {
         "message": "自动隐藏信息按钮"
+    },
+    "showUploadButton": {
+        "message": "在播放器上显示上传按钮"
     },
     "hideDeleteButton": {
         "message": "在播放器上隐藏删除按钮"
@@ -246,28 +249,28 @@
         "message": "一些类别由于有最低权限要求，需要得到许可才能提交"
     },
     "showNotice": {
-        "message": "重新显示跳过通知"
+        "message": "重新显示空降提醒"
     },
     "showSkipNotice": {
-        "message": "在跳过片段后显示通知"
+        "message": "在跳过片段后显示提醒弹窗"
     },
     "showCategoryGuidelines": {
-        "message": "显示类别帮助"
+        "message": "显示类别说明"
     },
     "noticeVisibilityMode0": {
-        "message": "全尺寸的跳过通知"
+        "message": "全尺寸的空降提醒弹窗"
     },
     "noticeVisibilityMode1": {
-        "message": "缩小自动跳过的提醒"
+        "message": "缩小自动空降提醒弹窗"
     },
     "noticeVisibilityMode2": {
-        "message": "缩小所有的跳过提醒"
+        "message": "缩小的空降提醒弹窗"
     },
     "noticeVisibilityMode3": {
-        "message": "减弱自动跳过的提醒"
+        "message": "半透明自动空降提醒弹窗"
     },
     "noticeVisibilityMode4": {
-        "message": "减弱所有的跳过提醒"
+        "message": "半透明所有的空降提醒弹窗"
     },
     "longDescription": {
         "message": "B站空降助手可帮您跳过B站视频中的恰饭广告、开场结尾、三连提醒和其他烦人片段。空降助手是一个众包的浏览器扩展，任何人可以提交B站视频中的广告和其他片段的开始和结束时间。如果有一人提交了信息，其他所有使用此扩展的人都能直接跳过广告片段。您也可以跳过音乐视频中的非音乐部分。",
@@ -280,14 +283,6 @@
     "sourceCode": {
         "message": "源代码",
         "description": "Used on Firefox Store Page"
-    },
-    "noticeUpdate": {
-        "message": "通知已升级！",
-        "description": "The first line of the message displayed after the notice was upgraded."
-    },
-    "noticeUpdate2": {
-        "message": "如果您依然不喜欢它，请按下不再显示按钮。",
-        "description": "The second line of the message displayed after the notice was upgraded."
     },
     "setSkipShortcut": {
         "message": "跳过片段",
@@ -382,16 +377,16 @@
         "message": "启用自动跳过"
     },
     "audioNotification": {
-        "message": "跳过时音频通知"
+        "message": "跳过时播放音频提醒"
     },
     "audioNotificationDescription": {
-        "message": "在跳过片段时播放声音。如果禁用（或禁用自动跳过），则不会播放声音。"
+        "message": "在跳过片段时播放音频提醒。如果禁用（或禁用自动跳过），则不会播放声音。"
     },
     "showTimeWithSkips": {
-        "message": "显示减去可跳片段后的时间"
+        "message": "显示去除可跳片段后的视频时长"
     },
     "showTimeWithSkipsDescription": {
-        "message": "此时间位于进度条下方的当前时间旁边，用括号框住。 显示的是视频减去所有可跳片段后的时间，可跳片段包括标记为“在进度条中显示”的片段。"
+        "message": "此时间位于进度条下方的时长旁边，用括号框住。 显示的是视频减去所有可跳片段后的时间，可跳片段包括标记为“在进度条中显示”的片段。"
     },
     "youHaveSkipped": {
         "message": "您已跳过 "
@@ -441,7 +436,7 @@
         "message": "创建者"
     },
     "minDuration": {
-        "message": "最小持续时间(秒)："
+        "message": "最短片段时长(秒)："
     },
     "minDurationDescription": {
         "message": "短于设定值的片段将不会被跳过或显示在播放器中。"
@@ -453,19 +448,16 @@
         "message": "如果你想看软广视频时不跳过中间的内容，而是观看完整视频，可以启用软广手动跳过"
     },
     "skipNoticeDuration": {
-        "message": "跳过提醒持续时间（秒）："
+        "message": "“空降提醒弹窗”显示持续时间（秒）："
     },
     "skipNoticeDurationDescription": {
-        "message": "跳过提醒将显示至少这么多秒。手动跳过的提醒可能会显示更久。"
+        "message": "提醒您跳过片段的弹窗的显示时长。手动跳过片段的提醒弹窗可能会显示更久。"
     },
     "shortCheck": {
         "message": "以下的提交短于您的最小持续时间选项。这代表它们可能已经被提交，只是由于该选项被忽略了。您确定要提交吗？"
     },
     "liveOrPremiere": {
         "message": "无法在进行中的直播或首播提交片段。请等待直播结束后刷新页面并确认片段仍然有效，再次提交。"
-    },
-    "showUploadButton": {
-        "message": "显示上传按钮"
     },
     "customServerAddress": {
         "message": "空降助手服务器地址"
@@ -1001,7 +993,7 @@
         "description": "Appears in Options as a tab header for advanced/niche options. To fit inside the button, it should not be longer than ~20-25 characters (depending on their width)."
     },
     "noticeVisibilityLabel": {
-        "message": "跳过提醒外观",
+        "message": "空降提醒外观",
         "description": "Option label"
     },
     "unbind": {
@@ -1113,7 +1105,7 @@
         "message": "警告：服务器未响应。片段可能已提交，只是由于服务器问题您未收到回应。"
     },
     "allowScrollingToEdit": {
-        "message": "允许滚动编辑时间"
+        "message": "允许滚轮编辑时间"
     },
     "showPreviewYoutubeButton": {
         "message": "搬运视频区域显示“预览YouTube视频”按钮"

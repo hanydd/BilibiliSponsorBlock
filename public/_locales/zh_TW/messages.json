@@ -180,7 +180,7 @@
         "message": "選項"
     },
     "showButtons": {
-        "message": "在播放器上顯示資訊按鈕"
+        "message": "在播放器上顯示按鈕"
     },
     "hideButtons": {
         "message": "在播放器上隱藏按鈕"
@@ -199,6 +199,9 @@
     },
     "autoHideInfoButton": {
         "message": "自動隱藏資訊按鈕"
+    },
+    "showUploadButton": {
+        "message": "在播放器上顯示上傳按鈕"
     },
     "hideDeleteButton": {
         "message": "在播放器上隱藏刪除按鈕"
@@ -246,28 +249,28 @@
         "message": "一些類別由於有最低權限要求，需要得到許可才能提交"
     },
     "showNotice": {
-        "message": "重新顯示跳過通知"
+        "message": "重新顯示跳過提醒"
     },
     "showSkipNotice": {
-        "message": "在跳過片段後顯示通知"
+        "message": "在跳過片段後顯示提醒彈窗"
     },
     "showCategoryGuidelines": {
-        "message": "顯示類別幫助"
+        "message": "顯示類別説明"
     },
     "noticeVisibilityMode0": {
-        "message": "全尺寸的跳過通知"
+        "message": "全尺寸的跳過提醒彈窗"
     },
     "noticeVisibilityMode1": {
-        "message": "縮小自動跳過的提醒"
+        "message": "縮小自動跳過的提醒彈窗"
     },
     "noticeVisibilityMode2": {
-        "message": "縮小所有的跳過提醒"
+        "message": "縮小所有的跳過提醒彈窗"
     },
     "noticeVisibilityMode3": {
-        "message": "減弱自動跳過的提醒"
+        "message": "半透明自動跳過的提醒彈窗"
     },
     "noticeVisibilityMode4": {
-        "message": "減弱所有的跳過提醒"
+        "message": "半透明所有的跳過提醒彈窗"
     },
     "longDescription": {
         "message": "Bilibili Sponsor Block可幫您跳過影片中的贊助廣告、開場結尾、三連提醒和其他煩人片段。Bilibili Sponsor Block是一個瀏覽器擴展，任何人可以提交影片中的廣告和其他片段的開始和結束時間。如果有一人提交了資訊，其他所有使用此擴展的人都能直接跳過廣告片段。您也可以跳過音樂影片中的非音樂部分。",
@@ -280,14 +283,6 @@
     "sourceCode": {
         "message": "原始碼",
         "description": "Used on Firefox Store Page"
-    },
-    "noticeUpdate": {
-        "message": "通知已升級！",
-        "description": "The first line of the message displayed after the notice was upgraded."
-    },
-    "noticeUpdate2": {
-        "message": "如果您依然不喜歡它，請按下不再顯示按鈕。",
-        "description": "The second line of the message displayed after the notice was upgraded."
     },
     "setSkipShortcut": {
         "message": "跳過片段",
@@ -388,7 +383,7 @@
         "message": "在跳過片段時播放聲音。如果禁用（或禁用自動跳過），則不會播放聲音。"
     },
     "showTimeWithSkips": {
-        "message": "顯示減去可跳片段後的時間"
+        "message": "顯示減去可跳片段後的影片時長"
     },
     "showTimeWithSkipsDescription": {
         "message": "此時間位於進度條下方的當前時間旁邊，用括號框住。 顯示的是影片減去所有可跳片段後的時間，可跳片段包括標記為“在進度條中顯示”的片段。"
@@ -441,7 +436,7 @@
         "message": "創建者"
     },
     "minDuration": {
-        "message": "最小持續時間(秒)："
+        "message": "最小片段時長(秒)："
     },
     "minDurationDescription": {
         "message": "短於設定值的片段將不會被跳過或顯示在播放器中。"
@@ -453,19 +448,16 @@
         "message": "如果您想看推廣影片時不跳過中間的內容，而是觀看完整影片，可以啟用推廣手動跳過"
     },
     "skipNoticeDuration": {
-        "message": "跳過提醒持續時間（秒）："
+        "message": "跳過提醒彈窗持續時間（秒）："
     },
     "skipNoticeDurationDescription": {
-        "message": "跳過提醒將顯示至少這麼多秒。手動跳過的提醒可能會顯示更久。"
+        "message": "跳過提醒彈窗的顯示時常。手動跳過的提醒可能會顯示更久。"
     },
     "shortCheck": {
         "message": "以下的提交短於您的最小持續時間選項。這代表它們可能已經被提交，只是由於該選項被忽略了。您確定要提交嗎？"
     },
     "liveOrPremiere": {
         "message": "無法在進行中的直播或首播提交片段。請等待直播結束後刷新頁面並確認片段仍然有效，再次提交。"
-    },
-    "showUploadButton": {
-        "message": "顯示上傳按鈕"
     },
     "customServerAddress": {
         "message": "Bilibili Sponsor Block伺服器地址"
