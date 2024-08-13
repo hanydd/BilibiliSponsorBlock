@@ -288,8 +288,11 @@
         "message": "跳過片段",
         "description": "Keybind label"
     },
+    "setSkipToPoiShortcut": {
+        "message": "跳至精彩時刻"
+    },
     "setStartSponsorShortcut": {
-        "message": "片段開始/停止",
+        "message": "片段開始/結束",
         "description": "Keybind label"
     },
     "setOpenSubmissionMenuKeybind": {

@@ -288,8 +288,11 @@
         "message": "跳过片段",
         "description": "Keybind label"
     },
+    "setSkipToPoiShortcut": {
+        "message": "空降高能时刻"
+    },
     "setStartSponsorShortcut": {
-        "message": "片段开始/停止",
+        "message": "片段开始/结束",
         "description": "Keybind label"
     },
     "setOpenSubmissionMenuKeybind": {
@@ -309,11 +312,11 @@
         "description": "Keybind label"
     },
     "nextFrameKeybind": {
-        "message": "（编辑提交弹窗）视频下一帧",
+        "message": "（当打开编辑提交弹窗时生效）视频下一帧",
         "description": "Keybind label"
     },
     "previousFrameKeybind": {
-        "message": "编辑提交弹窗）视频前一帧",
+        "message": "（当打开编辑提交弹窗时生效）视频前一帧",
         "description": "Keybind label"
     },
     "keybindDescription": {
