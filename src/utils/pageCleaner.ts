@@ -1,5 +1,5 @@
-const bsbElements = [
-    "#categoryPillParent",
+const bsbElementsSelector = [
+    "#categoryPill",
     ".playerButton",
     ".sponsorThumbnailLabel",
     "#submissionNoticeContainer",
@@ -10,9 +10,7 @@ const bsbElements = [
     "#shadowPreviewbar",
     "#bsbPortButton",
     "#bsbDescriptionContainer",
-];
-
-const bsbElementsSelector = bsbElements.join(", ");
+].join(", ");
 
 export function cleanPage() {
     // For live-updates
