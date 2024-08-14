@@ -4,9 +4,8 @@ import { isSafari } from "../config/config";
 import {
     channelIDChange,
     videoIDChange as contentVideoIDChange,
-    playerInit,
     resetValues as resetContentValues,
-    videoElementChange,
+    videoElementChange
 } from "../content";
 import { newThumbnails } from "../thumbnail-utils/thumbnailManagement";
 import { waitFor } from "./";
@@ -336,16 +335,9 @@ function addPageListeners(): void {
         injectScript(documentScript);
     }
 
-    // piped player init
-    const playerInitListener = () => {
-        if (!document.querySelector('meta[property="og:title"][content="Piped"]')) return;
-        playerInit();
-    };
-    window.addEventListener("playerInit", playerInitListener);
     window.addEventListener("message", windowListenerHandler);
 
     addCleanupListener(() => {
-        window.removeEventListener("playerInit", playerInitListener);
         window.removeEventListener("message", windowListenerHandler);
     });
 }

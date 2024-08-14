@@ -1462,12 +1462,6 @@ function checkPreviewbarState(): void {
     createPreviewBar();
 }
 
-export function playerInit() {
-    previewBar = null; // remove old previewbar
-    removeDurationAfterSkip();
-    createPreviewBar();
-}
-
 export function updatePlayerBar() {
     updatePreviewBar();
     updateVisibilityOfPlayerControlsButton();
