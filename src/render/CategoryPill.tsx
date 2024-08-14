@@ -5,7 +5,6 @@ import Config from "../config";
 import { getPageLoaded } from "../content";
 import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
-import { getBilibiliTitleNode } from "../utils/elementSelector";
 import { VoteResponse } from "../messageTypes";
 import { Category, SegmentUUID, SponsorTime } from "../types";
 import { Tooltip } from "./Tooltip";
@@ -147,4 +146,8 @@ export class CategoryPill {
         }
         this.isSegmentSet = true;
     }
+}
+
+function getBilibiliTitleNode(): HTMLElement {
+    return document.querySelector(".video-info-container h1") as HTMLElement;
 }
