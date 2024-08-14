@@ -1,16 +1,25 @@
-import { sourceId } from "./utils/parseVideoID";
+import { InjectedScriptMessageSend, sourceId } from "./utils/injectedScriptMessageUtils";
 
-const sendMessage = (message): void => {
-    window.postMessage({ source: sourceId, ...message }, "/");
+const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): void => {
+    window.postMessage(
+        {
+            source: sourceId,
+            type: messageData.responseType,
+            id: messageData.id,
+            data: payload,
+        },
+        "/"
+    );
 };
 
 function windowMessageListener(message: MessageEvent) {
     if (!message.data?.source) {
         return;
     }
-    if (message.data?.source === sourceId) {
-        if (message.data?.type === "getBvID") {
-            sendMessage({ type: "returnBvID", id: message.data.id, bvID: window?.__INITIAL_STATE__?.bvid });
+    if (message.data?.source === sourceId && message.data?.responseType) {
+        const data: InjectedScriptMessageSend = message.data;
+        if (data.type === "getBvID") {
+            sendMessageToContent(data, window?.__INITIAL_STATE__?.bvid);
         }
     }
 }

@@ -1,8 +1,7 @@
 import { getBvIDfromAvIDBiliApi } from "../requests/bilibiliApi";
 import { BILI_DOMAINS } from "./constants";
+import { getPropertyFromWindow, InjectedScriptMessageTypeEnum } from "./injectedScriptMessageUtils";
 import { VideoID } from "./video";
-
-export const sourceId = "biliSponsorBlock";
 
 export async function getBilibiliVideoID(url?: string): Promise<VideoID | null> {
     url ||= document?.URL;
@@ -19,24 +18,13 @@ export async function getBilibiliVideoID(url?: string): Promise<VideoID | null> 
  * get video info from `window.__INITIAL_STATE__` object
  */
 export function getBvIDFromWindow(timeout = 200): Promise<VideoID | null> {
-    return new Promise((resolve) => {
-        const id = `getBvID_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-        const bvIDMessageListener = (message: MessageEvent) => {
-            if (message.data?.source == sourceId && message.data?.type === "returnBvID" && message.data?.id === id) {
-                clearTimeout(messageTimeout);
-                window.removeEventListener("message", bvIDMessageListener);
-                resolve(message.data.bvID as VideoID);
-            }
-        };
-        window.addEventListener("message", bvIDMessageListener);
-        window.postMessage({ source: sourceId, type: "getBvID", id: id }, "/");
-
-        // count as failed if no response after certain time
-        const messageTimeout = setTimeout(() => {
-            window.removeEventListener("message", bvIDMessageListener);
-            resolve(null);
-        }, timeout);
-    });
+    return getPropertyFromWindow<VideoID>(
+        {
+            sendType: InjectedScriptMessageTypeEnum.getBvID,
+            responseType: InjectedScriptMessageTypeEnum.returnBvID,
+        },
+        timeout
+    );
 }
 
 const BILIBILI_VIDEO_URL_REGEX = /^\/video\/((BV1[a-zA-Z0-9]{9})|(av\d+))\/?/;
