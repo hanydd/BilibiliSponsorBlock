@@ -61,8 +61,6 @@ cleanPage();
 const utils = new Utils();
 
 waitFor(() => Config.isReady(), 5000, 10).then(() => {
-    // Hack to get the CSS loaded on permission-based sites (Invidious)
-    addCSS();
     setCategoryColorCSSVariables();
 });
 
@@ -2721,33 +2719,6 @@ export function seekFrameByKeyPressListener(key) {
     } else if (keybindEquals(key, Config.config.previousFrameKeybind)) {
         // previous frame
         vid.currentTime -= 1 / 30;
-    }
-}
-
-/**
- * Adds the CSS to the page if needed. Required on optional sites with Chrome.
- */
-function addCSS() {
-    if (!isFirefoxOrSafari() && Config.config.invidiousInstances.includes(new URL(document.URL).hostname)) {
-        const onLoad = () => {
-            const head = document.getElementsByTagName("head")[0];
-
-            for (const file of utils.css) {
-                const fileref = document.createElement("link");
-
-                fileref.rel = "stylesheet";
-                fileref.type = "text/css";
-                fileref.href = chrome.runtime.getURL(file);
-
-                head.appendChild(fileref);
-            }
-        };
-
-        if (document.readyState === "complete") {
-            onLoad();
-        } else {
-            document.addEventListener("DOMContentLoaded", onLoad);
-        }
     }
 }
 
