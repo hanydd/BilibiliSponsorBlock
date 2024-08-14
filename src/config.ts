@@ -73,6 +73,7 @@ interface SBConfig {
     showChapterInfoMessage: boolean;
     darkMode: boolean;
     showCategoryGuidelines: boolean;
+    showShortcutPopover: boolean;
     showCategoryWithoutPermission: boolean;
     showSegmentNameInChapterBar: boolean;
     useVirtualTime: boolean;
@@ -235,6 +236,7 @@ const syncDefaults = {
     showChapterInfoMessage: true,
     darkMode: true,
     showCategoryGuidelines: true,
+    showShortcutPopover: true,
     showCategoryWithoutPermission: false,
     showSegmentNameInChapterBar: true,
     useVirtualTime: true,

@@ -1,15 +1,16 @@
 import * as React from "react";
+import * as CompileConfig from "../../config.json";
 import Config from "../config";
 import GenericNotice from "../render/GenericNotice";
 import { Category, ContentContainer } from "../types";
-import * as CompileConfig from "../../config.json";
 
-import NoticeComponent from "./NoticeComponent";
-import NoticeTextSelectionComponent from "./NoticeTextSectionComponent";
-import SponsorTimeEditComponent from "./SponsorTimeEditComponent";
+import { ConfigProvider, Popover, theme } from "antd";
 import { getGuidelineInfo } from "../utils/constants";
 import { exportTimes } from "../utils/exporter";
 import { getVideo } from "../utils/video";
+import NoticeComponent from "./NoticeComponent";
+import NoticeTextSelectionComponent from "./NoticeTextSectionComponent";
+import SponsorTimeEditComponent from "./SponsorTimeEditComponent";
 
 export interface SubmissionNoticeProps {
     // Contains functions and variables from the content script needed by the skip notice
@@ -24,6 +25,7 @@ export interface SubmissionNoticeState {
     noticeTitle: string;
     messages: string[];
     idSuffix: string;
+    popoverOpen: boolean;
 }
 
 class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, SubmissionNoticeState> {
@@ -57,6 +59,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
             noticeTitle,
             messages: [],
             idSuffix: "SubmissionNotice",
+            popoverOpen: Config.config.showShortcutPopover,
         };
     }
 
@@ -129,50 +132,56 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
             ></img>
         );
         return (
-            <NoticeComponent
-                noticeTitle={this.state.noticeTitle}
-                idSuffix={this.state.idSuffix}
-                ref={this.noticeRef}
-                closeListener={this.cancel.bind(this)}
-                zIndex={5000}
-                firstColumn={[sortButton, exportButton]}
-            >
-                {/* Text Boxes */}
-                {this.getMessageBoxes()}
+            <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
+                <Popover content={this.popoverContent} open={this.state.popoverOpen}>
+                    <NoticeComponent
+                        noticeTitle={this.state.noticeTitle}
+                        idSuffix={this.state.idSuffix}
+                        ref={this.noticeRef}
+                        closeListener={this.cancel.bind(this)}
+                        zIndex={5000}
+                        firstColumn={[sortButton, exportButton]}
+                    >
+                        {/* Text Boxes */}
+                        {this.getMessageBoxes()}
 
-                {/* Sponsor Time List */}
-                <tr
-                    id={"sponsorSkipNoticeMiddleRow" + this.state.idSuffix}
-                    className="sponsorTimeMessagesRow"
-                    style={{ maxHeight: getVideo()?.offsetHeight - 200 + "px" }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                >
-                    <td style={{ width: "100%" }}>{this.getSponsorTimeMessages()}</td>
-                </tr>
-
-                {/* Last Row */}
-                <tr id={"sponsorSkipNoticeSecondRow" + this.state.idSuffix}>
-                    <td className="sponsorSkipNoticeRightSection" style={{ position: "relative" }}>
-                        {/* Guidelines button */}
-                        <button
-                            className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
-                            onClick={() => window.open("https://wiki.sponsor.ajay.app/w/Guidelines")}
+                        {/* Sponsor Time List */}
+                        <tr
+                            id={"sponsorSkipNoticeMiddleRow" + this.state.idSuffix}
+                            className="sponsorTimeMessagesRow"
+                            style={{ maxHeight: getVideo()?.offsetHeight - 200 + "px" }}
+                            onMouseDown={(e) => e.stopPropagation()}
                         >
-                            {chrome.i18n.getMessage(
-                                Config.config.submissionCountSinceCategories > 3 ? "guidelines" : "readTheGuidelines"
-                            )}
-                        </button>
+                            <td style={{ width: "100%" }}>{this.getSponsorTimeMessages()}</td>
+                        </tr>
 
-                        {/* Submit Button */}
-                        <button
-                            className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
-                            onClick={this.submit.bind(this)}
-                        >
-                            {chrome.i18n.getMessage("submit")}
-                        </button>
-                    </td>
-                </tr>
-            </NoticeComponent>
+                        {/* Last Row */}
+                        <tr id={"sponsorSkipNoticeSecondRow" + this.state.idSuffix}>
+                            <td className="sponsorSkipNoticeRightSection" style={{ position: "relative" }}>
+                                {/* Guidelines button */}
+                                <button
+                                    className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
+                                    onClick={() => window.open("https://wiki.sponsor.ajay.app/w/Guidelines")}
+                                >
+                                    {chrome.i18n.getMessage(
+                                        Config.config.submissionCountSinceCategories > 3
+                                            ? "guidelines"
+                                            : "readTheGuidelines"
+                                    )}
+                                </button>
+
+                                {/* Submit Button */}
+                                <button
+                                    className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
+                                    onClick={this.submit.bind(this)}
+                                >
+                                    {chrome.i18n.getMessage("submit")}
+                                </button>
+                            </td>
+                        </tr>
+                    </NoticeComponent>
+                </Popover>
+            </ConfigProvider>
         );
     }
 
@@ -338,6 +347,44 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
             }
         }
     }
+
+    popoverContent = () => {
+        return (
+            <>
+                <p>无法精准定位？可以尝试使用 “,” 和 “.” 按键跳到上一帧或者下一帧！试试吧~</p>
+                <p>
+                    （快捷键只有在打开弹窗时可用，按键绑定可以在
+                    <a
+                        style={{ color: "var(--sb-brand-blue)" }}
+                        onClick={() => {
+                            chrome.runtime.sendMessage({ message: "openConfig", hash: "keybinds" });
+                        }}
+                    >
+                        选项页面
+                    </a>
+                    中修改）
+                </p>
+                <p style={{ padding: "0 20px", textAlign: "center" }}>
+                    <a
+                        style={{ paddingRight: "30px" }}
+                        onClick={() => {
+                            this.setState({ popoverOpen: false });
+                        }}
+                    >
+                        关闭
+                    </a>
+                    <a
+                        onClick={() => {
+                            Config.config.showShortcutPopover = false;
+                            this.setState({ popoverOpen: false });
+                        }}
+                    >
+                        不再提示
+                    </a>
+                </p>
+            </>
+        );
+    };
 }
 
 export default SubmissionNoticeComponent;

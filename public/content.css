@@ -900,3 +900,7 @@ input::-webkit-inner-spin-button {
 	height: 24px;
 	margin-right: 8px;
 }
+
+.ant-popover-content a {
+	color: var(--sb-brand-blue);
+}
