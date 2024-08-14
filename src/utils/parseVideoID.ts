@@ -1,6 +1,6 @@
 import { getBvIDfromAvIDBiliApi } from "../requests/bilibiliApi";
 import { BILI_DOMAINS } from "./constants";
-import { getPropertyFromWindow, InjectedScriptMessageTypeEnum } from "./injectedScriptMessageUtils";
+import { getPropertyFromWindow } from "./injectedScriptMessageUtils";
 import { VideoID } from "./video";
 
 export async function getBilibiliVideoID(url?: string): Promise<VideoID | null> {
@@ -20,8 +20,8 @@ export async function getBilibiliVideoID(url?: string): Promise<VideoID | null> 
 export function getBvIDFromWindow(timeout = 200): Promise<VideoID | null> {
     return getPropertyFromWindow<VideoID>(
         {
-            sendType: InjectedScriptMessageTypeEnum.getBvID,
-            responseType: InjectedScriptMessageTypeEnum.returnBvID,
+            sendType: "getBvID",
+            responseType: "returnBvID",
         },
         timeout
     );

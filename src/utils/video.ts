@@ -5,12 +5,13 @@ import {
     channelIDChange,
     videoIDChange as contentVideoIDChange,
     resetValues as resetContentValues,
-    videoElementChange
+    videoElementChange,
 } from "../content";
 import { newThumbnails } from "../thumbnail-utils/thumbnailManagement";
 import { waitFor } from "./";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
 import { getElement, isVisible, waitForElement } from "./dom";
+import { getPropertyFromWindow } from "./injectedScriptMessageUtils";
 import { getBilibiliVideoID } from "./parseVideoID";
 import { injectScript } from "./scriptInjector";
 
@@ -339,6 +340,17 @@ function addPageListeners(): void {
 
     addCleanupListener(() => {
         window.removeEventListener("message", windowListenerHandler);
+    });
+}
+
+export async function getFrameRate() {
+    return await getPropertyFromWindow<number>({
+        sendType: "getFrameRate",
+        responseType: "returnFrameRate",
+    }).catch((e) => {
+        // fall back to 30 fps
+        console.log(e);
+        return 30;
     });
 }
 

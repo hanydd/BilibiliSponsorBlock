@@ -48,6 +48,7 @@ import {
     checkIfNewVideoID,
     checkVideoIDChange,
     getChannelIDInfo,
+    getFrameRate,
     getIsLivePremiere,
     getVideo,
     getVideoID,
@@ -2694,17 +2695,17 @@ function hotkeyListener(e: KeyboardEvent): void {
  * Uses 1/30s as the frame rate, as it's the most common frame rate for videos
  * @param key keydown event
  */
-export function seekFrameByKeyPressListener(key) {
+export async function seekFrameByKeyPressListener(key) {
     const vid = getVideo();
+    const frameRate = await getFrameRate();
     if (!vid.paused) return;
 
-    // TODO: better way to check framerate or next frame
     if (keybindEquals(key, Config.config.nextFrameKeybind)) {
         // next frame
-        vid.currentTime += 1 / 30;
+        vid.currentTime += 1 / frameRate;
     } else if (keybindEquals(key, Config.config.previousFrameKeybind)) {
         // previous frame
-        vid.currentTime -= 1 / 30;
+        vid.currentTime -= 1 / frameRate;
     }
 }
 

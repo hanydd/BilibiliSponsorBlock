@@ -2,7 +2,7 @@ import SBObject from "./config";
 declare global {
     interface Window {
         SB: typeof SBObject;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        __INITIAL_STATE__?: any;
+        __INITIAL_STATE__?: { bvid: string };
+        __playinfo__?: { data: { quality: number; dash: { video: { id: number; frameRate: number }[] } } };
     }
 }

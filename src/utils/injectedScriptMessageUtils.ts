@@ -3,11 +3,11 @@ export const sourceId = "biliSponsorBlock";
 export interface InjectedScriptMessageBase {
     source: string;
     id: string;
-    type: InjectedScriptMessageTypeEnum;
+    type: string;
 }
 
 export interface InjectedScriptMessageSend extends InjectedScriptMessageBase {
-    responseType: InjectedScriptMessageTypeEnum;
+    responseType: string;
 }
 
 export interface InjectedScriptMessageRecieve extends InjectedScriptMessageBase {
@@ -15,13 +15,8 @@ export interface InjectedScriptMessageRecieve extends InjectedScriptMessageBase 
 }
 
 export interface InjectedScriptMessageType {
-    sendType: InjectedScriptMessageTypeEnum;
-    responseType: InjectedScriptMessageTypeEnum;
-}
-
-export enum InjectedScriptMessageTypeEnum {
-    getBvID = "getBvID",
-    returnBvID = "returnBvID",
+    sendType: string;
+    responseType: string;
 }
 
 export async function getPropertyFromWindow<T>(

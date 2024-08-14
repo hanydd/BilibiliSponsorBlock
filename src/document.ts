@@ -20,6 +20,10 @@ function windowMessageListener(message: MessageEvent) {
         const data: InjectedScriptMessageSend = message.data;
         if (data.type === "getBvID") {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.bvid);
+        } else if (data.type === "getFrameRate") {
+            const currentQuality = window.__playinfo__.data.quality;
+            const frameRate = window.__playinfo__.data.dash.video.filter((v) => v.id === currentQuality)[0].frameRate;
+            sendMessageToContent(data, frameRate);
         }
     }
 }
