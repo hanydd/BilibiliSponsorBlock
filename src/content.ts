@@ -31,8 +31,9 @@ import {
     VideoInfo,
 } from "./types";
 import Utils from "./utils";
+import { isFirefoxOrSafari, sleep, waitFor } from "./utils/";
 import { AnimationUtils } from "./utils/animationUtils";
-import { addCleanupListener } from "./utils/cleanup";
+import { addCleanupListener, cleanPage } from "./utils/cleanup";
 import { runCompatibilityChecks } from "./utils/compatibility";
 import { defaultPreviewTime } from "./utils/constants";
 import { findValidElement } from "./utils/dom";
@@ -40,9 +41,7 @@ import { importTimes } from "./utils/exporter";
 import { getErrorMessage, getFormattedTime } from "./utils/formating";
 import { GenericUtils } from "./utils/genericUtils";
 import { getHash, HashedValue } from "./utils/hash";
-import { isFirefoxOrSafari, sleep, waitFor } from "./utils/";
 import { logDebug } from "./utils/logger";
-import { cleanPage } from "./utils/pageCleaner";
 import { getControls, getHashParams, getProgressBar, isPlayingPlaylist, isVisible } from "./utils/pageUtils";
 import { getBilibiliVideoID } from "./utils/parseVideoID";
 import { generateUserID } from "./utils/setup";

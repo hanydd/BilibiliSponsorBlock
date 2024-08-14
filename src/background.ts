@@ -2,14 +2,11 @@ import * as CompileConfig from "../config.json";
 
 import "content-scripts-register-polyfill";
 import Config from "./config";
-import { isFirefoxOrSafari } from "./utils/";
-import { chromeP } from "./utils/browserApi";
-import { setupTabUpdates } from "./utils/tab-updates";
 import { sendRealRequestToCustomServer, setupBackgroundRequestProxy } from "./requests/background-request-proxy";
 import { Registration } from "./types";
-import { injectUpdatedScripts } from "./utils/cleanup";
-import { logWarn } from "./utils/logger";
+import { chromeP } from "./utils/browserApi";
 import { generateUserID } from "./utils/setup";
+import { setupTabUpdates } from "./utils/tab-updates";
 
 const popupPort: Record<string, chrome.runtime.Port> = {};
 
@@ -109,10 +106,6 @@ chrome.runtime.onInstalled.addListener(function () {
             Config.config.categoryPillUpdate = true;
         }
     }, 1500);
-
-    if (!isFirefoxOrSafari()) {
-        injectUpdatedScripts().catch(logWarn);
-    }
 });
 
 /**
