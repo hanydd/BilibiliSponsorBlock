@@ -1,4 +1,3 @@
-import * as documentScript from "../dist/js/document.js";
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import Config from "./config";
 import { isSafari, Keybind, keybindEquals, keybindToString, StorageChangesObject } from "./config/config";
@@ -111,25 +110,7 @@ const controlsWithEventListeners: HTMLElement[] = [];
 let headerLoaded = false;
 setupPageLoadingListener();
 
-setupVideoModule(
-    {
-        videoIDChange,
-        channelIDChange,
-        videoElementChange,
-        playerInit: () => {
-            previewBar = null; // remove old previewbar
-            removeDurationAfterSkip();
-            createPreviewBar();
-        },
-        updatePlayerBar: () => {
-            updatePreviewBar();
-            updateVisibilityOfPlayerControlsButton();
-        },
-        resetValues,
-        documentScript: chrome.runtime.getManifest().manifest_version === 2 ? documentScript : undefined,
-    },
-    () => Config
-);
+setupVideoModule();
 setupThumbnailListener();
 
 /**
@@ -421,7 +402,7 @@ if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
     Config.configSyncListeners.push(contentConfigUpdateListener);
 }
 
-function resetValues() {
+export function resetValues() {
     lastCheckTime = 0;
     lastCheckVideoTime = -1;
     retryCount = 0;
@@ -463,7 +444,7 @@ function resetValues() {
     }
 }
 
-async function videoIDChange(): Promise<void> {
+export async function videoIDChange(): Promise<void> {
     //setup the preview bar
     if (previewBar === null) {
         waitFor(getControls).then(createPreviewBar);
@@ -1436,7 +1417,7 @@ function updatePreviewBar(): void {
 }
 
 //checks if this channel is whitelisted, should be done only after the channelID has been loaded
-async function channelIDChange(channelIDInfo: ChannelIDInfo) {
+export async function channelIDChange(channelIDInfo: ChannelIDInfo) {
     const whitelistedChannels = Config.config.whitelistedChannels;
 
     //see if this is a whitelisted channel
@@ -1452,7 +1433,7 @@ async function channelIDChange(channelIDInfo: ChannelIDInfo) {
     if (Config.config.forceChannelCheck && sponsorTimes?.length > 0) startSkipScheduleCheckingForStartSponsors();
 }
 
-function videoElementChange(newVideo: boolean): void {
+export function videoElementChange(newVideo: boolean): void {
     waitFor(() => Config.isReady()).then(() => {
         if (newVideo) {
             setupVideoListeners();
@@ -1479,6 +1460,17 @@ function checkPreviewbarState(): void {
     }
 
     createPreviewBar();
+}
+
+export function playerInit() {
+    previewBar = null; // remove old previewbar
+    removeDurationAfterSkip();
+    createPreviewBar();
+}
+
+export function updatePlayerBar() {
+    updatePreviewBar();
+    updateVisibilityOfPlayerControlsButton();
 }
 
 /**

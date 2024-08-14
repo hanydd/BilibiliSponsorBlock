@@ -1,10 +1,19 @@
-import { waitFor } from "./";
+import * as documentScript from "../../dist/js/document.js";
+import Config from "../config";
+import { isSafari } from "../config/config";
+import {
+    channelIDChange,
+    videoIDChange as contentVideoIDChange,
+    playerInit,
+    resetValues as resetContentValues,
+    videoElementChange,
+} from "../content";
 import { newThumbnails } from "../thumbnail-utils/thumbnailManagement";
+import { waitFor } from "./";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
 import { getElement, isVisible, waitForElement } from "./dom";
-import { injectScript } from "./scriptInjector";
-import { LocalStorage, ProtoConfig, SyncStorage, isSafari } from "../config/config";
 import { getBilibiliVideoID } from "./parseVideoID";
+import { injectScript } from "./scriptInjector";
 
 export enum PageType {
     Unknown = "unknown",
@@ -28,19 +37,6 @@ export interface ChannelIDInfo {
     status: ChannelIDStatus;
 }
 
-interface VideoModuleParams {
-    videoIDChange: (videoID: VideoID) => void;
-    channelIDChange: (channelIDInfo: ChannelIDInfo) => void;
-    videoElementChange?: (newVideo: boolean, video: HTMLVideoElement | null) => void;
-    playerInit?: () => void;
-    updatePlayerBar?: () => void;
-    resetValues: () => void;
-    windowListenerHandler?: (event: MessageEvent) => void;
-    newVideosLoaded?: (videoIDs: VideoID[]) => void; // Used to pre-cache data for videos
-    documentScript: string;
-    allowClipPage?: boolean;
-}
-
 const embedTitleSelector = "h1.video-title";
 
 let video: HTMLVideoElement | null = null;
@@ -59,29 +55,11 @@ let pageType: PageType = PageType.Unknown;
 let channelIDInfo: ChannelIDInfo;
 let waitingForChannelID = false;
 
-let params: VideoModuleParams = {
-    videoIDChange: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-    channelIDChange: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-    videoElementChange: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-    playerInit: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-    resetValues: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-    windowListenerHandler: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-    newVideosLoaded: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-    documentScript: "",
-    allowClipPage: false,
-};
-let getConfig: () => ProtoConfig<SyncStorage, LocalStorage>;
-export function setupVideoModule(
-    moduleParams: VideoModuleParams,
-    config: () => ProtoConfig<SyncStorage, LocalStorage>
-) {
-    params = moduleParams;
-    getConfig = config;
-
+export function setupVideoModule() {
     setupCleanupListener();
 
     // Direct Links after the config is loaded
-    void waitFor(() => getConfig().isReady(), 1000, 1)
+    void waitFor(() => Config.isReady(), 1000, 1)
         .then(() => getBilibiliVideoID())
         .then((id) => {
             videoIDChange(id);
@@ -117,10 +95,10 @@ export function setupVideoModule(
         });
     }
     // Record availability of Navigation API
-    void waitFor(() => config().local !== null).then(() => {
-        if (config().local!.navigationApiAvailable !== navigationApiAvailable) {
-            config().local!.navigationApiAvailable = navigationApiAvailable;
-            config().forceLocalUpdate("navigationApiAvailable");
+    void waitFor(() => Config.local !== null).then(() => {
+        if (Config.local!.navigationApiAvailable !== navigationApiAvailable) {
+            Config.local!.navigationApiAvailable = navigationApiAvailable;
+            Config.forceLocalUpdate("navigationApiAvailable");
         }
     });
 
@@ -168,18 +146,18 @@ async function videoIDChange(id: VideoID | null): Promise<boolean> {
     if (!id) return false;
 
     // Wait for options to be ready
-    await waitFor(() => getConfig().isReady(), 5000, 1);
+    await waitFor(() => Config.isReady(), 5000, 1);
 
     // Update whitelist data when the video data is loaded
     void whitelistCheck();
 
-    params.videoIDChange(id);
+    contentVideoIDChange();
 
     return true;
 }
 
 function resetValues() {
-    params.resetValues();
+    resetContentValues();
 
     videoID = null;
     pageType = PageType.Unknown;
@@ -230,7 +208,7 @@ export async function whitelistCheck() {
     // }
 
     waitingForChannelID = false;
-    params.channelIDChange(channelIDInfo);
+    channelIDChange(channelIDInfo);
 }
 
 let lastMutationListenerCheck = 0;
@@ -290,7 +268,7 @@ async function refreshVideoAttachments(): Promise<void> {
         videosSetup.push(video);
     }
 
-    params.videoElementChange?.(isNewVideo, video);
+    videoElementChange(isNewVideo);
     setupVideoMutationListener();
 
     if (document.URL.includes("/embed/")) {
@@ -350,22 +328,18 @@ function windowListenerHandler(event: MessageEvent): void {
         isLivePremiere = data.isLive || data.isPremiere;
     } else if (dataType === "newElement") {
         newThumbnails();
-    } else if (dataType === "videoIDsLoaded") {
-        params.newVideosLoaded?.(data.videoIDs);
     }
-
-    params.windowListenerHandler?.(event);
 }
 
 function addPageListeners(): void {
-    if (params.documentScript) {
-        injectScript(params.documentScript);
+    if (chrome.runtime.getManifest().manifest_version === 2) {
+        injectScript(documentScript);
     }
 
     // piped player init
     const playerInitListener = () => {
         if (!document.querySelector('meta[property="og:title"][content="Piped"]')) return;
-        params.playerInit?.();
+        playerInit();
     };
     window.addEventListener("playerInit", playerInitListener);
     window.addEventListener("message", windowListenerHandler);
