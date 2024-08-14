@@ -1,12 +1,6 @@
 import * as documentScript from "../../dist/js/document.js";
 import Config from "../config";
 import { isSafari } from "../config/config";
-import {
-    channelIDChange,
-    videoIDChange as contentVideoIDChange,
-    resetValues as resetContentValues,
-    videoElementChange,
-} from "../content";
 import { newThumbnails } from "../thumbnail-utils/thumbnailManagement";
 import { waitFor } from "./";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
@@ -55,7 +49,15 @@ let pageType: PageType = PageType.Unknown;
 let channelIDInfo: ChannelIDInfo;
 let waitingForChannelID = false;
 
-export function setupVideoModule() {
+let contentMethod = {
+    videoIDChange: () => {},
+    channelIDChange: (channelID) => channelID,
+    resetValues: () => {},
+    videoElementChange: (newVideo) => newVideo,
+};
+
+export function setupVideoModule(method) {
+    contentMethod = method;
     setupCleanupListener();
 
     // Direct Links after the config is loaded
@@ -151,13 +153,13 @@ async function videoIDChange(id: VideoID | null): Promise<boolean> {
     // Update whitelist data when the video data is loaded
     void whitelistCheck();
 
-    contentVideoIDChange();
+    contentMethod.videoIDChange();
 
     return true;
 }
 
 function resetValues() {
-    resetContentValues();
+    contentMethod.resetValues();
 
     videoID = null;
     pageType = PageType.Unknown;
@@ -208,7 +210,7 @@ export async function whitelistCheck() {
     // }
 
     waitingForChannelID = false;
-    channelIDChange(channelIDInfo);
+    contentMethod.channelIDChange(channelIDInfo);
 }
 
 let lastMutationListenerCheck = 0;
@@ -268,7 +270,7 @@ async function refreshVideoAttachments(): Promise<void> {
         videosSetup.push(video);
     }
 
-    videoElementChange(isNewVideo);
+    contentMethod.videoElementChange(isNewVideo);
     setupVideoMutationListener();
 
     if (document.URL.includes("/embed/")) {

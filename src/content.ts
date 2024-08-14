@@ -111,7 +111,7 @@ const controlsWithEventListeners: HTMLElement[] = [];
 let headerLoaded = false;
 setupPageLoadingListener();
 
-setupVideoModule();
+setupVideoModule({ videoIDChange, channelIDChange, resetValues, videoElementChange });
 setupThumbnailListener();
 
 /**
@@ -1461,11 +1461,6 @@ function checkPreviewbarState(): void {
     }
 
     createPreviewBar();
-}
-
-export function updatePlayerBar() {
-    updatePreviewBar();
-    updateVisibilityOfPlayerControlsButton();
 }
 
 /**
