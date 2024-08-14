@@ -15,7 +15,7 @@
       "matches": [
         "https://*.bilibili.com/*"
       ],
-      "all_frames": true,
+      "all_frames": false,
       "js": [
         "./js/content.js"
       ],

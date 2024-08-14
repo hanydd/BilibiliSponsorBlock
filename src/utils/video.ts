@@ -1,7 +1,6 @@
 import { waitFor } from "./";
 import { newThumbnails } from "../thumbnail-utils/thumbnailManagement";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
-import { BILI_DOMAINS } from "./constants";
 import { getElement, isVisible, waitForElement } from "./dom";
 import { injectScript } from "./scriptInjector";
 import { LocalStorage, ProtoConfig, SyncStorage, isSafari } from "../config/config";
@@ -84,15 +83,15 @@ export function setupVideoModule(
     // Direct Links after the config is loaded
     void waitFor(() => getConfig().isReady(), 1000, 1).then(async () => videoIDChange(await getBilibiliVideoID()));
 
+    // TODO: Add support for embed iframe videos
     // Can't use onInvidious at this point, the configuration might not be ready.
-    //TODO: What does this wait for?
-    if (BILI_DOMAINS.includes(location.host)) {
-        waitForElement(embedTitleSelector)
-            .then((e) => waitFor(() => e.getAttribute("href")))
-            .then(async () => videoIDChange(await getBilibiliVideoID()))
-            // Ignore if not an embed
-            .catch(() => {}); // eslint-disable-line @typescript-eslint/no-empty-function
-    }
+    // if (BILI_DOMAINS.includes(location.host)) {
+    //     waitForElement(embedTitleSelector)
+    //         .then((e) => waitFor(() => e.getAttribute("href")))
+    //         .then(async () => videoIDChange(await getBilibiliVideoID()))
+    //         // Ignore if not an embed
+    //         .catch(() => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+    // }
 
     addPageListeners();
 
