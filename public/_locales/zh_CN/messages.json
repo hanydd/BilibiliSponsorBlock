@@ -316,7 +316,7 @@
         "description": "Keybind label"
     },
     "previousFrameKeybind": {
-        "message": "（当打开编辑提交弹窗时生效）视频前一帧",
+        "message": "（当打开编辑提交弹窗时生效）视频上一帧",
         "description": "Keybind label"
     },
     "keybindDescription": {
