@@ -81,7 +81,11 @@ export function setupVideoModule(
     setupCleanupListener();
 
     // Direct Links after the config is loaded
-    void waitFor(() => getConfig().isReady(), 1000, 1).then(async () => videoIDChange(await getBilibiliVideoID()));
+    void waitFor(() => getConfig().isReady(), 1000, 1)
+        .then(() => getBilibiliVideoID())
+        .then((id) => {
+            videoIDChange(id);
+        });
 
     // TODO: Add support for embed iframe videos
     // Can't use onInvidious at this point, the configuration might not be ready.
@@ -308,7 +312,8 @@ async function refreshVideoAttachments(): Promise<void> {
         void waiting
             .then((e) => (embedLastUrl = e.getAttribute("href")!))
             .then(() => (waitingForEmbed = false))
-            .then(async () => videoIDChange(await getBilibiliVideoID()));
+            .then(() => getBilibiliVideoID())
+            .then((id) => videoIDChange(id));
     } else {
         void videoIDChange(await getBilibiliVideoID());
     }

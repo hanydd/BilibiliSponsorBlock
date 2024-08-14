@@ -2,6 +2,7 @@ export function isVisible(element: HTMLElement | null, ignoreWidth = false): boo
     if (!element) {
         return false;
     }
+    return true;
 
     // Special case for when a video is first loaded, and the main video element is technically hidden
     if (

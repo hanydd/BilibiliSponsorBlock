@@ -58,6 +58,7 @@ export class CategoryPill {
 
         try {
             // wait for bilibili to finish loading
+            // await waitFor(() => this.mutationCount > 0);
             await waitFor(getPageLoaded, 10000, 10);
             // if setSegment is called after node attachment, it won't render sometimes
             await waitFor(() => this.isSegmentSet, 10000, 100).catch(() => {
