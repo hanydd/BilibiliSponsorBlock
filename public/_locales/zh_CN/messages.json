@@ -1124,9 +1124,6 @@
         "message": "Warning: This is an incredibly aggressive category. You most likely will have to unskip stuff, or disable it sometimes. Be warned that many videos have over 50% or more of the video skipped! However, remember that there are still specific guidelines to follow when submitting.",
         "description": "Warning that appears when enabling the filler tangent category"
     },
-    "zoomToFillUnsupported": {
-        "message": "SponsorBlock is not compatible with the extension \"Zoom to Fill\". There are many alternatives you can use instead that will work properly."
-    },
     "cleanPopup": {
         "message": "简化弹出窗口内容"
     },

@@ -81,7 +81,6 @@ interface SBConfig {
     allowScrollingToEdit: boolean;
     showPreviewYoutubeButton: boolean;
     showPortVideoButton: boolean;
-    showZoomToFillError2: boolean;
     cleanPopup: boolean;
 
     // Used to cache calculated text color info
@@ -248,7 +247,6 @@ const syncDefaults = {
     showDeArrowPromotion: true,
     showDeArrowInSettings: true,
     shownDeArrowPromotion: false,
-    showZoomToFillError2: true,
     cleanPopup: false,
 
     categoryPillColors: {},

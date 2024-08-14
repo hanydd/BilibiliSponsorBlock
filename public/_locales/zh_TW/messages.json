@@ -1124,9 +1124,6 @@
         "message": "警告：這是一個非常激進的分類。您很可能會需要取消跳過某些內容，或者有時候需要禁用它。請注意，許多影片的跳過率超過50%或更多！然而，請記住，在提交時仍需遵守特定的指導原則。",
         "description": "Warning that appears when enabling the filler tangent category"
     },
-    "zoomToFillUnsupported": {
-        "message": "Bilibili Sponsor Block 無法與擴充功能 \"Zoom to Fill\"相容。您可以使用許多其他能夠正常運作的替代方案。"
-    },
     "cleanPopup": {
         "message": "簡化彈出窗口內容"
     },

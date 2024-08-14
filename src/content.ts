@@ -34,7 +34,6 @@ import Utils from "./utils";
 import { isFirefoxOrSafari, sleep, waitFor } from "./utils/";
 import { AnimationUtils } from "./utils/animationUtils";
 import { addCleanupListener, cleanPage } from "./utils/cleanup";
-import { runCompatibilityChecks } from "./utils/compatibility";
 import { defaultPreviewTime } from "./utils/constants";
 import { findValidElement } from "./utils/dom";
 import { importTimes } from "./utils/exporter";
@@ -65,8 +64,6 @@ waitFor(() => Config.isReady(), 5000, 10).then(() => {
     // Hack to get the CSS loaded on permission-based sites (Invidious)
     addCSS();
     setCategoryColorCSSVariables();
-
-    runCompatibilityChecks();
 });
 
 const skipBuffer = 0.003;
