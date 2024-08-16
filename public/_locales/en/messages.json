@@ -16,6 +16,9 @@
     "409": {
         "message": "已经提交过了"
     },
+    "close": {
+        "message": "关闭"
+    },
     "channelWhitelisted": {
         "message": "UP主已加入白名单！"
     },
@@ -450,6 +453,18 @@
     "whatManualSkipOnFullVideo": {
         "message": "如果你想看软广视频时不跳过中间的内容，而是观看完整视频，可以启用软广手动跳过"
     },
+    "optionSectionSkipNotice": {
+        "message": "跳过提醒弹窗"
+    },
+    "optionSectionPlayerAndButtons": {
+        "message": "播放器和按钮区"
+    },
+    "optionSectionPortVideo": {
+        "message": "搬运视频绑定"
+    },
+    "optionSectionExtensionRelated": {
+        "message": "插件相关选项"
+    },
     "skipNoticeDuration": {
         "message": "“空降提醒弹窗”显示持续时间（秒）："
     },
@@ -861,6 +876,15 @@
     "readTheGuidelines": {
         "message": "阅读指南！！",
         "description": "Show the first time they submit or if they are \"high risk\""
+    },
+    "skipFrameShortcutPopupLine1": {
+        "message": "无法精准定位？可以尝试使用 “,” 和 “.” 按键跳到上一帧或者下一帧！试试吧~"
+    },
+    "skipFrameShortcutPopupLine2": {
+        "message": "（快捷键只有在打开弹窗时可用，按键绑定可以在{0}中修改）"
+    },
+    "optionsPage": {
+        "message": "选项页面"
     },
     "categoryUpdate1": {
         "message": "类别在这里！"

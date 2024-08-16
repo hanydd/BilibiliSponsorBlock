@@ -351,18 +351,18 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
     popoverContent = () => {
         return (
             <>
-                <p>无法精准定位？可以尝试使用 “,” 和 “.” 按键跳到上一帧或者下一帧！试试吧~</p>
+                <p>{chrome.i18n.getMessage("skipFrameShortcutPopupLine1")}</p>
                 <p>
-                    （快捷键只有在打开弹窗时可用，按键绑定可以在
+                    {chrome.i18n.getMessage("skipFrameShortcutPopupLine2").split("{0}")[0]}
                     <a
                         style={{ color: "var(--sb-brand-blue)" }}
                         onClick={() => {
                             chrome.runtime.sendMessage({ message: "openConfig", hash: "keybinds" });
                         }}
                     >
-                        选项页面
+                        {chrome.i18n.getMessage("optionsPage")}
                     </a>
-                    中修改）
+                    {chrome.i18n.getMessage("skipFrameShortcutPopupLine2").split("{0}")[1]}
                 </p>
                 <p style={{ padding: "0 20px", textAlign: "center" }}>
                     <a
@@ -371,7 +371,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                             this.setState({ popoverOpen: false });
                         }}
                     >
-                        关闭
+                        {chrome.i18n.getMessage("close")}
                     </a>
                     <a
                         onClick={() => {
@@ -379,7 +379,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                             this.setState({ popoverOpen: false });
                         }}
                     >
-                        不再提示
+                        {chrome.i18n.getMessage("Hide")}
                     </a>
                 </p>
             </>

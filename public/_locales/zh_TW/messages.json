@@ -16,6 +16,9 @@
     "409": {
         "message": "已經提交過了"
     },
+    "close": {
+        "message": "關閉"
+    },
     "channelWhitelisted": {
         "message": "頻道已加入白名單！"
     },
@@ -450,6 +453,18 @@
     "whatManualSkipOnFullVideo": {
         "message": "如果您想看推廣影片時不跳過中間的內容，而是觀看完整影片，可以啟用推廣手動跳過"
     },
+    "optionSectionSkipNotice": {
+        "message": "跳過提醒彈窗"
+    },
+    "optionSectionPlayerAndButtons": {
+        "message": "播放器和按鈕"
+    },
+    "optionSectionPortVideo": {
+        "message": "搬運影片綁定"
+    },
+    "optionSectionExtensionRelated": {
+        "message": "插件相關選項"
+    },
     "skipNoticeDuration": {
         "message": "跳過提醒彈窗持續時間（秒）："
     },
@@ -861,6 +876,15 @@
     "readTheGuidelines": {
         "message": "閱讀指南！！",
         "description": "Show the first time they submit or if they are \"high risk\""
+    },
+    "skipFrameShortcutPopupLine1": {
+        "message": "無法精準定位？可以嘗試使用 “,” 和 “.” 按鍵跳到上一幀或下一幀！試試吧~"
+    },
+    "skipFrameShortcutPopupLine2": {
+        "message": "（快捷鍵只有在打開提交彈窗時可用，案件綁定可以在{0}中修改）"
+    },
+    "optionsPage": {
+        "message": "選項頁面"
     },
     "categoryUpdate1": {
         "message": "類別在這裡！"
