@@ -848,16 +848,6 @@ input::-webkit-inner-spin-button {
 	animation: auto ease 0s 1 normal none running none;
 }
 
-#bsbDescriptionContainer #bsbDescriptionPortLoading {
-	position: absolute;
-	width: 100%;
-	text-align: center;
-	backdrop-filter: blur(2px);
-	-webkit-backdrop-filter: blur(2px);
-	height: 44px;
-	line-height: 32px;
-}
-
 #bsbDescriptionContainer #bsbDescriptionPortErrorBox {
 	position: absolute;
 	left: 50%;

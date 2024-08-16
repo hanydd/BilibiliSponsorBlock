@@ -3,6 +3,7 @@ import { parseYoutubeID } from "../utils/parseVideoID";
 import { PortVideo } from "../render/DesciptionPortPill";
 import { VideoID } from "../types";
 import { AnimationUtils } from "../utils/animationUtils";
+import { ConfigProvider, Spin } from "antd";
 
 export interface DescriptionPortPillProps {
     bvID: VideoID;
@@ -42,7 +43,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
 
     render(): React.ReactElement {
         return (
-            <>
+            <ConfigProvider>
                 <div
                     hidden={!(this.state.show && this.state.showErrorMessage)}
                     className={this.state.showErrorMessage ? "active" : ""}
@@ -51,50 +52,48 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                     {this.errorMessage}
                 </div>
 
-                <div hidden={!(this.state.loading && this.state.show)} id="bsbDescriptionPortLoading">
-                    {chrome.i18n.getMessage("Loading")}
-                </div>
+                <Spin delay={100} spinning={this.state.loading}>
+                    <div hidden={!this.state.show} id="bsbDescriptionPortVideoPill">
+                        {this.hasYtbVideo() && (
+                            <>
+                                <span>{chrome.i18n.getMessage("hasbindedPortVideo")}</span>
+                                <a id="ytbLink" href={this.getVideoLink()} target="blank">
+                                    {this.state.ytbVideoID}
+                                </a>
+                                <img
+                                    className="bsbVoteButton"
+                                    title={chrome.i18n.getMessage("upvote")}
+                                    src={chrome.runtime.getURL("icons/thumbs_up_blue.svg")}
+                                    onClick={(e) => this.vote(e, 1)}
+                                ></img>
+                                <img
+                                    className="bsbVoteButton"
+                                    title={chrome.i18n.getMessage("downvote")}
+                                    src={chrome.runtime.getURL("icons/thumbs_down_blue.svg")}
+                                    onClick={(e) => this.vote(e, 0)}
+                                ></img>
+                            </>
+                        )}
+                        {!this.hasYtbVideo() && (
+                            <>
+                                <div className="inputWrapper">
+                                    <input
+                                        ref={this.inputRef}
+                                        type="text"
+                                        placeholder={chrome.i18n.getMessage("enterPortVideoURL")}
+                                        onChange={this.handleYtbInput.bind(this)}
+                                    ></input>
+                                </div>
+                                <button className="active" onClick={() => this.submitPortVideo()}>
+                                    {chrome.i18n.getMessage("submit")}
+                                </button>
+                            </>
+                        )}
 
-                <div hidden={!this.state.show} id="bsbDescriptionPortVideoPill">
-                    {this.hasYtbVideo() && (
-                        <>
-                            <span>{chrome.i18n.getMessage("hasbindedPortVideo")}</span>
-                            <a id="ytbLink" href={this.getVideoLink()} target="blank">
-                                {this.state.ytbVideoID}
-                            </a>
-                            <img
-                                className="bsbVoteButton"
-                                title={chrome.i18n.getMessage("upvote")}
-                                src={chrome.runtime.getURL("icons/thumbs_up_blue.svg")}
-                                onClick={(e) => this.vote(e, 1)}
-                            ></img>
-                            <img
-                                className="bsbVoteButton"
-                                title={chrome.i18n.getMessage("downvote")}
-                                src={chrome.runtime.getURL("icons/thumbs_down_blue.svg")}
-                                onClick={(e) => this.vote(e, 0)}
-                            ></img>
-                        </>
-                    )}
-                    {!this.hasYtbVideo() && (
-                        <>
-                            <div className="inputWrapper">
-                                <input
-                                    ref={this.inputRef}
-                                    type="text"
-                                    placeholder={chrome.i18n.getMessage("enterPortVideoURL")}
-                                    onChange={this.handleYtbInput.bind(this)}
-                                ></input>
-                            </div>
-                            <button className="active" onClick={() => this.submitPortVideo()}>
-                                {chrome.i18n.getMessage("submit")}
-                            </button>
-                        </>
-                    )}
-
-                    {this.props.showYtbVideoButton &&
-                        togglePreviewYtbVideoButton(!this.state.previewYtbID, () => this.toggleYtbVideo())}
-                </div>
+                        {this.props.showYtbVideoButton &&
+                            togglePreviewYtbVideoButton(!this.state.previewYtbID, () => this.toggleYtbVideo())}
+                    </div>
+                </Spin>
 
                 {this.state.previewYtbID && this.props.showYtbVideoButton && (
                     <iframe
@@ -107,7 +106,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                         allowFullScreen
                     ></iframe>
                 )}
-            </>
+            </ConfigProvider>
         );
     }
 
