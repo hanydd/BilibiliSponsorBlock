@@ -403,7 +403,7 @@ if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
     Config.configSyncListeners.push(contentConfigUpdateListener);
 }
 
-export function resetValues() {
+function resetValues() {
     lastCheckTime = 0;
     lastCheckVideoTime = -1;
     retryCount = 0;
@@ -445,7 +445,7 @@ export function resetValues() {
     }
 }
 
-export async function videoIDChange(): Promise<void> {
+async function videoIDChange(): Promise<void> {
     //setup the preview bar
     if (previewBar === null) {
         waitFor(getControls).then(createPreviewBar);
@@ -1418,7 +1418,7 @@ function updatePreviewBar(): void {
 }
 
 //checks if this channel is whitelisted, should be done only after the channelID has been loaded
-export async function channelIDChange(channelIDInfo: ChannelIDInfo) {
+async function channelIDChange(channelIDInfo: ChannelIDInfo) {
     const whitelistedChannels = Config.config.whitelistedChannels;
 
     //see if this is a whitelisted channel
@@ -1434,7 +1434,7 @@ export async function channelIDChange(channelIDInfo: ChannelIDInfo) {
     if (Config.config.forceChannelCheck && sponsorTimes?.length > 0) startSkipScheduleCheckingForStartSponsors();
 }
 
-export function videoElementChange(newVideo: boolean): void {
+function videoElementChange(newVideo: boolean): void {
     waitFor(() => Config.isReady()).then(() => {
         if (newVideo) {
             setupVideoListeners();
