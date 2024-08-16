@@ -1,16 +1,17 @@
+import { ConfigProvider, Radio } from "antd";
+import { CheckboxChangeEvent } from "antd/es/checkbox";
 import * as React from "react";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
-import { ActionType, Category, ChannelIDStatus, ContentContainer, SponsorTime } from "../types";
-import SubmissionNoticeComponent from "./SubmissionNoticeComponent";
 import { RectangleTooltip } from "../render/RectangleTooltip";
-import { SelectorOption } from "./SelectorComponent";
-import { DEFAULT_CATEGORY } from "../utils/categoryUtils";
-import { getFormattedTime, getFormattedTimeToSeconds } from "../utils/formating";
 import { asyncRequestToServer } from "../requests/requests";
+import { ActionType, Category, ChannelIDStatus, ContentContainer, SponsorTime } from "../types";
+import { DEFAULT_CATEGORY } from "../utils/categoryUtils";
 import { defaultPreviewTime } from "../utils/constants";
+import { getFormattedTime, getFormattedTimeToSeconds } from "../utils/formating";
 import { getVideo } from "../utils/video";
-
+import { SelectorOption } from "./SelectorComponent";
+import SubmissionNoticeComponent from "./SubmissionNoticeComponent";
 export interface SponsorTimeEditProps {
     index: number;
 
@@ -260,17 +261,17 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                 {CompileConfig.categorySupport[sponsorTime.category] &&
                 (CompileConfig.categorySupport[sponsorTime.category]?.length > 1 ||
                     CompileConfig.categorySupport[sponsorTime.category]?.[0] === ActionType.Full) ? (
-                    <div style={{ position: "relative" }}>
-                        <select
-                            id={"sponsorTimeActionTypes" + this.idSuffix}
-                            className="sponsorTimeEditSelector sponsorTimeActionTypes"
-                            value={this.state.selectedActionType}
-                            style={{ color: "inherit", backgroundColor: "inherit" }}
-                            ref={this.actionTypeOptionRef}
-                            onChange={(e) => this.actionTypeSelectionChange(e)}
-                        >
-                            {this.getActionTypeOptions(sponsorTime)}
-                        </select>
+                    <div style={{ position: "relative", margin: "5px 0" }}>
+                        <ConfigProvider theme={{ token: { colorPrimary: "#00aeec", fontSize: 12 } }}>
+                            <Radio.Group
+                                optionType="button"
+                                buttonStyle="solid"
+                                size="small"
+                                options={this.getActionTypeOption(sponsorTime)}
+                                value={this.state.selectedActionType}
+                                onChange={(e) => this.actionTypeSRadioChange(e)}
+                            />
+                        </ConfigProvider>
                     </div>
                 ) : (
                     ""
@@ -278,7 +279,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
 
                 {/* Editing Tools */}
 
-                <div style={{ marginTop: "3px" }}>
+                <div style={{ marginTop: "8px" }}>
                     <span
                         id={"sponsorTimeDeleteButton" + this.idSuffix}
                         className="sponsorTimeEditButton"
@@ -507,15 +508,16 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         }
     }
 
-    actionTypeSelectionChange(event: React.ChangeEvent<HTMLSelectElement>): void {
+    actionTypeSRadioChange(event: CheckboxChangeEvent): void {
         const sponsorTime = this.props.contentContainer().sponsorTimesSubmitting[this.props.index];
 
+        const actionType = event.target.value as ActionType;
         this.setState({
-            selectedActionType: event.target.value as ActionType,
+            selectedActionType: actionType,
         });
 
-        this.handleReplacingLostTimes(sponsorTime.category, event.target.value as ActionType, sponsorTime);
-        this.saveEditTimes();
+        this.handleReplacingLostTimes(sponsorTime.category, actionType, sponsorTime);
+        this.saveEditTimes(actionType);
     }
 
     private handleReplacingLostTimes(category: Category, actionType: ActionType, segment: SponsorTime): void {
@@ -564,18 +566,15 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         }
     }
 
-    getActionTypeOptions(sponsorTime: SponsorTime): React.ReactElement[] {
-        const elements = [];
-
+    getActionTypeOption(sponsorTime: SponsorTime) {
+        const options = [];
         for (const actionType of CompileConfig.categorySupport[sponsorTime.category]) {
-            elements.push(
-                <option value={actionType} key={actionType}>
-                    {chrome.i18n.getMessage(actionType)}
-                </option>
-            );
+            options.push({ label: chrome.i18n.getMessage(actionType), value: actionType });
         }
-
-        return elements;
+        if (options.length === 0) {
+            return [{ label: "", value: "" }];
+        }
+        return options;
     }
 
     setTimeToNow(index: number): void {
@@ -634,14 +633,14 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
 
     lastEditTime = 0;
     editTimeTimeout: NodeJS.Timeout | null = null;
-    saveEditTimes(): void {
+    saveEditTimes(action = this.state.selectedActionType): void {
         // Rate limit edits
         const timeSinceLastEdit = Date.now() - this.lastEditTime;
         const rateLimitTime = 200;
         if (timeSinceLastEdit < rateLimitTime) {
             if (!this.editTimeTimeout) {
                 this.editTimeTimeout = setTimeout(() => {
-                    this.saveEditTimes();
+                    this.saveEditTimes(action);
                 }, rateLimitTime - timeSinceLastEdit);
             }
 
@@ -681,7 +680,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
 
         sponsorTimesSubmitting[this.props.index].category = category;
 
-        const actionType = this.getNextActionType(category, this.actionTypeOptionRef?.current?.value as ActionType);
+        const actionType = this.getNextActionType(category, action);
         sponsorTimesSubmitting[this.props.index].actionType = actionType;
         this.setState({
             selectedActionType: actionType,
