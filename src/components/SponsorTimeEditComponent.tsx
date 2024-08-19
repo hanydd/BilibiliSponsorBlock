@@ -12,6 +12,7 @@ import { getFormattedTime, getFormattedTimeToSeconds } from "../utils/formating"
 import { getVideo } from "../utils/video";
 import { SelectorOption } from "./SelectorComponent";
 import SubmissionNoticeComponent from "./SubmissionNoticeComponent";
+import { showMessage } from "../render/MessageNotice";
 export interface SponsorTimeEditProps {
     index: number;
 
@@ -536,7 +537,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                         (segment, i) => segment.category === category && i !== this.props.index
                     )
             ) {
-                alert(chrome.i18n.getMessage("poiOnlyOneSegment"));
+                showMessage(chrome.i18n.getMessage("poiOnlyOneSegment"), "warning");
             }
 
             this.previousSkipType = ActionType.Poi;

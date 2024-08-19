@@ -9,6 +9,7 @@ import ThumbsUpSvg from "../svg-icons/thumbs_up_svg";
 import { AnimationUtils } from "../utils/animationUtils";
 import { getErrorMessage } from "../utils/formating";
 import { downvoteButtonColor, SkipNoticeAction } from "../utils/noticeUtils";
+import { showMessage } from "../render/MessageNotice";
 
 export interface CategoryPillProps {
     vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>;
@@ -134,7 +135,7 @@ class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryP
 
                 this.closeTooltip();
             } else if (response.statusCode !== 403) {
-                alert(getErrorMessage(response.statusCode, response.responseText));
+                showMessage(getErrorMessage(response.statusCode, response.responseText), 'warning');
             }
         }
     }

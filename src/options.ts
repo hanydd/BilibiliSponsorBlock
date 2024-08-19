@@ -16,6 +16,7 @@ import { asyncRequestToServer } from "./requests/requests";
 import { isFirefoxOrSafari, waitFor } from "./utils/";
 import { getHash } from "./utils/hash";
 import { localizeHtmlPage } from "./utils/setup";
+import { setMessageNotice, showMessage } from "./render/MessageNotice";
 let embed = false;
 
 const categoryChoosers: CategoryChooser[] = [];
@@ -29,6 +30,9 @@ if (document.readyState === "complete") {
 
 async function init() {
     localizeHtmlPage();
+
+    // setup message component
+    setMessageNotice();
 
     // selected tab
     if (location.hash != "") {
@@ -425,7 +429,7 @@ function invidiousInstanceAddInit(element: HTMLElement, option: string) {
     const resetButton = element.querySelector(".invidious-instance-reset");
     setButton.addEventListener("click", async function () {
         if (textBox.value == "" || textBox.value.includes("/") || textBox.value.includes("http")) {
-            alert(chrome.i18n.getMessage("addInvidiousInstanceError"));
+            showMessage(chrome.i18n.getMessage("addInvidiousInstanceError"), "error");
         } else {
             // Add this
             let instanceList = Config.config[option];
@@ -550,7 +554,7 @@ async function setTextOption(option: string, element: HTMLElement, value: string
 
                     setTimeout(() => window.location.reload(), 200);
                 } catch (e) {
-                    alert(chrome.i18n.getMessage("incorrectlyFormattedOptions"));
+                    showMessage(chrome.i18n.getMessage("incorrectlyFormattedOptions", "error"));
                 }
 
                 break;
@@ -608,7 +612,7 @@ function validateServerAddress(input: string): string {
 
     // If it isn't HTTP protocol
     if (!input.startsWith("https://") && !input.startsWith("http://")) {
-        alert(chrome.i18n.getMessage("customAddressError"));
+        showMessage(chrome.i18n.getMessage("customAddressError", "error"));
 
         return null;
     }
@@ -641,10 +645,10 @@ function copyDebugOutputToClipboard() {
     navigator.clipboard
         .writeText(JSON.stringify(output, null, 4))
         .then(() => {
-            alert(chrome.i18n.getMessage("copyDebugInformationComplete"));
+            showMessage(chrome.i18n.getMessage("copyDebugInformationComplete"), "success");
         })
         .catch(() => {
-            alert(chrome.i18n.getMessage("copyDebugInformationFailed"));
+            showMessage(chrome.i18n.getMessage("copyDebugInformationFailed"), "error");
         });
 }
 

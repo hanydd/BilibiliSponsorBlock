@@ -7,7 +7,7 @@ import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";
 import { DescriptionPortPill } from "./render/DesciptionPortPill";
-import { setMessageNotice } from "./render/MessageNotice";
+import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import SkipNotice from "./render/SkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
 import { asyncRequestToServer } from "./requests/requests";
@@ -2088,7 +2088,7 @@ function startOrEndTimingNewSegment() {
         !shownSegmentFailedToFetchWarning &&
         Config.config.showSegmentFailedToFetchWarning
     ) {
-        alert(chrome.i18n.getMessage("segmentFetchFailureWarning"));
+        showMessage(chrome.i18n.getMessage("segmentFetchFailureWarning"), "warning");
 
         shownSegmentFailedToFetchWarning = true;
     }
@@ -2449,7 +2449,7 @@ async function sendSubmitMessage(): Promise<boolean> {
     const onlyFullVideo = sponsorTimesSubmitting.every((segment) => segment.actionType === ActionType.Full);
     // Block if submitting on a running livestream or premiere
     if (!onlyFullVideo && (getIsLivePremiere() || isVisible(document.querySelector(".ytp-live-badge")))) {
-        alert(chrome.i18n.getMessage("liveOrPremiere"));
+        showMessage(chrome.i18n.getMessage("liveOrPremiere"), "warning");
         return false;
     }
 
@@ -2462,7 +2462,10 @@ async function sendSubmitMessage(): Promise<boolean> {
                 segment.segment[0] === 0
         )
     ) {
-        alert(`${chrome.i18n.getMessage("previewSegmentRequired")} ${keybindToString(Config.config.previewKeybind)}`);
+        showMessage(
+            `${chrome.i18n.getMessage("previewSegmentRequired")} ${keybindToString(Config.config.previewKeybind)}`,
+            "warning"
+        );
         return false;
     }
 
@@ -2554,7 +2557,7 @@ async function sendSubmitMessage(): Promise<boolean> {
         ) {
             openWarningDialog(skipNoticeContentContainer);
         } else {
-            alert(getErrorMessage(response.status, response.responseText));
+            showMessage(getErrorMessage(response.status, response.responseText), "warning");
         }
     }
 

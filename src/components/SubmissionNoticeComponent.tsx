@@ -11,6 +11,7 @@ import { getVideo } from "../utils/video";
 import NoticeComponent from "./NoticeComponent";
 import NoticeTextSelectionComponent from "./NoticeTextSectionComponent";
 import SponsorTimeEditComponent from "./SponsorTimeEditComponent";
+import { showMessage } from "../render/MessageNotice";
 
 export interface SubmissionNoticeProps {
     // Contains functions and variables from the content script needed by the skip notice
@@ -246,7 +247,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
         const sponsorTimesSubmitting = this.props.contentContainer().sponsorTimesSubmitting;
         for (const sponsorTime of sponsorTimesSubmitting) {
             if (sponsorTime.category === "chooseACategory") {
-                alert(chrome.i18n.getMessage("youMustSelectACategory"));
+                showMessage(chrome.i18n.getMessage("youMustSelectACategory"), "warning");
                 return;
             }
         }

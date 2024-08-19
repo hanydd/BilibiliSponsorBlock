@@ -2,6 +2,7 @@ import * as React from "react";
 
 import Config from "../../config";
 import { exportTimes, exportTimesAsHashParam } from "../../utils/exporter";
+import { showMessage } from "../../render/MessageNotice";
 
 export interface UnsubmittedVideosListItemProps {
     videoID: string;
@@ -87,10 +88,10 @@ class UnsubmittedVideoListItem extends React.Component<UnsubmittedVideosListItem
         navigator.clipboard
             .writeText(text)
             .then(() => {
-                alert(chrome.i18n.getMessage("CopiedExclamation"));
+                showMessage(chrome.i18n.getMessage("CopiedExclamation"), "warning");
             })
             .catch(() => {
-                alert(chrome.i18n.getMessage("copyDebugInformationFailed"));
+                showMessage(chrome.i18n.getMessage("copyDebugInformationFailed"), "warning");
             });
     }
 }
