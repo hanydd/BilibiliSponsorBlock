@@ -112,6 +112,7 @@ const bsbElementsSelector = [
     "#shadowPreviewbar",
     "#bsbPortButton",
     "#bsbDescriptionContainer",
+    "message-notice",
 ].join(", ");
 
 export function cleanPage() {

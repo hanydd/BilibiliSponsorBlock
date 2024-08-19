@@ -7,6 +7,7 @@ import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";
 import { DescriptionPortPill } from "./render/DesciptionPortPill";
+import { setMessageNotice } from "./render/MessageNotice";
 import SkipNotice from "./render/SkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
 import { asyncRequestToServer } from "./requests/requests";
@@ -113,6 +114,7 @@ setupPageLoadingListener();
 
 setupVideoModule({ videoIDChange, channelIDChange, resetValues, videoElementChange });
 setupThumbnailListener();
+setMessageNotice();
 
 /**
  *  根据页面元素加载状态判断页面是否加载完成
