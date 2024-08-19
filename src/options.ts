@@ -240,13 +240,6 @@ async function init() {
                     uploadButton.addEventListener("change", (e) => uploadConfig(e, optionsElements[i] as HTMLElement));
                 }
 
-                const privateTextChangeOption = optionsElements[i].getAttribute("data-sync");
-                // See if anything extra must be done
-                switch (privateTextChangeOption) {
-                    case "invidiousInstances":
-                        invidiousInstanceAddInit(<HTMLElement>optionsElements[i], privateTextChangeOption);
-                }
-
                 break;
             }
             case "button-press": {
@@ -412,55 +405,6 @@ function updateDisplayElement(element: HTMLElement) {
     const displayOption = element.getAttribute("data-sync");
     const displayText = Config.config[displayOption];
     element.innerText = displayText;
-}
-
-/**
- * Initializes the option to add Invidious instances
- *
- * @param element
- * @param option
- */
-function invidiousInstanceAddInit(element: HTMLElement, option: string) {
-    const textBox = <HTMLInputElement>element.querySelector(".option-text-box");
-    const button = element.querySelector(".trigger-button");
-
-    const setButton = element.querySelector(".text-change-set");
-    const cancelButton = element.querySelector(".text-change-reset");
-    const resetButton = element.querySelector(".invidious-instance-reset");
-    setButton.addEventListener("click", async function () {
-        if (textBox.value == "" || textBox.value.includes("/") || textBox.value.includes("http")) {
-            showMessage(chrome.i18n.getMessage("addInvidiousInstanceError"), "error");
-        } else {
-            // Add this
-            let instanceList = Config.config[option];
-            if (!instanceList) instanceList = [];
-
-            let domain = textBox.value.trim().toLowerCase();
-            if (domain.includes(":")) {
-                domain = domain.split(":")[0];
-            }
-
-            instanceList.push(domain);
-
-            Config.config[option] = instanceList;
-
-            const checkbox = <HTMLInputElement>document.querySelector("#support-invidious input");
-            checkbox.checked = true;
-
-            resetButton.classList.remove("hidden");
-
-            // Hide this section again
-            textBox.value = "";
-            element.querySelector(".option-hidden-section").classList.add("hidden");
-            button.classList.remove("disabled");
-        }
-    });
-
-    cancelButton.addEventListener("click", async function () {
-        textBox.value = "";
-        element.querySelector(".option-hidden-section").classList.add("hidden");
-        button.classList.remove("disabled");
-    });
 }
 
 /**
