@@ -11,12 +11,13 @@ import KeybindComponent from "./components/options/KeybindComponent";
 import { StorageChangesObject } from "./config/config";
 import { showDonationLink } from "./config/configUtils";
 import CategoryChooser from "./render/CategoryChooser";
+import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import UnsubmittedVideos from "./render/UnsubmittedVideos";
 import { asyncRequestToServer } from "./requests/requests";
 import { isFirefoxOrSafari, waitFor } from "./utils/";
 import { getHash } from "./utils/hash";
 import { localizeHtmlPage } from "./utils/setup";
-import { setMessageNotice, showMessage } from "./render/MessageNotice";
+
 let embed = false;
 
 const categoryChoosers: CategoryChooser[] = [];
@@ -32,7 +33,7 @@ async function init() {
     localizeHtmlPage();
 
     // setup message component
-    setMessageNotice();
+    setMessageNotice(Config.config.darkMode);
 
     // selected tab
     if (location.hash != "") {

@@ -1,4 +1,4 @@
-import { message } from "antd";
+import { ConfigProvider, message, theme } from "antd";
 import { NoticeType as MessageNoticeType } from "antd/es/message/interface";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
@@ -7,7 +7,7 @@ import { waitFor } from "../utils/";
 let messageText: string;
 let messageType: MessageNoticeType;
 
-export async function setMessageNotice(checkPageLoaded: () => boolean = () => true) {
+export async function setMessageNotice(darkTheme: boolean = false, checkPageLoaded: () => boolean = () => true) {
     await waitFor(() => checkPageLoaded(), 10000, 50);
 
     const container = document.createElement("div");
@@ -15,7 +15,11 @@ export async function setMessageNotice(checkPageLoaded: () => boolean = () => tr
     container.style.display = "none";
 
     const root = createRoot(container);
-    root.render(<MessageApp />);
+    root.render(
+        <ConfigProvider theme={{ algorithm: darkTheme ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
+            <MessageApp />
+        </ConfigProvider>
+    );
     document.body.appendChild(container);
 }
 
