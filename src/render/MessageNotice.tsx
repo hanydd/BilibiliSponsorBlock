@@ -2,14 +2,14 @@ import { message } from "antd";
 import { NoticeType as MessageNoticeType } from "antd/es/message/interface";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-import { getPageLoaded } from "../content";
 import { waitFor } from "../utils/";
 
 let messageText: string;
 let messageType: MessageNoticeType;
 
-export async function setMessageNotice() {
-    await waitFor(() => getPageLoaded());
+export async function setMessageNotice(checkPageLoaded: () => boolean = () => true) {
+    await waitFor(() => checkPageLoaded(), 10000, 50);
+
     const container = document.createElement("div");
     container.id = "message-notice";
     container.style.display = "none";
@@ -41,6 +41,7 @@ export function showMessage(message: string, type: MessageNoticeType = "info") {
         messageText = message;
         button.click();
     } else {
+        // if the component is not mounted, setup the component first
         setMessageNotice().then(() => {
             showMessage(message);
         });

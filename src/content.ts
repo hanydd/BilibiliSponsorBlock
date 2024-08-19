@@ -114,7 +114,7 @@ setupPageLoadingListener();
 
 setupVideoModule({ videoIDChange, channelIDChange, resetValues, videoElementChange });
 setupThumbnailListener();
-setMessageNotice();
+setMessageNotice(getPageLoaded);
 
 /**
  *  根据页面元素加载状态判断页面是否加载完成
