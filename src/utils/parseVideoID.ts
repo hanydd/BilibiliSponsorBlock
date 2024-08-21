@@ -6,9 +6,10 @@ import { VideoID } from "./video";
 export async function getBilibiliVideoID(url?: string): Promise<VideoID | null> {
     url ||= document?.URL;
 
-    // video page
-    if (url.includes("bilibili.com/video")) {
-        return (await getBvIDFromWindow()) ?? getBvIDFromURL(url);
+    if (url.includes("bilibili.com/video") || url.includes("bilibili.com/list/")) {
+        // video or list page
+        const id = (await getBvIDFromWindow()) ?? getBvIDFromURL(url);
+        return id;
     }
     return null;
 }
@@ -57,6 +58,9 @@ export function getBvIDFromURL(url: string): VideoID | null {
             // av id
             return getBvIDFromCache(idMatch[3], "-1" as VideoID);
         }
+    } else if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/list/")) {
+        const id = urlObject.searchParams.get("bvid");
+        return id as VideoID;
     }
 
     return null;
