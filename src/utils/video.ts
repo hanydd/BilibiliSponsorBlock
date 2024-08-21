@@ -181,33 +181,43 @@ function resetValues() {
 
 //checks if this channel is whitelisted, should be done only after the channelID has been loaded
 export async function whitelistCheck() {
-    // TODO: find a route event in Bilibli
+    waitingForChannelID = true;
 
-    // Try fallback
-    // Bilibili watch page
-    const channelNameCard = await Promise.race([
-        waitForElement("div.membersinfo-upcard > a.avatar"), // collab video with multiple up
-        waitForElement("a.up-name"),
-    ]);
-    const channelIDFallback = channelNameCard
-        // TODO: more types of pages?
-        // ?? document.querySelector("a.ytp-title-channel-logo") // YouTube Embed
-        ?.getAttribute("href")
-        ?.match(/(?:space\.bilibili\.com\/)([1-9][0-9]{0,11})/)?.[1];
+    const channelID = await getPropertyFromWindow<ChannelID>({
+        sendType: "getChannelID",
+        responseType: "returnChannelID",
+    });
 
-    if (channelIDFallback) {
+    if (channelID) {
         channelIDInfo = {
+            id: channelID,
             status: ChannelIDStatus.Found,
-            // id: (pageMangerChannelID ?? channelIDFallback) as ChannelID
-            id: channelIDFallback as ChannelID,
         };
     } else {
-        channelIDInfo = {
-            status: ChannelIDStatus.Failed,
-            id: null,
-        };
+        // Try fallback
+        // Bilibili watch page
+        const channelNameCard = await Promise.race([
+            waitForElement("div.membersinfo-upcard > a.avatar"), // collab video with multiple up
+            waitForElement("a.up-name"),
+        ]);
+        const channelIDFallback = channelNameCard
+            // TODO: support more types of pages
+            ?.getAttribute("href")
+            ?.match(/(?:space\.bilibili\.com\/)([1-9][0-9]{0,11})/)?.[1];
+
+        if (channelIDFallback) {
+            channelIDInfo = {
+                status: ChannelIDStatus.Found,
+                // id: (pageMangerChannelID ?? channelIDFallback) as ChannelID
+                id: channelIDFallback as ChannelID,
+            };
+        } else {
+            channelIDInfo = {
+                status: ChannelIDStatus.Failed,
+                id: null,
+            };
+        }
     }
-    // }
 
     waitingForChannelID = false;
     contentMethod.channelIDChange(channelIDInfo);
