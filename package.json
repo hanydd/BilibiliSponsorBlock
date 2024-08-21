@@ -80,7 +80,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HanYaodong/BilibiliSponsorBlock.git"
+    "url": "git+https://github.com/hanydd/BilibiliSponsorBlock.git"
   },
   "author": "Yaodong Han",
   "license": "GPL-3.0",

@@ -15,7 +15,7 @@
 
     执行下面的命令。
     ```bash
-    git clone https://github.com/HanYaodong/BilibiliSponsorBlock.git
+    git clone https://github.com/hanydd/BilibiliSponsorBlock.git
     ```
 
 1. 复制文件 `config.json.example`，并重命名为 `config.json`。你也可以根据需要，调整里面的选项。

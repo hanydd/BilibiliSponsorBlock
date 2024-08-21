@@ -901,7 +901,7 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
         if (!response.channelID) {
             alert(
                 chrome.i18n.getMessage("channelDataNotFound") +
-                    " https://github.com/HanYaodong/BilibiliSponsorBlock/issues/1"
+                    " https://github.com/hanydd/BilibiliSponsorBlock/issues/1"
             );
             return;
         }

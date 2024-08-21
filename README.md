@@ -14,7 +14,7 @@
   ![用户数量](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F47.103.74.95%2Fapi%2FgetTotalStats&query=activeUsers&suffix=%E4%BA%BA&label=%E7%94%A8%E6%88%B7&color=green&cacheSeconds=3600)
   ![片段数量](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F47.103.74.95%2Fapi%2FgetTotalStats&query=totalSubmissions&label=%E6%8F%90%E4%BA%A4%E7%9A%84%E7%89%87%E6%AE%B5%E6%95%B0%E9%87%8F&color=red&cacheSeconds=3600)
   ![节省时间](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F47.103.74.95%2Fapi%2FgetTotalStats&query=minutesSaved&suffix=%E5%88%86%E9%92%9F&label=%E5%85%B1%E8%8A%82%E7%9C%81&color=orange&cacheSeconds=3600)
-  [![CI Status](https://img.shields.io/github/actions/workflow/status/HanYaodong/BilibiliSponsorBlock/ci.yml)](https://github.com/HanYaodong/BilibiliSponsorBlock/actions/workflows/ci.yml)
+  [![CI Status](https://img.shields.io/github/actions/workflow/status/HanYaodong/BilibiliSponsorBlock/ci.yml)](https://github.com/hanydd/BilibiliSponsorBlock/actions/workflows/ci.yml)
 
 </div>
 
@@ -41,7 +41,7 @@
 
 - 目前上架了[Chrome应用商店](https://chromewebstore.google.com/detail/eaoelafamejbnggahofapllmfhlhajdd)，[Edge应用商店](https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha)， [火狐应用商店](https://addons.mozilla.org/en-US/firefox/addon/bilisponsorblock/)。如果你知道更多流行的浏览器插件商店，欢迎留言~
 
-- 或者可以从 [Github Release](https://github.com/HanYaodong/BilibiliSponsorBlock/releases/latest) 页面获取最新发布的插件。
+- 或者可以从 [Github Release](https://github.com/hanydd/BilibiliSponsorBlock/releases/latest) 页面获取最新发布的插件。
 
   1. 根据您浏览器的类型下载适合的版本，Chrome、Edge、360和基于Chromium的国产浏览器下载 `ChromiumExtension.zip`；火狐浏览器下载`FirefoxExtension.zip`。并解压缩。
 
@@ -83,7 +83,7 @@
 
 - 支持悬浮预览 / 小窗播放器 / 嵌入式播放器
 
-- 通过空降弹幕自动获取片段 “空降xx:xx”、“猝不及防”等 [#3](https://github.com/HanYaodong/BilibiliSponsorBlock/issues/3)
+- 通过空降弹幕自动获取片段 “空降xx:xx”、“猝不及防”等 [#3](https://github.com/hanydd/BilibiliSponsorBlock/issues/3)
 
 - 完善文档
 
@@ -92,7 +92,7 @@
 
 # 服务端
 
-服务端代码（同样也在开发中）：https://github.com/HanYaodong/BilibiliSponsorBlockServer
+服务端代码（同样也在开发中）：https://github.com/hanydd/BilibiliSponsorBlockServer
 
 # API
 
