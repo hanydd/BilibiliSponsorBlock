@@ -1,10 +1,3 @@
-/*
-Based on code from
-https://github.com/videosegments/videosegments/commits/f1e111bdfe231947800c6efdd51f62a4e7fef4d4/segmentsbar/segmentsbar.js
-*/
-
-"use strict";
-
 import Config from "../config";
 import { ChapterVote } from "../render/ChapterVote";
 import { ActionType, Category, SponsorHideType, SponsorSourceType, SponsorTime } from "../types";
