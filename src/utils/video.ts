@@ -243,7 +243,6 @@ function detectPageType(): void {
     } else if (urlObject.hostname === "live.bilibili.com") {
         pageType = PageType.Live;
     }
-    console.log("Page type: ", pageType);
 }
 
 let lastMutationListenerCheck = 0;

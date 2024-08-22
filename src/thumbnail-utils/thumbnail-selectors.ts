@@ -92,7 +92,6 @@ for (const [key, value] of Object.entries(pageTypeSepecialSelector)) {
 }
 
 export function getThumbnailContainerElements(pageType: PageType) {
-    console.log("getThumbnailContainerElements", thumbnailContainerSelectors[pageType]);
     return thumbnailContainerSelectors[pageType];
 }
 
@@ -101,6 +100,5 @@ export function getThumbnailLink(thumbnail: HTMLElement): HTMLElement | null {
 }
 
 export function getThumbnailSelectors(pageType: PageType) {
-    console.log("getThumbnailSelectors", thumbnailElementSelectors[pageType]);
     return thumbnailElementSelectors[pageType].join(", ");
 }
