@@ -12,11 +12,16 @@ import { injectScript } from "./scriptInjector";
 export enum PageType {
     Unknown = "unknown",
     Main = "main",
+    History = "history",
     Video = "video",
+    List = "list",
     Search = "search",
     Dynamic = "dynamic",
     Channel = "channel",
     Message = "message",
+    Manga = "manga", // 漫画
+    Anime = "bangumi", // 番剧
+    Live = "live",
     Embed = "embed",
 }
 export type VideoID = string & { __videoID: never };
@@ -44,7 +49,6 @@ let waitingForNewVideo = false;
 let isLivePremiere: boolean;
 
 let videoID: VideoID | null = null;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let pageType: PageType = PageType.Unknown;
 let channelIDInfo: ChannelIDInfo;
 let waitingForChannelID = false;
@@ -62,10 +66,9 @@ export function setupVideoModule(method) {
 
     // Direct Links after the config is loaded
     void waitFor(() => Config.isReady(), 1000, 1)
+        .then(() => detectPageType())
         .then(() => getBilibiliVideoID())
-        .then((id) => {
-            videoIDChange(id);
-        });
+        .then((id) => videoIDChange(id));
 
     // TODO: Add support for embed iframe videos
     // Can't use onInvidious at this point, the configuration might not be ready.
@@ -128,6 +131,8 @@ export async function checkVideoIDChange(): Promise<boolean> {
 }
 
 async function videoIDChange(id: VideoID | null): Promise<boolean> {
+    detectPageType();
+
     // don't switch to invalid value
     if (!id && videoID) {
         return false;
@@ -221,6 +226,38 @@ export async function whitelistCheck() {
 
     waitingForChannelID = false;
     contentMethod.channelIDChange(channelIDInfo);
+}
+
+function detectPageType(): void {
+    pageType = PageType.Unknown;
+
+    const urlObject = new URL(document.URL);
+    if (urlObject.hostname === "www.bilibili.com") {
+        if (urlObject.pathname.startsWith("/video/")) {
+            pageType = PageType.Video;
+        } else if (urlObject.pathname.startsWith("/list/")) {
+            pageType = PageType.List;
+        } else if (urlObject.pathname.startsWith("/account/history")) {
+            pageType = PageType.History;
+        } else if (urlObject.pathname.startsWith("/bangumi/")) {
+            pageType = PageType.Anime;
+        } else {
+            pageType = PageType.Main;
+        }
+    } else if (urlObject.hostname === "search.bilibili.com") {
+        pageType = PageType.Search;
+    } else if (urlObject.hostname === "t.bilibili.com") {
+        pageType = PageType.Dynamic;
+    } else if (urlObject.hostname === "space.bilibili.com") {
+        pageType = PageType.Channel;
+    } else if (urlObject.hostname === "message.bilibili.com") {
+        pageType = PageType.Message;
+    } else if (urlObject.hostname === "manga.bilibili.com") {
+        pageType = PageType.Manga;
+    } else if (urlObject.hostname === "live.bilibili.com") {
+        pageType = PageType.Live;
+    }
+    console.log("Page type: ", pageType);
 }
 
 let lastMutationListenerCheck = 0;
