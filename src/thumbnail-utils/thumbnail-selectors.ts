@@ -34,6 +34,12 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         containerSelector: ".recommend-list-container",
         thumbnailSelector: ".video-card",
     },
+    "playerListCard": {
+        // 播放页播放列表
+        // TODO: 无法获取视频链接
+        containerSelector: "video-sections-v1",
+        thumbnailSelector: ".video-episode-card",
+    },
     "listPlayerListCard": {
         // 列表播放页播放列表
         // TODO: 无法获取视频链接
@@ -66,7 +72,7 @@ const commonSelector = ["dynamicPopup", "historyPopup"];
 const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
     [PageType.Main]: ["mainPageRecommendation"],
     [PageType.History]: [],
-    [PageType.Video]: ["playerSideRecommendation"],
+    [PageType.Video]: ["playerSideRecommendation", "playerListCard"],
     [PageType.List]: ["listPlayerSideRecommendation", "listPlayerListCard"],
     [PageType.Search]: ["search"],
     [PageType.Dynamic]: ["dynamic"],
