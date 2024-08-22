@@ -11,8 +11,7 @@ import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import SkipNotice from "./render/SkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
 import { asyncRequestToServer } from "./requests/requests";
-import { updateAll } from "./thumbnail-utils/thumbnailManagement";
-import { setupThumbnailListener } from "./thumbnail-utils/thumbnails";
+import { setupThumbnailListener, updateAll } from "./thumbnail-utils/thumbnailManagement";
 import {
     ActionType,
     Category,

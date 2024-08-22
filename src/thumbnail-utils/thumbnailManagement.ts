@@ -1,26 +1,19 @@
+import Config from "../config";
 import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
 import { getThumbnailContainerElements, getThumbnailLink, getThumbnailSelectors } from "./thumbnail-selectors";
+import { insertSBIconDefinition, labelThumbnails } from "./thumbnails";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 
 const handledThumbnailsObserverMap = new Map<HTMLElement, MutationObserver>();
 let lastGarbageCollection = 0;
-let thumbnailListener: ThumbnailListener | null = null;
 let thumbnailContainerObserver: MutationObserver | null = null;
-let selector = getThumbnailSelectors();
+const selector = getThumbnailSelectors();
 
-export function setThumbnailListener(
-    listener: ThumbnailListener,
-    onInitialLoad: () => void,
-    configReady: () => boolean,
-    selectorParam?: string
-): void {
-    thumbnailListener = listener;
-    if (selectorParam) selector = selectorParam;
-
+export function setupThumbnailListener(): void {
     const onLoad = () => {
-        onInitialLoad?.();
+        onInitialLoad();
 
         // listen to container child changes
         getThumbnailContainerElements().forEach((selector) => {
@@ -43,7 +36,7 @@ export function setThumbnailListener(
         window.addEventListener("load", onLoad);
     }
 
-    void waitFor(() => configReady(), 5000, 10).then(() => {
+    void waitFor(() => Config.isReady(), 5000, 10).then(() => {
         newThumbnails();
     });
 
@@ -55,6 +48,10 @@ export function setThumbnailListener(
 
         handledThumbnailsObserverMap.clear();
     });
+}
+
+function onInitialLoad() {
+    insertSBIconDefinition();
 }
 
 let lastThumbnailCheck = 0;
@@ -86,7 +83,7 @@ export function newThumbnails() {
             const observer = new MutationObserver((mutations) => {
                 for (const mutation of mutations) {
                     if (mutation.type === "attributes" && mutation.attributeName === "href") {
-                        thumbnailListener?.([thumbnail]);
+                        labelThumbnails([thumbnail]);
                         break;
                     }
                 }
@@ -98,7 +95,7 @@ export function newThumbnails() {
         }
     }
 
-    thumbnailListener?.(newThumbnailsFound);
+    labelThumbnails(newThumbnailsFound);
 
     if (performance.now() - lastGarbageCollection > 5000) {
         // Clear old ones (some will come back if they are still on the page)
@@ -116,5 +113,5 @@ export function newThumbnails() {
 }
 
 export function updateAll(): void {
-    if (thumbnailListener) thumbnailListener([...handledThumbnailsObserverMap.keys()]);
+    labelThumbnails([...handledThumbnailsObserverMap.keys()]);
 }
