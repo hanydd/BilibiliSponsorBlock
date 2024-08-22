@@ -2,6 +2,21 @@ import SubmissionNotice from "./render/SubmissionNotice";
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import SkipNotice from "./render/SkipNotice";
 
+export enum PageType {
+    Unknown = "unknown",
+    Main = "main",
+    History = "history",
+    Video = "video",
+    List = "list",
+    Search = "search",
+    Dynamic = "dynamic",
+    Channel = "channel",
+    Message = "message",
+    Manga = "manga", // 漫画
+    Anime = "bangumi", // 番剧
+    Live = "live",
+    Embed = "embed",
+}
 export interface ContentContainer {
     (): {
         vote: (type: number, UUID: SegmentUUID, category?: Category, skipNotice?: SkipNoticeComponent) => void;

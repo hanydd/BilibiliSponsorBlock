@@ -1,6 +1,7 @@
 import Config from "../config";
 import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
+import { getPageType } from "../utils/video";
 import { getThumbnailContainerElements, getThumbnailLink, getThumbnailSelectors } from "./thumbnail-selectors";
 import { insertSBIconDefinition, labelThumbnails } from "./thumbnails";
 
@@ -9,14 +10,13 @@ export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 const handledThumbnailsObserverMap = new Map<HTMLElement, MutationObserver>();
 let lastGarbageCollection = 0;
 let thumbnailContainerObserver: MutationObserver | null = null;
-const selector = getThumbnailSelectors();
 
 export function setupThumbnailListener(): void {
     const onLoad = () => {
         onInitialLoad();
 
         // listen to container child changes
-        getThumbnailContainerElements().forEach((selector) => {
+        getThumbnailContainerElements(getPageType()).forEach((selector) => {
             void waitFor(() => document.querySelector(selector), 10000)
                 .then((thumbnailContainer) => {
                     newThumbnails(); // fire thumbnail check once when the container is loaded
@@ -74,7 +74,7 @@ export function newThumbnails() {
 
     const notNewThumbnails = handledThumbnailsObserverMap.keys();
 
-    const thumbnails = document.querySelectorAll(selector) as NodeListOf<HTMLElement>;
+    const thumbnails = document.querySelectorAll(getThumbnailSelectors(getPageType())) as NodeListOf<HTMLElement>;
     const newThumbnailsFound: HTMLElement[] = [];
     for (const thumbnail of thumbnails) {
         if (!handledThumbnailsObserverMap.has(thumbnail)) {

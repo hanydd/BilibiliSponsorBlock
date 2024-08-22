@@ -2,6 +2,7 @@ import * as documentScript from "../../dist/js/document.js";
 import Config from "../config";
 import { isSafari } from "../config/config";
 import { newThumbnails } from "../thumbnail-utils/thumbnailManagement";
+import { PageType } from "../types";
 import { waitFor } from "./";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
 import { getElement, isVisible, waitForElement } from "./dom";
@@ -9,21 +10,6 @@ import { getPropertyFromWindow } from "./injectedScriptMessageUtils";
 import { getBilibiliVideoID } from "./parseVideoID";
 import { injectScript } from "./scriptInjector";
 
-export enum PageType {
-    Unknown = "unknown",
-    Main = "main",
-    History = "history",
-    Video = "video",
-    List = "list",
-    Search = "search",
-    Dynamic = "dynamic",
-    Channel = "channel",
-    Message = "message",
-    Manga = "manga", // 漫画
-    Anime = "bangumi", // 番剧
-    Live = "live",
-    Embed = "embed",
-}
 export type VideoID = string & { __videoID: never };
 export type ChannelID = string & { __channelID: never };
 export enum ChannelIDStatus {
@@ -429,4 +415,8 @@ export function getChannelIDInfo(): ChannelIDInfo {
 
 export function getIsLivePremiere(): boolean {
     return isLivePremiere;
+}
+
+export function getPageType(): PageType {
+    return pageType;
 }
