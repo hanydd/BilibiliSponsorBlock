@@ -214,7 +214,7 @@ export async function whitelistCheck() {
     contentMethod.channelIDChange(channelIDInfo);
 }
 
-function detectPageType(): void {
+export function detectPageType(): void {
     pageType = PageType.Unknown;
 
     const urlObject = new URL(document.URL);

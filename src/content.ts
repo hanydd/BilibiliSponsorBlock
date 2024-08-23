@@ -47,6 +47,7 @@ import { getStartTimeFromUrl } from "./utils/urlParser";
 import {
     checkIfNewVideoID,
     checkVideoIDChange,
+    detectPageType,
     getChannelIDInfo,
     getFrameRate,
     getIsLivePremiere,
@@ -63,6 +64,8 @@ const utils = new Utils();
 waitFor(() => Config.isReady(), 5000, 10).then(() => {
     setCategoryColorCSSVariables();
 });
+
+detectPageType();
 
 const skipBuffer = 0.003;
 // If this close to the end, skip to the end
