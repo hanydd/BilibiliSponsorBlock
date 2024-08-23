@@ -24,7 +24,10 @@ export async function setMessageNotice(darkTheme: boolean = false, checkPageLoad
 }
 
 const MessageApp: React.FC = () => {
-    const [messageApi, contextHolder] = message.useMessage();
+    const [messageApi, contextHolder] = message.useMessage({
+        top: 74,
+        getContainer: () => document.querySelector("#bilibili-player .bpx-player-container"),
+    });
 
     function displayMessage() {
         messageApi[messageType](messageText);

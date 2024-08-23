@@ -134,7 +134,11 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
         );
         return (
             <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
-                <Popover content={this.popoverContent} open={this.state.popoverOpen}>
+                <Popover
+                    content={this.popoverContent}
+                    open={this.state.popoverOpen}
+                    getPopupContainer={() => document.querySelector("#bilibili-player .bpx-player-container")}
+                >
                     <NoticeComponent
                         noticeTitle={this.state.noticeTitle}
                         idSuffix={this.state.idSuffix}
