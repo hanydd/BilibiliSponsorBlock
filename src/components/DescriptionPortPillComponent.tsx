@@ -1,9 +1,10 @@
+import { ConfigProvider, Spin } from "antd";
 import * as React from "react";
-import { parseYoutubeID } from "../utils/parseVideoID";
 import { PortVideo } from "../render/DesciptionPortPill";
+import { showMessage } from "../render/MessageNotice";
 import { VideoID } from "../types";
 import { AnimationUtils } from "../utils/animationUtils";
-import { ConfigProvider, Spin } from "antd";
+import { parseYoutubeID } from "../utils/parseVideoID";
 
 export interface DescriptionPortPillProps {
     bvID: VideoID;
@@ -20,38 +21,26 @@ export interface DescriptionPortPillState {
     loading: boolean;
     ytbVideoID: VideoID;
     previewYtbID: VideoID;
-    showErrorMessage: boolean;
 }
 
 export class DescriptionPortPillComponent extends React.Component<DescriptionPortPillProps, DescriptionPortPillState> {
     inputRef: React.RefObject<HTMLInputElement>;
-    errorMessage: string;
 
     constructor(props: DescriptionPortPillProps) {
         super(props);
         this.inputRef = React.createRef();
-        this.errorMessage = "";
         this.state = {
             show: false,
             ytbVideoID: props.ytbID,
             loading: false,
             showPreviewYtbVideo: false,
             previewYtbID: props.ytbID,
-            showErrorMessage: false,
         };
     }
 
     render(): React.ReactElement {
         return (
             <ConfigProvider>
-                <div
-                    hidden={!(this.state.show && this.state.showErrorMessage)}
-                    className={this.state.showErrorMessage ? "active" : ""}
-                    id="bsbDescriptionPortErrorBox"
-                >
-                    {this.errorMessage}
-                </div>
-
                 <Spin delay={100} spinning={this.state.loading}>
                     <div hidden={!this.state.show} id="bsbDescriptionPortVideoPill">
                         {this.hasYtbVideo() && (
@@ -118,16 +107,6 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
         this.setState({ showPreviewYtbVideo: !this.state.showPreviewYtbVideo });
     }
 
-    private showErrorMessage(message: string): void {
-        this.errorMessage = message;
-        this.setState({ showErrorMessage: true });
-        const timeout = setTimeout(() => {
-            this.setState({ showErrorMessage: false });
-            this.errorMessage = "";
-            clearTimeout(timeout);
-        }, 4990);
-    }
-
     private handleYtbInput(event: React.ChangeEvent<HTMLInputElement>): void {
         const ytbID = parseYoutubeID(event.target.value);
         if (ytbID) {
@@ -157,7 +136,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                 }
             })
             .catch((e) => {
-                this.showErrorMessage(e);
+                showMessage(e, "error");
             })
             .finally(() => {
                 this.setState({ loading: false });
@@ -167,7 +146,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
     private async vote(event: React.MouseEvent, type: 0 | 1) {
         const stopAnimation = AnimationUtils.applyLoadingAnimation(event.target as HTMLElement, 0.5);
         await this.props.onVote(type).catch((e) => {
-            this.showErrorMessage(e);
+            showMessage(e, "error");
         });
         stopAnimation();
     }
