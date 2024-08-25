@@ -22,7 +22,6 @@ import { shortCategoryName } from "./utils/categoryUtils";
 import { exportTimes } from "./utils/exporter";
 import { getErrorMessage, getFormattedTime } from "./utils/formating";
 import { getHash } from "./utils/hash";
-import { localizeHtmlPage } from "./utils/setup";
 
 interface MessageListener {
     (request: Message, sender: unknown, sendResponse: (response: MessageResponse) => void): void;
@@ -78,7 +77,6 @@ window.addEventListener("message", async (e): Promise<void> => {
 //make this a function to allow this to run on the content page
 async function runThePopup(messageListener?: MessageListener): Promise<void> {
     const messageHandler = new MessageHandler(messageListener);
-    localizeHtmlPage();
 
     type InputPageElements = {
         whitelistToggle?: HTMLInputElement;
