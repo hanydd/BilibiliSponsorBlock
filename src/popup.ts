@@ -27,7 +27,7 @@ interface MessageListener {
     (request: Message, sender: unknown, sendResponse: (response: MessageResponse) => void): void;
 }
 
-class MessageHandler {
+export class MessageHandler {
     messageListener: MessageListener;
 
     constructor(messageListener?: MessageListener) {
@@ -199,13 +199,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         () => (Config.config.donateClicked = Config.config.donateClicked + 1)
     );
 
-    if (Config.config.testingServer) {
-        PageElements.sbBetaServerWarning.classList.remove("hidden");
-        PageElements.sbBetaServerWarning.addEventListener("click", function () {
-            openOptionsAt("advanced");
-        });
-    }
-
     PageElements.exportSegmentsButton.addEventListener("click", exportSegments);
     PageElements.importSegmentsButton.addEventListener("click", () =>
         PageElements.importSegmentsMenu.classList.toggle("hidden")
@@ -219,9 +212,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         } else {
             unwhitelistChannel();
         }
-    });
-    PageElements.whitelistForceCheck.addEventListener("click", () => {
-        openOptionsAt("behavior");
     });
     PageElements.toggleSwitch.addEventListener("change", function () {
         toggleSkipping(!this.checked);
@@ -759,10 +749,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     //make the options div visible
     function openOptions() {
         chrome.runtime.sendMessage({ message: "openConfig" });
-    }
-
-    function openOptionsAt(location) {
-        chrome.runtime.sendMessage({ message: "openConfig", hash: location });
     }
 
     function openHelp() {
