@@ -75,7 +75,7 @@ window.addEventListener("message", async (e): Promise<void> => {
 });
 
 //make this a function to allow this to run on the content page
-async function runThePopup(messageListener?: MessageListener): Promise<void> {
+export async function runThePopup(messageListener?: MessageListener): Promise<void> {
     const messageHandler = new MessageHandler(messageListener);
 
     type InputPageElements = {
@@ -1156,4 +1156,3 @@ async function runThePopup(messageListener?: MessageListener): Promise<void> {
     }
 }
 
-runThePopup();
