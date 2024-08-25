@@ -1,10 +1,25 @@
 import { ConfigProvider, theme } from "antd";
 import * as React from "react";
+import Config from "../config";
 
 function app() {
+    const cleanPopup = Config.config.cleanPopup;
+
     return (
         <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
             <div id="sponsorblockPopup" className="sponsorBlockPageBody sb-preload">
+                {/* <Button
+                    type="text"
+                    title={chrome.i18n.getMessage("closePopup")}
+                    className="sbCloseButton"
+                    onClick={() => {
+                        sendTabMessage({
+                            message: "closePopup",
+                        });
+                    }}
+                >
+                    <CloseOutlined width={15} height={15} />
+                </Button> */}
                 <button
                     id="sbCloseButton"
                     title={chrome.i18n.getMessage("closePopup")}
@@ -13,11 +28,15 @@ function app() {
                     <img src="icons/close.png" width="15" height="15" alt="Close icon" />
                 </button>
 
-                <div id="sbBetaServerWarning" className="hidden" title={chrome.i18n.getMessage("openOptionsPage")}>
+                <div
+                    id="sbBetaServerWarning"
+                    className={Config.config.testingServer ? "" : "hidden"}
+                    title={chrome.i18n.getMessage("openOptionsPage")}
+                >
                     {chrome.i18n.getMessage("betaServerWarning")}
                 </div>
 
-                <header id="sbPopupLogo" className="sbPopupLogo">
+                <header id="sbPopupLogo" className={"sbPopupLogo" + (cleanPopup ? " hidden" : "")}>
                     <img
                         src="icons/IconSponsorBlocker256px.png"
                         alt="SponsorBlock"
@@ -28,7 +47,7 @@ function app() {
                     <p className="u-mZ">{chrome.i18n.getMessage("fullName")}</p>
                 </header>
 
-                <div id="videoInfo">
+                <div id="videoInfo" style={{ marginTop: cleanPopup ? 10 : 0 }}>
                     {/* <!-- Loading text --> */}
                     <p id="loadingIndicator" className="u-mZ grey-text">
                         {chrome.i18n.getMessage("noVideoID")}
@@ -128,7 +147,7 @@ function app() {
                 </a>
 
                 {/* <!-- Submit box --> */}
-                <div id="mainControls" style={{ display: "none" }}>
+                <div id="mainControls" style={{ display: "none" }} className={cleanPopup ? " hidden" : ""}>
                     <h1 className="sbHeader">{chrome.i18n.getMessage("recordTimesDescription")}</h1>
                     <sub className="sponsorStartHint grey-text">{chrome.i18n.getMessage("popupHint")}</sub>
                     <div style={{ textAlign: "center", margin: "8px 0" }}>
@@ -145,7 +164,7 @@ function app() {
                 </div>
 
                 {/* <!-- Your Work box --> */}
-                <div id="sbYourWorkBox" className="sbYourWorkBox">
+                <div id="sbYourWorkBox" className={"sbYourWorkBox" + (cleanPopup ? " hidden" : "")}>
                     <h1 className="sbHeader" style={{ padding: "8px 15px" }}>
                         {chrome.i18n.getMessage("yourWork")}
                     </h1>
@@ -238,7 +257,7 @@ function app() {
                     </p>
                 </div>
 
-                <footer id="sbFooter">
+                <footer id="sbFooter" className={cleanPopup ? " hidden" : ""}>
                     <a id="helpButton">{chrome.i18n.getMessage("help")}</a>
                     <a href="https://bsbsb.top" target="_blank" rel="noopener noreferrer">
                         {chrome.i18n.getMessage("website")}

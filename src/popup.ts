@@ -199,16 +199,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         () => (Config.config.donateClicked = Config.config.donateClicked + 1)
     );
 
-    if (Config.config.cleanPopup) {
-        PageElements.sbPopupLogo.classList.add("hidden");
-        PageElements.sbYourWorkBox.classList.add("hidden");
-        PageElements.sbFooter.classList.add("hidden");
-        PageElements.sponsorTimesDonateContainer.classList.add("hidden");
-        PageElements.mainControls.classList.add("hidden");
-
-        PageElements.videoInfo.style.marginTop = "10px";
-    }
-
     if (Config.config.testingServer) {
         PageElements.sbBetaServerWarning.classList.remove("hidden");
         PageElements.sbBetaServerWarning.addEventListener("click", function () {
@@ -1155,4 +1145,3 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         }
     }
 }
-
