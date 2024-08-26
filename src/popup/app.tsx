@@ -6,6 +6,7 @@ import { Message } from "../messageTypes";
 import { MessageHandler } from "../popup";
 import { getFormattedHours } from "../utils/formating";
 import VideoInfo from "./VideoInfo";
+import ControlMenu from "./ControlMenu";
 
 function app() {
     const cleanPopup = Config.config.cleanPopup;
@@ -100,69 +101,7 @@ function app() {
 
                 <VideoInfo />
 
-                {/* <!-- Toggle Box --> */}
-                <div className="sbControlsMenu">
-                    <label id="whitelistButton" htmlFor="whitelistToggle" className="hidden sbControlsMenu-item">
-                        <input type="checkbox" style={{ display: "none" }} id="whitelistToggle" />
-                        <svg
-                            viewBox="0 0 24 24"
-                            width="23"
-                            height="23"
-                            className="SBWhitelistIcon sbControlsMenu-itemIcon"
-                        >
-                            <path d="M24 10H14V0h-4v10H0v4h10v10h4V14h10z" />
-                        </svg>
-                        <span id="whitelistChannel">{chrome.i18n.getMessage("whitelistChannel")}</span>
-                        <span id="unwhitelistChannel" style={{ display: "none" }}>
-                            {chrome.i18n.getMessage("removeFromWhitelist")}
-                        </span>
-                    </label>
-                    {/* <!--github: mbledkowski/toggle-switch--> */}
-                    <label
-                        id="disableExtension"
-                        htmlFor="toggleSwitch"
-                        className="toggleSwitchContainer sbControlsMenu-item"
-                    >
-                        <span className="toggleSwitchContainer-switch">
-                            <input
-                                type="checkbox"
-                                style={{ display: "none" }}
-                                id="toggleSwitch"
-                                defaultChecked={true}
-                            />
-                            <span className="switchBg shadow"></span>
-                            <span className="switchBg white"></span>
-                            <span className="switchBg green"></span>
-                            <span className="switchDot"></span>
-                        </span>
-                        <span id="disableSkipping">{chrome.i18n.getMessage("disableSkipping")}</span>
-                        <span id="enableSkipping" style={{ display: "none" }}>
-                            {chrome.i18n.getMessage("enableSkipping")}
-                        </span>
-                    </label>
-                    <button
-                        id="optionsButton"
-                        className="sbControlsMenu-item"
-                        title={chrome.i18n.getMessage("optionsInfo")}
-                        onClick={() => {
-                            openOptionsAt("behavior");
-                        }}
-                    >
-                        <img
-                            src="/icons/settings.svg"
-                            alt="Settings icon"
-                            width="23"
-                            height="23"
-                            className="sbControlsMenu-itemIcon"
-                            id="sbPopupIconSettings"
-                        />
-                        {chrome.i18n.getMessage("Options")}
-                    </button>
-                </div>
-
-                <a id="whitelistForceCheck" className="hidden">
-                    {chrome.i18n.getMessage("forceChannelCheckPopup")}
-                </a>
+                <ControlMenu openOptionsAt={openOptionsAt} />
 
                 {/* <!-- Submit box --> */}
                 <div id="mainControls" style={{ display: "none" }} className={cleanPopup ? " hidden" : ""}>

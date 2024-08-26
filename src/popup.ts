@@ -120,7 +120,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         "toggleSwitch",
         // Options
         "showNoticeAgain",
-        "optionsButton",
         "helpButton",
         // More controls
         "submitTimes",
@@ -194,7 +193,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     PageElements.setUsernameButton.addEventListener("click", setUsernameButton);
     PageElements.usernameValue.addEventListener("click", setUsernameButton);
     PageElements.submitUsername.addEventListener("click", submitUsername);
-    PageElements.optionsButton.addEventListener("click", openOptions);
     PageElements.helpButton.addEventListener("click", openHelp);
     PageElements.refreshSegmentsButton.addEventListener("click", refreshSegments);
     PageElements.sbPopupIconCopyUserID.addEventListener("click", async () =>
@@ -655,11 +653,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
 
         PageElements.submitTimes.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
         PageElements.submissionHint.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
-    }
-
-    //make the options div visible
-    function openOptions() {
-        chrome.runtime.sendMessage({ message: "openConfig" });
     }
 
     function openHelp() {
