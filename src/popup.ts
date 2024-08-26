@@ -19,7 +19,7 @@ import { waitFor } from "./utils/";
 import { AnimationUtils } from "./utils/animationUtils";
 import { shortCategoryName } from "./utils/categoryUtils";
 import { exportTimes } from "./utils/exporter";
-import { getErrorMessage, getFormattedTime } from "./utils/formating";
+import { getErrorMessage, getFormattedHours, getFormattedTime } from "./utils/formating";
 import { getHash } from "./utils/hash";
 
 interface MessageListener {
@@ -131,11 +131,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         "sponsorTimesViewsDisplayEndWord",
         "sponsorTimesOthersTimeSavedDisplay",
         "sponsorTimesOthersTimeSavedEndWord",
-        "sponsorTimesSkipsDoneContainer",
-        "sponsorTimesSkipsDoneDisplay",
-        "sponsorTimesSkipsDoneEndWord",
-        "sponsorTimeSavedDisplay",
-        "sponsorTimeSavedEndWord",
         // Username
         "setUsernameContainer",
         "setUsernameButton",
@@ -301,29 +296,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
             Config.config.permissions = userInfo.permissions;
         }
     });
-
-    //get the amount of times this user has skipped a sponsor
-    if (Config.config.skipCount != undefined) {
-        if (Config.config.skipCount != 1) {
-            PageElements.sponsorTimesSkipsDoneEndWord.innerText = chrome.i18n.getMessage("Segments");
-        } else {
-            PageElements.sponsorTimesSkipsDoneEndWord.innerText = chrome.i18n.getMessage("Segment");
-        }
-
-        PageElements.sponsorTimesSkipsDoneDisplay.innerText = Config.config.skipCount.toLocaleString();
-        PageElements.sponsorTimesSkipsDoneContainer.style.display = "block";
-    }
-
-    //get the amount of time this user has saved.
-    if (Config.config.minutesSaved != undefined) {
-        if (Config.config.minutesSaved != 1) {
-            PageElements.sponsorTimeSavedEndWord.innerText = chrome.i18n.getMessage("minsLower");
-        } else {
-            PageElements.sponsorTimeSavedEndWord.innerText = chrome.i18n.getMessage("minLower");
-        }
-
-        PageElements.sponsorTimeSavedDisplay.innerText = getFormattedHours(Config.config.minutesSaved);
-    }
 
     // Must be delayed so it only happens once loaded
     setTimeout(() => PageElements.sponsorblockPopup.classList.remove("preload"), 250);
@@ -1015,26 +987,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
             hideLogo: true,
             hideRightInfo: true,
         });
-    }
-
-    /**
-     * Converts time in minutes to 2d 5h 25.1
-     * If less than 1 hour, just returns minutes
-     *
-     * @param {float} minutes
-     * @returns {string}
-     */
-    function getFormattedHours(minutes) {
-        minutes = Math.round(minutes * 10) / 10;
-        const years = Math.floor(minutes / 525600); // Assumes 365.0 days in a year
-        const days = Math.floor(minutes / 1440) % 365;
-        const hours = Math.floor(minutes / 60) % 24;
-        return (
-            (years > 0 ? years + chrome.i18n.getMessage("yearAbbreviation") + " " : "") +
-            (days > 0 ? days + chrome.i18n.getMessage("dayAbbreviation") + " " : "") +
-            (hours > 0 ? hours + chrome.i18n.getMessage("hourAbbreviation") + " " : "") +
-            (minutes % 60).toFixed(1)
-        );
     }
 
     function contentConfigUpdateListener(changes: StorageChangesObject) {

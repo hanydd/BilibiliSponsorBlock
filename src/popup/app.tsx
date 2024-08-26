@@ -2,6 +2,7 @@ import { ConfigProvider, theme } from "antd";
 import * as React from "react";
 import Config from "../config";
 import { showDonationLink } from "../config/configUtils";
+import { getFormattedHours } from "../utils/formating";
 import VideoInfo from "./VideoInfo";
 
 function app() {
@@ -217,19 +218,24 @@ function app() {
                             <span>{chrome.i18n.getMessage("youHaveSavedTimeEnd")}</span>)
                         </span>
                     </p>
-                    <p id="sponsorTimesSkipsDoneContainer" style={{ display: "none" }} className="u-mZ sbStatsSentence">
+                    <p
+                        style={{ display: Config.config.skipCount != undefined ? "block" : "none" }}
+                        className="u-mZ sbStatsSentence"
+                    >
                         {chrome.i18n.getMessage("youHaveSkipped")}
                         <b>
-                            <span id="sponsorTimesSkipsDoneDisplay">0</span>
+                            &nbsp;
+                            <span>{Config.config.skipCount.toLocaleString()}</span>
+                            &nbsp;
                         </b>
-                        <span id="sponsorTimesSkipsDoneEndWord">{chrome.i18n.getMessage("Segments")}</span>
+                        <span>{chrome.i18n.getMessage("Segments")}</span>
                         <span className="sbExtraInfo">
-                            (
+                            （
                             <b>
-                                <span id="sponsorTimeSavedDisplay">0</span>
-                                <span id="sponsorTimeSavedEndWord">{chrome.i18n.getMessage("minsLower")}</span>
+                                {getFormattedHours(Config.config.minutesSaved)}
+                                {chrome.i18n.getMessage("minsLower")}
                             </b>
-                            )
+                            ）
                         </span>
                     </p>
                 </div>
