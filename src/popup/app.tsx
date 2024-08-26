@@ -81,7 +81,12 @@ function app() {
                         className="toggleSwitchContainer sbControlsMenu-item"
                     >
                         <span className="toggleSwitchContainer-switch">
-                            <input type="checkbox" style={{ display: "none" }} id="toggleSwitch" checked />
+                            <input
+                                type="checkbox"
+                                style={{ display: "none" }}
+                                id="toggleSwitch"
+                                defaultChecked={true}
+                            />
                             <span className="switchBg shadow"></span>
                             <span className="switchBg white"></span>
                             <span className="switchBg green"></span>
