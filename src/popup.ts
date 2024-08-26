@@ -157,7 +157,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         "sbConsiderDonateLink",
         "sbCloseDonate",
         "sbBetaServerWarning",
-        "sbCloseButton",
         "issueReporterImportExport",
         "importSegmentsButton",
         "exportSegmentsButton",
@@ -172,12 +171,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
         Config.configSyncListeners.push(contentConfigUpdateListener);
     }
-
-    PageElements.sbCloseButton.addEventListener("click", () => {
-        sendTabMessage({
-            message: "closePopup",
-        });
-    });
 
     PageElements.exportSegmentsButton.addEventListener("click", exportSegments);
     PageElements.importSegmentsButton.addEventListener("click", () =>

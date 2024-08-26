@@ -2,6 +2,8 @@ import { ConfigProvider, theme } from "antd";
 import * as React from "react";
 import Config from "../config";
 import { showDonationLink } from "../config/configUtils";
+import { Message } from "../messageTypes";
+import { MessageHandler } from "../popup";
 import { getFormattedHours } from "../utils/formating";
 import VideoInfo from "./VideoInfo";
 
@@ -9,29 +11,35 @@ function app() {
     const cleanPopup = Config.config.cleanPopup;
     const isEmbed = window !== window.top;
 
+    const messageHandler = new MessageHandler();
+
     function openOptionsAt(location: string) {
         chrome.runtime.sendMessage({ message: "openConfig", hash: location });
+    }
+
+    function sendTabMessage(data: Message, callback?) {
+        messageHandler.query(
+            {
+                active: true,
+                currentWindow: true,
+            },
+            (tabs) => {
+                messageHandler.sendMessage(tabs[0].id, data, callback);
+            }
+        );
     }
 
     return (
         <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
             <div id="sponsorblockPopup" className="sponsorBlockPageBody sb-preload">
-                {/* <Button
-                    type="text"
+                <button
                     title={chrome.i18n.getMessage("closePopup")}
-                    className="sbCloseButton"
+                    className={"sbCloseButton" + (isEmbed ? "" : " hidden")}
                     onClick={() => {
                         sendTabMessage({
                             message: "closePopup",
                         });
                     }}
-                >
-                    <CloseOutlined width={15} height={15} />
-                </Button> */}
-                <button
-                    id="sbCloseButton"
-                    title={chrome.i18n.getMessage("closePopup")}
-                    className={"sbCloseButton" + (isEmbed ? "" : " hidden")}
                 >
                     <img src="icons/close.png" width="15" height="15" alt="Close icon" />
                 </button>
