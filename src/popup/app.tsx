@@ -5,6 +5,7 @@ import VideoInfo from "./VideoInfo";
 
 function app() {
     const cleanPopup = Config.config.cleanPopup;
+    const isEmbed = window !== window.top;
 
     function openOptionsAt(location: string) {
         chrome.runtime.sendMessage({ message: "openConfig", hash: location });
@@ -28,7 +29,7 @@ function app() {
                 <button
                     id="sbCloseButton"
                     title={chrome.i18n.getMessage("closePopup")}
-                    className="sbCloseButton hidden"
+                    className={"sbCloseButton" + (isEmbed ? "" : " hidden")}
                 >
                     <img src="icons/close.png" width="15" height="15" alt="Close icon" />
                 </button>

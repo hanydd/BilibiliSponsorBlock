@@ -113,13 +113,6 @@
 }
 
 /*
- * Disable fixed popup width when displayed in-page (content.ts)
- */
-#sponsorBlockPopupBody.is-embedded {
-	width: auto;
-}
-
-/*
  * Close popup button when displayed in-page (top-right corner)
  */
 .sbCloseButton {

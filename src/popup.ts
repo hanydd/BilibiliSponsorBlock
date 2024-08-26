@@ -185,11 +185,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         });
     });
 
-    if (window !== window.top) {
-        PageElements.sbCloseButton.classList.remove("hidden");
-        PageElements.sponsorBlockPopupBody.classList.add("is-embedded");
-    }
-
     // Hide donate button if wanted
     if (!showDonationLink()) {
         PageElements.sbDonate.style.display = "none";
