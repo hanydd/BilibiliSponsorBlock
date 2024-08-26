@@ -264,7 +264,8 @@ function app() {
                     )}
                 </footer>
 
-                <button id="showNoticeAgain" style={{ display: "none" }}>
+                {/* if the don't show notice again variable is true, an option to disable should be available */}
+                <button id="showNoticeAgain" style={Config.config.dontShowNotice ? {} : { display: "none" }}>
                     {chrome.i18n.getMessage("showNotice")}
                 </button>
             </div>

@@ -255,13 +255,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         PageElements.toggleSwitch.checked = false;
     }
 
-    //if the don't show notice again variable is true, an option to
-    //  disable should be available
-    const dontShowNotice = Config.config.dontShowNotice;
-    if (dontShowNotice != undefined && dontShowNotice) {
-        PageElements.showNoticeAgain.style.display = "unset";
-    }
-
     const values = ["userName", "viewCount", "minutesSaved", "vip", "permissions", "segmentCount"];
 
     asyncRequestToServer("GET", "/api/userInfo", {
