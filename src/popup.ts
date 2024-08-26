@@ -1,7 +1,6 @@
 import Config from "./config";
 
 import { StorageChangesObject } from "./config/config";
-import { showDonationLink } from "./config/configUtils";
 import {
     GetChannelIDResponse,
     IsChannelWhitelistedResponse,
@@ -184,15 +183,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
             message: "closePopup",
         });
     });
-
-    // Hide donate button if wanted
-    if (!showDonationLink()) {
-        PageElements.sbDonate.style.display = "none";
-    }
-    PageElements.sbDonate.addEventListener(
-        "click",
-        () => (Config.config.donateClicked = Config.config.donateClicked + 1)
-    );
 
     PageElements.exportSegmentsButton.addEventListener("click", exportSegments);
     PageElements.importSegmentsButton.addEventListener("click", () =>

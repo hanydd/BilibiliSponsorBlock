@@ -1,6 +1,7 @@
 import { ConfigProvider, theme } from "antd";
 import * as React from "react";
 import Config from "../config";
+import { showDonationLink } from "../config/configUtils";
 import VideoInfo from "./VideoInfo";
 
 function app() {
@@ -248,9 +249,19 @@ function app() {
                     <a href="https://status.bsbsb.top" target="_blank" rel="noopener noreferrer">
                         {chrome.i18n.getMessage("serverStatus")}
                     </a>
-                    <a href="https://bsbsb.top/donate/" target="_blank" rel="noopener noreferrer" id="sbDonate">
-                        {chrome.i18n.getMessage("Donate")}
-                    </a>
+                    {showDonationLink() && (
+                        <a
+                            href="https://bsbsb.top/donate/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            id="sbDonate"
+                            onClick={() => {
+                                Config.config.donateClicked += 1;
+                            }}
+                        >
+                            {chrome.i18n.getMessage("Donate")}
+                        </a>
+                    )}
                 </footer>
 
                 <button id="showNoticeAgain" style={{ display: "none" }}>
