@@ -1,7 +1,22 @@
 import * as React from "react";
 import Config from "../config";
 
-class VideoInfo extends React.Component {
+interface VideoInfoProps {
+    getSegmentsFromContentScript: (update: boolean) => void;
+}
+
+interface VideoInfoState {
+    loading: boolean;
+}
+
+class VideoInfo extends React.Component<VideoInfoProps> {
+    constructor(props: VideoInfoProps) {
+        super(props);
+        this.state = {
+            loading: true,
+        };
+    }
+
     render() {
         return (
             <div style={Config.config.cleanPopup ? { marginTop: 10 } : {}}>
@@ -17,7 +32,15 @@ class VideoInfo extends React.Component {
                 {/* <!-- Video Segments --> */}
                 <div id="issueReporterContainer">
                     <div id="issueReporterTabs" className="hidden">
-                        <span id="issueReporterTabSegments" className="sbSelected">
+                        <span
+                            id="issueReporterTabSegments"
+                            className="sbSelected"
+                            onClick={(e) => {
+                                console.log(e);
+                                // PageElements.issueReporterTabSegments.classList.add("sbSelected");
+                                this.props.getSegmentsFromContentScript(true);
+                            }}
+                        >
                             <span>{chrome.i18n.getMessage("SegmentsCap")}</span>
                         </span>
                     </div>

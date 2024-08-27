@@ -149,7 +149,7 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         "importSegmentsSubmit",
     ].forEach((id) => (PageElements[id] = document.getElementById(id)));
 
-    getSegmentsFromContentScript(false);
+    // getSegmentsFromContentScript(false);
     PageElements.sponsorBlockPopupBody.style.removeProperty("visibility");
     if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
         Config.configSyncListeners.push(contentConfigUpdateListener);
@@ -182,7 +182,7 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         copyToClipboard(await getHash(Config.config.userID))
     );
 
-    setupComPort();
+    // setupComPort();
 
     //show proper disable skipping button
     const disableSkipping = Config.config.disableSkipping;
@@ -242,10 +242,10 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     // Must be delayed so it only happens once loaded
     setTimeout(() => PageElements.sponsorblockPopup.classList.remove("preload"), 250);
 
-    PageElements.issueReporterTabSegments.addEventListener("click", () => {
-        PageElements.issueReporterTabSegments.classList.add("sbSelected");
-        getSegmentsFromContentScript(true);
-    });
+    // PageElements.issueReporterTabSegments.addEventListener("click", () => {
+    //     PageElements.issueReporterTabSegments.classList.add("sbSelected");
+    //     getSegmentsFromContentScript(true);
+    // });
 
     function showDonateWidget(viewCount: number) {
         if (

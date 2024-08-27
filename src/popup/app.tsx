@@ -2,17 +2,28 @@ import { ConfigProvider, theme } from "antd";
 import * as React from "react";
 import Config from "../config";
 import { showDonationLink } from "../config/configUtils";
-import { Message } from "../messageTypes";
+import { IsInfoFoundMessageResponse, Message, PopupMessage } from "../messageTypes";
 import { MessageHandler } from "../popup";
+import { SponsorTime } from "../types";
 import { getFormattedHours } from "../utils/formating";
-import VideoInfo from "./VideoInfo";
+import { waitFor } from "../utils/index";
 import ControlMenu from "./ControlMenu";
+import VideoInfo from "./VideoInfo";
 
 function app() {
     const cleanPopup = Config.config.cleanPopup;
     const isEmbed = window !== window.top;
 
     const messageHandler = new MessageHandler();
+
+    //the start and end time pairs (2d)
+    let sponsorTimes: SponsorTime[] = [];
+    let downloadedTimes: SponsorTime[] = [];
+
+    //current video ID of this tab
+    let currentVideoID = null;
+
+    let port: chrome.runtime.Port = null;
 
     // Forward click events
     if (isEmbed) {
@@ -46,6 +57,128 @@ function app() {
         });
     }
 
+    getSegmentsFromContentScript(false);
+
+    setupComPort();
+
+    // For loading video info from the page
+    let loadRetryCount = 0;
+    function onTabs(tabs, updating: boolean): void {
+        messageHandler.sendMessage(tabs[0].id, { message: "getVideoID" }, function (result) {
+            console.log("getVideoID", result);
+            if (result !== undefined && result.videoID) {
+                currentVideoID = result.videoID;
+
+                loadTabData(tabs, updating);
+            } else {
+                // Handle error if it exists
+                chrome.runtime.lastError;
+
+                // This isn't a Bilibili video then, or at least the content script is not loaded
+                displayNoVideo();
+
+                // Try again in some time if a failure
+                loadRetryCount++;
+                if (loadRetryCount < 6) {
+                    setTimeout(() => getSegmentsFromContentScript(false), 100 * loadRetryCount);
+                }
+            }
+        });
+    }
+
+    async function loadTabData(tabs, updating: boolean): Promise<void> {
+        if (!currentVideoID) {
+            //this isn't a Bilibili video then
+            displayNoVideo();
+            return;
+        }
+
+        await waitFor(() => Config.config !== null, 5000, 10);
+        sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
+        updateSegmentEditingUI();
+
+        messageHandler.sendMessage(tabs[0].id, { message: "isInfoFound", updating }, infoFound);
+    }
+
+    function getSegmentsFromContentScript(updating: boolean): void {
+        messageHandler.query(
+            {
+                active: true,
+                currentWindow: true,
+            },
+            (tabs) => onTabs(tabs, updating)
+        );
+    }
+
+    async function infoFound(request: IsInfoFoundMessageResponse) {
+        console.log("info found", request);
+        // // End any loading animation
+        // if (stopLoadingAnimation != null) {
+        //     stopLoadingAnimation();
+        //     stopLoadingAnimation = null;
+        // }
+
+        // if (chrome.runtime.lastError || request.found == undefined) {
+        //     // This page doesn't have the injected content script, or at least not yet
+        //     // or if request is undefined, then the page currently being browsed is not Bilibili
+        //     displayNoVideo();
+        //     return;
+        // }
+
+        // //remove loading text
+        // PageElements.mainControls.style.display = "block";
+        // PageElements.whitelistButton.classList.remove("hidden");
+        // PageElements.loadingIndicator.style.display = "none";
+
+        // downloadedTimes = request.sponsorTimes ?? [];
+        // displayDownloadedSponsorTimes(downloadedTimes, request.time);
+        // if (request.found) {
+        //     PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsorFound");
+        //     PageElements.issueReporterImportExport.classList.remove("hidden");
+        // } else if (request.status == 404 || request.status == 200) {
+        //     PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsor404");
+        //     PageElements.issueReporterImportExport.classList.remove("hidden");
+        // } else {
+        //     if (request.status) {
+        //         PageElements.videoFound.innerHTML = chrome.i18n.getMessage("connectionError") + request.status;
+        //     } else {
+        //         PageElements.videoFound.innerHTML = chrome.i18n.getMessage("segmentsStillLoading");
+        //     }
+
+        //     PageElements.issueReporterImportExport.classList.remove("hidden");
+        // }
+
+        // //see if whitelist button should be swapped
+        // const response = (await sendTabMessageAsync({
+        //     message: "isChannelWhitelisted",
+        // })) as IsChannelWhitelistedResponse;
+        // if (response.value) {
+        //     PageElements.whitelistChannel.style.display = "none";
+        //     PageElements.unwhitelistChannel.style.display = "unset";
+        //     PageElements.whitelistToggle.checked = true;
+        //     document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
+        // }
+    }
+
+    //this is not a Bilibili video page
+    function displayNoVideo() {
+        console.log("displayNoVideo");
+        document.getElementById("loadingIndicator").innerText = chrome.i18n.getMessage("noVideoID");
+
+        // PageElements.issueReporterTabs.classList.add("hidden");
+    }
+
+    /** Updates any UI related to segment editing and submission according to the current state. */
+    function updateSegmentEditingUI() {
+        console.log("updateSegmentEditingUI", sponsorTimes);
+        // PageElements.sponsorStart.innerText = chrome.i18n.getMessage(
+        //     isCreatingSegment() ? "sponsorEnd" : "sponsorStart"
+        // );
+
+        // PageElements.submitTimes.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
+        // PageElements.submissionHint.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
+    }
+
     function openOptionsAt(location: string) {
         chrome.runtime.sendMessage({ message: "openConfig", hash: location });
     }
@@ -60,6 +193,67 @@ function app() {
                 messageHandler.sendMessage(tabs[0].id, data, callback);
             }
         );
+    }
+
+    function setupComPort(): void {
+        port = chrome.runtime.connect({ name: "popup" });
+        port.onDisconnect.addListener(() => setupComPort());
+        port.onMessage.addListener((msg) => onMessage(msg));
+    }
+
+    function updateCurrentTime(currentTime: number) {
+        // Create a map of segment UUID -> segment object for easy access
+        const segmentMap: Record<string, SponsorTime> = {};
+        for (const segment of downloadedTimes) segmentMap[segment.UUID] = segment;
+
+        // Iterate over segment elements and update their classes
+        const segmentList = document.getElementById("issueReporterTimeButtons");
+        for (const segmentElement of segmentList.children) {
+            const UUID = segmentElement.getAttribute("data-uuid");
+            if (UUID == null || segmentMap[UUID] == undefined) continue;
+
+            const summaryElement = segmentElement.querySelector("summary");
+            if (summaryElement == null) continue;
+
+            const segment = segmentMap[UUID];
+            summaryElement.classList.remove("segmentActive", "segmentPassed");
+            if (currentTime >= segment.segment[0]) {
+                if (currentTime < segment.segment[1]) {
+                    summaryElement.classList.add("segmentActive");
+                } else {
+                    summaryElement.classList.add("segmentPassed");
+                }
+            }
+        }
+    }
+
+    function onMessage(msg: PopupMessage) {
+        switch (msg.message) {
+            case "time":
+                updateCurrentTime(msg.time);
+                break;
+            case "infoUpdated":
+                infoFound(msg);
+                break;
+            case "videoChanged":
+                currentVideoID = msg.videoID;
+                sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
+                updateSegmentEditingUI();
+
+                // if (msg.whitelisted) {
+                //     PageElements.whitelistChannel.style.display = "none";
+                //     PageElements.unwhitelistChannel.style.display = "unset";
+                //     PageElements.whitelistToggle.checked = true;
+                //     document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
+                // }
+
+                // Clear segments list & start loading animation
+                // We'll get a ping once they're loaded
+                // startLoadingAnimation();
+                // PageElements.videoFound.innerHTML = chrome.i18n.getMessage("Loading");
+                // displayDownloadedSponsorTimes([], 0);
+                break;
+        }
     }
 
     return (
@@ -99,7 +293,7 @@ function app() {
                     <p className="u-mZ">{chrome.i18n.getMessage("fullName")}</p>
                 </header>
 
-                <VideoInfo />
+                <VideoInfo getSegmentsFromContentScript={getSegmentsFromContentScript} />
 
                 <ControlMenu openOptionsAt={openOptionsAt} />
 
