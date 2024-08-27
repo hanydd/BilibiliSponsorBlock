@@ -58,21 +58,6 @@ export class MessageHandler {
     }
 }
 
-// To prevent clickjacking
-let allowPopup = window === window.top;
-window.addEventListener("message", async (e): Promise<void> => {
-    if (e.source !== window.parent) return;
-    if (e.origin.endsWith(".bilibili.com")) {
-        allowPopup = true;
-
-        if (e.data && e.data?.type === "style") {
-            const style = document.createElement("style");
-            style.textContent = e.data.css;
-            document.head.appendChild(style);
-        }
-    }
-});
-
 //make this a function to allow this to run on the content page
 export async function runThePopup(messageListener?: MessageListener): Promise<void> {
     const messageHandler = new MessageHandler(messageListener);
@@ -165,7 +150,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     ].forEach((id) => (PageElements[id] = document.getElementById(id)));
 
     getSegmentsFromContentScript(false);
-    await waitFor(() => Config.config !== null && allowPopup, 5000, 5);
     PageElements.sponsorBlockPopupBody.style.removeProperty("visibility");
     if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
         Config.configSyncListeners.push(contentConfigUpdateListener);
