@@ -193,7 +193,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     PageElements.setUsernameButton.addEventListener("click", setUsernameButton);
     PageElements.usernameValue.addEventListener("click", setUsernameButton);
     PageElements.submitUsername.addEventListener("click", submitUsername);
-    PageElements.helpButton.addEventListener("click", openHelp);
     PageElements.refreshSegmentsButton.addEventListener("click", refreshSegments);
     PageElements.sbPopupIconCopyUserID.addEventListener("click", async () =>
         copyToClipboard(await getHash(Config.config.userID))
@@ -653,10 +652,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
 
         PageElements.submitTimes.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
         PageElements.submissionHint.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
-    }
-
-    function openHelp() {
-        chrome.runtime.sendMessage({ message: "openHelp" });
     }
 
     function sendTabMessage(data: Message, callback?) {

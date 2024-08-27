@@ -220,7 +220,9 @@ function app() {
                 </div>
 
                 <footer id="sbFooter" className={cleanPopup ? " hidden" : ""}>
-                    <a id="helpButton">{chrome.i18n.getMessage("help")}</a>
+                    <a id="helpButton" onClick={() => chrome.runtime.sendMessage({ message: "openHelp" })}>
+                        {chrome.i18n.getMessage("help")}
+                    </a>
                     <a href="https://bsbsb.top" target="_blank" rel="noopener noreferrer">
                         {chrome.i18n.getMessage("website")}
                     </a>
