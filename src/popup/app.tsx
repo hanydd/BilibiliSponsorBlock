@@ -10,6 +10,7 @@ import { getFormattedHours } from "../utils/formating";
 import { waitFor } from "../utils/index";
 import ControlMenu from "./ControlMenu";
 import VideoInfo from "./VideoInfo";
+import { getHash } from "../utils/hash";
 
 function app() {
     const videoInfoRef = React.createRef<VideoInfo>();
@@ -421,13 +422,16 @@ function app() {
                                                 id="sbPopupIconEdit"
                                             />
                                         </button>
-                                        <button id="copyUserID" title={chrome.i18n.getMessage("copyPublicID")}>
+                                        <button
+                                            id="copyUserID"
+                                            title={chrome.i18n.getMessage("copyPublicID")}
+                                            onClick={async () => copyToClipboard(await getHash(Config.config.userID))}
+                                        >
                                             <img
                                                 src="/icons/clipboard.svg"
                                                 alt={chrome.i18n.getMessage("copyPublicID")}
                                                 width="16"
                                                 height="16"
-                                                id="sbPopupIconCopyUserID"
                                             />
                                         </button>
                                     </div>

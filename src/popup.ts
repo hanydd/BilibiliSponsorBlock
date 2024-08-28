@@ -147,9 +147,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     PageElements.setUsernameButton.addEventListener("click", setUsernameButton);
     PageElements.usernameValue.addEventListener("click", setUsernameButton);
     PageElements.submitUsername.addEventListener("click", submitUsername);
-    PageElements.sbPopupIconCopyUserID.addEventListener("click", async () =>
-        copyToClipboard(await getHash(Config.config.userID))
-    );
 
     // setupComPort();
 
