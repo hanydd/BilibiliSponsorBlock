@@ -172,6 +172,18 @@ function app() {
     //display the video times from the array at the top, in a different section
     function displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
         console.log("displayDownloadedSponsorTimes", sponsorTimes, time);
+        // Sort list by start time
+        const downloadedTimes = sponsorTimes
+            .sort((a, b) => a.segment[1] - b.segment[1])
+            .sort((a, b) => a.segment[0] - b.segment[0]);
+
+        //add them as buttons to the issue reporting container
+        const container = document.getElementById("issueReporterTimeButtons");
+        while (container.firstChild) {
+            container.removeChild(container.firstChild);
+        }
+
+        videoInfoRef.current.setState({ showExport: downloadedTimes.length > 0 });
     }
 
     //this is not a Bilibili video page
@@ -180,9 +192,17 @@ function app() {
         // PageElements.issueReporterTabs.classList.add("hidden");
     }
 
+    function isCreatingSegment(): boolean {
+        const segments = Config.local.unsubmittedSegments[currentVideoID];
+        if (!segments) return false;
+        const lastSegment = segments[segments.length - 1];
+        return lastSegment && lastSegment?.segment?.length !== 2;
+    }
+
     /** Updates any UI related to segment editing and submission according to the current state. */
     function updateSegmentEditingUI() {
         console.log("updateSegmentEditingUI", sponsorTimes);
+        console.log("isCreatingSegment", isCreatingSegment());
         // PageElements.sponsorStart.innerText = chrome.i18n.getMessage(
         //     isCreatingSegment() ? "sponsorEnd" : "sponsorStart"
         // );
@@ -193,6 +213,17 @@ function app() {
 
     function startLoadingAnimation() {
         videoInfoRef.current.startLoading();
+    }
+
+    function copyToClipboard(text: string): void {
+        if (window === window.top) {
+            window.navigator.clipboard.writeText(text);
+        } else {
+            sendTabMessage({
+                message: "copyToClipboard",
+                text,
+            });
+        }
     }
 
     function openOptionsAt(location: string) {
@@ -323,8 +354,11 @@ function app() {
 
                 <VideoInfo
                     ref={videoInfoRef}
+                    downloadedTimes={downloadedTimes}
                     getSegmentsFromContentScript={getSegmentsFromContentScript}
+                    sendTabMessage={sendTabMessage}
                     sendTabMessageAsync={sendTabMessageAsync}
+                    copyToClipboard={copyToClipboard}
                 />
 
                 <ControlMenu
@@ -342,9 +376,18 @@ function app() {
                             <sub className="sponsorStartHint grey-text">{chrome.i18n.getMessage("popupHint")}</sub>
                             <div style={{ textAlign: "center", margin: "8px 0" }}>
                                 <button id="sponsorStart" className="sbMediumButton" style={{ marginRight: "8px" }}>
-                                    {chrome.i18n.getMessage("sponsorStart")}
+                                    {chrome.i18n.getMessage(isCreatingSegment() ? "sponsorEnd" : "sponsorStart")}
                                 </button>
-                                <button id="submitTimes" className="sbMediumButton" style={{ display: "none" }}>
+                                <button
+                                    id="submitTimes"
+                                    className="sbMediumButton"
+                                    style={{ display: "none" }}
+                                    onClick={() => {
+                                        if (sponsorTimes.length > 0) {
+                                            sendTabMessage({ message: "submitTimes" });
+                                        }
+                                    }}
+                                >
                                     {chrome.i18n.getMessage("OpenSubmissionMenu")}
                                 </button>
                             </div>
