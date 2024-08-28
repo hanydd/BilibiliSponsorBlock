@@ -1,10 +1,11 @@
 import { ConfigProvider, theme } from "antd";
 import * as React from "react";
 import Config from "../config";
+import { StorageChangesObject } from "../config/config";
 import { showDonationLink } from "../config/configUtils";
 import { IsChannelWhitelistedResponse, IsInfoFoundMessageResponse, Message, PopupMessage } from "../messageTypes";
 import { MessageHandler } from "../popup";
-import { SponsorTime } from "../types";
+import { SponsorTime, VideoID } from "../types";
 import { getFormattedHours } from "../utils/formating";
 import { waitFor } from "../utils/index";
 import ControlMenu from "./ControlMenu";
@@ -18,15 +19,26 @@ function app() {
     const isEmbed = window !== window.top;
 
     const messageHandler = new MessageHandler();
+    let port: chrome.runtime.Port = null;
 
     //the start and end time pairs (2d)
     let sponsorTimes: SponsorTime[] = [];
     let downloadedTimes: SponsorTime[] = [];
+    function setSponsorTimes(times: SponsorTime[]) {
+        sponsorTimes = times;
+    }
+    function setDownloadedTimes(times: SponsorTime[]) {
+        downloadedTimes = times;
+    }
+    // const [sponsorTimes, setSponsorTimes] = React.useState<SponsorTime[]>([]);
+    // const [downloadedTimes, setDownloadedTimes] = React.useState<SponsorTime[]>([]);
 
     //current video ID of this tab
     let currentVideoID = null;
-
-    let port: chrome.runtime.Port = null;
+    function setCurrentVideoID(videoID: VideoID) {
+        currentVideoID = videoID;
+    }
+    // const [currentVideoID, setCurrentVideoID] = React.useState<VideoID>(null);
 
     // Forward click events
     if (isEmbed) {
@@ -70,7 +82,7 @@ function app() {
         messageHandler.sendMessage(tabs[0].id, { message: "getVideoID" }, function (result) {
             console.log("getVideoID", result);
             if (result !== undefined && result.videoID) {
-                currentVideoID = result.videoID;
+                setCurrentVideoID(result.videoID);
 
                 loadTabData(tabs, updating);
             } else {
@@ -97,7 +109,7 @@ function app() {
         }
 
         await waitFor(() => Config.config !== null, 5000, 10);
-        sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
+        setSponsorTimes(Config.local.unsubmittedSegments[currentVideoID] ?? []);
         updateSegmentEditingUI();
 
         messageHandler.sendMessage(tabs[0].id, { message: "isInfoFound", updating }, infoFound);
@@ -129,7 +141,7 @@ function app() {
         mainControlsRef.current.style.display = "block";
         controlMenuRef.current.setState({ hasVideo: true });
 
-        downloadedTimes = request.sponsorTimes ?? [];
+        setDownloadedTimes(request.sponsorTimes ?? []);
         displayDownloadedSponsorTimes(downloadedTimes, request.time);
         if (request.found) {
             videoInfoRef.current.displayVideoWithMessage();
@@ -240,8 +252,8 @@ function app() {
                 infoFound(msg);
                 break;
             case "videoChanged":
-                currentVideoID = msg.videoID;
-                sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
+                setCurrentVideoID(msg.videoID);
+                setSponsorTimes(Config.local.unsubmittedSegments[currentVideoID] ?? []);
                 updateSegmentEditingUI();
 
                 if (msg.whitelisted) {
