@@ -4,9 +4,18 @@ interface ControlMenuProps {
     openOptionsAt: (section: string) => void;
 }
 
-class ControlMenu extends React.Component<ControlMenuProps> {
+interface ControlMenuState {
+    hasVideo: boolean;
+    hasWhiteListed: boolean;
+}
+
+class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
     constructor(props: ControlMenuProps) {
         super(props);
+        this.state = {
+            hasVideo: false,
+            hasWhiteListed: false,
+        };
     }
 
     render() {
@@ -14,20 +23,28 @@ class ControlMenu extends React.Component<ControlMenuProps> {
             <>
                 {/* <!-- Toggle Box --> */}
                 <div className="sbControlsMenu">
-                    <label id="whitelistButton" htmlFor="whitelistToggle" className="hidden sbControlsMenu-item">
+                    <label
+                        id="whitelistButton"
+                        htmlFor="whitelistToggle"
+                        className={"sbControlsMenu-item" + (this.state.hasVideo ? "" : " hidden")}
+                    >
                         <input type="checkbox" style={{ display: "none" }} id="whitelistToggle" />
                         <svg
                             viewBox="0 0 24 24"
                             width="23"
                             height="23"
-                            className="SBWhitelistIcon sbControlsMenu-itemIcon"
+                            className={
+                                "SBWhitelistIcon sbControlsMenu-itemIcon" +
+                                (this.state.hasWhiteListed ? " rotated" : "")
+                            }
                         >
                             <path d="M24 10H14V0h-4v10H0v4h10v10h4V14h10z" />
                         </svg>
-                        <span id="whitelistChannel">{chrome.i18n.getMessage("whitelistChannel")}</span>
-                        <span id="unwhitelistChannel" style={{ display: "none" }}>
-                            {chrome.i18n.getMessage("removeFromWhitelist")}
-                        </span>
+                        {this.state.hasWhiteListed ? (
+                            <span id="unwhitelistChannel">{chrome.i18n.getMessage("removeFromWhitelist")}</span>
+                        ) : (
+                            <span id="whitelistChannel">{chrome.i18n.getMessage("whitelistChannel")}</span>
+                        )}
                     </label>
                     {/* <!--github: mbledkowski/toggle-switch--> */}
                     <label

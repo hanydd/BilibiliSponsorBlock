@@ -2,7 +2,7 @@ import { ConfigProvider, theme } from "antd";
 import * as React from "react";
 import Config from "../config";
 import { showDonationLink } from "../config/configUtils";
-import { IsInfoFoundMessageResponse, Message, PopupMessage } from "../messageTypes";
+import { IsChannelWhitelistedResponse, IsInfoFoundMessageResponse, Message, PopupMessage } from "../messageTypes";
 import { MessageHandler } from "../popup";
 import { SponsorTime } from "../types";
 import { getFormattedHours } from "../utils/formating";
@@ -11,6 +11,10 @@ import ControlMenu from "./ControlMenu";
 import VideoInfo from "./VideoInfo";
 
 function app() {
+    const videoInfoRef = React.createRef<VideoInfo>();
+    const controlMenuRef = React.createRef<ControlMenu>();
+    const mainControlsRef = React.createRef<HTMLDivElement>();
+
     const cleanPopup = Config.config.cleanPopup;
     const isEmbed = window !== window.top;
 
@@ -112,59 +116,47 @@ function app() {
 
     async function infoFound(request: IsInfoFoundMessageResponse) {
         console.log("info found", request);
-        // // End any loading animation
-        // if (stopLoadingAnimation != null) {
-        //     stopLoadingAnimation();
-        //     stopLoadingAnimation = null;
-        // }
+        // End any loading animation
+        videoInfoRef.current.stopLoading();
 
-        // if (chrome.runtime.lastError || request.found == undefined) {
-        //     // This page doesn't have the injected content script, or at least not yet
-        //     // or if request is undefined, then the page currently being browsed is not Bilibili
-        //     displayNoVideo();
-        //     return;
-        // }
+        if (chrome.runtime.lastError || request.found == undefined) {
+            // This page doesn't have the injected content script, or at least not yet
+            // or if request is undefined, then the page currently being browsed is not Bilibili
+            displayNoVideo();
+            return;
+        }
 
-        // //remove loading text
-        // PageElements.mainControls.style.display = "block";
-        // PageElements.whitelistButton.classList.remove("hidden");
-        // PageElements.loadingIndicator.style.display = "none";
+        //remove loading text
+        mainControlsRef.current.style.display = "block";
+        controlMenuRef.current.setState({ hasVideo: true });
 
-        // downloadedTimes = request.sponsorTimes ?? [];
+        downloadedTimes = request.sponsorTimes ?? [];
         // displayDownloadedSponsorTimes(downloadedTimes, request.time);
-        // if (request.found) {
-        //     PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsorFound");
-        //     PageElements.issueReporterImportExport.classList.remove("hidden");
-        // } else if (request.status == 404 || request.status == 200) {
-        //     PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsor404");
-        //     PageElements.issueReporterImportExport.classList.remove("hidden");
-        // } else {
-        //     if (request.status) {
-        //         PageElements.videoFound.innerHTML = chrome.i18n.getMessage("connectionError") + request.status;
-        //     } else {
-        //         PageElements.videoFound.innerHTML = chrome.i18n.getMessage("segmentsStillLoading");
-        //     }
+        if (request.found) {
+            videoInfoRef.current.displayVideoWithMessage();
+        } else if (request.status == 404 || request.status == 200) {
+            videoInfoRef.current.displayVideoWithMessage(chrome.i18n.getMessage("sponsor404"));
+        } else {
+            if (request.status) {
+                videoInfoRef.current.displayVideoWithMessage(
+                    chrome.i18n.getMessage("connectionError") + request.status
+                );
+            } else {
+                videoInfoRef.current.displayVideoWithMessage(chrome.i18n.getMessage("segmentsStillLoading"));
+            }
+        }
 
-        //     PageElements.issueReporterImportExport.classList.remove("hidden");
-        // }
-
-        // //see if whitelist button should be swapped
-        // const response = (await sendTabMessageAsync({
-        //     message: "isChannelWhitelisted",
-        // })) as IsChannelWhitelistedResponse;
-        // if (response.value) {
-        //     PageElements.whitelistChannel.style.display = "none";
-        //     PageElements.unwhitelistChannel.style.display = "unset";
-        //     PageElements.whitelistToggle.checked = true;
-        //     document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
-        // }
+        // see if whitelist button should be swapped
+        const response = (await sendTabMessageAsync({
+            message: "isChannelWhitelisted",
+        })) as IsChannelWhitelistedResponse;
+        controlMenuRef.current.setState({ hasWhiteListed: response.value });
+        // PageElements.whitelistToggle.checked = true;
     }
 
     //this is not a Bilibili video page
     function displayNoVideo() {
-        console.log("displayNoVideo");
-        document.getElementById("loadingIndicator").innerText = chrome.i18n.getMessage("noVideoID");
-
+        videoInfoRef.current.displayNoVideo();
         // PageElements.issueReporterTabs.classList.add("hidden");
     }
 
@@ -177,6 +169,10 @@ function app() {
 
         // PageElements.submitTimes.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
         // PageElements.submissionHint.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
+    }
+
+    function startLoadingAnimation() {
+        videoInfoRef.current.startLoading();
     }
 
     function openOptionsAt(location: string) {
@@ -193,6 +189,10 @@ function app() {
                 messageHandler.sendMessage(tabs[0].id, data, callback);
             }
         );
+    }
+
+    function sendTabMessageAsync(data: Message): Promise<unknown> {
+        return new Promise((resolve) => sendTabMessage(data, (response) => resolve(response)));
     }
 
     function setupComPort(): void {
@@ -293,12 +293,21 @@ function app() {
                     <p className="u-mZ">{chrome.i18n.getMessage("fullName")}</p>
                 </header>
 
-                <VideoInfo getSegmentsFromContentScript={getSegmentsFromContentScript} />
+                <VideoInfo
+                    ref={videoInfoRef}
+                    getSegmentsFromContentScript={getSegmentsFromContentScript}
+                    sendTabMessageAsync={sendTabMessageAsync}
+                />
 
-                <ControlMenu openOptionsAt={openOptionsAt} />
+                <ControlMenu ref={controlMenuRef} openOptionsAt={openOptionsAt} />
 
                 {/* <!-- Submit box --> */}
-                <div id="mainControls" style={{ display: "none" }} className={cleanPopup ? " hidden" : ""}>
+                <div
+                    ref={mainControlsRef}
+                    id="mainControls"
+                    style={{ display: "none" }}
+                    className={cleanPopup ? " hidden" : ""}
+                >
                     <h1 className="sbHeader">{chrome.i18n.getMessage("recordTimesDescription")}</h1>
                     <sub className="sponsorStartHint grey-text">{chrome.i18n.getMessage("popupHint")}</sub>
                     <div style={{ textAlign: "center", margin: "8px 0" }}>

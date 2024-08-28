@@ -1,37 +1,78 @@
+import { ReloadOutlined } from "@ant-design/icons";
 import * as React from "react";
 import Config from "../config";
+import { Message, RefreshSegmentsResponse } from "../messageTypes";
 
 interface VideoInfoProps {
     getSegmentsFromContentScript: (update: boolean) => void;
+    sendTabMessageAsync: (data: Message) => Promise<unknown>;
 }
 
 interface VideoInfoState {
     loading: boolean;
+    videoFound: boolean;
+    loadedMessage: string;
 }
 
-class VideoInfo extends React.Component<VideoInfoProps> {
+class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
     constructor(props: VideoInfoProps) {
         super(props);
         this.state = {
             loading: true,
+            videoFound: false,
+            loadedMessage: chrome.i18n.getMessage("sponsorFound"),
         };
+    }
+
+    startLoading() {
+        this.setState({ loading: true });
+    }
+
+    stopLoading() {
+        this.setState({ loading: false });
+    }
+
+    displayNoVideo() {
+        // 无法找到视频，不是播放页面
+        this.setState({ loading: false, videoFound: false });
+    }
+
+    displayVideoWithMessage(message: string = chrome.i18n.getMessage("sponsorFound")) {
+        // 可以找到视频ID
+        this.setState({ loading: false, videoFound: true, loadedMessage: message });
+    }
+
+    async refreshSegments() {
+        this.startLoading();
+        const response = (await this.props.sendTabMessageAsync({
+            message: "refreshSegments",
+        })) as RefreshSegmentsResponse;
+
+        console.log("Refresh Response", response);
+
+        if (response == null || !response.hasVideo) {
+            this.displayNoVideo();
+        }
     }
 
     render() {
         return (
             <div style={Config.config.cleanPopup ? { marginTop: 10 } : {}}>
                 {/* <!-- Loading text --> */}
-                <p id="loadingIndicator" className="u-mZ grey-text">
-                    {chrome.i18n.getMessage("noVideoID")}
+                <p id="videoFound" className="u-mZ grey-text">
+                    {this.state.videoFound ? this.state.loadedMessage : chrome.i18n.getMessage("noVideoID")}
                 </p>
-                {/* <!-- If the video was found in the database --> */}
-                <p id="videoFound" className="u-mZ grey-text"></p>
-                <button id="refreshSegmentsButton" title={chrome.i18n.getMessage("refreshSegments")}>
-                    <img src="/icons/refresh.svg" alt="Refresh icon" id="refreshSegments" />
+
+                <button
+                    id="refreshSegmentsButton"
+                    title={chrome.i18n.getMessage("refreshSegments")}
+                    onClick={this.refreshSegments.bind(this)}
+                >
+                    <ReloadOutlined spin={this.state.loading} style={{ fontSize: 16, padding: 2 }} />
                 </button>
                 {/* <!-- Video Segments --> */}
                 <div id="issueReporterContainer">
-                    <div id="issueReporterTabs" className="hidden">
+                    {/* <div id="issueReporterTabs" className="hidden">
                         <span
                             id="issueReporterTabSegments"
                             className="sbSelected"
@@ -43,9 +84,9 @@ class VideoInfo extends React.Component<VideoInfoProps> {
                         >
                             <span>{chrome.i18n.getMessage("SegmentsCap")}</span>
                         </span>
-                    </div>
+                    </div> */}
                     <div id="issueReporterTimeButtons"></div>
-                    <div id="issueReporterImportExport" className="hidden">
+                    <div id="issueReporterImportExport" className={this.state.videoFound ? "" : "hidden"}>
                         <div id="importExportButtons">
                             <button id="importSegmentsButton" title={chrome.i18n.getMessage("importSegments")}>
                                 <img src="/icons/import.svg" alt="Refresh icon" id="importSegments" />

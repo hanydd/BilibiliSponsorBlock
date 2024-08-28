@@ -8,9 +8,8 @@ import {
     Message,
     MessageResponse,
     PopupMessage,
-    RefreshSegmentsResponse,
     SponsorStartResponse,
-    VoteResponse,
+    VoteResponse
 } from "./messageTypes";
 import GenericNotice from "./render/GenericNotice";
 import { asyncRequestToServer, sendRequestToServer } from "./requests/requests";
@@ -79,8 +78,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
 
     //current video ID of this tab
     let currentVideoID = null;
-
-    let port: chrome.runtime.Port = null;
 
     //saves which detail elemts are opened, by saving the uuids
     const openedUUIDs: SegmentUUID[] = [];
@@ -177,7 +174,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     PageElements.setUsernameButton.addEventListener("click", setUsernameButton);
     PageElements.usernameValue.addEventListener("click", setUsernameButton);
     PageElements.submitUsername.addEventListener("click", submitUsername);
-    PageElements.refreshSegmentsButton.addEventListener("click", refreshSegments);
     PageElements.sbPopupIconCopyUserID.addEventListener("click", async () =>
         copyToClipboard(await getHash(Config.config.userID))
     );
@@ -826,19 +822,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         stopLoadingAnimation = AnimationUtils.applyLoadingAnimation(PageElements.refreshSegmentsButton, 0.3);
     }
 
-    async function refreshSegments() {
-        startLoadingAnimation();
-        const response = (await sendTabMessageAsync({ message: "refreshSegments" })) as RefreshSegmentsResponse;
-
-        if (response == null || !response.hasVideo) {
-            if (stopLoadingAnimation != null) {
-                stopLoadingAnimation();
-                stopLoadingAnimation = null;
-            }
-            displayNoVideo();
-        }
-    }
-
     function skipSegment(actionType: ActionType, UUID: SegmentUUID, element?: HTMLElement): void {
         sendTabMessage({
             message: "reskip",
@@ -931,12 +914,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
                     break;
             }
         }
-    }
-
-    function setupComPort(): void {
-        port = chrome.runtime.connect({ name: "popup" });
-        port.onDisconnect.addListener(() => setupComPort());
-        port.onMessage.addListener((msg) => onMessage(msg));
     }
 
     function updateCurrentTime(currentTime: number) {
