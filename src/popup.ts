@@ -115,7 +115,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         "usernameInput",
         "usernameValue",
         "submitUsername",
-        "sbPopupIconCopyUserID",
         // More
         "submissionHint",
         "mainControls",
@@ -133,12 +132,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         "issueReporterImportExport",
     ].forEach((id) => (PageElements[id] = document.getElementById(id)));
 
-    // getSegmentsFromContentScript(false);
-    // PageElements.sponsorBlockPopupBody.style.removeProperty("visibility");
-    // if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
-    //     Config.configSyncListeners.push(contentConfigUpdateListener);
-    // }
-
     PageElements.sponsorStart.addEventListener("click", sendSponsorStartMessage);
     PageElements.toggleSwitch.addEventListener("change", function () {
         toggleSkipping(!this.checked);
@@ -148,7 +141,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     PageElements.usernameValue.addEventListener("click", setUsernameButton);
     PageElements.submitUsername.addEventListener("click", submitUsername);
 
-    // setupComPort();
 
     //show proper disable skipping button
     const disableSkipping = Config.config.disableSkipping;
@@ -158,11 +150,9 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         PageElements.toggleSwitch.checked = false;
     }
 
-    const values = ["userName", "viewCount", "minutesSaved", "vip", "permissions", "segmentCount"];
-
     asyncRequestToServer("GET", "/api/userInfo", {
         publicUserID: await getHash(Config.config.userID),
-        values,
+        values: ["userName", "viewCount", "minutesSaved", "vip", "permissions", "segmentCount"],
     }).then((res) => {
         if (res.status === 200) {
             const userInfo = JSON.parse(res.responseText);
@@ -178,8 +168,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
                 PageElements.sponsorTimesViewsDisplay.innerText = viewCount.toLocaleString();
                 PageElements.sponsorTimesViewsContainer.style.display = "block";
             }
-
-            showDonateWidget(viewCount);
 
             const minutesSaved = userInfo.minutesSaved;
             if (minutesSaved != 0) {
@@ -207,119 +195,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
 
     // Must be delayed so it only happens once loaded
     setTimeout(() => PageElements.sponsorblockPopup.classList.remove("preload"), 250);
-
-    // PageElements.issueReporterTabSegments.addEventListener("click", () => {
-    //     PageElements.issueReporterTabSegments.classList.add("sbSelected");
-    //     getSegmentsFromContentScript(true);
-    // });
-
-    function showDonateWidget(viewCount: number) {
-        if (
-            Config.config.showDonationLink &&
-            Config.config.donateClicked <= 0 &&
-            Config.config.showPopupDonationCount < 5 &&
-            viewCount < 50000 &&
-            !Config.config.isVip &&
-            Config.config.skipCount > 10
-        ) {
-            PageElements.sponsorTimesDonateContainer.style.display = "flex";
-            PageElements.sbConsiderDonateLink.addEventListener("click", () => {
-                Config.config.donateClicked = Config.config.donateClicked + 1;
-            });
-
-            PageElements.sbCloseDonate.addEventListener("click", () => {
-                PageElements.sponsorTimesDonateContainer.style.display = "none";
-                Config.config.showPopupDonationCount = 100;
-            });
-
-            Config.config.showPopupDonationCount = Config.config.showPopupDonationCount + 1;
-        }
-    }
-
-    function onTabs(tabs, updating: boolean): void {
-        // messageHandler.sendMessage(tabs[0].id, { message: "getVideoID" }, function (result) {
-        //     if (result !== undefined && result.videoID) {
-        //         currentVideoID = result.videoID;
-        //         loadTabData(tabs, updating);
-        //     } else {
-        //         // Handle error if it exists
-        //         chrome.runtime.lastError;
-        //         // This isn't a Bilibili video then, or at least the content script is not loaded
-        //         displayNoVideo();
-        //         // Try again in some time if a failure
-        //         loadRetryCount++;
-        //         if (loadRetryCount < 6) {
-        //             setTimeout(() => getSegmentsFromContentScript(false), 100 * loadRetryCount);
-        //         }
-        //     }
-        // });
-    }
-
-    async function loadTabData(tabs, updating: boolean): Promise<void> {
-        // if (!currentVideoID) {
-        //     //this isn't a Bilibili video then
-        //     displayNoVideo();
-        //     return;
-        // }
-        // await waitFor(() => Config.config !== null, 5000, 10);
-        // sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
-        // updateSegmentEditingUI();
-        // messageHandler.sendMessage(tabs[0].id, { message: "isInfoFound", updating }, infoFound);
-    }
-
-    function getSegmentsFromContentScript(updating: boolean): void {
-        // messageHandler.query(
-        //     {
-        //         active: true,
-        //         currentWindow: true,
-        //     },
-        //     (tabs) => onTabs(tabs, updating)
-        // );
-    }
-
-    async function infoFound(request: IsInfoFoundMessageResponse) {
-        // // End any loading animation
-        // if (stopLoadingAnimation != null) {
-        //     stopLoadingAnimation();
-        //     stopLoadingAnimation = null;
-        // }
-        // if (chrome.runtime.lastError || request.found == undefined) {
-        //     // This page doesn't have the injected content script, or at least not yet
-        //     // or if request is undefined, then the page currently being browsed is not Bilibili
-        //     displayNoVideo();
-        //     return;
-        // }
-        // //remove loading text
-        // PageElements.mainControls.style.display = "block";
-        // PageElements.whitelistButton.classList.remove("hidden");
-        // PageElements.loadingIndicator.style.display = "none";
-        // downloadedTimes = request.sponsorTimes ?? [];
-        // displayDownloadedSponsorTimes(downloadedTimes, request.time);
-        // if (request.found) {
-        //     PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsorFound");
-        //     PageElements.issueReporterImportExport.classList.remove("hidden");
-        // } else if (request.status == 404 || request.status == 200) {
-        //     PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsor404");
-        //     PageElements.issueReporterImportExport.classList.remove("hidden");
-        // } else {
-        //     if (request.status) {
-        //         PageElements.videoFound.innerHTML = chrome.i18n.getMessage("connectionError") + request.status;
-        //     } else {
-        //         PageElements.videoFound.innerHTML = chrome.i18n.getMessage("segmentsStillLoading");
-        //     }
-        //     PageElements.issueReporterImportExport.classList.remove("hidden");
-        // }
-        // //see if whitelist button should be swapped
-        // const response = (await sendTabMessageAsync({
-        //     message: "isChannelWhitelisted",
-        // })) as IsChannelWhitelistedResponse;
-        // if (response.value) {
-        //     PageElements.whitelistChannel.style.display = "none";
-        //     PageElements.unwhitelistChannel.style.display = "unset";
-        //     PageElements.whitelistToggle.checked = true;
-        //     document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
-        // }
-    }
 
     async function sendSponsorStartMessage() {
         //the content script will get the message if a Bilibili page is open
@@ -565,19 +440,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         container.addEventListener("mouseleave", () => selectSegment(null));
     }
 
-    function submitTimes() {
-        // if (sponsorTimes.length > 0) {
-        //     sendTabMessage({ message: "submitTimes" });
-        // }
-    }
-
-    function isCreatingSegment() {
-        // const segments = Config.local.unsubmittedSegments[currentVideoID];
-        // if (!segments) return false;
-        // const lastSegment = segments[segments.length - 1];
-        // return lastSegment && lastSegment?.segment?.length !== 2;
-    }
-
     /** Updates any UI related to segment editing and submission according to the current state. */
     function updateSegmentEditingUI() {
         // PageElements.sponsorStart.innerText = chrome.i18n.getMessage(
@@ -651,12 +513,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         PageElements.setUsername.style.display = "unset";
     }
 
-    //this is not a Bilibili video page
-    function displayNoVideo() {
-        // document.getElementById("loadingIndicator").innerText = chrome.i18n.getMessage("noVideoID");
-        // PageElements.issueReporterTabs.classList.add("hidden");
-    }
-
     function addVoteMessage(message, UUID) {
         const voteButtonsContainer = document.getElementById("sponsorTimesVoteButtonsContainer" + UUID);
         voteButtonsContainer.style.display = "none";
@@ -700,68 +556,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         }
     }
 
-    async function whitelistChannel() {
-        // //get the channel url
-        // const response = (await sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
-        // if (!response.channelID) {
-        //     alert(
-        //         chrome.i18n.getMessage("channelDataNotFound") +
-        //             " https://github.com/hanydd/BilibiliSponsorBlock/issues/1"
-        //     );
-        //     return;
-        // }
-        // //get whitelisted channels
-        // let whitelistedChannels = Config.config.whitelistedChannels;
-        // if (whitelistedChannels == undefined) {
-        //     whitelistedChannels = [];
-        // }
-        // //add on this channel
-        // whitelistedChannels.push(response.channelID);
-        // //change button
-        // PageElements.whitelistChannel.style.display = "none";
-        // PageElements.unwhitelistChannel.style.display = "unset";
-        // document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
-        // //show 'consider force channel check' alert
-        // if (!Config.config.forceChannelCheck) PageElements.whitelistForceCheck.classList.remove("hidden");
-        // //save this
-        // Config.config.whitelistedChannels = whitelistedChannels;
-        // //send a message to the client
-        // sendTabMessage({
-        //     message: "whitelistChange",
-        //     value: true,
-        // });
-    }
-
-    async function unwhitelistChannel() {
-        // //get the channel url
-        // const response = (await sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
-        // //get whitelisted channels
-        // let whitelistedChannels = Config.config.whitelistedChannels;
-        // if (whitelistedChannels == undefined) {
-        //     whitelistedChannels = [];
-        // }
-        // //remove this channel
-        // const index = whitelistedChannels.indexOf(response.channelID);
-        // whitelistedChannels.splice(index, 1);
-        // //change button
-        // PageElements.whitelistChannel.style.display = "unset";
-        // PageElements.unwhitelistChannel.style.display = "none";
-        // document.querySelectorAll(".SBWhitelistIcon")[0].classList.remove("rotated");
-        // //hide 'consider force channel check' alert
-        // PageElements.whitelistForceCheck.classList.add("hidden");
-        // //save this
-        // Config.config.whitelistedChannels = whitelistedChannels;
-        // //send a message to the client
-        // sendTabMessage({
-        //     message: "whitelistChange",
-        //     value: false,
-        // });
-    }
-
-    function startLoadingAnimation() {
-        // stopLoadingAnimation = AnimationUtils.applyLoadingAnimation(PageElements.refreshSegmentsButton, 0.3);
-    }
-
     function skipSegment(actionType: ActionType, UUID: SegmentUUID, element?: HTMLElement): void {
         sendTabMessage({
             message: "reskip",
@@ -797,109 +591,5 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
 
         shownButton.style.display = "unset";
         hiddenButton.style.display = "none";
-    }
-
-    function copyToClipboard(text: string): void {
-        // if (window === window.top) {
-        //     window.navigator.clipboard.writeText(text);
-        // } else {
-        //     sendTabMessage({
-        //         message: "copyToClipboard",
-        //         text,
-        //     });
-        // }
-    }
-
-    async function importSegments() {
-        // const text = (PageElements.importSegmentsText as HTMLInputElement).value;
-        // sendTabMessage({
-        //     message: "importSegments",
-        //     data: text,
-        // });
-        // PageElements.importSegmentsMenu.classList.add("hidden");
-    }
-
-    function exportSegments() {
-        // copyToClipboard(exportTimes(downloadedTimes));
-        // const stopAnimation = AnimationUtils.applyLoadingAnimation(PageElements.exportSegmentsButton, 0.3);
-        // stopAnimation();
-        // new GenericNotice(null, "exportCopied", {
-        //     title: chrome.i18n.getMessage(`CopiedExclamation`),
-        //     timed: true,
-        //     maxCountdownTime: () => 0.6,
-        //     referenceNode: PageElements.exportSegmentsButton.parentElement,
-        //     dontPauseCountdown: true,
-        //     style: {
-        //         top: 0,
-        //         bottom: 0,
-        //         minWidth: 0,
-        //         right: "30px",
-        //         margin: "auto",
-        //         height: "max-content",
-        //     },
-        //     hideLogo: true,
-        //     hideRightInfo: true,
-        // });
-    }
-
-    function contentConfigUpdateListener(changes: StorageChangesObject) {
-        // for (const key in changes) {
-        //     switch (key) {
-        //         case "unsubmittedSegments":
-        //             sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
-        //             updateSegmentEditingUI();
-        //             break;
-        //     }
-        // }
-    }
-
-    function updateCurrentTime(currentTime: number) {
-        // // Create a map of segment UUID -> segment object for easy access
-        // const segmentMap: Record<string, SponsorTime> = {};
-        // for (const segment of downloadedTimes) segmentMap[segment.UUID] = segment;
-        // // Iterate over segment elements and update their classes
-        // const segmentList = document.getElementById("issueReporterTimeButtons");
-        // for (const segmentElement of segmentList.children) {
-        //     const UUID = segmentElement.getAttribute("data-uuid");
-        //     if (UUID == null || segmentMap[UUID] == undefined) continue;
-        //     const summaryElement = segmentElement.querySelector("summary");
-        //     if (summaryElement == null) continue;
-        //     const segment = segmentMap[UUID];
-        //     summaryElement.classList.remove("segmentActive", "segmentPassed");
-        //     if (currentTime >= segment.segment[0]) {
-        //         if (currentTime < segment.segment[1]) {
-        //             summaryElement.classList.add("segmentActive");
-        //         } else {
-        //             summaryElement.classList.add("segmentPassed");
-        //         }
-        //     }
-        // }
-    }
-
-    function onMessage(msg: PopupMessage) {
-        // switch (msg.message) {
-        //     case "time":
-        //         updateCurrentTime(msg.time);
-        //         break;
-        //     case "infoUpdated":
-        //         infoFound(msg);
-        //         break;
-        //     case "videoChanged":
-        //         currentVideoID = msg.videoID;
-        //         sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
-        //         updateSegmentEditingUI();
-        //         if (msg.whitelisted) {
-        //             PageElements.whitelistChannel.style.display = "none";
-        //             PageElements.unwhitelistChannel.style.display = "unset";
-        //             PageElements.whitelistToggle.checked = true;
-        //             document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
-        //         }
-        //         // Clear segments list & start loading animation
-        //         // We'll get a ping once they're loaded
-        //         startLoadingAnimation();
-        //         PageElements.videoFound.innerHTML = chrome.i18n.getMessage("Loading");
-        //         displayDownloadedSponsorTimes([], 0);
-        //         break;
-        // }
     }
 }
