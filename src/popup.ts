@@ -88,8 +88,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     ].forEach((id) => (PageElements[id] = document.getElementById(id)));
 
     PageElements.sponsorStart.addEventListener("click", sendSponsorStartMessage);
-    PageElements.setUsernameButton.addEventListener("click", setUsernameButton);
-    PageElements.usernameValue.addEventListener("click", setUsernameButton);
     PageElements.submitUsername.addEventListener("click", submitUsername);
 
     // Must be delayed so it only happens once loaded
@@ -362,22 +360,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
 
     function sendTabMessageAsync(data: Message): Promise<unknown> {
         return new Promise((resolve) => sendTabMessage(data, (response) => resolve(response)));
-    }
-
-    //make the options username setting option visible
-    function setUsernameButton() {
-        PageElements.usernameInput.value = PageElements.usernameValue.innerText;
-
-        PageElements.submitUsername.style.display = "unset";
-        PageElements.usernameInput.style.display = "unset";
-
-        PageElements.setUsernameContainer.style.display = "none";
-        PageElements.setUsername.style.display = "flex";
-        PageElements.setUsername.classList.add("SBExpanded");
-
-        PageElements.setUsernameStatus.style.display = "none";
-
-        PageElements.sponsorTimesContributionsContainer.classList.add("hidden");
     }
 
     //submit the new username
