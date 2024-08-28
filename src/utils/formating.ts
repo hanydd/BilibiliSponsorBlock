@@ -90,6 +90,6 @@ export function getFormattedHours(minutes: number): string {
         (years > 0 ? years + chrome.i18n.getMessage("yearAbbreviation") + " " : "") +
         (days > 0 ? days + chrome.i18n.getMessage("dayAbbreviation") + " " : "") +
         (hours > 0 ? hours + chrome.i18n.getMessage("hourAbbreviation") + " " : "") +
-        (minutes % 60).toFixed(1)
+        (minutes % 60).toFixed(1) + chrome.i18n.getMessage("minsLower")
     );
 }

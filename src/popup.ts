@@ -1,12 +1,11 @@
 import Config from "./config";
 
 import { Message, MessageResponse, SponsorStartResponse, VoteResponse } from "./messageTypes";
-import { asyncRequestToServer, sendRequestToServer } from "./requests/requests";
+import { sendRequestToServer } from "./requests/requests";
 import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "./types";
 import { AnimationUtils } from "./utils/animationUtils";
 import { shortCategoryName } from "./utils/categoryUtils";
-import { getErrorMessage, getFormattedHours, getFormattedTime } from "./utils/formating";
-import { getHash } from "./utils/hash";
+import { getErrorMessage, getFormattedTime } from "./utils/formating";
 
 interface MessageListener {
     (request: Message, sender: unknown, sendResponse: (response: MessageResponse) => void): void;
@@ -74,11 +73,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         "submitTimes",
         "sponsorTimesContributionsContainer",
         "sponsorTimesContributionsDisplay",
-        "sponsorTimesViewsContainer",
-        "sponsorTimesViewsDisplay",
-        "sponsorTimesViewsDisplayEndWord",
-        "sponsorTimesOthersTimeSavedDisplay",
-        "sponsorTimesOthersTimeSavedEndWord",
         // Username
         "setUsernameContainer",
         "setUsernameButton",
@@ -97,49 +91,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     PageElements.setUsernameButton.addEventListener("click", setUsernameButton);
     PageElements.usernameValue.addEventListener("click", setUsernameButton);
     PageElements.submitUsername.addEventListener("click", submitUsername);
-
-    asyncRequestToServer("GET", "/api/userInfo", {
-        publicUserID: await getHash(Config.config.userID),
-        values: ["userName", "viewCount", "minutesSaved", "vip", "permissions", "segmentCount"],
-    }).then((res) => {
-        if (res.status === 200) {
-            const userInfo = JSON.parse(res.responseText);
-            PageElements.usernameValue.innerText = userInfo.userName;
-
-            const viewCount = userInfo.viewCount;
-            if (viewCount != 0) {
-                if (viewCount > 1) {
-                    PageElements.sponsorTimesViewsDisplayEndWord.innerText = chrome.i18n.getMessage("Segments");
-                } else {
-                    PageElements.sponsorTimesViewsDisplayEndWord.innerText = chrome.i18n.getMessage("Segment");
-                }
-                PageElements.sponsorTimesViewsDisplay.innerText = viewCount.toLocaleString();
-                PageElements.sponsorTimesViewsContainer.style.display = "block";
-            }
-
-            const minutesSaved = userInfo.minutesSaved;
-            if (minutesSaved != 0) {
-                if (minutesSaved != 1) {
-                    PageElements.sponsorTimesOthersTimeSavedEndWord.innerText = chrome.i18n.getMessage("minsLower");
-                } else {
-                    PageElements.sponsorTimesOthersTimeSavedEndWord.innerText = chrome.i18n.getMessage("minLower");
-                }
-                PageElements.sponsorTimesOthersTimeSavedDisplay.innerText = getFormattedHours(minutesSaved);
-            }
-
-            //get the amount of times this user has contributed and display it to thank them
-            PageElements.sponsorTimesContributionsDisplay.innerText = Math.max(
-                Config.config.sponsorTimesContributed ?? 0,
-                userInfo.segmentCount
-            ).toLocaleString();
-            PageElements.sponsorTimesContributionsContainer.classList.remove("hidden");
-
-            PageElements.sponsorTimesOthersTimeSavedEndWord.innerText = chrome.i18n.getMessage("minsLower");
-
-            Config.config.isVip = userInfo.vip;
-            Config.config.permissions = userInfo.permissions;
-        }
-    });
 
     // Must be delayed so it only happens once loaded
     setTimeout(() => PageElements.sponsorblockPopup.classList.remove("preload"), 250);
