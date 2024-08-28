@@ -55,12 +55,23 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
         }
     }
 
+    private computeIndicatorText(): string {
+        if (this.state.loading) {
+            return chrome.i18n.getMessage("Loading");
+        }
+        if (this.state.videoFound) {
+            return this.state.loadedMessage;
+        } else {
+            return chrome.i18n.getMessage("noVideoID");
+        }
+    }
+
     render() {
         return (
             <div style={Config.config.cleanPopup ? { marginTop: 10 } : {}}>
                 {/* <!-- Loading text --> */}
                 <p id="videoFound" className="u-mZ grey-text">
-                    {this.state.videoFound ? this.state.loadedMessage : chrome.i18n.getMessage("noVideoID")}
+                    {this.computeIndicatorText()}
                 </p>
 
                 <button

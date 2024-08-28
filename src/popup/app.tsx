@@ -130,7 +130,7 @@ function app() {
         controlMenuRef.current.setState({ hasVideo: true });
 
         downloadedTimes = request.sponsorTimes ?? [];
-        // displayDownloadedSponsorTimes(downloadedTimes, request.time);
+        displayDownloadedSponsorTimes(downloadedTimes, request.time);
         if (request.found) {
             videoInfoRef.current.displayVideoWithMessage();
         } else if (request.status == 404 || request.status == 200) {
@@ -151,6 +151,11 @@ function app() {
         })) as IsChannelWhitelistedResponse;
         controlMenuRef.current.setState({ hasWhiteListed: response.value });
         // PageElements.whitelistToggle.checked = true;
+    }
+
+    //display the video times from the array at the top, in a different section
+    function displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
+        console.log("displayDownloadedSponsorTimes", sponsorTimes, time);
     }
 
     //this is not a Bilibili video page
@@ -239,18 +244,14 @@ function app() {
                 sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
                 updateSegmentEditingUI();
 
-                // if (msg.whitelisted) {
-                //     PageElements.whitelistChannel.style.display = "none";
-                //     PageElements.unwhitelistChannel.style.display = "unset";
-                //     PageElements.whitelistToggle.checked = true;
-                //     document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
-                // }
+                if (msg.whitelisted) {
+                    controlMenuRef.current.setState({ hasWhiteListed: true });
+                }
 
                 // Clear segments list & start loading animation
                 // We'll get a ping once they're loaded
-                // startLoadingAnimation();
-                // PageElements.videoFound.innerHTML = chrome.i18n.getMessage("Loading");
-                // displayDownloadedSponsorTimes([], 0);
+                startLoadingAnimation();
+                displayDownloadedSponsorTimes([], 0);
                 break;
         }
     }
