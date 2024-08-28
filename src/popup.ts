@@ -1,14 +1,6 @@
 import Config from "./config";
 
-import { StorageChangesObject } from "./config/config";
-import {
-    IsInfoFoundMessageResponse,
-    Message,
-    MessageResponse,
-    PopupMessage,
-    SponsorStartResponse,
-    VoteResponse,
-} from "./messageTypes";
+import { Message, MessageResponse, SponsorStartResponse, VoteResponse } from "./messageTypes";
 import { asyncRequestToServer, sendRequestToServer } from "./requests/requests";
 import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "./types";
 import { AnimationUtils } from "./utils/animationUtils";
@@ -57,19 +49,12 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     const messageHandler = new MessageHandler(messageListener);
 
     type InputPageElements = {
-        whitelistToggle?: HTMLInputElement;
-        toggleSwitch?: HTMLInputElement;
         usernameInput?: HTMLInputElement;
     };
     type PageElements = { [key: string]: HTMLElement } & InputPageElements;
 
-    let stopLoadingAnimation = null;
-    // For loading video info from the page
-    let loadRetryCount = 0;
-
     //the start and end time pairs (2d)
     let sponsorTimes: SponsorTime[] = [];
-    let downloadedTimes: SponsorTime[] = [];
 
     //current video ID of this tab
     let currentVideoID = null;
@@ -83,20 +68,8 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         "sbPopupLogo",
         "sbYourWorkBox",
         "videoInfo",
-        "sbFooter",
-        "sponsorBlockPopupBody",
         "sponsorblockPopup",
         "sponsorStart",
-        // Top toggles
-        "whitelistChannel",
-        "unwhitelistChannel",
-        "whitelistToggle",
-        "whitelistForceCheck",
-        "disableSkipping",
-        "enableSkipping",
-        "toggleSwitch",
-        // Options
-        "helpButton",
         // More controls
         "submitTimes",
         "sponsorTimesContributionsContainer",
@@ -118,37 +91,12 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         // More
         "submissionHint",
         "mainControls",
-        "loadingIndicator",
-        "videoFound",
-        "sponsorMessageTimes",
-        //"downloadedSponsorMessageTimes",
-        "refreshSegmentsButton",
-        "whitelistButton",
-        "sbDonate",
-        "sponsorTimesDonateContainer",
-        "sbConsiderDonateLink",
-        "sbCloseDonate",
-        "sbBetaServerWarning",
-        "issueReporterImportExport",
     ].forEach((id) => (PageElements[id] = document.getElementById(id)));
 
     PageElements.sponsorStart.addEventListener("click", sendSponsorStartMessage);
-    PageElements.toggleSwitch.addEventListener("change", function () {
-        toggleSkipping(!this.checked);
-    });
-    // PageElements.submitTimes.addEventListener("click", submitTimes);
     PageElements.setUsernameButton.addEventListener("click", setUsernameButton);
     PageElements.usernameValue.addEventListener("click", setUsernameButton);
     PageElements.submitUsername.addEventListener("click", submitUsername);
-
-
-    //show proper disable skipping button
-    const disableSkipping = Config.config.disableSkipping;
-    if (disableSkipping != undefined && disableSkipping) {
-        PageElements.disableSkipping.style.display = "none";
-        PageElements.enableSkipping.style.display = "unset";
-        PageElements.toggleSwitch.checked = false;
-    }
 
     asyncRequestToServer("GET", "/api/userInfo", {
         publicUserID: await getHash(Config.config.userID),
@@ -575,21 +523,14 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         });
     }
 
-    /**
-     * Should skipping be disabled (visuals stay)
-     */
-    function toggleSkipping(disabled) {
-        Config.config.disableSkipping = disabled;
-
-        let hiddenButton = PageElements.disableSkipping;
-        let shownButton = PageElements.enableSkipping;
-
-        if (!disabled) {
-            hiddenButton = PageElements.enableSkipping;
-            shownButton = PageElements.disableSkipping;
+    function copyToClipboard(text: string): void {
+        if (window === window.top) {
+            window.navigator.clipboard.writeText(text);
+        } else {
+            sendTabMessage({
+                message: "copyToClipboard",
+                text,
+            });
         }
-
-        shownButton.style.display = "unset";
-        hiddenButton.style.display = "none";
     }
 }

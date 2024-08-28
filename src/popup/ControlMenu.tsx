@@ -11,6 +11,7 @@ interface ControlMenuProps {
 interface ControlMenuState {
     hasVideo: boolean;
     hasWhiteListed: boolean;
+    disableSkipping: boolean;
 }
 
 class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
@@ -19,6 +20,7 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
         this.state = {
             hasVideo: false,
             hasWhiteListed: false,
+            disableSkipping: Config.config.disableSkipping,
         };
     }
 
@@ -90,13 +92,20 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
         });
     }
 
+    /**
+     * Should skipping be disabled (visuals stay)
+     */
+    toggleSkipping() {
+        Config.config.disableSkipping = !Config.config.disableSkipping;
+        this.setState({ disableSkipping: Config.config.disableSkipping });
+    }
+
     render() {
         return (
             <>
                 {/* <!-- Toggle Box --> */}
                 <div className="sbControlsMenu">
                     <label
-                        id="whitelistButton"
                         className={"sbControlsMenu-item" + (this.state.hasVideo ? "" : " hidden")}
                         onClick={this.toggleWhiteList.bind(this)}
                     >
@@ -129,16 +138,16 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
                                 type="checkbox"
                                 style={{ display: "none" }}
                                 id="toggleSwitch"
-                                defaultChecked={true}
+                                checked={!this.state.disableSkipping}
+                                onChange={this.toggleSkipping.bind(this)}
                             />
                             <span className="switchBg shadow"></span>
                             <span className="switchBg white"></span>
                             <span className="switchBg green"></span>
                             <span className="switchDot"></span>
                         </span>
-                        <span id="disableSkipping">{chrome.i18n.getMessage("disableSkipping")}</span>
-                        <span id="enableSkipping" style={{ display: "none" }}>
-                            {chrome.i18n.getMessage("enableSkipping")}
+                        <span>
+                            {chrome.i18n.getMessage(this.state.disableSkipping ? "enableSkipping" : "disableSkipping")}
                         </span>
                     </label>
                     <button

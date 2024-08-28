@@ -122,9 +122,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
         return (
             <div style={Config.config.cleanPopup ? { marginTop: 10 } : {}}>
                 {/* <!-- Loading text --> */}
-                <p id="videoFound" className="u-mZ grey-text">
-                    {this.computeIndicatorText()}
-                </p>
+                <p className="u-mZ grey-text">{this.computeIndicatorText()}</p>
 
                 <button
                     id="refreshSegmentsButton"

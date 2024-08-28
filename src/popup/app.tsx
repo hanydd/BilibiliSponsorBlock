@@ -502,7 +502,7 @@ function app() {
                         </div>
 
                         <footer id="sbFooter">
-                            <a id="helpButton" onClick={() => chrome.runtime.sendMessage({ message: "openHelp" })}>
+                            <a onClick={() => chrome.runtime.sendMessage({ message: "openHelp" })}>
                                 {chrome.i18n.getMessage("help")}
                             </a>
                             <a href="https://bsbsb.top" target="_blank" rel="noopener noreferrer">
@@ -527,7 +527,6 @@ function app() {
                                     href="https://bsbsb.top/donate/"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    id="sbDonate"
                                     onClick={() => {
                                         Config.config.donateClicked += 1;
                                     }}
