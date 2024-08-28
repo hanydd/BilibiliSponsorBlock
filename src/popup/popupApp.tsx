@@ -28,5 +28,6 @@ root.render(<App />);
 waitFor(() => Config.config !== null && allowPopup, 5000, 5).then(() => {
     setTimeout(() => {
         runThePopup();
+        document.getElementById("sponsorblockPopup")?.classList.remove("sb-preload");
     }, 10);
 });
