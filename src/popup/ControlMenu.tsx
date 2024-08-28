@@ -1,7 +1,11 @@
 import * as React from "react";
+import Config from "../config";
+import { GetChannelIDResponse, Message } from "../messageTypes";
 
 interface ControlMenuProps {
     openOptionsAt: (section: string) => void;
+    sendTabMessage: (data: Message, callback?) => void;
+    sendTabMessageAsync: (data: Message) => Promise<unknown>;
 }
 
 interface ControlMenuState {
@@ -18,6 +22,74 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
         };
     }
 
+    toggleWhiteList() {
+        if (this.state.hasWhiteListed) {
+            this.unwhitelistChannel();
+        } else {
+            this.whitelistChannel();
+        }
+    }
+
+    async whitelistChannel() {
+        //get the channel url
+        const response = (await this.props.sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
+        if (!response.channelID) {
+            alert(
+                chrome.i18n.getMessage("channelDataNotFound") +
+                    " https://github.com/hanydd/BilibiliSponsorBlock/issues/1"
+            );
+            return;
+        }
+
+        //get whitelisted channels
+        let whitelistedChannels = Config.config.whitelistedChannels;
+        if (whitelistedChannels == undefined) {
+            whitelistedChannels = [];
+        }
+
+        // add on this channel
+        whitelistedChannels.push(response.channelID);
+
+        //change button
+        this.setState({ hasWhiteListed: true });
+
+        //save this
+        Config.config.whitelistedChannels = whitelistedChannels;
+
+        //send a message to the client
+        this.props.sendTabMessage({
+            message: "whitelistChange",
+            value: true,
+        });
+    }
+
+    async unwhitelistChannel() {
+        //get the channel url
+        const response = (await this.props.sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
+
+        //get whitelisted channels
+        let whitelistedChannels = Config.config.whitelistedChannels;
+        if (whitelistedChannels == undefined) {
+            whitelistedChannels = [];
+        }
+
+        //remove this channel
+        const index = whitelistedChannels.indexOf(response.channelID);
+        whitelistedChannels.splice(index, 1);
+
+        //change button
+        this.setState({ hasWhiteListed: false });
+
+        //save this
+        Config.config.whitelistedChannels = whitelistedChannels;
+
+        //send a message to the client
+        this.props.sendTabMessage({
+            message: "whitelistChange",
+            value: false,
+        });
+    }
+
     render() {
         return (
             <>
@@ -25,10 +97,9 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
                 <div className="sbControlsMenu">
                     <label
                         id="whitelistButton"
-                        htmlFor="whitelistToggle"
                         className={"sbControlsMenu-item" + (this.state.hasVideo ? "" : " hidden")}
+                        onClick={this.toggleWhiteList.bind(this)}
                     >
-                        <input type="checkbox" style={{ display: "none" }} id="whitelistToggle" />
                         <svg
                             viewBox="0 0 24 24"
                             width="23"
@@ -40,11 +111,12 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
                         >
                             <path d="M24 10H14V0h-4v10H0v4h10v10h4V14h10z" />
                         </svg>
-                        {this.state.hasWhiteListed ? (
-                            <span id="unwhitelistChannel">{chrome.i18n.getMessage("removeFromWhitelist")}</span>
-                        ) : (
-                            <span id="whitelistChannel">{chrome.i18n.getMessage("whitelistChannel")}</span>
-                        )}
+
+                        <span>
+                            {chrome.i18n.getMessage(
+                                this.state.hasWhiteListed ? "removeFromWhitelist" : "whitelistChannel"
+                            )}
+                        </span>
                     </label>
                     {/* <!--github: mbledkowski/toggle-switch--> */}
                     <label
@@ -88,7 +160,10 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
                     </button>
                 </div>
 
-                <a id="whitelistForceCheck" className="hidden">
+                <a
+                    id="whitelistForceCheck"
+                    className={this.state.hasWhiteListed && !Config.config.forceChannelCheck ? "" : "hidden"}
+                >
                     {chrome.i18n.getMessage("forceChannelCheckPopup")}
                 </a>
             </>

@@ -299,7 +299,12 @@ function app() {
                     sendTabMessageAsync={sendTabMessageAsync}
                 />
 
-                <ControlMenu ref={controlMenuRef} openOptionsAt={openOptionsAt} />
+                <ControlMenu
+                    ref={controlMenuRef}
+                    openOptionsAt={openOptionsAt}
+                    sendTabMessage={sendTabMessage}
+                    sendTabMessageAsync={sendTabMessageAsync}
+                />
 
                 {/* <!-- Submit box --> */}
                 <div

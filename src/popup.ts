@@ -159,13 +159,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     PageElements.importSegmentsSubmit.addEventListener("click", importSegments);
 
     PageElements.sponsorStart.addEventListener("click", sendSponsorStartMessage);
-    PageElements.whitelistToggle.addEventListener("change", function () {
-        if (this.checked) {
-            whitelistChannel();
-        } else {
-            unwhitelistChannel();
-        }
-    });
     PageElements.toggleSwitch.addEventListener("change", function () {
         toggleSkipping(!this.checked);
     });
