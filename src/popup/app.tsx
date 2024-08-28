@@ -2,15 +2,14 @@ import { ConfigProvider, theme } from "antd";
 import * as React from "react";
 import Config from "../config";
 import { StorageChangesObject } from "../config/config";
-import { showDonationLink } from "../config/configUtils";
 import { IsChannelWhitelistedResponse, IsInfoFoundMessageResponse, Message, PopupMessage } from "../messageTypes";
 import { MessageHandler } from "../popup";
 import { SponsorTime, VideoID } from "../types";
-import { getFormattedHours } from "../utils/formating";
 import { waitFor } from "../utils/index";
 import ControlMenu from "./ControlMenu";
+import PopupFooter from "./PopupFooter";
+import UserWork from "./UserWork";
 import VideoInfo from "./VideoInfo";
-import { getHash } from "../utils/hash";
 
 function app() {
     const videoInfoRef = React.createRef<VideoInfo>();
@@ -320,11 +319,7 @@ function app() {
                 <button
                     title={chrome.i18n.getMessage("closePopup")}
                     className={"sbCloseButton" + (isEmbed ? "" : " hidden")}
-                    onClick={() => {
-                        sendTabMessage({
-                            message: "closePopup",
-                        });
-                    }}
+                    onClick={() => sendTabMessage({ message: "closePopup" })}
                 >
                     <img src="icons/close.png" width="15" height="15" alt="Close icon" />
                 </button>
@@ -396,158 +391,11 @@ function app() {
                         </div>
 
                         {/* <!-- Your Work box --> */}
-                        <div id="sbYourWorkBox" className={"sbYourWorkBox"}>
-                            <h1 className="sbHeader" style={{ padding: "8px 15px" }}>
-                                {chrome.i18n.getMessage("yourWork")}
-                            </h1>
-                            <div className="sbYourWorkCols">
-                                {/* <!-- Username --> */}
-                                <div id="usernameElement">
-                                    <p className="u-mZ grey-text">
-                                        {chrome.i18n.getMessage("Username")}:{/* <!-- loading/errors --> */}
-                                        <span
-                                            id="setUsernameStatus"
-                                            className="u-mZ white-text"
-                                            style={{ display: "none" }}
-                                        ></span>
-                                    </p>
-                                    <div id="setUsernameContainer">
-                                        <p id="usernameValue"></p>
-                                        <button id="setUsernameButton" title={chrome.i18n.getMessage("setUsername")}>
-                                            <img
-                                                src="/icons/pencil.svg"
-                                                alt={chrome.i18n.getMessage("setUsername")}
-                                                width="16"
-                                                height="16"
-                                                id="sbPopupIconEdit"
-                                            />
-                                        </button>
-                                        <button
-                                            id="copyUserID"
-                                            title={chrome.i18n.getMessage("copyPublicID")}
-                                            onClick={async () => copyToClipboard(await getHash(Config.config.userID))}
-                                        >
-                                            <img
-                                                src="/icons/clipboard.svg"
-                                                alt={chrome.i18n.getMessage("copyPublicID")}
-                                                width="16"
-                                                height="16"
-                                            />
-                                        </button>
-                                    </div>
-                                    <div id="setUsername" style={{ display: "none" }}>
-                                        <input id="usernameInput" placeholder="Username" />
-                                        <button id="submitUsername">
-                                            <img
-                                                src="/icons/check.svg"
-                                                alt={chrome.i18n.getMessage("setUsername")}
-                                                width="16"
-                                                height="16"
-                                                id="sbPopupIconCheck"
-                                            />
-                                        </button>
-                                    </div>
-                                </div>
-                                {/* <!-- Submissions --> */}
-                                <div id="sponsorTimesContributionsContainer" className="hidden">
-                                    <p className="u-mZ grey-text">{chrome.i18n.getMessage("Submissions")}:</p>
-                                    <p id="sponsorTimesContributionsDisplay" className="u-mZ">
-                                        0
-                                    </p>
-                                </div>
-                            </div>
+                        <UserWork copyToClipboard={copyToClipboard} />
 
-                            <p
-                                id="sponsorTimesViewsContainer"
-                                style={{ display: "none" }}
-                                className="u-mZ sbStatsSentence"
-                            >
-                                {chrome.i18n.getMessage("savedPeopleFrom")}
-                                <b>
-                                    <span id="sponsorTimesViewsDisplay">0</span>
-                                </b>
-                                <span id="sponsorTimesViewsDisplayEndWord">{chrome.i18n.getMessage("Segments")}</span>
-                                <br />
-                                <span className="sbExtraInfo">
-                                    (
-                                    <b>
-                                        <span id="sponsorTimesOthersTimeSavedDisplay">0</span>
-                                        <span id="sponsorTimesOthersTimeSavedEndWord">
-                                            {chrome.i18n.getMessage("minsLower")}
-                                        </span>
-                                    </b>
-                                    <span>{chrome.i18n.getMessage("youHaveSavedTimeEnd")}</span>)
-                                </span>
-                            </p>
-                            <p
-                                style={{ display: Config.config.skipCount != undefined ? "block" : "none" }}
-                                className="u-mZ sbStatsSentence"
-                            >
-                                {chrome.i18n.getMessage("youHaveSkipped")}
-                                <b>
-                                    &nbsp;
-                                    <span>{Config.config.skipCount.toLocaleString()}</span>
-                                    &nbsp;
-                                </b>
-                                <span>{chrome.i18n.getMessage("Segments")}</span>
-                                <span className="sbExtraInfo">
-                                    （
-                                    <b>
-                                        {getFormattedHours(Config.config.minutesSaved)}
-                                        {chrome.i18n.getMessage("minsLower")}
-                                    </b>
-                                    ）
-                                </span>
-                            </p>
-                        </div>
-
-                        <footer id="sbFooter">
-                            <a onClick={() => chrome.runtime.sendMessage({ message: "openHelp" })}>
-                                {chrome.i18n.getMessage("help")}
-                            </a>
-                            <a href="https://bsbsb.top" target="_blank" rel="noopener noreferrer">
-                                {chrome.i18n.getMessage("website")}
-                            </a>
-                            <a href="https://bsbsb.top/stats" target="_blank" rel="noopener noreferrer">
-                                {chrome.i18n.getMessage("viewLeaderboard")}
-                            </a>
-                            <br />
-                            <a
-                                href="https://github.com/hanydd/BilibiliSponsorBlock"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                {chrome.i18n.getMessage("projectRepo")}
-                            </a>
-                            <a href="https://status.bsbsb.top" target="_blank" rel="noopener noreferrer">
-                                {chrome.i18n.getMessage("serverStatus")}
-                            </a>
-                            {showDonationLink() && (
-                                <a
-                                    href="https://bsbsb.top/donate/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={() => {
-                                        Config.config.donateClicked += 1;
-                                    }}
-                                >
-                                    {chrome.i18n.getMessage("Donate")}
-                                </a>
-                            )}
-                        </footer>
+                        <PopupFooter />
                     </>
                 )}
-
-                {/* if the don't show notice again variable is true, an option to disable should be available */}
-                <button
-                    style={Config.config.dontShowNotice ? {} : { display: "none" }}
-                    onClick={(e) => {
-                        (e.target as HTMLElement).style.display = "none";
-                        Config.config.dontShowNotice = false;
-                    }}
-                >
-                    {chrome.i18n.getMessage("showNotice")}
-                </button>
             </div>
         </ConfigProvider>
     );
