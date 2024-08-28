@@ -74,6 +74,10 @@ function app() {
 
     getSegmentsFromContentScript(false);
 
+    if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
+        Config.configSyncListeners.push(contentConfigUpdateListener);
+    }
+
     setupComPort();
 
     // For loading video info from the page
@@ -209,6 +213,17 @@ function app() {
 
     function sendTabMessageAsync(data: Message): Promise<unknown> {
         return new Promise((resolve) => sendTabMessage(data, (response) => resolve(response)));
+    }
+
+    function contentConfigUpdateListener(changes: StorageChangesObject) {
+        for (const key in changes) {
+            switch (key) {
+                case "unsubmittedSegments":
+                    setSponsorTimes(Config.local.unsubmittedSegments[currentVideoID] ?? []);
+                    updateSegmentEditingUI();
+                    break;
+            }
+        }
     }
 
     function setupComPort(): void {
