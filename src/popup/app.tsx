@@ -189,7 +189,6 @@ function app() {
     //this is not a Bilibili video page
     function displayNoVideo() {
         videoInfoRef.current.displayNoVideo();
-        // PageElements.issueReporterTabs.classList.add("hidden");
     }
 
     function isCreatingSegment(): boolean {
@@ -355,7 +354,6 @@ function app() {
                 <VideoInfo
                     ref={videoInfoRef}
                     downloadedTimes={downloadedTimes}
-                    getSegmentsFromContentScript={getSegmentsFromContentScript}
                     sendTabMessage={sendTabMessage}
                     sendTabMessageAsync={sendTabMessageAsync}
                     copyToClipboard={copyToClipboard}

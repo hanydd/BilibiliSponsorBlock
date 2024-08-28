@@ -126,8 +126,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         "refreshSegmentsButton",
         "whitelistButton",
         "sbDonate",
-        "issueReporterTabs",
-        "issueReporterTabSegments",
         "sponsorTimesDonateContainer",
         "sbConsiderDonateLink",
         "sbCloseDonate",

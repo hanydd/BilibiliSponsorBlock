@@ -9,7 +9,6 @@ import { exportTimes } from "../utils/exporter";
 interface VideoInfoProps {
     downloadedTimes: SponsorTime[];
 
-    getSegmentsFromContentScript: (update: boolean) => void;
     sendTabMessage: (data: Message, callback?) => void;
     sendTabMessageAsync: (data: Message) => Promise<unknown>;
     copyToClipboard: (text: string) => void;
@@ -136,19 +135,6 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
                 </button>
                 {/* <!-- Video Segments --> */}
                 <div id="issueReporterContainer">
-                    {/* <div id="issueReporterTabs" className="hidden">
-                        <span
-                            id="issueReporterTabSegments"
-                            className="sbSelected"
-                            onClick={(e) => {
-                                console.log(e);
-                                // PageElements.issueReporterTabSegments.classList.add("sbSelected");
-                                this.props.getSegmentsFromContentScript(true);
-                            }}
-                        >
-                            <span>{chrome.i18n.getMessage("SegmentsCap")}</span>
-                        </span>
-                    </div> */}
                     <div id="issueReporterTimeButtons"></div>
                     <div id="issueReporterImportExport" className={this.state.videoFound ? "" : "hidden"}>
                         <div>
