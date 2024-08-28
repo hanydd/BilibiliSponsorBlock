@@ -146,10 +146,10 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     ].forEach((id) => (PageElements[id] = document.getElementById(id)));
 
     // getSegmentsFromContentScript(false);
-    PageElements.sponsorBlockPopupBody.style.removeProperty("visibility");
-    if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
-        Config.configSyncListeners.push(contentConfigUpdateListener);
-    }
+    // PageElements.sponsorBlockPopupBody.style.removeProperty("visibility");
+    // if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
+    //     Config.configSyncListeners.push(contentConfigUpdateListener);
+    // }
 
     PageElements.exportSegmentsButton.addEventListener("click", exportSegments);
     PageElements.importSegmentsButton.addEventListener("click", () =>
@@ -258,98 +258,98 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     }
 
     function onTabs(tabs, updating: boolean): void {
-        messageHandler.sendMessage(tabs[0].id, { message: "getVideoID" }, function (result) {
-            if (result !== undefined && result.videoID) {
-                currentVideoID = result.videoID;
+        // messageHandler.sendMessage(tabs[0].id, { message: "getVideoID" }, function (result) {
+        //     if (result !== undefined && result.videoID) {
+        //         currentVideoID = result.videoID;
 
-                loadTabData(tabs, updating);
-            } else {
-                // Handle error if it exists
-                chrome.runtime.lastError;
+        //         loadTabData(tabs, updating);
+        //     } else {
+        //         // Handle error if it exists
+        //         chrome.runtime.lastError;
 
-                // This isn't a Bilibili video then, or at least the content script is not loaded
-                displayNoVideo();
+        //         // This isn't a Bilibili video then, or at least the content script is not loaded
+        //         displayNoVideo();
 
-                // Try again in some time if a failure
-                loadRetryCount++;
-                if (loadRetryCount < 6) {
-                    setTimeout(() => getSegmentsFromContentScript(false), 100 * loadRetryCount);
-                }
-            }
-        });
+        //         // Try again in some time if a failure
+        //         loadRetryCount++;
+        //         if (loadRetryCount < 6) {
+        //             setTimeout(() => getSegmentsFromContentScript(false), 100 * loadRetryCount);
+        //         }
+        //     }
+        // });
     }
 
     async function loadTabData(tabs, updating: boolean): Promise<void> {
-        if (!currentVideoID) {
-            //this isn't a Bilibili video then
-            displayNoVideo();
-            return;
-        }
+        // if (!currentVideoID) {
+        //     //this isn't a Bilibili video then
+        //     displayNoVideo();
+        //     return;
+        // }
 
-        await waitFor(() => Config.config !== null, 5000, 10);
-        sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
-        updateSegmentEditingUI();
+        // await waitFor(() => Config.config !== null, 5000, 10);
+        // sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
+        // updateSegmentEditingUI();
 
-        messageHandler.sendMessage(tabs[0].id, { message: "isInfoFound", updating }, infoFound);
+        // messageHandler.sendMessage(tabs[0].id, { message: "isInfoFound", updating }, infoFound);
     }
 
     function getSegmentsFromContentScript(updating: boolean): void {
-        messageHandler.query(
-            {
-                active: true,
-                currentWindow: true,
-            },
-            (tabs) => onTabs(tabs, updating)
-        );
+        // messageHandler.query(
+        //     {
+        //         active: true,
+        //         currentWindow: true,
+        //     },
+        //     (tabs) => onTabs(tabs, updating)
+        // );
     }
 
     async function infoFound(request: IsInfoFoundMessageResponse) {
-        // End any loading animation
-        if (stopLoadingAnimation != null) {
-            stopLoadingAnimation();
-            stopLoadingAnimation = null;
-        }
+        // // End any loading animation
+        // if (stopLoadingAnimation != null) {
+        //     stopLoadingAnimation();
+        //     stopLoadingAnimation = null;
+        // }
 
-        if (chrome.runtime.lastError || request.found == undefined) {
-            // This page doesn't have the injected content script, or at least not yet
-            // or if request is undefined, then the page currently being browsed is not Bilibili
-            displayNoVideo();
-            return;
-        }
+        // if (chrome.runtime.lastError || request.found == undefined) {
+        //     // This page doesn't have the injected content script, or at least not yet
+        //     // or if request is undefined, then the page currently being browsed is not Bilibili
+        //     displayNoVideo();
+        //     return;
+        // }
 
-        //remove loading text
-        PageElements.mainControls.style.display = "block";
-        PageElements.whitelistButton.classList.remove("hidden");
-        PageElements.loadingIndicator.style.display = "none";
+        // //remove loading text
+        // PageElements.mainControls.style.display = "block";
+        // PageElements.whitelistButton.classList.remove("hidden");
+        // PageElements.loadingIndicator.style.display = "none";
 
-        downloadedTimes = request.sponsorTimes ?? [];
-        displayDownloadedSponsorTimes(downloadedTimes, request.time);
-        if (request.found) {
-            PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsorFound");
-            PageElements.issueReporterImportExport.classList.remove("hidden");
-        } else if (request.status == 404 || request.status == 200) {
-            PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsor404");
-            PageElements.issueReporterImportExport.classList.remove("hidden");
-        } else {
-            if (request.status) {
-                PageElements.videoFound.innerHTML = chrome.i18n.getMessage("connectionError") + request.status;
-            } else {
-                PageElements.videoFound.innerHTML = chrome.i18n.getMessage("segmentsStillLoading");
-            }
+        // downloadedTimes = request.sponsorTimes ?? [];
+        // displayDownloadedSponsorTimes(downloadedTimes, request.time);
+        // if (request.found) {
+        //     PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsorFound");
+        //     PageElements.issueReporterImportExport.classList.remove("hidden");
+        // } else if (request.status == 404 || request.status == 200) {
+        //     PageElements.videoFound.innerHTML = chrome.i18n.getMessage("sponsor404");
+        //     PageElements.issueReporterImportExport.classList.remove("hidden");
+        // } else {
+        //     if (request.status) {
+        //         PageElements.videoFound.innerHTML = chrome.i18n.getMessage("connectionError") + request.status;
+        //     } else {
+        //         PageElements.videoFound.innerHTML = chrome.i18n.getMessage("segmentsStillLoading");
+        //     }
 
-            PageElements.issueReporterImportExport.classList.remove("hidden");
-        }
+        //     PageElements.issueReporterImportExport.classList.remove("hidden");
+        // }
 
-        //see if whitelist button should be swapped
-        const response = (await sendTabMessageAsync({
-            message: "isChannelWhitelisted",
-        })) as IsChannelWhitelistedResponse;
-        if (response.value) {
-            PageElements.whitelistChannel.style.display = "none";
-            PageElements.unwhitelistChannel.style.display = "unset";
-            PageElements.whitelistToggle.checked = true;
-            document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
-        }
+        // //see if whitelist button should be swapped
+        // const response = (await sendTabMessageAsync({
+        //     message: "isChannelWhitelisted",
+        // })) as IsChannelWhitelistedResponse;
+        // if (response.value) {
+        //     PageElements.whitelistChannel.style.display = "none";
+        //     PageElements.unwhitelistChannel.style.display = "unset";
+        //     PageElements.whitelistToggle.checked = true;
+        //     document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
+        // }
     }
 
     async function sendSponsorStartMessage() {
@@ -602,21 +602,20 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         }
     }
 
-    function isCreatingSegment(): boolean {
-        const segments = Config.local.unsubmittedSegments[currentVideoID];
-        if (!segments) return false;
-        const lastSegment = segments[segments.length - 1];
-        return lastSegment && lastSegment?.segment?.length !== 2;
+    function isCreatingSegment() {
+        // const segments = Config.local.unsubmittedSegments[currentVideoID];
+        // if (!segments) return false;
+        // const lastSegment = segments[segments.length - 1];
+        // return lastSegment && lastSegment?.segment?.length !== 2;
     }
 
     /** Updates any UI related to segment editing and submission according to the current state. */
     function updateSegmentEditingUI() {
-        PageElements.sponsorStart.innerText = chrome.i18n.getMessage(
-            isCreatingSegment() ? "sponsorEnd" : "sponsorStart"
-        );
-
-        PageElements.submitTimes.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
-        PageElements.submissionHint.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
+        // PageElements.sponsorStart.innerText = chrome.i18n.getMessage(
+        //     isCreatingSegment() ? "sponsorEnd" : "sponsorStart"
+        // );
+        // PageElements.submitTimes.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
+        // PageElements.submissionHint.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
     }
 
     function sendTabMessage(data: Message, callback?) {
@@ -734,77 +733,65 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     }
 
     async function whitelistChannel() {
-        //get the channel url
-        const response = (await sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
-        if (!response.channelID) {
-            alert(
-                chrome.i18n.getMessage("channelDataNotFound") +
-                    " https://github.com/hanydd/BilibiliSponsorBlock/issues/1"
-            );
-            return;
-        }
-
-        //get whitelisted channels
-        let whitelistedChannels = Config.config.whitelistedChannels;
-        if (whitelistedChannels == undefined) {
-            whitelistedChannels = [];
-        }
-
-        //add on this channel
-        whitelistedChannels.push(response.channelID);
-
-        //change button
-        PageElements.whitelistChannel.style.display = "none";
-        PageElements.unwhitelistChannel.style.display = "unset";
-        document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
-
-        //show 'consider force channel check' alert
-        if (!Config.config.forceChannelCheck) PageElements.whitelistForceCheck.classList.remove("hidden");
-
-        //save this
-        Config.config.whitelistedChannels = whitelistedChannels;
-
-        //send a message to the client
-        sendTabMessage({
-            message: "whitelistChange",
-            value: true,
-        });
+        // //get the channel url
+        // const response = (await sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
+        // if (!response.channelID) {
+        //     alert(
+        //         chrome.i18n.getMessage("channelDataNotFound") +
+        //             " https://github.com/hanydd/BilibiliSponsorBlock/issues/1"
+        //     );
+        //     return;
+        // }
+        // //get whitelisted channels
+        // let whitelistedChannels = Config.config.whitelistedChannels;
+        // if (whitelistedChannels == undefined) {
+        //     whitelistedChannels = [];
+        // }
+        // //add on this channel
+        // whitelistedChannels.push(response.channelID);
+        // //change button
+        // PageElements.whitelistChannel.style.display = "none";
+        // PageElements.unwhitelistChannel.style.display = "unset";
+        // document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
+        // //show 'consider force channel check' alert
+        // if (!Config.config.forceChannelCheck) PageElements.whitelistForceCheck.classList.remove("hidden");
+        // //save this
+        // Config.config.whitelistedChannels = whitelistedChannels;
+        // //send a message to the client
+        // sendTabMessage({
+        //     message: "whitelistChange",
+        //     value: true,
+        // });
     }
 
     async function unwhitelistChannel() {
-        //get the channel url
-        const response = (await sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
-
-        //get whitelisted channels
-        let whitelistedChannels = Config.config.whitelistedChannels;
-        if (whitelistedChannels == undefined) {
-            whitelistedChannels = [];
-        }
-
-        //remove this channel
-        const index = whitelistedChannels.indexOf(response.channelID);
-        whitelistedChannels.splice(index, 1);
-
-        //change button
-        PageElements.whitelistChannel.style.display = "unset";
-        PageElements.unwhitelistChannel.style.display = "none";
-        document.querySelectorAll(".SBWhitelistIcon")[0].classList.remove("rotated");
-
-        //hide 'consider force channel check' alert
-        PageElements.whitelistForceCheck.classList.add("hidden");
-
-        //save this
-        Config.config.whitelistedChannels = whitelistedChannels;
-
-        //send a message to the client
-        sendTabMessage({
-            message: "whitelistChange",
-            value: false,
-        });
+        // //get the channel url
+        // const response = (await sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
+        // //get whitelisted channels
+        // let whitelistedChannels = Config.config.whitelistedChannels;
+        // if (whitelistedChannels == undefined) {
+        //     whitelistedChannels = [];
+        // }
+        // //remove this channel
+        // const index = whitelistedChannels.indexOf(response.channelID);
+        // whitelistedChannels.splice(index, 1);
+        // //change button
+        // PageElements.whitelistChannel.style.display = "unset";
+        // PageElements.unwhitelistChannel.style.display = "none";
+        // document.querySelectorAll(".SBWhitelistIcon")[0].classList.remove("rotated");
+        // //hide 'consider force channel check' alert
+        // PageElements.whitelistForceCheck.classList.add("hidden");
+        // //save this
+        // Config.config.whitelistedChannels = whitelistedChannels;
+        // //send a message to the client
+        // sendTabMessage({
+        //     message: "whitelistChange",
+        //     value: false,
+        // });
     }
 
     function startLoadingAnimation() {
-        stopLoadingAnimation = AnimationUtils.applyLoadingAnimation(PageElements.refreshSegmentsButton, 0.3);
+        // stopLoadingAnimation = AnimationUtils.applyLoadingAnimation(PageElements.refreshSegmentsButton, 0.3);
     }
 
     function skipSegment(actionType: ActionType, UUID: SegmentUUID, element?: HTMLElement): void {
@@ -891,68 +878,63 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     }
 
     function contentConfigUpdateListener(changes: StorageChangesObject) {
-        for (const key in changes) {
-            switch (key) {
-                case "unsubmittedSegments":
-                    sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
-                    updateSegmentEditingUI();
-                    break;
-            }
-        }
+        // for (const key in changes) {
+        //     switch (key) {
+        //         case "unsubmittedSegments":
+        //             sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
+        //             updateSegmentEditingUI();
+        //             break;
+        //     }
+        // }
     }
 
     function updateCurrentTime(currentTime: number) {
-        // Create a map of segment UUID -> segment object for easy access
-        const segmentMap: Record<string, SponsorTime> = {};
-        for (const segment of downloadedTimes) segmentMap[segment.UUID] = segment;
-
-        // Iterate over segment elements and update their classes
-        const segmentList = document.getElementById("issueReporterTimeButtons");
-        for (const segmentElement of segmentList.children) {
-            const UUID = segmentElement.getAttribute("data-uuid");
-            if (UUID == null || segmentMap[UUID] == undefined) continue;
-
-            const summaryElement = segmentElement.querySelector("summary");
-            if (summaryElement == null) continue;
-
-            const segment = segmentMap[UUID];
-            summaryElement.classList.remove("segmentActive", "segmentPassed");
-            if (currentTime >= segment.segment[0]) {
-                if (currentTime < segment.segment[1]) {
-                    summaryElement.classList.add("segmentActive");
-                } else {
-                    summaryElement.classList.add("segmentPassed");
-                }
-            }
-        }
+        // // Create a map of segment UUID -> segment object for easy access
+        // const segmentMap: Record<string, SponsorTime> = {};
+        // for (const segment of downloadedTimes) segmentMap[segment.UUID] = segment;
+        // // Iterate over segment elements and update their classes
+        // const segmentList = document.getElementById("issueReporterTimeButtons");
+        // for (const segmentElement of segmentList.children) {
+        //     const UUID = segmentElement.getAttribute("data-uuid");
+        //     if (UUID == null || segmentMap[UUID] == undefined) continue;
+        //     const summaryElement = segmentElement.querySelector("summary");
+        //     if (summaryElement == null) continue;
+        //     const segment = segmentMap[UUID];
+        //     summaryElement.classList.remove("segmentActive", "segmentPassed");
+        //     if (currentTime >= segment.segment[0]) {
+        //         if (currentTime < segment.segment[1]) {
+        //             summaryElement.classList.add("segmentActive");
+        //         } else {
+        //             summaryElement.classList.add("segmentPassed");
+        //         }
+        //     }
+        // }
     }
 
     function onMessage(msg: PopupMessage) {
-        switch (msg.message) {
-            case "time":
-                updateCurrentTime(msg.time);
-                break;
-            case "infoUpdated":
-                infoFound(msg);
-                break;
-            case "videoChanged":
-                currentVideoID = msg.videoID;
-                sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
-                updateSegmentEditingUI();
-
-                if (msg.whitelisted) {
-                    PageElements.whitelistChannel.style.display = "none";
-                    PageElements.unwhitelistChannel.style.display = "unset";
-                    PageElements.whitelistToggle.checked = true;
-                    document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
-                }
-
-                // Clear segments list & start loading animation
-                // We'll get a ping once they're loaded
-                startLoadingAnimation();
-                PageElements.videoFound.innerHTML = chrome.i18n.getMessage("Loading");
-                displayDownloadedSponsorTimes([], 0);
-                break;
-        }
+        // switch (msg.message) {
+        //     case "time":
+        //         updateCurrentTime(msg.time);
+        //         break;
+        //     case "infoUpdated":
+        //         infoFound(msg);
+        //         break;
+        //     case "videoChanged":
+        //         currentVideoID = msg.videoID;
+        //         sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] ?? [];
+        //         updateSegmentEditingUI();
+        //         if (msg.whitelisted) {
+        //             PageElements.whitelistChannel.style.display = "none";
+        //             PageElements.unwhitelistChannel.style.display = "unset";
+        //             PageElements.whitelistToggle.checked = true;
+        //             document.querySelectorAll(".SBWhitelistIcon")[0].classList.add("rotated");
+        //         }
+        //         // Clear segments list & start loading animation
+        //         // We'll get a ping once they're loaded
+        //         startLoadingAnimation();
+        //         PageElements.videoFound.innerHTML = chrome.i18n.getMessage("Loading");
+        //         displayDownloadedSponsorTimes([], 0);
+        //         break;
+        // }
     }
 }
