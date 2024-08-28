@@ -533,7 +533,8 @@
  * Submissions
 */
 #sponsorTimesContributionsContainer {
-	padding: 8px 14px;
+	min-width: 44px;
+	padding: 8px;
 	border-left: 2px solid var(--sb-grey-bg-color);
 }
 
