@@ -9,7 +9,7 @@ import {
     MessageResponse,
     PopupMessage,
     SponsorStartResponse,
-    VoteResponse
+    VoteResponse,
 } from "./messageTypes";
 import GenericNotice from "./render/GenericNotice";
 import { asyncRequestToServer, sendRequestToServer } from "./requests/requests";
@@ -101,7 +101,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         "enableSkipping",
         "toggleSwitch",
         // Options
-        "showNoticeAgain",
         "helpButton",
         // More controls
         "submitTimes",
@@ -163,7 +162,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         toggleSkipping(!this.checked);
     });
     PageElements.submitTimes.addEventListener("click", submitTimes);
-    PageElements.showNoticeAgain.addEventListener("click", showNoticeAgain);
     PageElements.setUsernameButton.addEventListener("click", setUsernameButton);
     PageElements.usernameValue.addEventListener("click", setUsernameButton);
     PageElements.submitUsername.addEventListener("click", submitUsername);
@@ -602,12 +600,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         if (sponsorTimes.length > 0) {
             sendTabMessage({ message: "submitTimes" });
         }
-    }
-
-    function showNoticeAgain() {
-        Config.config.dontShowNotice = false;
-
-        PageElements.showNoticeAgain.style.display = "none";
     }
 
     function isCreatingSegment(): boolean {
