@@ -141,7 +141,6 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
         return (
             <Spin spinning={this.state.isVoting} delay={10}>
                 <details
-                    id={"votingButtons" + UUID}
                     className="votingButtons"
                     data-uuid={UUID}
                     onMouseEnter={() => this.selectSegment(this.props.segment.UUID)}
@@ -159,7 +158,6 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                     >
                         <div>
                             <span
-                                id={"sponsorTimesCategoryColorCircle" + UUID}
                                 className="dot sponsorTimesCategoryColorCircle"
                                 style={{ backgroundColor: Config.config.barTypes[category]?.color }}
                             ></span>
@@ -169,11 +167,11 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                     </summary>
 
                     {this.state.voteMessage ? (
-                        <div id={"sponsorTimesVoteStatusContainer" + UUID} className="sponsorTimesVoteStatusContainer">
+                        <div className="sponsorTimesVoteStatusContainer">
                             <div className="sponsorTimesThanksForVotingText">{this.state.voteMessage}</div>
                         </div>
                     ) : (
-                        <div id="sponsorTimesVoteButtonsContainer" className="sbVoteButtonsContainer">
+                        <div className="sbVoteButtonsContainer">
                             <img
                                 className="voteButton"
                                 title={chrome.i18n.getMessage("upvote")}
