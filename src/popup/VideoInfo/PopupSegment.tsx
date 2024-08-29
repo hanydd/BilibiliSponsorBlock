@@ -142,7 +142,6 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                     id={"votingButtons" + UUID}
                     className="votingButtons"
                     data-uuid={UUID}
-                    onDoubleClick={this.skipSegment.bind(this)}
                     onMouseEnter={() => this.selectSegment(this.props.segment.UUID)}
                     onMouseLeave={() => this.selectSegment(null)}
                 >
