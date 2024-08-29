@@ -131,7 +131,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
 
     render() {
         return (
-            <div style={Config.config.cleanPopup ? { marginTop: 10 } : {}}>
+            <div style={Config.config.cleanPopup ? { marginTop: 20 } : {}}>
                 {/* <!-- Loading text --> */}
                 <p className="u-mZ grey-text">{this.computeIndicatorText()}</p>
 
