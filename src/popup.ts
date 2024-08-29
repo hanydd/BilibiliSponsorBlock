@@ -48,25 +48,10 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
 
     type PageElements = { [key: string]: HTMLElement };
 
-    //the start and end time pairs (2d)
-    let sponsorTimes: SponsorTime[] = [];
-
-    //current video ID of this tab
-    let currentVideoID = null;
-
     //saves which detail elemts are opened, by saving the uuids
     const openedUUIDs: SegmentUUID[] = [];
 
     const PageElements: PageElements = {};
-
-    [
-        "videoInfo",
-        "sponsorblockPopup",
-        // More controls
-        "submitTimes",
-        // More
-        "submissionHint",
-    ].forEach((id) => (PageElements[id] = document.getElementById(id)));
 
     //display the video times from the array at the top, in a different section
     function displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {

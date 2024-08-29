@@ -27,16 +27,12 @@ function app() {
     function setDownloadedTimes(times: SponsorTime[]) {
         downloadedTimes = times;
     }
-    // const [sponsorTimes, setSponsorTimes] = React.useState<SponsorTime[]>([]);
     // const [downloadedTimes, setDownloadedTimes] = React.useState<SponsorTime[]>([]);
 
     //current video ID of this tab
-    let currentVideoID = null;
     function setCurrentVideoID(videoID: VideoID) {
-        currentVideoID = videoID;
         submitBoxRef.current.setState({ currentVideoID: videoID });
     }
-    // const [currentVideoID, setCurrentVideoID] = React.useState<VideoID>(null);
 
     // Forward click events
     if (isEmbed) {
@@ -85,7 +81,6 @@ function app() {
             console.log("getVideoID", result);
             if (result !== undefined && result.videoID) {
                 setCurrentVideoID(result.videoID);
-
                 loadTabData(tabs, updating);
             } else {
                 // Handle error if it exists
@@ -104,12 +99,6 @@ function app() {
     }
 
     async function loadTabData(tabs, updating: boolean): Promise<void> {
-        if (!currentVideoID) {
-            //this isn't a Bilibili video then
-            displayNoVideo();
-            return;
-        }
-
         await waitFor(() => Config.config !== null, 5000, 10);
         updateUnsubmittedSegments();
 
@@ -138,7 +127,7 @@ function app() {
             return;
         }
 
-        //remove loading text
+        // show control menus
         submitBoxRef.current.showSubmitBox();
         controlMenuRef.current.setState({ hasVideo: true });
 
@@ -158,12 +147,11 @@ function app() {
             }
         }
 
-        // see if whitelist button should be swapped
+        // update whitelist status
         const response = (await sendTabMessageAsync({
             message: "isChannelWhitelisted",
         })) as IsChannelWhitelistedResponse;
         controlMenuRef.current.setState({ hasWhiteListed: response.value });
-        // PageElements.whitelistToggle.checked = true;
     }
 
     //display the video times from the array at the top, in a different section
@@ -183,12 +171,13 @@ function app() {
         videoInfoRef.current.setState({ showExport: downloadedTimes.length > 0 });
     }
 
-    //this is not a Bilibili video page
+    /** this is not a Bilibili video page */
     function displayNoVideo() {
         videoInfoRef.current.displayNoVideo();
+        submitBoxRef.current.hideSubmitBox();
     }
 
-    /** Updates any UI related to segment editing and submission according to the current state. */
+    /** Update Unsubmitted Segments when Config changes */
     function updateUnsubmittedSegments() {
         submitBoxRef.current.updateUnsubmittedSegments();
     }
@@ -198,7 +187,7 @@ function app() {
     }
 
     function copyToClipboard(text: string): void {
-        if (window === window.top) {
+        if (!isEmbed) {
             window.navigator.clipboard.writeText(text);
         } else {
             sendTabMessage({
@@ -228,7 +217,9 @@ function app() {
         return new Promise((resolve) => sendTabMessage(data, (response) => resolve(response)));
     }
 
+    // TODO: the method is never triggered. Because the listener is not listening changes of child properties.
     function contentConfigUpdateListener(changes: StorageChangesObject) {
+        console.log("contentConfigUpdate", changes);
         for (const key in changes) {
             switch (key) {
                 case "unsubmittedSegments":
@@ -281,10 +272,7 @@ function app() {
             case "videoChanged":
                 setCurrentVideoID(msg.videoID);
                 updateUnsubmittedSegments();
-
-                if (msg.whitelisted) {
-                    controlMenuRef.current.setState({ hasWhiteListed: true });
-                }
+                controlMenuRef.current.setState({ hasWhiteListed: msg.whitelisted });
 
                 // Clear segments list & start loading animation
                 // We'll get a ping once they're loaded

@@ -1,6 +1,6 @@
 import * as React from "react";
 import Config from "../config";
-import { Message, SponsorStartResponse } from "../messageTypes";
+import { Message } from "../messageTypes";
 import { SponsorTime, VideoID } from "../types";
 
 interface SubmitBoxProps {
@@ -9,7 +9,6 @@ interface SubmitBoxProps {
 }
 
 interface SubmitBoxState {
-    // sponsorTimes: SponsorTime[];
     unsubmittedSegments: Record<VideoID, SponsorTime[]>;
     currentVideoID: VideoID;
 
@@ -20,12 +19,26 @@ class SubmitBox extends React.Component<SubmitBoxProps, SubmitBoxState> {
     constructor(props: SubmitBoxProps) {
         super(props);
         this.state = {
-            // sponsorTimes: Config.local.unsubmittedSegments[this.props.currentVideoID] || [],
             unsubmittedSegments: Config.local.unsubmittedSegments,
             currentVideoID: null,
 
             showSubmitBox: false,
         };
+    }
+
+    private sponsorTimes(): SponsorTime[] {
+        return this.state.unsubmittedSegments[this.state.currentVideoID] || [];
+    }
+
+    private isCreatingSegment(): boolean {
+        const segments = this.state.unsubmittedSegments[this.state.currentVideoID];
+        if (!segments) return false;
+        const lastSegment = segments[segments.length - 1];
+        return lastSegment && lastSegment?.segment?.length !== 2;
+    }
+
+    private hasSponsorTimes(): boolean {
+        return this.sponsorTimes().length > 0;
     }
 
     showSubmitBox() {
@@ -43,11 +56,11 @@ class SubmitBox extends React.Component<SubmitBoxProps, SubmitBoxState> {
 
     async sendSponsorStartMessage() {
         //the content script will get the message if a Bilibili page is open
-        const response = (await this.props.sendTabMessageAsync({
+        await this.props.sendTabMessageAsync({
             from: "popup",
             message: "sponsorStart",
-        })) as SponsorStartResponse;
-        this.startSponsorCallback(response);
+        });
+        this.startSponsorCallback();
 
         // Perform a second update after the config changes take effect as a workaround for a race condition
         const removeListener = (listener: typeof lateUpdate) => {
@@ -56,7 +69,7 @@ class SubmitBox extends React.Component<SubmitBoxProps, SubmitBoxState> {
         };
 
         const lateUpdate = () => {
-            this.startSponsorCallback(response);
+            this.startSponsorCallback();
             removeListener(lateUpdate);
         };
 
@@ -66,31 +79,8 @@ class SubmitBox extends React.Component<SubmitBoxProps, SubmitBoxState> {
         setTimeout(() => removeListener(lateUpdate), 200);
     }
 
-    startSponsorCallback(response: SponsorStartResponse) {
-        // Only update the segments after a segment was created
-        if (!response.creatingSegment) {
-            this.setState({
-                unsubmittedSegments: Config.local.unsubmittedSegments,
-            });
-        }
-
-        // Update the UI
+    startSponsorCallback() {
         this.updateUnsubmittedSegments();
-    }
-
-    private sponsorTimes(): SponsorTime[] {
-        return Config.local.unsubmittedSegments[this.state.currentVideoID] || [];
-    }
-
-    private isCreatingSegment(): boolean {
-        const segments = this.state.unsubmittedSegments[this.state.currentVideoID];
-        if (!segments) return false;
-        const lastSegment = segments[segments.length - 1];
-        return lastSegment && lastSegment?.segment?.length !== 2;
-    }
-
-    private hasSponsorTimes(): boolean {
-        return this.sponsorTimes().length > 0;
     }
 
     render() {
@@ -98,6 +88,7 @@ class SubmitBox extends React.Component<SubmitBoxProps, SubmitBoxState> {
             <div id="mainControls" style={{ display: this.state.showSubmitBox ? "block" : "none" }}>
                 <h1 className="sbHeader">{chrome.i18n.getMessage("recordTimesDescription")}</h1>
                 <sub className="sponsorStartHint grey-text">{chrome.i18n.getMessage("popupHint")}</sub>
+
                 <div style={{ textAlign: "center", margin: "8px 0" }}>
                     <button
                         className="sbMediumButton"
@@ -106,19 +97,18 @@ class SubmitBox extends React.Component<SubmitBoxProps, SubmitBoxState> {
                     >
                         {chrome.i18n.getMessage(this.isCreatingSegment() ? "sponsorEnd" : "sponsorStart")}
                     </button>
-                    <button
-                        id="submitTimes"
-                        className="sbMediumButton"
-                        style={{ display: this.hasSponsorTimes() ? "unset" : "none" }}
-                        onClick={() => {
-                            if (this.hasSponsorTimes()) {
-                                this.props.sendTabMessage({ message: "submitTimes" });
-                            }
-                        }}
-                    >
-                        {chrome.i18n.getMessage("OpenSubmissionMenu")}
-                    </button>
+
+                    {this.hasSponsorTimes() && (
+                        <button
+                            id="submitTimes"
+                            className="sbMediumButton"
+                            onClick={() => this.props.sendTabMessage({ message: "submitTimes" })}
+                        >
+                            {chrome.i18n.getMessage("OpenSubmissionMenu")}
+                        </button>
+                    )}
                 </div>
+
                 {this.hasSponsorTimes() && <span>{chrome.i18n.getMessage("submissionEditHint")}</span>}
             </div>
         );
