@@ -1,7 +1,6 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 import Config from "../config";
-import { runThePopup } from "../popup";
 import { waitFor } from "../utils/index";
 import App from "./app";
 
@@ -27,7 +26,6 @@ root.render(<App />);
 
 waitFor(() => Config.config !== null && allowPopup, 5000, 5).then(() => {
     setTimeout(() => {
-        runThePopup();
         document.getElementById("sponsorblockPopup")?.classList.remove("sb-preload");
     }, 10);
 });
