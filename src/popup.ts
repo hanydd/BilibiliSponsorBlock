@@ -70,8 +70,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         "sponsorStart",
         // More controls
         "submitTimes",
-        "sponsorTimesContributionsContainer",
-        "sponsorTimesContributionsDisplay",
         // Username
         "setUsernameContainer",
         "setUsernameButton",

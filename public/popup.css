@@ -513,7 +513,7 @@
 /*
  * Set username form container with "expanded" state
  */
-#setUsername.SBExpanded {
+#setUsername {
 	text-align: left;
 }
 /*

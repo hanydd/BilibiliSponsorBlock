@@ -117,7 +117,6 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                                     alt={chrome.i18n.getMessage("setUsername")}
                                     width="16"
                                     height="16"
-                                    id="sbPopupIconEdit"
                                 />
                             </button>
                             <button
@@ -141,11 +140,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                                 autoAdjustOverflow={false}
                                 destroyTooltipOnHide={true}
                             >
-                                <div
-                                    id="setUsername"
-                                    style={{ display: this.state.editingUsername ? "flex" : "none" }}
-                                    className="SBExpanded"
-                                >
+                                <div id="setUsername" style={{ display: this.state.editingUsername ? "flex" : "none" }}>
                                     <input
                                         ref={this.userNameInputRef}
                                         id="usernameInput"
