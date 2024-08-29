@@ -5,10 +5,13 @@ import { Message, VoteResponse } from "../../messageTypes";
 import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "../../types";
 import { shortCategoryName } from "../../utils/categoryUtils";
 import { getErrorMessage, getFormattedTime } from "../../utils/formating";
+import { MessageInstance } from "antd/es/message/interface";
 
 interface PopupSegmentProps {
     segment: SponsorTime;
     time: number;
+
+    messageApi: MessageInstance;
 
     sendTabMessage: (data: Message, callback?) => void;
     sendTabMessageAsync: (data: Message) => Promise<unknown>;
@@ -81,6 +84,15 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
 
     removeVoteMessage() {
         this.setState({ voteMessage: "" });
+    }
+
+    private copyUUID() {
+        try {
+            this.props.copyToClipboard(this.props.segment.UUID);
+            this.props.messageApi.success(chrome.i18n.getMessage("CopiedExclamation"));
+        } catch (e) {
+            this.props.messageApi.error(e);
+        }
     }
 
     async vote(type: number, UUID: SegmentUUID) {
@@ -183,8 +195,7 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                                 className="voteButton"
                                 src="/icons/clipboard.svg"
                                 title={chrome.i18n.getMessage("copySegmentID")}
-                                onClick={() => this.props.copyToClipboard(UUID)}
-                                // TODO: add feedback after copying
+                                onClick={this.copyUUID.bind(this)}
                             ></img>
 
                             {this.showHideButton() && (

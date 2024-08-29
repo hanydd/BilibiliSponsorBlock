@@ -1,13 +1,14 @@
 import { ReloadOutlined } from "@ant-design/icons";
+import { MessageInstance } from "antd/es/message/interface";
 import * as React from "react";
 import Config from "../../config";
 import { Message, RefreshSegmentsResponse } from "../../messageTypes";
-import GenericNotice from "../../render/GenericNotice";
 import { SponsorTime } from "../../types";
 import { exportTimes } from "../../utils/exporter";
 import PopupSegment from "./PopupSegment";
 
 interface VideoInfoProps {
+    messageApi: MessageInstance;
     sendTabMessage: (data: Message, callback?) => void;
     sendTabMessageAsync: (data: Message) => Promise<unknown>;
     copyToClipboard: (text: string) => void;
@@ -90,24 +91,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
 
     private exportSegments() {
         this.props.copyToClipboard(exportTimes(this.state.downloadedTimes));
-
-        new GenericNotice(null, "exportCopied", {
-            title: chrome.i18n.getMessage(`CopiedExclamation`),
-            timed: true,
-            maxCountdownTime: () => 0.6,
-            referenceNode: document.getElementById("issueReporterImportExport"),
-            dontPauseCountdown: true,
-            style: {
-                top: 0,
-                bottom: 0,
-                minWidth: 0,
-                right: "30px",
-                margin: "auto",
-                height: "max-content",
-            },
-            hideLogo: true,
-            hideRightInfo: true,
-        });
+        this.props.messageApi.success(chrome.i18n.getMessage(`CopiedExclamation`));
     }
 
     private computeIndicatorText(): string {
@@ -137,6 +121,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
                 segment={seg}
                 time={this.state.currentTime}
                 key={seg.UUID}
+                messageApi={this.props.messageApi}
                 sendTabMessage={this.props.sendTabMessage}
                 sendTabMessageAsync={this.props.sendTabMessageAsync}
                 copyToClipboard={this.props.copyToClipboard}

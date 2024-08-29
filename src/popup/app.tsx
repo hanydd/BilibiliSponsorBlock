@@ -1,4 +1,4 @@
-import { ConfigProvider, theme } from "antd";
+import { ConfigProvider, message, theme } from "antd";
 import * as React from "react";
 import Config from "../config";
 import { StorageChangesObject } from "../config/config";
@@ -16,6 +16,8 @@ function app() {
     const videoInfoRef = React.createRef<VideoInfo>();
     const controlMenuRef = React.createRef<ControlMenu>();
     const submitBoxRef = React.createRef<SubmitBox>();
+
+    const [messageApi, messageContextHolder] = message.useMessage();
 
     const isEmbed = window !== window.top;
 
@@ -238,6 +240,7 @@ function app() {
 
     return (
         <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
+            {messageContextHolder}
             <div id="sponsorblockPopup" className="sponsorBlockPageBody sb-preload">
                 <button
                     title={chrome.i18n.getMessage("closePopup")}
@@ -272,6 +275,7 @@ function app() {
 
                 <VideoInfo
                     ref={videoInfoRef}
+                    messageApi={messageApi}
                     sendTabMessage={sendTabMessage}
                     sendTabMessageAsync={sendTabMessageAsync}
                     copyToClipboard={copyToClipboard}
