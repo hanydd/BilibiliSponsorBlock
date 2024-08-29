@@ -20,7 +20,6 @@ interface PopupSegmentProps {
 
 interface PopupSegmentState {
     isVoting: boolean;
-    voteMessage: string;
     hidden: SponsorHideType;
 }
 
@@ -29,7 +28,6 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
         super(props);
         this.state = {
             isVoting: false,
-            voteMessage: "",
             hidden: props.segment.hidden,
         };
     }
@@ -80,14 +78,6 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
         this.setState({ isVoting: false });
     }
 
-    setVoteMessage(message: string) {
-        this.setState({ voteMessage: message });
-    }
-
-    removeVoteMessage() {
-        this.setState({ voteMessage: "" });
-    }
-
     private copyUUID() {
         try {
             this.props.copyToClipboard(this.props.segment.UUID);
@@ -110,11 +100,10 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
             // see if it was a success or failure
             if (response.successType == 1 || (response.successType == -1 && response.statusCode == 429)) {
                 //success (treat rate limits as a success)
-                this.setVoteMessage(chrome.i18n.getMessage("voted"));
+                this.props.messageApi.success(chrome.i18n.getMessage("voted"));
             } else if (response.successType == -1) {
-                this.setVoteMessage(getErrorMessage(response.statusCode, response.responseText));
+                this.props.messageApi.error(getErrorMessage(response.statusCode, response.responseText));
             }
-            setTimeout(() => this.removeVoteMessage(), 1500);
         }
     }
 
@@ -166,73 +155,65 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                         <div style={{ margin: "5px" }}>{this.segmentFromToTime()}</div>
                     </summary>
 
-                    {this.state.voteMessage ? (
-                        <div className="sponsorTimesVoteStatusContainer">
-                            <div className="sponsorTimesThanksForVotingText">{this.state.voteMessage}</div>
-                        </div>
-                    ) : (
-                        <div className="sbVoteButtonsContainer">
-                            <img
-                                className="voteButton"
-                                title={chrome.i18n.getMessage("upvote")}
-                                src="/icons/thumbs_up.svg"
-                                onClick={() => this.vote.bind(this)(1, UUID)}
-                            ></img>
+                    <div className="sbVoteButtonsContainer">
+                        <img
+                            className="voteButton"
+                            title={chrome.i18n.getMessage("upvote")}
+                            src="/icons/thumbs_up.svg"
+                            onClick={() => this.vote.bind(this)(1, UUID)}
+                        ></img>
 
+                        <img
+                            className="voteButton"
+                            title={chrome.i18n.getMessage("downvote")}
+                            src={
+                                locked && Config.config.isVip ? "icons/thumbs_down_locked.svg" : "icons/thumbs_down.svg"
+                            }
+                            onClick={() => this.vote.bind(this)(0, UUID)}
+                        ></img>
+
+                        <img
+                            className="voteButton"
+                            src="/icons/clipboard.svg"
+                            title={chrome.i18n.getMessage("copySegmentID")}
+                            onClick={this.copyUUID.bind(this)}
+                        ></img>
+
+                        {this.showHideButton() && (
                             <img
                                 className="voteButton"
-                                title={chrome.i18n.getMessage("downvote")}
+                                title={chrome.i18n.getMessage("hideSegment")}
                                 src={
-                                    locked && Config.config.isVip
-                                        ? "icons/thumbs_down_locked.svg"
-                                        : "icons/thumbs_down.svg"
+                                    this.state.hidden === SponsorHideType.Hidden
+                                        ? "icons/not_visible.svg"
+                                        : "/icons/visible.svg"
                                 }
-                                onClick={() => this.vote.bind(this)(0, UUID)}
-                            ></img>
+                                onClick={() => {
+                                    if (this.state.hidden === SponsorHideType.Hidden) {
+                                        this.props.segment.hidden = SponsorHideType.Visible;
+                                    } else {
+                                        this.props.segment.hidden = SponsorHideType.Hidden;
+                                    }
+                                    this.setState({ hidden: this.props.segment.hidden });
 
+                                    this.props.sendTabMessage({
+                                        message: "hideSegment",
+                                        type: this.props.segment.hidden,
+                                        UUID: UUID,
+                                    });
+                                }}
+                            ></img>
+                        )}
+
+                        {this.showSkipButton() && (
                             <img
                                 className="voteButton"
-                                src="/icons/clipboard.svg"
-                                title={chrome.i18n.getMessage("copySegmentID")}
-                                onClick={this.copyUUID.bind(this)}
+                                src="/icons/skip.svg"
+                                title={chrome.i18n.getMessage("skipSegment")}
+                                onClick={this.skipSegment.bind(this)}
                             ></img>
-
-                            {this.showHideButton() && (
-                                <img
-                                    className="voteButton"
-                                    title={chrome.i18n.getMessage("hideSegment")}
-                                    src={
-                                        this.state.hidden === SponsorHideType.Hidden
-                                            ? "icons/not_visible.svg"
-                                            : "/icons/visible.svg"
-                                    }
-                                    onClick={() => {
-                                        if (this.state.hidden === SponsorHideType.Hidden) {
-                                            this.props.segment.hidden = SponsorHideType.Visible;
-                                        } else {
-                                            this.props.segment.hidden = SponsorHideType.Hidden;
-                                        }
-                                        this.setState({ hidden: this.props.segment.hidden });
-
-                                        this.props.sendTabMessage({
-                                            message: "hideSegment",
-                                            type: this.props.segment.hidden,
-                                            UUID: UUID,
-                                        });
-                                    }}
-                                ></img>
-                            )}
-
-                            {this.showSkipButton() && (
-                                <img
-                                    className="voteButton"
-                                    src="/icons/skip.svg"
-                                    title={chrome.i18n.getMessage("skipSegment")}
-                                    onClick={this.skipSegment.bind(this)}
-                                ></img>
-                            )}
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </details>
             </Spin>
         );
