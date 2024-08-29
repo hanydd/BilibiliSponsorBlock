@@ -71,7 +71,7 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
     async vote(type: number, UUID: SegmentUUID) {
         this.startVoting();
         const response = await this.props.sendVoteMessage(type, UUID);
-        console.log(response);
+        this.stopVoting();
 
         if (response != undefined) {
             // see if it was a success or failure
@@ -83,7 +83,6 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
             }
             setTimeout(() => this.removeVoteMessage(), 1500);
         }
-        this.stopVoting();
     }
 
     render(): React.ReactNode {
@@ -132,7 +131,7 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                         <div style={{ margin: "5px" }}>{this.segmentFromToTime()}</div>
                     </summary>
 
-                    {this.state.isVoting || !!this.state.voteMessage ? (
+                    {this.state.voteMessage ? (
                         <div id={"sponsorTimesVoteStatusContainer" + UUID} className="sponsorTimesVoteStatusContainer">
                             <div
                                 id={"sponsorTimesThanksForVotingText" + UUID}

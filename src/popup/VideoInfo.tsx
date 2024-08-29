@@ -23,6 +23,9 @@ interface VideoInfoState {
 
     importInputOpen: boolean;
     showExport: boolean;
+
+    downloadedTimes: SponsorTime[];
+    currentTime: number;
 }
 
 class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
@@ -34,6 +37,9 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
             loadedMessage: chrome.i18n.getMessage("sponsorFound"),
             importInputOpen: false,
             showExport: false,
+
+            downloadedTimes: [],
+            currentTime: 0,
         };
     }
 
@@ -135,14 +141,9 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
             .sort((a, b) => a.segment[1] - b.segment[1])
             .sort((a, b) => a.segment[0] - b.segment[0]);
 
-        // add them as buttons to the issue reporting container
-        // const container = document.getElementById("issueReporterTimeButtons");
-        // while (container.firstChild) {
-        //     container.removeChild(container.firstChild);
-        // }
         // container.addEventListener("mouseleave", () => this.selectSegment(null));
 
-        this.setState({ showExport: downloadedTimes.length > 0 });
+        this.setState({ showExport: downloadedTimes.length > 0, downloadedTimes: downloadedTimes, currentTime: time });
     }
 
     private skipSegment(actionType: ActionType, UUID: SegmentUUID, element?: HTMLElement): void {
@@ -165,22 +166,14 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
     }
 
     private SegmentList(): React.ReactNode[] {
-        const seg: SponsorTime = {
-            UUID: "1231231" as SegmentUUID,
-            category: "sponsor" as Category,
-            actionType: ActionType.Skip,
-            segment: [0, 4],
-            source: SponsorSourceType.Server,
-        };
-
-        return [
+        return this.state.downloadedTimes.map((seg) => (
             <PopupSegment
                 segment={seg}
-                time={1}
+                time={this.state.currentTime}
                 key={seg.UUID}
                 sendVoteMessage={this.sendVoteMessage.bind(this)}
-            ></PopupSegment>,
-        ];
+            ></PopupSegment>
+        ));
     }
 
     render() {
