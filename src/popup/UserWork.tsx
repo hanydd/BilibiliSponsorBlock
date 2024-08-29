@@ -1,8 +1,9 @@
+import { Popover, Spin } from "antd";
 import * as React from "react";
 import Config from "../config";
-import { getFormattedHours } from "../utils/formating";
-import { getHash } from "../utils/hash";
 import { asyncRequestToServer } from "../requests/requests";
+import { getErrorMessage, getFormattedHours } from "../utils/formating";
+import { getHash } from "../utils/hash";
 
 interface UserWorkProps {
     copyToClipboard: (text: string) => void;
@@ -15,9 +16,13 @@ interface UserWorkState {
     segmentCount: number;
 
     editingUsername: boolean;
+    editUsernameLoading: boolean;
+    editUserNameError: string;
 }
 
 class UserWork extends React.Component<UserWorkProps, UserWorkState> {
+    userNameInputRef: React.RefObject<HTMLInputElement>;
+
     constructor(props: UserWorkProps) {
         super(props);
         this.state = {
@@ -26,7 +31,11 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
             minutesSaved: 0,
             segmentCount: Config.config.sponsorTimesContributed,
             editingUsername: false,
+            editUsernameLoading: false,
+            editUserNameError: null,
         };
+
+        this.userNameInputRef = React.createRef<HTMLInputElement>();
 
         getHash(Config.config.userID)
             .then((hash) =>
@@ -57,6 +66,33 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
         this.setState({ editingUsername: true });
     }
 
+    //submit the new username
+    submitUsername() {
+        const inputUserName = this.userNameInputRef.current.value;
+        if (!inputUserName || inputUserName.length == 0) {
+            return;
+        }
+        if (inputUserName === this.state.userName) {
+            this.setState({ editingUsername: false });
+            return;
+        }
+
+        this.setState({ editUsernameLoading: true });
+
+        asyncRequestToServer("POST", "/api/setUsername?userID=" + Config.config.userID + "&username=" + inputUserName)
+            .then((response) => {
+                if (response.status == 200) {
+                    this.setState({ editingUsername: false, userName: inputUserName, editUserNameError: null });
+                } else {
+                    this.setState({ editUserNameError: getErrorMessage(response.status, response.responseText) });
+                    setTimeout(() => this.setState({ editUserNameError: null }), 5000);
+                }
+            })
+            .finally(() => {
+                this.setState({ editUsernameLoading: false });
+            });
+    }
+
     render(): React.ReactNode {
         return (
             <div className={"sbYourWorkBox"}>
@@ -66,14 +102,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                 <div className="sbYourWorkCols">
                     {/* <!-- Username --> */}
                     <div id="usernameElement">
-                        <p className="u-mZ grey-text">
-                            {chrome.i18n.getMessage("Username")}
-                            <span
-                                id="setUsernameStatus"
-                                className="u-mZ white-text"
-                                style={{ display: this.state.editingUsername ? "none" : "" }}
-                            ></span>
-                        </p>
+                        <p className="u-mZ grey-text">{chrome.i18n.getMessage("Username")}</p>
                         <div id="setUsernameContainer" style={{ display: this.state.editingUsername ? "none" : "" }}>
                             <p id="usernameValue" onClick={this.setUsernameButton.bind(this)}>
                                 {this.state.userName}
@@ -104,21 +133,36 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                                 />
                             </button>
                         </div>
-                        <div
-                            id="setUsername"
-                            style={{ display: this.state.editingUsername ? "flex" : "none" }}
-                            className={this.state.editingUsername ? "SBExpanded" : ""}
-                        >
-                            <input id="usernameInput" placeholder="Username" defaultValue={this.state.userName} />
-                            <button id="submitUsername">
-                                <img
-                                    src="/icons/check.svg"
-                                    alt={chrome.i18n.getMessage("setUsername")}
-                                    width="16"
-                                    height="16"
-                                />
-                            </button>
-                        </div>
+                        <Spin spinning={this.state.editUsernameLoading} delay={50}>
+                            <Popover
+                                content={this.state.editUserNameError}
+                                open={this.state.editUserNameError != null}
+                                arrow={false}
+                                autoAdjustOverflow={false}
+                                destroyTooltipOnHide={true}
+                            >
+                                <div
+                                    id="setUsername"
+                                    style={{ display: this.state.editingUsername ? "flex" : "none" }}
+                                    className="SBExpanded"
+                                >
+                                    <input
+                                        ref={this.userNameInputRef}
+                                        id="usernameInput"
+                                        placeholder="Username"
+                                        defaultValue={this.state.userName}
+                                    />
+                                    <button id="submitUsername" onClick={this.submitUsername.bind(this)}>
+                                        <img
+                                            src="/icons/check.svg"
+                                            alt={chrome.i18n.getMessage("setUsername")}
+                                            width="16"
+                                            height="16"
+                                        />
+                                    </button>
+                                </div>
+                            </Popover>
+                        </Spin>
                     </div>
                     {/* <!-- Submissions --> */}
                     {!this.state.editingUsername && (

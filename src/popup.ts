@@ -1,7 +1,6 @@
 import Config from "./config";
 
 import { Message, MessageResponse, SponsorStartResponse, VoteResponse } from "./messageTypes";
-import { sendRequestToServer } from "./requests/requests";
 import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "./types";
 import { AnimationUtils } from "./utils/animationUtils";
 import { shortCategoryName } from "./utils/categoryUtils";
@@ -88,7 +87,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     ].forEach((id) => (PageElements[id] = document.getElementById(id)));
 
     PageElements.sponsorStart.addEventListener("click", sendSponsorStartMessage);
-    PageElements.submitUsername.addEventListener("click", submitUsername);
 
     // Must be delayed so it only happens once loaded
     setTimeout(() => PageElements.sponsorblockPopup.classList.remove("preload"), 250);
@@ -360,38 +358,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
 
     function sendTabMessageAsync(data: Message): Promise<unknown> {
         return new Promise((resolve) => sendTabMessage(data, (response) => resolve(response)));
-    }
-
-    //submit the new username
-    function submitUsername() {
-        //add loading indicator
-        PageElements.setUsernameStatus.style.display = "unset";
-        PageElements.setUsernameStatus.innerText = chrome.i18n.getMessage("Loading");
-
-        sendRequestToServer(
-            "POST",
-            "/api/setUsername?userID=" + Config.config.userID + "&username=" + PageElements.usernameInput.value,
-            function (response) {
-                if (response.status == 200) {
-                    //submitted
-                    PageElements.submitUsername.style.display = "none";
-                    PageElements.usernameInput.style.display = "none";
-
-                    PageElements.setUsernameContainer.style.removeProperty("display");
-                    PageElements.setUsername.classList.remove("SBExpanded");
-                    PageElements.usernameValue.innerText = PageElements.usernameInput.value;
-
-                    PageElements.setUsernameStatus.style.display = "none";
-
-                    PageElements.sponsorTimesContributionsContainer.classList.remove("hidden");
-                } else {
-                    PageElements.setUsernameStatus.innerText = getErrorMessage(response.status, response.responseText);
-                }
-            }
-        );
-
-        PageElements.setUsernameContainer.style.display = "none";
-        PageElements.setUsername.style.display = "unset";
     }
 
     function addVoteMessage(message, UUID) {
