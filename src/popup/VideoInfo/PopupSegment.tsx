@@ -21,6 +21,7 @@ interface PopupSegmentProps {
 interface PopupSegmentState {
     isVoting: boolean;
     voteMessage: string;
+    hidden: SponsorHideType;
 }
 
 class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState> {
@@ -29,17 +30,18 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
         this.state = {
             isVoting: false,
             voteMessage: "",
+            hidden: props.segment.hidden,
         };
     }
 
     private extracInfo(): string {
-        if (this.props.segment.hidden === SponsorHideType.Downvoted) {
+        if (this.state.hidden === SponsorHideType.Downvoted) {
             //this one is downvoted
             return " (" + chrome.i18n.getMessage("hiddenDueToDownvote") + ")";
-        } else if (this.props.segment.hidden === SponsorHideType.MinimumDuration) {
+        } else if (this.state.hidden === SponsorHideType.MinimumDuration) {
             //this one is too short
             return " (" + chrome.i18n.getMessage("hiddenDueToDuration") + ")";
-        } else if (this.props.segment.hidden === SponsorHideType.Hidden) {
+        } else if (this.state.hidden === SponsorHideType.Hidden) {
             return " (" + chrome.i18n.getMessage("manuallyHidden") + ")";
         }
         return "";
@@ -63,7 +65,7 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
             this.props.segment.actionType === ActionType.Skip ||
             this.props.segment.actionType === ActionType.Mute ||
             (this.props.segment.actionType === ActionType.Poi &&
-                [SponsorHideType.Visible, SponsorHideType.Hidden].includes(this.props.segment.hidden))
+                [SponsorHideType.Visible, SponsorHideType.Hidden].includes(this.state.hidden))
         );
     }
 
@@ -202,16 +204,17 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                                     className="voteButton"
                                     title={chrome.i18n.getMessage("hideSegment")}
                                     src={
-                                        this.props.segment.hidden === SponsorHideType.Hidden
+                                        this.state.hidden === SponsorHideType.Hidden
                                             ? "icons/not_visible.svg"
                                             : "/icons/visible.svg"
                                     }
                                     onClick={() => {
-                                        if (this.props.segment.hidden === SponsorHideType.Hidden) {
+                                        if (this.state.hidden === SponsorHideType.Hidden) {
                                             this.props.segment.hidden = SponsorHideType.Visible;
                                         } else {
                                             this.props.segment.hidden = SponsorHideType.Hidden;
                                         }
+                                        this.setState({ hidden: this.props.segment.hidden });
 
                                         this.props.sendTabMessage({
                                             message: "hideSegment",
