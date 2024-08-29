@@ -66,8 +66,6 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
             message: "refreshSegments",
         })) as RefreshSegmentsResponse;
 
-        console.log("Refresh Response", response);
-
         if (response == null || !response.hasVideo) {
             this.displayNoVideo();
         }
@@ -127,7 +125,6 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
 
     //display the video times from the array at the top, in a different section
     displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
-        console.log("displayDownloadedSponsorTimes", sponsorTimes, time);
         // Sort list by start time
         const downloadedTimes = sponsorTimes
             .sort((a, b) => a.segment[1] - b.segment[1])

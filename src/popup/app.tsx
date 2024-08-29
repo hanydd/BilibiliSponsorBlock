@@ -78,7 +78,6 @@ function app() {
     let loadRetryCount = 0;
     function onTabs(tabs, updating: boolean): void {
         messageHandler.sendMessage(tabs[0].id, { message: "getVideoID" }, function (result) {
-            console.log("getVideoID", result);
             if (result !== undefined && result.videoID) {
                 setCurrentVideoID(result.videoID);
                 loadTabData(tabs, updating);
@@ -116,7 +115,6 @@ function app() {
     }
 
     async function infoFound(request: IsInfoFoundMessageResponse) {
-        console.log("info found", request);
         // End any loading animation
         videoInfoRef.current.stopLoading();
 
@@ -207,7 +205,6 @@ function app() {
 
     // TODO: the method is never triggered. Because the listener is not listening changes of child properties.
     function contentConfigUpdateListener(changes: StorageChangesObject) {
-        console.log("contentConfigUpdate", changes);
         for (const key in changes) {
             switch (key) {
                 case "unsubmittedSegments":
