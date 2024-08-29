@@ -116,7 +116,7 @@ function app() {
         }
 
         // show control menus
-        submitBoxRef.current.showSubmitBox();
+        submitBoxRef.current?.showSubmitBox();
         controlMenuRef.current.setState({ hasVideo: true });
 
         displayDownloadedSponsorTimes(request.sponsorTimes ?? [], request.time);
@@ -149,16 +149,16 @@ function app() {
     /** this is not a Bilibili video page */
     function displayNoVideo() {
         videoInfoRef.current.displayNoVideo();
-        submitBoxRef.current.hideSubmitBox();
+        submitBoxRef.current?.hideSubmitBox();
     }
 
     /** Update Unsubmitted Segments when Config changes */
     function updateUnsubmittedSegments() {
-        submitBoxRef.current.updateUnsubmittedSegments();
+        submitBoxRef.current?.updateUnsubmittedSegments();
     }
 
     function setCurrentVideoID(videoID: VideoID) {
-        submitBoxRef.current.setState({ currentVideoID: videoID });
+        submitBoxRef.current?.setState({ currentVideoID: videoID });
     }
 
     function startLoadingAnimation() {
