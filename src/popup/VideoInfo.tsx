@@ -1,10 +1,12 @@
 import { ReloadOutlined } from "@ant-design/icons";
 import * as React from "react";
 import Config from "../config";
-import { Message, RefreshSegmentsResponse } from "../messageTypes";
+import { Message, RefreshSegmentsResponse, VoteResponse } from "../messageTypes";
 import GenericNotice from "../render/GenericNotice";
-import { SponsorTime } from "../types";
+import { ActionType, Category, SegmentUUID, SponsorSourceType, SponsorTime } from "../types";
 import { exportTimes } from "../utils/exporter";
+import { AnimationUtils } from "../utils/animationUtils";
+import PopupSegment from "./VideoInfo/PopupSegment";
 
 interface VideoInfoProps {
     downloadedTimes: SponsorTime[];
@@ -116,6 +118,71 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
         }
     }
 
+    private async sendVoteMessage(type: number, UUID: SegmentUUID): Promise<VoteResponse> {
+        console.log("Vote", type, UUID);
+        return (await this.props.sendTabMessageAsync({
+            message: "submitVote",
+            type: type,
+            UUID: UUID,
+        })) as VoteResponse;
+    }
+
+    //display the video times from the array at the top, in a different section
+    displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
+        console.log("displayDownloadedSponsorTimes", sponsorTimes, time);
+        // Sort list by start time
+        const downloadedTimes = sponsorTimes
+            .sort((a, b) => a.segment[1] - b.segment[1])
+            .sort((a, b) => a.segment[0] - b.segment[0]);
+
+        // add them as buttons to the issue reporting container
+        // const container = document.getElementById("issueReporterTimeButtons");
+        // while (container.firstChild) {
+        //     container.removeChild(container.firstChild);
+        // }
+        // container.addEventListener("mouseleave", () => this.selectSegment(null));
+
+        this.setState({ showExport: downloadedTimes.length > 0 });
+    }
+
+    private skipSegment(actionType: ActionType, UUID: SegmentUUID, element?: HTMLElement): void {
+        this.props.sendTabMessage({
+            message: "reskip",
+            UUID: UUID,
+        });
+
+        if (element) {
+            const stopAnimation = AnimationUtils.applyLoadingAnimation(element, 0.3);
+            stopAnimation();
+        }
+    }
+
+    private selectSegment(UUID: SegmentUUID | null): void {
+        this.props.sendTabMessage({
+            message: "selectSegment",
+            UUID: UUID,
+        });
+    }
+
+    private SegmentList(): React.ReactNode[] {
+        const seg: SponsorTime = {
+            UUID: "1231231" as SegmentUUID,
+            category: "sponsor" as Category,
+            actionType: ActionType.Skip,
+            segment: [0, 4],
+            source: SponsorSourceType.Server,
+        };
+
+        return [
+            <PopupSegment
+                segment={seg}
+                time={1}
+                key={seg.UUID}
+                sendVoteMessage={this.sendVoteMessage.bind(this)}
+            ></PopupSegment>,
+        ];
+    }
+
     render() {
         return (
             <div style={Config.config.cleanPopup ? { marginTop: 10 } : {}}>
@@ -131,7 +198,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
                 </button>
                 {/* <!-- Video Segments --> */}
                 <div id="issueReporterContainer">
-                    <div id="issueReporterTimeButtons"></div>
+                    <div id="issueReporterTimeButtons">{this.SegmentList()}</div>
                     <div id="issueReporterImportExport" className={this.state.videoFound ? "" : "hidden"}>
                         <div>
                             <button

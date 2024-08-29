@@ -156,19 +156,7 @@ function app() {
 
     //display the video times from the array at the top, in a different section
     function displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
-        console.log("displayDownloadedSponsorTimes", sponsorTimes, time);
-        // Sort list by start time
-        const downloadedTimes = sponsorTimes
-            .sort((a, b) => a.segment[1] - b.segment[1])
-            .sort((a, b) => a.segment[0] - b.segment[0]);
-
-        //add them as buttons to the issue reporting container
-        const container = document.getElementById("issueReporterTimeButtons");
-        while (container.firstChild) {
-            container.removeChild(container.firstChild);
-        }
-
-        videoInfoRef.current.setState({ showExport: downloadedTimes.length > 0 });
+        videoInfoRef.current.displayDownloadedSponsorTimes(sponsorTimes, time);
     }
 
     /** this is not a Bilibili video page */
