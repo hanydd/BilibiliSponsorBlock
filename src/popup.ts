@@ -1,6 +1,6 @@
 import Config from "./config";
 
-import { Message, MessageResponse, SponsorStartResponse, VoteResponse } from "./messageTypes";
+import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "./types";
 import { AnimationUtils } from "./utils/animationUtils";
 import { shortCategoryName } from "./utils/categoryUtils";
@@ -62,49 +62,11 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     [
         "videoInfo",
         "sponsorblockPopup",
-        "sponsorStart",
         // More controls
         "submitTimes",
         // More
         "submissionHint",
     ].forEach((id) => (PageElements[id] = document.getElementById(id)));
-
-    PageElements.sponsorStart.addEventListener("click", sendSponsorStartMessage);
-
-    async function sendSponsorStartMessage() {
-        //the content script will get the message if a Bilibili page is open
-        const response = (await sendTabMessageAsync({
-            from: "popup",
-            message: "sponsorStart",
-        })) as SponsorStartResponse;
-        startSponsorCallback(response);
-
-        // Perform a second update after the config changes take effect as a workaround for a race condition
-        const removeListener = (listener: typeof lateUpdate) => {
-            const index = Config.configSyncListeners.indexOf(listener);
-            if (index !== -1) Config.configSyncListeners.splice(index, 1);
-        };
-
-        const lateUpdate = () => {
-            startSponsorCallback(response);
-            removeListener(lateUpdate);
-        };
-
-        Config.configSyncListeners.push(lateUpdate);
-
-        // Remove the listener after 200ms in case the changes were propagated by the time we got the response
-        setTimeout(() => removeListener(lateUpdate), 200);
-    }
-
-    function startSponsorCallback(response: SponsorStartResponse) {
-        // Only update the segments after a segment was created
-        if (!response.creatingSegment) {
-            sponsorTimes = Config.local.unsubmittedSegments[currentVideoID] || [];
-        }
-
-        // Update the UI
-        updateSegmentEditingUI();
-    }
 
     //display the video times from the array at the top, in a different section
     function displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
@@ -313,15 +275,6 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
         }
 
         container.addEventListener("mouseleave", () => selectSegment(null));
-    }
-
-    /** Updates any UI related to segment editing and submission according to the current state. */
-    function updateSegmentEditingUI() {
-        // PageElements.sponsorStart.innerText = chrome.i18n.getMessage(
-        //     isCreatingSegment() ? "sponsorEnd" : "sponsorStart"
-        // );
-        // PageElements.submitTimes.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
-        // PageElements.submissionHint.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
     }
 
     function sendTabMessage(data: Message, callback?) {

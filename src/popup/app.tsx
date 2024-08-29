@@ -8,13 +8,14 @@ import { SponsorTime, VideoID } from "../types";
 import { waitFor } from "../utils/index";
 import ControlMenu from "./ControlMenu";
 import PopupFooter from "./PopupFooter";
+import SubmitBox from "./SubmitBox";
 import UserWork from "./UserWork";
 import VideoInfo from "./VideoInfo";
 
 function app() {
     const videoInfoRef = React.createRef<VideoInfo>();
     const controlMenuRef = React.createRef<ControlMenu>();
-    const mainControlsRef = React.createRef<HTMLDivElement>();
+    const submitBoxRef = React.createRef<SubmitBox>();
 
     const isEmbed = window !== window.top;
 
@@ -22,11 +23,7 @@ function app() {
     let port: chrome.runtime.Port = null;
 
     //the start and end time pairs (2d)
-    let sponsorTimes: SponsorTime[] = [];
     let downloadedTimes: SponsorTime[] = [];
-    function setSponsorTimes(times: SponsorTime[]) {
-        sponsorTimes = times;
-    }
     function setDownloadedTimes(times: SponsorTime[]) {
         downloadedTimes = times;
     }
@@ -37,6 +34,7 @@ function app() {
     let currentVideoID = null;
     function setCurrentVideoID(videoID: VideoID) {
         currentVideoID = videoID;
+        submitBoxRef.current.setState({ currentVideoID: videoID });
     }
     // const [currentVideoID, setCurrentVideoID] = React.useState<VideoID>(null);
 
@@ -113,8 +111,7 @@ function app() {
         }
 
         await waitFor(() => Config.config !== null, 5000, 10);
-        setSponsorTimes(Config.local.unsubmittedSegments[currentVideoID] ?? []);
-        updateSegmentEditingUI();
+        updateUnsubmittedSegments();
 
         messageHandler.sendMessage(tabs[0].id, { message: "isInfoFound", updating }, infoFound);
     }
@@ -142,7 +139,7 @@ function app() {
         }
 
         //remove loading text
-        mainControlsRef.current.style.display = "block";
+        submitBoxRef.current.showSubmitBox();
         controlMenuRef.current.setState({ hasVideo: true });
 
         setDownloadedTimes(request.sponsorTimes ?? []);
@@ -191,23 +188,9 @@ function app() {
         videoInfoRef.current.displayNoVideo();
     }
 
-    function isCreatingSegment(): boolean {
-        const segments = Config.local.unsubmittedSegments[currentVideoID];
-        if (!segments) return false;
-        const lastSegment = segments[segments.length - 1];
-        return lastSegment && lastSegment?.segment?.length !== 2;
-    }
-
     /** Updates any UI related to segment editing and submission according to the current state. */
-    function updateSegmentEditingUI() {
-        console.log("updateSegmentEditingUI", sponsorTimes);
-        console.log("isCreatingSegment", isCreatingSegment());
-        // PageElements.sponsorStart.innerText = chrome.i18n.getMessage(
-        //     isCreatingSegment() ? "sponsorEnd" : "sponsorStart"
-        // );
-
-        // PageElements.submitTimes.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
-        // PageElements.submissionHint.style.display = sponsorTimes && sponsorTimes.length > 0 ? "unset" : "none";
+    function updateUnsubmittedSegments() {
+        submitBoxRef.current.updateUnsubmittedSegments();
     }
 
     function startLoadingAnimation() {
@@ -249,8 +232,7 @@ function app() {
         for (const key in changes) {
             switch (key) {
                 case "unsubmittedSegments":
-                    setSponsorTimes(Config.local.unsubmittedSegments[currentVideoID] ?? []);
-                    updateSegmentEditingUI();
+                    updateUnsubmittedSegments();
                     break;
             }
         }
@@ -298,8 +280,7 @@ function app() {
                 break;
             case "videoChanged":
                 setCurrentVideoID(msg.videoID);
-                setSponsorTimes(Config.local.unsubmittedSegments[currentVideoID] ?? []);
-                updateSegmentEditingUI();
+                updateUnsubmittedSegments();
 
                 if (msg.whitelisted) {
                     controlMenuRef.current.setState({ hasWhiteListed: true });
@@ -365,32 +346,12 @@ function app() {
                 {/* <!-- Submit box --> */}
                 {!Config.config.cleanPopup && (
                     <>
-                        <div ref={mainControlsRef} id="mainControls" style={{ display: "none" }}>
-                            <h1 className="sbHeader">{chrome.i18n.getMessage("recordTimesDescription")}</h1>
-                            <sub className="sponsorStartHint grey-text">{chrome.i18n.getMessage("popupHint")}</sub>
-                            <div style={{ textAlign: "center", margin: "8px 0" }}>
-                                <button id="sponsorStart" className="sbMediumButton" style={{ marginRight: "8px" }}>
-                                    {chrome.i18n.getMessage(isCreatingSegment() ? "sponsorEnd" : "sponsorStart")}
-                                </button>
-                                <button
-                                    id="submitTimes"
-                                    className="sbMediumButton"
-                                    style={{ display: "none" }}
-                                    onClick={() => {
-                                        if (sponsorTimes.length > 0) {
-                                            sendTabMessage({ message: "submitTimes" });
-                                        }
-                                    }}
-                                >
-                                    {chrome.i18n.getMessage("OpenSubmissionMenu")}
-                                </button>
-                            </div>
-                            <span id="submissionHint" style={{ display: "none" }}>
-                                {chrome.i18n.getMessage("submissionEditHint")}
-                            </span>
-                        </div>
+                        <SubmitBox
+                            ref={submitBoxRef}
+                            sendTabMessage={sendTabMessage}
+                            sendTabMessageAsync={sendTabMessageAsync}
+                        />
 
-                        {/* <!-- Your Work box --> */}
                         <UserWork copyToClipboard={copyToClipboard} />
 
                         <PopupFooter />
