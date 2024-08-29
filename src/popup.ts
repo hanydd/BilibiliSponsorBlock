@@ -1,46 +1,11 @@
 import Config from "./config";
 
-import { Message, MessageResponse, VoteResponse } from "./messageTypes";
+import { Message, VoteResponse } from "./messageTypes";
+import { MessageHandler, MessageListener } from "./popup/PopupMessageHandler";
 import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "./types";
 import { AnimationUtils } from "./utils/animationUtils";
 import { shortCategoryName } from "./utils/categoryUtils";
 import { getErrorMessage, getFormattedTime } from "./utils/formating";
-
-interface MessageListener {
-    (request: Message, sender: unknown, sendResponse: (response: MessageResponse) => void): void;
-}
-
-export class MessageHandler {
-    messageListener: MessageListener;
-
-    constructor(messageListener?: MessageListener) {
-        this.messageListener = messageListener;
-    }
-
-    sendMessage(id: number, request: Message, callback?) {
-        if (this.messageListener) {
-            this.messageListener(request, null, callback);
-        } else if (chrome.tabs) {
-            chrome.tabs.sendMessage(id, request, callback);
-        } else {
-            chrome.runtime.sendMessage({ message: "tabs", data: request }, callback);
-        }
-    }
-
-    query(config, callback) {
-        if (this.messageListener || !chrome.tabs) {
-            // Send back dummy info
-            callback([
-                {
-                    url: document.URL,
-                    id: -1,
-                },
-            ]);
-        } else {
-            chrome.tabs.query(config, callback);
-        }
-    }
-}
 
 //make this a function to allow this to run on the content page
 export async function runThePopup(messageListener?: MessageListener): Promise<void> {
