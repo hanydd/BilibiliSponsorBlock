@@ -166,7 +166,7 @@ function app() {
     }
 
     function updateCurrentTime(currentTime: number) {
-        this.VideoInfo.setState({ currentTime: currentTime });
+        videoInfoRef.current.setState({ currentTime: currentTime });
     }
 
     function copyToClipboard(text: string): void {
