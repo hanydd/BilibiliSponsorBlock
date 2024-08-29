@@ -1,16 +1,18 @@
+import { Spin } from "antd";
 import * as React from "react";
 import Config from "../../config";
-import { VoteResponse } from "../../messageTypes";
+import { Message, VoteResponse } from "../../messageTypes";
 import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "../../types";
 import { shortCategoryName } from "../../utils/categoryUtils";
 import { getErrorMessage, getFormattedTime } from "../../utils/formating";
-import { Spin } from "antd";
 
 interface PopupSegmentProps {
     segment: SponsorTime;
     time: number;
 
-    sendVoteMessage: (type: number, UUID: string) => Promise<VoteResponse>;
+    sendTabMessage: (data: Message, callback?) => void;
+    sendTabMessageAsync: (data: Message) => Promise<unknown>;
+    copyToClipboard: (text: string) => void;
 }
 
 interface PopupSegmentState {
@@ -53,6 +55,19 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
         }
     }
 
+    private showSkipButton(): boolean {
+        return (
+            this.props.segment.actionType === ActionType.Skip ||
+            this.props.segment.actionType === ActionType.Mute ||
+            (this.props.segment.actionType === ActionType.Poi &&
+                [SponsorHideType.Visible, SponsorHideType.Hidden].includes(this.props.segment.hidden))
+        );
+    }
+
+    private showHideButton(): boolean {
+        return this.props.segment.actionType !== ActionType.Full;
+    }
+
     startVoting() {
         this.setState({ isVoting: true });
     }
@@ -70,7 +85,11 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
 
     async vote(type: number, UUID: SegmentUUID) {
         this.startVoting();
-        const response = await this.props.sendVoteMessage(type, UUID);
+        const response = (await this.props.sendTabMessageAsync({
+            message: "submitVote",
+            type: type,
+            UUID: UUID,
+        })) as VoteResponse;
         this.stopVoting();
 
         if (response != undefined) {
@@ -85,11 +104,24 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
         }
     }
 
+    private skipSegment(): void {
+        this.props.sendTabMessage({
+            message: "reskip",
+            UUID: this.props.segment.UUID,
+        });
+    }
+
+    private selectSegment(UUID: SegmentUUID | null): void {
+        this.props.sendTabMessage({
+            message: "selectSegment",
+            UUID: UUID,
+        });
+    }
+
     render(): React.ReactNode {
         const UUID = this.props.segment.UUID;
         const locked = this.props.segment.locked;
         const category = this.props.segment.category;
-        const actionType = this.props.segment.actionType;
         const segment = this.props.segment.segment;
 
         return (
@@ -98,17 +130,9 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                     id={"votingButtons" + UUID}
                     className="votingButtons"
                     data-uuid={UUID}
-                    onToggle={(e) => {
-                        console.log(e);
-                        // if (votingButtons.open) {
-                        //     openedUUIDs.push(UUID);
-                        // } else {
-                        //     const index = openedUUIDs.indexOf(UUID);
-                        //     if (index !== -1) {
-                        //         openedUUIDs.splice(openedUUIDs.indexOf(UUID), 1);
-                        //     }
-                        // }
-                    }}
+                    onDoubleClick={this.skipSegment.bind(this)}
+                    onMouseEnter={() => this.selectSegment(this.props.segment.UUID)}
+                    onMouseLeave={() => this.selectSegment(null)}
                 >
                     <summary
                         className={
@@ -133,46 +157,69 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
 
                     {this.state.voteMessage ? (
                         <div id={"sponsorTimesVoteStatusContainer" + UUID} className="sponsorTimesVoteStatusContainer">
-                            <div
-                                id={"sponsorTimesThanksForVotingText" + UUID}
-                                className="sponsorTimesThanksForVotingText"
-                            >
-                                {this.state.voteMessage}
-                            </div>
+                            <div className="sponsorTimesThanksForVotingText">{this.state.voteMessage}</div>
                         </div>
                     ) : (
                         <div id="sponsorTimesVoteButtonsContainer" className="sbVoteButtonsContainer">
                             <img
-                                id={"sponsorTimesUpvoteButtonsContainer" + UUID}
                                 className="voteButton"
                                 title={chrome.i18n.getMessage("upvote")}
                                 src="/icons/thumbs_up.svg"
                                 onClick={() => this.vote.bind(this)(1, UUID)}
                             ></img>
+
                             <img
-                                id={"sponsorTimesDownvoteButtonsContainer" + UUID}
                                 className="voteButton"
                                 title={chrome.i18n.getMessage("downvote")}
-                                src="/icons/thumbs_down_locked.svg"
+                                src={
+                                    locked && Config.config.isVip
+                                        ? "icons/thumbs_down_locked.svg"
+                                        : "icons/thumbs_down.svg"
+                                }
+                                onClick={() => this.vote.bind(this)(0, UUID)}
                             ></img>
+
                             <img
-                                id={"sponsorTimesCopyUUIDButtonContainer" + UUID}
                                 className="voteButton"
                                 src="/icons/clipboard.svg"
                                 title={chrome.i18n.getMessage("copySegmentID")}
+                                onClick={() => this.props.copyToClipboard(UUID)}
+                                // TODO: add feedback after copying
                             ></img>
-                            <img
-                                id={"sponsorTimesCopyUUIDButtonContainer" + UUID}
-                                className="voteButton"
-                                title={chrome.i18n.getMessage("hideSegment")}
-                                src="/icons/visible.svg"
-                            ></img>
-                            <img
-                                id={"sponsorTimesSkipButtonContainer" + UUID}
-                                className="voteButton"
-                                src="/icons/skip.svg"
-                                title={chrome.i18n.getMessage("skipSegment")}
-                            ></img>
+
+                            {this.showHideButton() && (
+                                <img
+                                    className="voteButton"
+                                    title={chrome.i18n.getMessage("hideSegment")}
+                                    src={
+                                        this.props.segment.hidden === SponsorHideType.Hidden
+                                            ? "icons/not_visible.svg"
+                                            : "/icons/visible.svg"
+                                    }
+                                    onClick={() => {
+                                        if (this.props.segment.hidden === SponsorHideType.Hidden) {
+                                            this.props.segment.hidden = SponsorHideType.Visible;
+                                        } else {
+                                            this.props.segment.hidden = SponsorHideType.Hidden;
+                                        }
+
+                                        this.props.sendTabMessage({
+                                            message: "hideSegment",
+                                            type: this.props.segment.hidden,
+                                            UUID: UUID,
+                                        });
+                                    }}
+                                ></img>
+                            )}
+
+                            {this.showSkipButton() && (
+                                <img
+                                    className="voteButton"
+                                    src="/icons/skip.svg"
+                                    title={chrome.i18n.getMessage("skipSegment")}
+                                    onClick={this.skipSegment.bind(this)}
+                                ></img>
+                            )}
                         </div>
                     )}
                 </details>
