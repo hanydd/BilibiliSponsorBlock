@@ -46,10 +46,7 @@ export class MessageHandler {
 export async function runThePopup(messageListener?: MessageListener): Promise<void> {
     const messageHandler = new MessageHandler(messageListener);
 
-    type InputPageElements = {
-        usernameInput?: HTMLInputElement;
-    };
-    type PageElements = { [key: string]: HTMLElement } & InputPageElements;
+    type PageElements = { [key: string]: HTMLElement };
 
     //the start and end time pairs (2d)
     let sponsorTimes: SponsorTime[] = [];
@@ -63,31 +60,16 @@ export async function runThePopup(messageListener?: MessageListener): Promise<vo
     const PageElements: PageElements = {};
 
     [
-        "sbPopupLogo",
-        "sbYourWorkBox",
         "videoInfo",
         "sponsorblockPopup",
         "sponsorStart",
         // More controls
         "submitTimes",
-        // Username
-        "setUsernameContainer",
-        "setUsernameButton",
-        "setUsernameStatus",
-        "setUsernameStatus",
-        "setUsername",
-        "usernameInput",
-        "usernameValue",
-        "submitUsername",
         // More
         "submissionHint",
-        "mainControls",
     ].forEach((id) => (PageElements[id] = document.getElementById(id)));
 
     PageElements.sponsorStart.addEventListener("click", sendSponsorStartMessage);
-
-    // Must be delayed so it only happens once loaded
-    setTimeout(() => PageElements.sponsorblockPopup.classList.remove("preload"), 250);
 
     async function sendSponsorStartMessage() {
         //the content script will get the message if a Bilibili page is open
