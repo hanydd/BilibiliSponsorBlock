@@ -86,13 +86,11 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
     exportSegments() {
         this.props.copyToClipboard(exportTimes(this.props.downloadedTimes));
 
-        // const stopAnimation = AnimationUtils.applyLoadingAnimation(PageElements.exportSegmentsButton, 0.3);
-        // stopAnimation();
         new GenericNotice(null, "exportCopied", {
             title: chrome.i18n.getMessage(`CopiedExclamation`),
             timed: true,
             maxCountdownTime: () => 0.6,
-            referenceNode: document.getElementById("exportSegmentsButton").parentElement,
+            referenceNode: document.getElementById("issueReporterImportExport"),
             dontPauseCountdown: true,
             style: {
                 top: 0,
