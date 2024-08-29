@@ -22,18 +22,6 @@ function app() {
     const messageHandler = new MessageHandler();
     let port: chrome.runtime.Port = null;
 
-    //the start and end time pairs (2d)
-    let downloadedTimes: SponsorTime[] = [];
-    function setDownloadedTimes(times: SponsorTime[]) {
-        downloadedTimes = times;
-    }
-    // const [downloadedTimes, setDownloadedTimes] = React.useState<SponsorTime[]>([]);
-
-    //current video ID of this tab
-    function setCurrentVideoID(videoID: VideoID) {
-        submitBoxRef.current.setState({ currentVideoID: videoID });
-    }
-
     // Forward click events
     if (isEmbed) {
         document.addEventListener("keydown", (e) => {
@@ -129,8 +117,7 @@ function app() {
         submitBoxRef.current.showSubmitBox();
         controlMenuRef.current.setState({ hasVideo: true });
 
-        setDownloadedTimes(request.sponsorTimes ?? []);
-        displayDownloadedSponsorTimes(downloadedTimes, request.time);
+        displayDownloadedSponsorTimes(request.sponsorTimes ?? [], request.time);
         if (request.found) {
             videoInfoRef.current.displayVideoWithMessage();
         } else if (request.status == 404 || request.status == 200) {
@@ -168,8 +155,16 @@ function app() {
         submitBoxRef.current.updateUnsubmittedSegments();
     }
 
+    function setCurrentVideoID(videoID: VideoID) {
+        submitBoxRef.current.setState({ currentVideoID: videoID });
+    }
+
     function startLoadingAnimation() {
         videoInfoRef.current.startLoading();
+    }
+
+    function updateCurrentTime(currentTime: number) {
+        this.VideoInfo.setState({ currentTime: currentTime });
     }
 
     function copyToClipboard(text: string): void {
@@ -218,32 +213,6 @@ function app() {
         port = chrome.runtime.connect({ name: "popup" });
         port.onDisconnect.addListener(() => setupComPort());
         port.onMessage.addListener((msg) => onMessage(msg));
-    }
-
-    function updateCurrentTime(currentTime: number) {
-        // Create a map of segment UUID -> segment object for easy access
-        const segmentMap: Record<string, SponsorTime> = {};
-        for (const segment of downloadedTimes) segmentMap[segment.UUID] = segment;
-
-        // Iterate over segment elements and update their classes
-        const segmentList = document.getElementById("issueReporterTimeButtons");
-        for (const segmentElement of segmentList.children) {
-            const UUID = segmentElement.getAttribute("data-uuid");
-            if (UUID == null || segmentMap[UUID] == undefined) continue;
-
-            const summaryElement = segmentElement.querySelector("summary");
-            if (summaryElement == null) continue;
-
-            const segment = segmentMap[UUID];
-            summaryElement.classList.remove("segmentActive", "segmentPassed");
-            if (currentTime >= segment.segment[0]) {
-                if (currentTime < segment.segment[1]) {
-                    summaryElement.classList.add("segmentActive");
-                } else {
-                    summaryElement.classList.add("segmentPassed");
-                }
-            }
-        }
     }
 
     function onMessage(msg: PopupMessage) {
@@ -303,7 +272,6 @@ function app() {
 
                 <VideoInfo
                     ref={videoInfoRef}
-                    downloadedTimes={downloadedTimes}
                     sendTabMessage={sendTabMessage}
                     sendTabMessageAsync={sendTabMessageAsync}
                     copyToClipboard={copyToClipboard}

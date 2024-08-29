@@ -8,8 +8,6 @@ import { exportTimes } from "../../utils/exporter";
 import PopupSegment from "./PopupSegment";
 
 interface VideoInfoProps {
-    downloadedTimes: SponsorTime[];
-
     sendTabMessage: (data: Message, callback?) => void;
     sendTabMessageAsync: (data: Message) => Promise<unknown>;
     copyToClipboard: (text: string) => void;
@@ -91,7 +89,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
     }
 
     private exportSegments() {
-        this.props.copyToClipboard(exportTimes(this.props.downloadedTimes));
+        this.props.copyToClipboard(exportTimes(this.state.downloadedTimes));
 
         new GenericNotice(null, "exportCopied", {
             title: chrome.i18n.getMessage(`CopiedExclamation`),
