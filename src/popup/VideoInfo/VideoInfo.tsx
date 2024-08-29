@@ -1,11 +1,11 @@
 import { ReloadOutlined } from "@ant-design/icons";
 import * as React from "react";
-import Config from "../config";
-import { Message, RefreshSegmentsResponse } from "../messageTypes";
-import GenericNotice from "../render/GenericNotice";
-import { SponsorTime } from "../types";
-import { exportTimes } from "../utils/exporter";
-import PopupSegment from "./VideoInfo/PopupSegment";
+import Config from "../../config";
+import { Message, RefreshSegmentsResponse } from "../../messageTypes";
+import GenericNotice from "../../render/GenericNotice";
+import { SponsorTime } from "../../types";
+import { exportTimes } from "../../utils/exporter";
+import PopupSegment from "./PopupSegment";
 
 interface VideoInfoProps {
     downloadedTimes: SponsorTime[];

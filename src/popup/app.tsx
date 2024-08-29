@@ -10,7 +10,7 @@ import PopupFooter from "./PopupFooter";
 import { MessageHandler } from "./PopupMessageHandler";
 import SubmitBox from "./SubmitBox";
 import UserWork from "./UserWork";
-import VideoInfo from "./VideoInfo";
+import VideoInfo from "./VideoInfo/VideoInfo";
 
 function app() {
     const videoInfoRef = React.createRef<VideoInfo>();
