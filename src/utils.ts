@@ -19,7 +19,7 @@ export default class Utils {
 
     // Used to add content scripts and CSS required
     js = ["./js/content.js"];
-    css = ["content.css", "./libs/Source+Sans+Pro.css", "popup.css", "shared.css"];
+    css = ["content.css", "popup.css", "shared.css"];
 
     constructor(backgroundScriptContainer: BackgroundScriptContainer = null) {
         this.backgroundScriptContainer = backgroundScriptContainer;
