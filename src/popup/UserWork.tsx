@@ -1,4 +1,5 @@
-import { Popover, Spin } from "antd";
+import { Spin } from "antd";
+import { MessageInstance } from "antd/es/message/interface";
 import * as React from "react";
 import Config from "../config";
 import { asyncRequestToServer } from "../requests/requests";
@@ -6,6 +7,8 @@ import { getErrorMessage, getFormattedHours } from "../utils/formating";
 import { getHash } from "../utils/hash";
 
 interface UserWorkProps {
+    messageApi: MessageInstance;
+
     copyToClipboard: (text: string) => void;
 }
 
@@ -17,7 +20,6 @@ interface UserWorkState {
 
     editingUsername: boolean;
     editUsernameLoading: boolean;
-    editUserNameError: string;
 }
 
 class UserWork extends React.Component<UserWorkProps, UserWorkState> {
@@ -32,7 +34,6 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
             segmentCount: Config.config.sponsorTimesContributed,
             editingUsername: false,
             editUsernameLoading: false,
-            editUserNameError: null,
         };
 
         this.userNameInputRef = React.createRef<HTMLInputElement>();
@@ -82,10 +83,9 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
         asyncRequestToServer("POST", "/api/setUsername?userID=" + Config.config.userID + "&username=" + inputUserName)
             .then((response) => {
                 if (response.status == 200) {
-                    this.setState({ editingUsername: false, userName: inputUserName, editUserNameError: null });
+                    this.setState({ editingUsername: false, userName: inputUserName });
                 } else {
-                    this.setState({ editUserNameError: getErrorMessage(response.status, response.responseText) });
-                    setTimeout(() => this.setState({ editUserNameError: null }), 5000);
+                    this.props.messageApi.error(getErrorMessage(response.status, response.responseText));
                 }
             })
             .finally(() => {
@@ -133,30 +133,22 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                             </button>
                         </div>
                         <Spin spinning={this.state.editUsernameLoading} delay={50}>
-                            <Popover
-                                content={this.state.editUserNameError}
-                                open={this.state.editUserNameError != null}
-                                arrow={false}
-                                autoAdjustOverflow={false}
-                                destroyTooltipOnHide={true}
-                            >
-                                <div id="setUsername" style={{ display: this.state.editingUsername ? "flex" : "none" }}>
-                                    <input
-                                        ref={this.userNameInputRef}
-                                        id="usernameInput"
-                                        placeholder="Username"
-                                        defaultValue={this.state.userName}
+                            <div id="setUsername" style={{ display: this.state.editingUsername ? "flex" : "none" }}>
+                                <input
+                                    ref={this.userNameInputRef}
+                                    id="usernameInput"
+                                    placeholder="Username"
+                                    defaultValue={this.state.userName}
+                                />
+                                <button id="submitUsername" onClick={this.submitUsername.bind(this)}>
+                                    <img
+                                        src="/icons/check.svg"
+                                        alt={chrome.i18n.getMessage("setUsername")}
+                                        width="16"
+                                        height="16"
                                     />
-                                    <button id="submitUsername" onClick={this.submitUsername.bind(this)}>
-                                        <img
-                                            src="/icons/check.svg"
-                                            alt={chrome.i18n.getMessage("setUsername")}
-                                            width="16"
-                                            height="16"
-                                        />
-                                    </button>
-                                </div>
-                            </Popover>
+                                </button>
+                            </div>
                         </Spin>
                     </div>
                     {/* <!-- Submissions --> */}

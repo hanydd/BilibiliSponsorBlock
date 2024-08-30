@@ -297,7 +297,7 @@ function app() {
                             sendTabMessageAsync={sendTabMessageAsync}
                         />
 
-                        <UserWork copyToClipboard={copyToClipboard} />
+                        <UserWork messageApi={messageApi} copyToClipboard={copyToClipboard} />
 
                         <PopupFooter />
                     </>
