@@ -94,15 +94,23 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
         this.props.messageApi.success(chrome.i18n.getMessage(`CopiedExclamation`));
     }
 
-    private computeIndicatorText(): string {
+    private computeIndicatorText() {
+        let text = "";
         if (this.state.loading) {
-            return chrome.i18n.getMessage("Loading");
+            text = chrome.i18n.getMessage("Loading");
         }
         if (this.state.videoFound) {
-            return this.state.loadedMessage;
+            text = this.state.loadedMessage;
         } else {
-            return chrome.i18n.getMessage("noVideoID");
+            text = chrome.i18n.getMessage("noVideoID");
         }
+
+        return text.split("\n").map((str, index) => (
+            <React.Fragment key={index}>
+                {index > 0 && <br />}
+                {str}
+            </React.Fragment>
+        ));
     }
 
     //display the video times from the array at the top, in a different section
