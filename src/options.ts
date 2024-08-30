@@ -30,6 +30,8 @@ if (document.readyState === "complete") {
 }
 
 async function init() {
+    await waitFor(() => Config.config !== null, 5000, 10);
+
     localizeHtmlPage();
 
     // setup message component
