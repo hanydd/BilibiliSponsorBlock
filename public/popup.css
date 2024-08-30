@@ -324,49 +324,7 @@
 	flex-direction: column;
 }
 .toggleSwitchContainer-switch {
-	display: flex;
 	margin-bottom: 6px;
-}
-.switchBg {
-	width: 50px;
-	height: 23px;
-	display: block;
-	border-radius: 18.5px;
-}
-.switchBg.shadow {
-	box-shadow: 0.75px 0.75px 10px 0px rgba(50, 50, 50, 0.5);
-	opacity: 1;
-}
-.switchBg.white {
-	opacity: 1;
-	position: absolute;
-	background-color: #ccc;
-}
-.switchBg.green {
-	opacity: 0;
-	position: absolute;
-	background-color: #00a205;
-	transition: opacity 0.2s ease-out;
-}
-.switchDot {
-	width: 15px;
-	margin: 4px;
-	height: 15px;
-	border-radius: 50%;
-	position: absolute;
-	transition: transform 0.2s ease-out;
-	background-color: var(--sb-main-fg-color);
-	box-shadow: 0.75px 0.75px 3.8px 0px rgba(50, 50, 50, 0.45);
-}
-#toggleSwitch:checked ~ .switchDot {
-	transform: translateX(27px);
-}
-#toggleSwitch:checked ~ .switchBg.green {
-	opacity: 1;
-}
-#toggleSwitch:checked ~ .switchBg.white {
-	transition: opacity 0.2s step-end;
-	opacity: 0;
 }
 
 /*

@@ -1,3 +1,4 @@
+import { ConfigProvider, Switch, theme } from "antd";
 import * as React from "react";
 import Config from "../config";
 import { GetChannelIDResponse, Message } from "../messageTypes";
@@ -127,25 +128,26 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
                             )}
                         </span>
                     </label>
-                    {/* <!--github: mbledkowski/toggle-switch--> */}
-                    <label
-                        id="disableExtension"
-                        htmlFor="toggleSwitch"
-                        className="toggleSwitchContainer sbControlsMenu-item"
-                    >
-                        <span className="toggleSwitchContainer-switch">
-                            <input
-                                type="checkbox"
-                                style={{ display: "none" }}
+
+                    <label htmlFor="toggleSwitch" className="toggleSwitchContainer sbControlsMenu-item">
+                        <ConfigProvider
+                            theme={{
+                                algorithm: theme.defaultAlgorithm,
+                                token: {
+                                    colorPrimary: "#00a205",
+                                    colorTextQuaternary: "#ccc",
+                                    colorTextTertiary: "#ddd",
+                                },
+                                components: { Switch: { trackMinWidth: 50, trackHeight: 23 } },
+                            }}
+                        >
+                            <Switch
                                 id="toggleSwitch"
                                 checked={!this.state.disableSkipping}
                                 onChange={this.toggleSkipping.bind(this)}
-                            />
-                            <span className="switchBg shadow"></span>
-                            <span className="switchBg white"></span>
-                            <span className="switchBg green"></span>
-                            <span className="switchDot"></span>
-                        </span>
+                                className="toggleSwitchContainer-switch"
+                            ></Switch>
+                        </ConfigProvider>
                         <span>
                             {chrome.i18n.getMessage(this.state.disableSkipping ? "enableSkipping" : "disableSkipping")}
                         </span>
@@ -153,9 +155,7 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
                     <button
                         className="sbControlsMenu-item"
                         title={chrome.i18n.getMessage("optionsInfo")}
-                        onClick={() => {
-                            this.props.openOptionsAt("behavior");
-                        }}
+                        onClick={() => this.props.openOptionsAt("behavior")}
                     >
                         <img
                             src="/icons/settings.svg"
@@ -163,7 +163,6 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
                             width="23"
                             height="23"
                             className="sbControlsMenu-itemIcon"
-                            id="sbPopupIconSettings"
                         />
                         {chrome.i18n.getMessage("Options")}
                     </button>
