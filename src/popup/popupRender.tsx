@@ -21,10 +21,9 @@ window.addEventListener("message", async (e): Promise<void> => {
     }
 });
 
-const root = createRoot(document.getElementById("app"));
-root.render(<App />);
-
 waitFor(() => Config.config !== null && allowPopup, 5000, 5).then(() => {
+    const root = createRoot(document.getElementById("app"));
+    root.render(<App />);
     setTimeout(() => {
         document.getElementById("sponsorblockPopup")?.classList.remove("sb-preload");
     }, 10);
