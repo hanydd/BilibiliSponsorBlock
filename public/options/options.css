@@ -66,7 +66,7 @@ h6 {
 html,
 body {
 	color-scheme: var(--color-scheme);
-	font-family: Pingfang SC, sans-serif;
+	font-family: PingFang SC, HarmonyOS_Regular, Helvetica Neue, Microsoft YaHei, sans-serif;
 	margin: 0;
 	font-size: 14px;
 	background-color: var(--background);
