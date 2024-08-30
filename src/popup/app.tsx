@@ -283,6 +283,7 @@ function app() {
 
                 <ControlMenu
                     ref={controlMenuRef}
+                    messageApi={messageApi}
                     openOptionsAt={openOptionsAt}
                     sendTabMessage={sendTabMessage}
                     sendTabMessageAsync={sendTabMessageAsync}

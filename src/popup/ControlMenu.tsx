@@ -1,9 +1,12 @@
 import { ConfigProvider, Switch, theme } from "antd";
+import { MessageInstance } from "antd/es/message/interface";
 import * as React from "react";
 import Config from "../config";
 import { GetChannelIDResponse, Message } from "../messageTypes";
 
 interface ControlMenuProps {
+    messageApi: MessageInstance;
+
     openOptionsAt: (section: string) => void;
     sendTabMessage: (data: Message, callback?) => void;
     sendTabMessageAsync: (data: Message) => Promise<unknown>;
@@ -37,7 +40,7 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
         //get the channel url
         const response = (await this.props.sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
         if (!response.channelID) {
-            alert(
+            this.props.messageApi.error(
                 chrome.i18n.getMessage("channelDataNotFound") +
                     " https://github.com/hanydd/BilibiliSponsorBlock/issues/1"
             );
