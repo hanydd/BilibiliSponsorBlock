@@ -1,3 +1,4 @@
+import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import { MessageInstance } from "antd/es/message/interface";
 import * as React from "react";
@@ -19,7 +20,7 @@ interface UserWorkState {
     segmentCount: number;
 
     editingUsername: boolean;
-    editUsernameLoading: boolean;
+    usernameLoading: boolean;
 }
 
 class UserWork extends React.Component<UserWorkProps, UserWorkState> {
@@ -33,7 +34,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
             minutesSaved: 0,
             segmentCount: Config.config.sponsorTimesContributed,
             editingUsername: false,
-            editUsernameLoading: false,
+            usernameLoading: true,
         };
 
         this.userNameInputRef = React.createRef<HTMLInputElement>();
@@ -59,11 +60,14 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                     Config.config.permissions = userInfo.permissions;
                     Config.config.sponsorTimesContributed = userInfo.segmentCount;
                 }
+            })
+            .finally(() => {
+                this.setState({ usernameLoading: false });
             });
     }
 
     //make the options username setting option visible
-    setUsernameButton() {
+    editUsername() {
         this.setState({ editingUsername: true });
     }
 
@@ -78,7 +82,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
             return;
         }
 
-        this.setState({ editUsernameLoading: true });
+        this.setState({ usernameLoading: true });
 
         asyncRequestToServer("POST", "/api/setUsername?userID=" + Config.config.userID + "&username=" + inputUserName)
             .then((response) => {
@@ -89,7 +93,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                 }
             })
             .finally(() => {
-                this.setState({ editUsernameLoading: false });
+                this.setState({ usernameLoading: false });
             });
     }
 
@@ -103,52 +107,57 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                     {/* <!-- Username --> */}
                     <div id="usernameElement">
                         <p className="u-mZ grey-text">{chrome.i18n.getMessage("Username")}</p>
-                        <div id="setUsernameContainer" style={{ display: this.state.editingUsername ? "none" : "" }}>
-                            <p id="usernameValue" onClick={this.setUsernameButton.bind(this)}>
-                                {this.state.userName}
-                            </p>
-                            <button
-                                id="setUsernameButton"
-                                title={chrome.i18n.getMessage("setUsername")}
-                                onClick={this.setUsernameButton.bind(this)}
-                            >
-                                <img
-                                    src="/icons/pencil.svg"
-                                    alt={chrome.i18n.getMessage("setUsername")}
-                                    width="16"
-                                    height="16"
-                                />
-                            </button>
-                            <button
-                                id="copyUserID"
-                                title={chrome.i18n.getMessage("copyPublicID")}
-                                onClick={async () => this.props.copyToClipboard(await getHash(Config.config.userID))}
-                            >
-                                <img
-                                    src="/icons/clipboard.svg"
-                                    alt={chrome.i18n.getMessage("copyPublicID")}
-                                    width="16"
-                                    height="16"
-                                />
-                            </button>
-                        </div>
-                        <Spin spinning={this.state.editUsernameLoading} delay={50}>
-                            <div id="setUsername" style={{ display: this.state.editingUsername ? "flex" : "none" }}>
-                                <input
-                                    ref={this.userNameInputRef}
-                                    id="usernameInput"
-                                    placeholder="Username"
-                                    defaultValue={this.state.userName}
-                                />
-                                <button id="submitUsername" onClick={this.submitUsername.bind(this)}>
-                                    <img
-                                        src="/icons/check.svg"
-                                        alt={chrome.i18n.getMessage("setUsername")}
-                                        width="16"
-                                        height="16"
+                        <Spin spinning={this.state.usernameLoading} delay={50} indicator={<LoadingOutlined spin />}>
+                            {this.state.editingUsername ? (
+                                <div id="setUsername">
+                                    <input
+                                        ref={this.userNameInputRef}
+                                        id="usernameInput"
+                                        placeholder="Username"
+                                        defaultValue={this.state.userName}
                                     />
-                                </button>
-                            </div>
+                                    <button id="submitUsername" onClick={this.submitUsername.bind(this)}>
+                                        <img
+                                            src="/icons/check.svg"
+                                            alt={chrome.i18n.getMessage("setUsername")}
+                                            width="16"
+                                            height="16"
+                                        />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div id="setUsernameContainer">
+                                    <p id="usernameValue" onClick={this.editUsername.bind(this)}>
+                                        {this.state.userName}
+                                    </p>
+                                    <button
+                                        id="setUsernameButton"
+                                        title={chrome.i18n.getMessage("setUsername")}
+                                        onClick={this.editUsername.bind(this)}
+                                    >
+                                        <img
+                                            src="/icons/pencil.svg"
+                                            alt={chrome.i18n.getMessage("setUsername")}
+                                            width="16"
+                                            height="16"
+                                        />
+                                    </button>
+                                    <button
+                                        id="copyUserID"
+                                        title={chrome.i18n.getMessage("copyPublicID")}
+                                        onClick={async () =>
+                                            this.props.copyToClipboard(await getHash(Config.config.userID))
+                                        }
+                                    >
+                                        <img
+                                            src="/icons/clipboard.svg"
+                                            alt={chrome.i18n.getMessage("copyPublicID")}
+                                            width="16"
+                                            height="16"
+                                        />
+                                    </button>
+                                </div>
+                            )}
                         </Spin>
                     </div>
                     {/* <!-- Submissions --> */}
