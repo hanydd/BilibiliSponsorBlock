@@ -24,6 +24,7 @@ export class DescriptionPortPill {
     bvID: VideoID;
     ytbID: VideoID;
     portUUID: string;
+    hasDescription: boolean;
     sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean, forceUpdatePreviewBar: boolean) => void;
 
     inputContainer: HTMLElement;
@@ -57,7 +58,8 @@ export class DescriptionPortPill {
         // wait for the sibling span to load, only when there is a description
         await waitFor(getPageLoaded, 20000, 10);
         const desc = await getVideoDescriptionFromWindow();
-        if (desc && desc !== "") {
+        this.hasDescription = desc && desc !== "";
+        if (this.hasDescription) {
             await waitFor(() => referenceNode.querySelector(".desc-info-text")?.textContent, 20000, 50).catch(() => {
                 console.error("Failed to find description text element");
                 return;
@@ -104,6 +106,18 @@ export class DescriptionPortPill {
         buttonContainer.id = "bsbPortButton";
         buttonContainer.addEventListener("click", () => {
             this.ref.current.toggleInput();
+            // toggle display state of the input container
+            if (!this.hasDescription) {
+                const container = document.querySelector("div.video-desc-container") as HTMLDivElement;
+                if (!container) {
+                    return;
+                }
+                if (container.style.display === "none") {
+                    container.style.display = "block";
+                } else if (container.style.display === "block") {
+                    container.style.display = "none";
+                }
+            }
         });
 
         const newButtonImage = document.createElement("img");
