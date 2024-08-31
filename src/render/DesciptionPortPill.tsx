@@ -8,6 +8,7 @@ import { asyncRequestToServer } from "../requests/requests";
 import { getVideo, getVideoID } from "../utils/video";
 import Config from "../config";
 import { getPortVideoByHash } from "../requests/portVideo";
+import { getVideoDescriptionFromWindow } from "../utils/injectedScriptMessageUtils";
 
 const id = "bsbDescriptionContainer";
 
@@ -53,12 +54,15 @@ export class DescriptionPortPill {
             console.error("Description element not found");
         }
 
-        // wait for the sibling span to load
+        // wait for the sibling span to load, only when there is a description
         await waitFor(getPageLoaded, 20000, 10);
-        await waitFor(() => referenceNode.querySelector(".desc-info-text")?.textContent, 20000, 50).catch(() => {
-            console.error("Failed to find description text element");
-            return;
-        });
+        const desc = await getVideoDescriptionFromWindow();
+        if (desc && desc !== "") {
+            await waitFor(() => referenceNode.querySelector(".desc-info-text")?.textContent, 20000, 50).catch(() => {
+                console.error("Failed to find description text element");
+                return;
+            });
+        }
 
         this.attachToPage(referenceNode);
     }

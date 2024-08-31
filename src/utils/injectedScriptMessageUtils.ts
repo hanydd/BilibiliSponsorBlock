@@ -54,3 +54,10 @@ export async function getPropertyFromWindow<T>(
         }, timeout);
     });
 }
+
+export async function getVideoDescriptionFromWindow(): Promise<string | null> {
+    return getPropertyFromWindow<string>({
+        sendType: "getDescription",
+        responseType: "returnDescription",
+    });
+}

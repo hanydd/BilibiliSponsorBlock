@@ -22,10 +22,13 @@ function windowMessageListener(message: MessageEvent) {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.bvid);
         } else if (data.type === "getFrameRate") {
             const currentQuality = window?.__playinfo__?.data?.quality;
-            const frameRate = window?.__playinfo__?.data?.dash?.video.filter((v) => v.id === currentQuality)[0]?.frameRate;
+            const frameRate = window?.__playinfo__?.data?.dash?.video.filter((v) => v.id === currentQuality)[0]
+                ?.frameRate;
             sendMessageToContent(data, frameRate);
         } else if (data.type === "getChannelID") {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.upInfo?.mid);
+        } else if (data.type === "getDescription") {
+            sendMessageToContent(data, window?.__INITIAL_STATE__?.videoData?.desc);
         }
     }
 }
