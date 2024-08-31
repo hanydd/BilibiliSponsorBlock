@@ -48,7 +48,7 @@ export class DescriptionPortPill {
         // make request to get the port video first, while waiting for the page to load
         await this.getPortVideo(videoId);
 
-        const referenceNode = await waitFor(() => document.querySelector("#v_desc .basic-desc-info") as HTMLElement);
+        const referenceNode = await waitFor(() => document.querySelector(".basic-desc-info") as HTMLElement);
         if (!referenceNode) {
             console.error("Description element not found");
         }
