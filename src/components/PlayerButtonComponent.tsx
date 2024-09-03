@@ -1,3 +1,4 @@
+import { ConfigProvider, Popconfirm, theme } from "antd";
 import * as React from "react";
 
 interface PlayerButtonProps {
@@ -5,7 +6,7 @@ interface PlayerButtonProps {
     title: string;
     imageName: string;
     isDraggable?: boolean;
-    onClick: () => void;
+    onClick?: () => void;
 }
 
 class PlayerButtonComponent extends React.Component<PlayerButtonProps> {
@@ -52,7 +53,15 @@ export class PlayerButtonGroupComponent extends React.Component<PlayerButtonGrou
 
     render() {
         return (
-            <>
+            <ConfigProvider theme={{ token: { colorPrimary: "#00aeec" }, algorithm: theme.darkAlgorithm }}>
+                <PlayerButtonComponent
+                    baseID="info"
+                    title="openPopup"
+                    imageName="PlayerInfoIconSponsorBlocker.svg"
+                    isDraggable={false}
+                    onClick={this.props.infoCallback}
+                ></PlayerButtonComponent>
+
                 <PlayerButtonComponent
                     baseID="startSegment"
                     title="sponsorStart"
@@ -69,14 +78,20 @@ export class PlayerButtonGroupComponent extends React.Component<PlayerButtonGrou
                     onClick={this.props.cancelSegmentCallback}
                 ></PlayerButtonComponent>
 
-                <PlayerButtonComponent
-                    baseID="delete"
-                    title="clearTimes"
-                    imageName="PlayerDeleteIconSponsorBlocker.svg"
-                    isDraggable={false}
-                    onClick={this.props.deleteCallback}
-                ></PlayerButtonComponent>
-
+                <Popconfirm
+                    title={chrome.i18n.getMessage("clearThis")}
+                    description={getPopconfirmDescription()}
+                    onConfirm={this.props.deleteCallback}
+                    okText={chrome.i18n.getMessage("confirm")}
+                    cancelText={chrome.i18n.getMessage("cancel")}
+                >
+                    <PlayerButtonComponent
+                        baseID="delete"
+                        title="clearTimes"
+                        imageName="PlayerDeleteIconSponsorBlocker.svg"
+                        isDraggable={false}
+                    ></PlayerButtonComponent>
+                </Popconfirm>
                 <PlayerButtonComponent
                     baseID="submit"
                     title="OpenSubmissionMenu"
@@ -84,15 +99,18 @@ export class PlayerButtonGroupComponent extends React.Component<PlayerButtonGrou
                     isDraggable={false}
                     onClick={this.props.submitCallback}
                 ></PlayerButtonComponent>
-
-                <PlayerButtonComponent
-                    baseID="info"
-                    title="openPopup"
-                    imageName="PlayerInfoIconSponsorBlocker.svg"
-                    isDraggable={false}
-                    onClick={this.props.infoCallback}
-                ></PlayerButtonComponent>
-            </>
+            </ConfigProvider>
         );
     }
+}
+
+function getPopconfirmDescription() {
+    const message = chrome.i18n.getMessage("confirmMSG").split("\n");
+    return (
+        <>
+            <span>{message[0]}</span>
+            <br />
+            <span>{message[1]}</span>
+        </>
+    );
 }

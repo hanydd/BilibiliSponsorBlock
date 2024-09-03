@@ -2198,13 +2198,6 @@ function clearSponsorTimes() {
     const sponsorTimes = Config.local.unsubmittedSegments[currentVideoID];
 
     if (sponsorTimes != undefined && sponsorTimes.length > 0) {
-        const confirmMessage =
-            chrome.i18n.getMessage("clearThis") +
-            getSegmentsMessage(sponsorTimes) +
-            "\n" +
-            chrome.i18n.getMessage("confirmMSG");
-        if (!confirm(confirmMessage)) return;
-
         resetSponsorSubmissionNotice();
 
         //clear the sponsor times
