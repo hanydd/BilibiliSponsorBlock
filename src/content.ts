@@ -8,6 +8,7 @@ import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";
 import { DescriptionPortPill } from "./render/DesciptionPortPill";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
+import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
 import { asyncRequestToServer } from "./requests/requests";
@@ -108,7 +109,6 @@ let currentVirtualTimeInterval: NodeJS.Timeout = null;
 let sponsorSkipped: boolean[] = [];
 
 let videoMuted = false; // Has it been attempted to be muted
-const controlsWithEventListeners: HTMLElement[] = [];
 
 // TODO: More robust way to check for page loaded
 let headerLoaded = false;
@@ -117,6 +117,14 @@ setupPageLoadingListener();
 setupVideoModule({ videoIDChange, channelIDChange, resetValues, videoElementChange });
 setupThumbnailListener();
 setMessageNotice(false, getPageLoaded);
+
+const playerButton = new PlayerButton(
+    startOrEndTimingNewSegment,
+    cancelCreatingSegment,
+    clearSponsorTimes,
+    openSubmissionMenu,
+    openInfoMenu
+);
 
 /**
  *  根据页面元素加载状态判断页面是否加载完成
@@ -163,12 +171,8 @@ let categoryPill: CategoryPill = null;
 
 let descriptionPill: DescriptionPortPill = null;
 
-/** Element containing the player controls on the Bilibili player. */
-let controls: HTMLElement | null = null;
-
 /** Contains buttons created by `createButton()`. */
-const playerButtons: Record<string, { button: HTMLButtonElement; image: HTMLImageElement; setupListener: boolean }> =
-    {};
+let playerButtons: Record<string, { button: HTMLButtonElement; image: HTMLImageElement; setupListener: boolean }> = {};
 
 addHotkeyListener();
 
@@ -1870,51 +1874,6 @@ function reskipSponsorTime(segment: SponsorTime, forceSeek = false) {
     }
 }
 
-function createButton(
-    baseID: string,
-    title: string,
-    callback: () => void,
-    imageName: string,
-    isDraggable = false
-): HTMLElement {
-    const existingElement = document.getElementById(baseID + "Button");
-    if (existingElement !== null) return existingElement;
-
-    // Button HTML
-    const newButton = document.createElement("button");
-    newButton.draggable = isDraggable;
-    newButton.id = baseID + "Button";
-    newButton.classList.add("playerButton");
-    newButton.classList.add("bpx-player-ctrl-btn");
-    newButton.style.maxWidth = "40px";
-    newButton.setAttribute("title", chrome.i18n.getMessage(title));
-    newButton.addEventListener("click", () => {
-        callback();
-    });
-
-    // Image HTML
-    const newButtonImage = document.createElement("img");
-    newButton.draggable = isDraggable;
-    newButtonImage.id = baseID + "Image";
-    newButtonImage.className = "playerButtonImage bpx-player-ctrl-btn-icon";
-    newButtonImage.src = chrome.runtime.getURL("icons/" + imageName);
-
-    // Append image to button
-    newButton.appendChild(newButtonImage);
-
-    // Add the button to player
-    if (controls) controls.prepend(newButton);
-
-    // Store the elements to prevent unnecessary querying
-    playerButtons[baseID] = {
-        button: newButton,
-        image: newButtonImage,
-        setupListener: false,
-    };
-
-    return newButton;
-}
-
 function shouldAutoSkip(segment: SponsorTime): boolean {
     return (
         (!Config.config.manualSkipOnFullVideo ||
@@ -1938,47 +1897,17 @@ function shouldSkip(segment: SponsorTime): boolean {
     );
 }
 
-/** Creates any missing buttons on the Bilibili player if possible. */
-async function createButtons(): Promise<void> {
-    controls = await waitFor(getControls).catch();
-
-    // Add button if does not already exist in html
-    await waitFor(() => getControls().childElementCount > 4); // wait for controls buttons to be loaded
-    createButton(
-        "startSegment",
-        "sponsorStart",
-        () => startOrEndTimingNewSegment(),
-        "PlayerStartIconSponsorBlocker.svg"
-    );
-    createButton(
-        "cancelSegment",
-        "sponsorCancel",
-        () => cancelCreatingSegment(),
-        "PlayerCancelSegmentIconSponsorBlocker.svg"
-    );
-    createButton("delete", "clearTimes", () => clearSponsorTimes(), "PlayerDeleteIconSponsorBlocker.svg");
-    createButton("submit", "OpenSubmissionMenu", () => openSubmissionMenu(), "PlayerUploadIconSponsorBlocker.svg");
-    createButton("info", "openPopup", () => openInfoMenu(), "PlayerInfoIconSponsorBlocker.svg");
-
-    const controlsContainer = getControls();
-    if (
-        Config.config.autoHideInfoButton &&
-        controlsContainer &&
-        playerButtons["info"]?.button &&
-        !controlsWithEventListeners.includes(controlsContainer)
-    ) {
-        controlsWithEventListeners.push(controlsContainer);
-
-        AnimationUtils.setupAutoHideAnimation(playerButtons["info"].button, controlsContainer);
-    }
-}
-
 /** Creates any missing buttons on the player and updates their visiblity. */
 async function updateVisibilityOfPlayerControlsButton(): Promise<void> {
     // Not on a proper video yet
     if (!getVideoID()) return;
 
-    await createButtons();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const createdButtons = await playerButton.createButtons();
+    if (!createdButtons.info) {
+        return;
+    }
+    playerButtons = createdButtons;
 
     updateEditButtonsOnPlayer();
 
