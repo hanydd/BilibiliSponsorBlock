@@ -34,7 +34,6 @@ function windowMessageListener(message: MessageEvent) {
 }
 
 function init(): void {
-    console.log("setup document listeners");
     window.addEventListener("message", windowMessageListener);
 }
 

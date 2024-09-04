@@ -381,9 +381,8 @@ export async function getFrameRate() {
     return await getPropertyFromWindow<number>({
         sendType: "getFrameRate",
         responseType: "returnFrameRate",
-    }).catch((e) => {
+    }).catch(() => {
         // fall back to 30 fps
-        console.log(e);
         return 30;
     });
 }
