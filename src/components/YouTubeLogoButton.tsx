@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './YouTubeLogoButton.css';
 
 interface YouTubeLogoButtonProps {
   isBound: boolean;
