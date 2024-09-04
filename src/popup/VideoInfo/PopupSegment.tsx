@@ -139,7 +139,7 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                         className={
                             "segmentSummary" +
                             (this.props.time >= segment[0]
-                                ? this.props.time < segment[0]
+                                ? this.props.time < segment[1]
                                     ? " segmentActive"
                                     : " segmentPassed"
                                 : "")
