@@ -145,9 +145,10 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
 
     private async vote(event: React.MouseEvent, type: 0 | 1) {
         const stopAnimation = AnimationUtils.applyLoadingAnimation(event.target as HTMLElement, 0.5);
-        await this.props.onVote(type).catch((e) => {
-            showMessage(e, "error");
-        });
+        await this.props
+            .onVote(type)
+            .then(() => showMessage(chrome.i18n.getMessage("voted"), "success"))
+            .catch((e) => showMessage(e, "error"));
         stopAnimation();
     }
 

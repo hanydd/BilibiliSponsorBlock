@@ -192,9 +192,7 @@ export class DescriptionPortPill {
             userID: Config.config.userID,
             type: voteType,
         });
-        if (response?.ok) {
-            console.log("Vote successful", response);
-        } else {
+        if (!response?.ok) {
             throw response?.responseText ? response.responseText : "投票失败！";
         }
 
