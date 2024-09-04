@@ -122,7 +122,7 @@ export class DescriptionPortPill {
 
         const newButtonImage = document.createElement("img");
         newButtonImage.id = "bsbPortButtonImage";
-        newButtonImage.src = chrome.runtime.getURL("icons/youtubeLogo.svg");
+        newButtonImage.src = chrome.runtime.getURL(this.ytbID ? "icons/youtubeLogoRed.svg" : "icons/youtubeLogo.svg");
         newButtonImage.title = chrome.i18n.getMessage("bindPortVideoButton");
         buttonContainer.appendChild(newButtonImage);
 
