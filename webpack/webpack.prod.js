@@ -7,6 +7,19 @@ module.exports = env => {
     env.mode = mode;
 
     return merge(common(env), {
-        mode
+        mode,
+        module: {
+            rules: [
+                {
+                    test: /\.css$/,
+                    use: ['style-loader', 'css-loader']
+                },
+                {
+                    test: /\.tsx?$/,
+                    use: 'ts-loader',
+                    exclude: /node_modules/
+                }
+            ]
+        }
     });
 };
