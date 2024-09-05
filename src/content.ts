@@ -70,8 +70,9 @@ waitFor(() => Config.isReady(), 5000, 10).then(() => {
 
 detectPageType();
 
-if (getPageType() == PageType.Video || getPageType() == PageType.List) {
-    document.addEventListener("visibilitychange", () => videoElementChange);
+if ((document.hidden && getPageType() == PageType.Video) || getPageType() == PageType.List) {
+    document.addEventListener("visibilitychange", () => videoElementChange(true), { once: true });
+    window.addEventListener("mouseover", () => videoElementChange(true), { once: true });
 }
 
 const skipBuffer = 0.003;
@@ -1448,9 +1449,8 @@ async function channelIDChange(channelIDInfo: ChannelIDInfo) {
     if (Config.config.forceChannelCheck && sponsorTimes?.length > 0) startSkipScheduleCheckingForStartSponsors();
 }
 
-function videoElementChange(newVideo: boolean = true): void {
+function videoElementChange(newVideo: boolean): void {
     waitFor(() => Config.isReady() && !document.hidden, 24 * 60 * 60, 500).then(() => {
-        document.removeEventListener("visibilitychange", () => videoElementChange);
         if (newVideo) {
             setupVideoListeners();
             setupSkipButtonControlBar();
