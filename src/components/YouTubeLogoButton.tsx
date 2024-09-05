@@ -16,7 +16,7 @@ const YouTubeLogoButton: React.FC<YouTubeLogoButtonProps> = ({ isBound, onClick,
     };
 
     return (
-        <button id="bsbPortButton" className="youtube-logo-button" onClick={handleClick} title={title}>
+        <button className="youtube-logo-button" onClick={handleClick} title={title}>
             <svg className="youtube-logo-svg" viewBox="0 0 68 48" xmlns="http://www.w3.org/2000/svg">
                 <path
                     fill={fillColor}
