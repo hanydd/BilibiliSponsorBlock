@@ -10,7 +10,6 @@ import { getControls } from "../utils/pageUtils";
 const containerId = "bsbPlayerButtonContainer";
 
 export class PlayerButton {
-    ref: React.RefObject<PlayerButtonGroupComponent>;
     root: Root;
     container: HTMLElement;
 
@@ -27,7 +26,6 @@ export class PlayerButton {
         submitCallback: () => void,
         infoCallback: () => void
     ) {
-        this.ref = React.createRef<PlayerButtonGroupComponent>();
         const existingContainer = document.getElementById(containerId);
         if (existingContainer) {
             existingContainer.remove();
@@ -61,7 +59,6 @@ export class PlayerButton {
             this.root = createRoot(this.container);
             this.root.render(
                 <PlayerButtonGroupComponent
-                    ref={this.ref}
                     startSegmentCallback={this.startSegmentCallback}
                     cancelSegmentCallback={this.cancelSegmentCallback}
                     deleteCallback={this.deleteCallback}
@@ -73,42 +70,40 @@ export class PlayerButton {
         }
 
         // wait a tick for React to render the buttons
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const playerButtons = {
-                    startSegment: {
-                        button: document.getElementById("startSegmentButton") as HTMLButtonElement,
-                        image: document.getElementById("startSegmentImage") as HTMLImageElement,
-                        setupListener: false,
-                    },
-                    cancelSegment: {
-                        button: document.getElementById("cancelSegmentButton") as HTMLButtonElement,
-                        image: document.getElementById("cancelSegmentImage") as HTMLImageElement,
-                        setupListener: false,
-                    },
-                    delete: {
-                        button: document.getElementById("deleteButton") as HTMLButtonElement,
-                        image: document.getElementById("deleteImage") as HTMLImageElement,
-                        setupListener: false,
-                    },
-                    submit: {
-                        button: document.getElementById("submitButton") as HTMLButtonElement,
-                        image: document.getElementById("submitImage") as HTMLImageElement,
-                        setupListener: false,
-                    },
-                    info: {
-                        button: document.getElementById("infoButton") as HTMLButtonElement,
-                        image: document.getElementById("infoImage") as HTMLImageElement,
-                        setupListener: false,
-                    },
-                };
+        await waitFor(() => document.getElementById("startSegmentButton"), 5000, 10);
 
-                if (Config.config.autoHideInfoButton) {
-                    AnimationUtils.setupAutoHideAnimation(playerButtons.info.button, controlsContainer);
-                }
+        const playerButtons = {
+            startSegment: {
+                button: document.getElementById("startSegmentButton") as HTMLButtonElement,
+                image: document.getElementById("startSegmentImage") as HTMLImageElement,
+                setupListener: false,
+            },
+            cancelSegment: {
+                button: document.getElementById("cancelSegmentButton") as HTMLButtonElement,
+                image: document.getElementById("cancelSegmentImage") as HTMLImageElement,
+                setupListener: false,
+            },
+            delete: {
+                button: document.getElementById("deleteButton") as HTMLButtonElement,
+                image: document.getElementById("deleteImage") as HTMLImageElement,
+                setupListener: false,
+            },
+            submit: {
+                button: document.getElementById("submitButton") as HTMLButtonElement,
+                image: document.getElementById("submitImage") as HTMLImageElement,
+                setupListener: false,
+            },
+            info: {
+                button: document.getElementById("infoButton") as HTMLButtonElement,
+                image: document.getElementById("infoImage") as HTMLImageElement,
+                setupListener: false,
+            },
+        };
 
-                resolve(playerButtons);
-            }, 10);
-        });
+        if (Config.config.autoHideInfoButton) {
+            AnimationUtils.setupAutoHideAnimation(playerButtons.info.button, controlsContainer);
+        }
+
+        return playerButtons;
     }
 }
