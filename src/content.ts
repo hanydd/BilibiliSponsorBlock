@@ -1468,7 +1468,8 @@ function checkPreviewbarState(): void {
         removeDurationAfterSkip();
     }
 
-    createPreviewBar();
+    // wait until the page is active to create the preview bar
+    waitFor(() => !document.hidden, 24 * 60 * 60, 500).then(createPreviewBar);
 }
 
 /**
