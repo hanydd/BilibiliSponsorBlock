@@ -879,24 +879,30 @@ input::-webkit-inner-spin-button {
 .ant-popover-content a {
 	color: var(--sb-brand-blue);
 }
+
 /* YouTube Logo Button styles */
+#bsbPortButton {
+	margin-right: 15px;
+	height: 24px;
+}
+
 .youtube-logo-button {
 	background: none;
 	border: none;
 	cursor: pointer;
 	padding: 0;
-  }
-  
-  .youtube-logo-svg {
-	width: 34px;
+	color: var(--text2);
+}
+
+.youtube-logo-svg {
 	height: 24px;
-  }
-  
-  .youtube-logo-triangle {
+}
+
+.youtube-logo-triangle {
 	transform-origin: center;
-	transition: transform 0.3s ease-in-out;
-  }
-  
-  .youtube-logo-triangle.expanded {
+	transition: transform 0.2s ease-in-out;
+}
+
+.youtube-logo-triangle.expanded {
 	transform: rotate(90deg);
-  }
+}

@@ -9,7 +9,7 @@ import { getVideo, getVideoID } from "../utils/video";
 import Config from "../config";
 import { getPortVideoByHash } from "../requests/portVideo";
 import { getVideoDescriptionFromWindow } from "../utils/injectedScriptMessageUtils";
-import YouTubeLogoButton from '../components/YouTubeLogoButton';
+import YouTubeLogoButton from "../components/YouTubeLogoButton";
 
 const id = "bsbDescriptionContainer";
 
