@@ -12,6 +12,8 @@ const containerId = "bsbPlayerButtonContainer";
 export class PlayerButton {
     root: Root;
     container: HTMLElement;
+    playerButtons: Record<string, { button: HTMLButtonElement; image: HTMLImageElement; setupListener: boolean }>;
+    creatingButtons: boolean;
 
     startSegmentCallback: () => void;
     cancelSegmentCallback: () => void;
@@ -35,24 +37,35 @@ export class PlayerButton {
         this.deleteCallback = deleteCallback;
         this.submitCallback = submitCallback;
         this.infoCallback = infoCallback;
+
+        this.creatingButtons = false;
     }
 
     public async createButtons(): Promise<
         Record<string, { button: HTMLButtonElement; image: HTMLImageElement; setupListener: boolean }>
     > {
+        if (this.playerButtons) {
+            return this.playerButtons;
+        }
+
         const controlsContainer = await waitForElement(".bpx-player-control-bottom-right").catch(() => null);
-        console.log("controlsContainer", controlsContainer);
         if (!controlsContainer) {
             console.log("Could not find control button containers");
             return null;
         }
 
-        // wait for controls buttons to be loaded
-        await waitFor(() => getControls().childElementCount > 4).catch(() => {
-            console.log("Get control chilren time out");
-        });
-
         if (!this.container) {
+            // wait for controls buttons to be loaded
+            await waitFor(() => getControls().childElementCount > 4).catch(() => {
+                console.log("Get control chilren time out");
+            });
+
+            if (this.creatingButtons) {
+                await waitFor(() => this.playerButtons !== undefined, 5000, 10);
+                return this.playerButtons;
+            }
+
+            this.creatingButtons = true;
             this.container = document.createElement("div");
             this.container.id = containerId;
             this.container.style.display = "contents";
@@ -67,43 +80,41 @@ export class PlayerButton {
                 />
             );
             controlsContainer.prepend(this.container);
+
+            // wait a tick for React to render the buttons
+            await waitFor(() => document.getElementById("infoButton"), 5000, 10);
+            this.playerButtons = {
+                startSegment: {
+                    button: document.getElementById("startSegmentButton") as HTMLButtonElement,
+                    image: document.getElementById("startSegmentImage") as HTMLImageElement,
+                    setupListener: false,
+                },
+                cancelSegment: {
+                    button: document.getElementById("cancelSegmentButton") as HTMLButtonElement,
+                    image: document.getElementById("cancelSegmentImage") as HTMLImageElement,
+                    setupListener: false,
+                },
+                delete: {
+                    button: document.getElementById("deleteButton") as HTMLButtonElement,
+                    image: document.getElementById("deleteImage") as HTMLImageElement,
+                    setupListener: false,
+                },
+                submit: {
+                    button: document.getElementById("submitButton") as HTMLButtonElement,
+                    image: document.getElementById("submitImage") as HTMLImageElement,
+                    setupListener: false,
+                },
+                info: {
+                    button: document.getElementById("infoButton") as HTMLButtonElement,
+                    image: document.getElementById("infoImage") as HTMLImageElement,
+                    setupListener: false,
+                },
+            };
+            if (Config.config.autoHideInfoButton) {
+                AnimationUtils.setupAutoHideAnimation(this.playerButtons.info.button, controlsContainer);
+            }
+            this.creatingButtons = false;
         }
-
-        // wait a tick for React to render the buttons
-        await waitFor(() => document.getElementById("startSegmentButton"), 5000, 10);
-
-        const playerButtons = {
-            startSegment: {
-                button: document.getElementById("startSegmentButton") as HTMLButtonElement,
-                image: document.getElementById("startSegmentImage") as HTMLImageElement,
-                setupListener: false,
-            },
-            cancelSegment: {
-                button: document.getElementById("cancelSegmentButton") as HTMLButtonElement,
-                image: document.getElementById("cancelSegmentImage") as HTMLImageElement,
-                setupListener: false,
-            },
-            delete: {
-                button: document.getElementById("deleteButton") as HTMLButtonElement,
-                image: document.getElementById("deleteImage") as HTMLImageElement,
-                setupListener: false,
-            },
-            submit: {
-                button: document.getElementById("submitButton") as HTMLButtonElement,
-                image: document.getElementById("submitImage") as HTMLImageElement,
-                setupListener: false,
-            },
-            info: {
-                button: document.getElementById("infoButton") as HTMLButtonElement,
-                image: document.getElementById("infoImage") as HTMLImageElement,
-                setupListener: false,
-            },
-        };
-
-        if (Config.config.autoHideInfoButton) {
-            AnimationUtils.setupAutoHideAnimation(playerButtons.info.button, controlsContainer);
-        }
-
-        return playerButtons;
+        return this.playerButtons;
     }
 }

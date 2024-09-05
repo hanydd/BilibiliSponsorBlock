@@ -1902,12 +1902,7 @@ async function updateVisibilityOfPlayerControlsButton(): Promise<void> {
     // Not on a proper video yet
     if (!getVideoID()) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const createdButtons = await playerButton.createButtons();
-    if (!createdButtons.info) {
-        return;
-    }
-    playerButtons = createdButtons;
+    playerButtons = await playerButton.createButtons();
 
     updateEditButtonsOnPlayer();
 
