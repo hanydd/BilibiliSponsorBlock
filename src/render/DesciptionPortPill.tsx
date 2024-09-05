@@ -51,6 +51,7 @@ export class DescriptionPortPill {
         // make request to get the port video first, while waiting for the page to load
         await this.getPortVideo(videoId);
 
+        this.hasDescription = true;
         const referenceNode = await waitFor(() => document.querySelector(".basic-desc-info") as HTMLElement);
         if (!referenceNode) {
             console.error("Description element not found");
@@ -58,8 +59,19 @@ export class DescriptionPortPill {
 
         // wait for the sibling span to load, only when there is a description
         await waitFor(getPageLoaded, 20000, 10);
+
+        // if the desc from window object is empty, and the description container is hidden,
+        // the video has no description
         const desc = await getVideoDescriptionFromWindow();
-        this.hasDescription = desc && desc !== "";
+        if (!desc || desc == "") {
+            const container = (await waitFor(() =>
+                document.querySelector("div.video-desc-container")
+            )) as HTMLDivElement;
+            if (container.style.display == "none") {
+                this.hasDescription = false;
+            }
+        }
+
         if (this.hasDescription) {
             await waitFor(() => referenceNode.querySelector(".desc-info-text")?.textContent, 20000, 50).catch(() => {
                 console.error("Failed to find description text element");
