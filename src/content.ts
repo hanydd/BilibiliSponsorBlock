@@ -475,7 +475,7 @@ async function videoIDChange(): Promise<void> {
     // TODO use mutation observer to get the reloading of the video element
     // wait for the video player to load and ready
     await waitFor(() => document.querySelector(".bpx-player-loading-panel.bpx-state-loading"), 5000, 5);
-    await waitFor(getProgressBar, 20000, 200);
+    await waitFor(getProgressBar, 24 * 60 * 60, 500);
 
     // Make sure all player buttons are properly added
     updateVisibilityOfPlayerControlsButton();
@@ -1443,7 +1443,7 @@ async function channelIDChange(channelIDInfo: ChannelIDInfo) {
 }
 
 function videoElementChange(newVideo: boolean): void {
-    waitFor(() => Config.isReady()).then(() => {
+    waitFor(() => Config.isReady() && !document.hidden, 24 * 60 * 60, 500).then(() => {
         if (newVideo) {
             setupVideoListeners();
             setupSkipButtonControlBar();
