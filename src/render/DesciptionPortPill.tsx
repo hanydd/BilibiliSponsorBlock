@@ -9,6 +9,7 @@ import { getVideo, getVideoID } from "../utils/video";
 import Config from "../config";
 import { getPortVideoByHash } from "../requests/portVideo";
 import { getVideoDescriptionFromWindow } from "../utils/injectedScriptMessageUtils";
+import YouTubeLogoButton from '../components/YouTubeLogoButton';
 
 const id = "bsbDescriptionContainer";
 
@@ -104,32 +105,29 @@ export class DescriptionPortPill {
         document.querySelector("#bsbPortButton")?.remove();
         const buttonContainer = document.createElement("div");
         buttonContainer.id = "bsbPortButton";
-        buttonContainer.addEventListener("click", () => {
-            this.ref.current.toggleInput();
-            // toggle display state of the input container
-            if (!this.hasDescription) {
-                const container = document.querySelector("div.video-desc-container") as HTMLDivElement;
-                if (!container) {
-                    return;
-                }
-                if (container.style.display === "none") {
-                    container.style.display = "block";
-                } else if (container.style.display === "block") {
-                    container.style.display = "none";
-                }
-            }
-        });
 
-        const newButtonImage = document.createElement("img");
-        newButtonImage.id = "bsbPortButtonImage";
-        newButtonImage.src = chrome.runtime.getURL("icons/youtubeLogo.svg");
-        newButtonImage.title = chrome.i18n.getMessage("bindPortVideoButton");
-        buttonContainer.appendChild(newButtonImage);
-
-        // const newButtonText = document.createElement("span");
-        // newButtonText.id = "bsbPortButtonText";
-        // newButtonText.textContent = chrome.i18n.getMessage("bindPortVideoButton");
-        // buttonContainer.appendChild(newButtonText);
+        const root = createRoot(buttonContainer);
+        root.render(
+            <YouTubeLogoButton
+                isBound={Boolean(this.ytbID)}
+                onClick={() => {
+                    this.ref.current.toggleInput();
+                    // toggle display state of the input container
+                    if (!this.hasDescription) {
+                        const container = document.querySelector("div.video-desc-container") as HTMLDivElement;
+                        if (!container) {
+                            return;
+                        }
+                        if (container.style.display === "none") {
+                            container.style.display = "block";
+                        } else if (container.style.display === "block") {
+                            container.style.display = "none";
+                        }
+                    }
+                }}
+                title={chrome.i18n.getMessage("bindPortVideoButton")}
+            />
+        );
 
         referenceNode.prepend(buttonContainer);
         this.buttonContainer = buttonContainer;

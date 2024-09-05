@@ -876,19 +876,27 @@ input::-webkit-inner-spin-button {
 	max-height: 500px;
 }
 
-#bsbPortButton {
-	cursor: pointer;
-	margin-right: 18px;
-	display: inline-flex;
-	align-items: center;
-	color: var(--text2);
-}
-
-#bsbPortButtonImage {
-	height: 24px;
-	margin-right: 8px;
-}
-
 .ant-popover-content a {
 	color: var(--sb-brand-blue);
 }
+/* YouTube Logo Button styles */
+.youtube-logo-button {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+  }
+  
+  .youtube-logo-svg {
+	width: 34px;
+	height: 24px;
+  }
+  
+  .youtube-logo-triangle {
+	transform-origin: center;
+	transition: transform 0.3s ease-in-out;
+  }
+  
+  .youtube-logo-triangle.expanded {
+	transform: rotate(90deg);
+  }
