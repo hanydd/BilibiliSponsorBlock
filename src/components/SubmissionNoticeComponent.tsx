@@ -138,6 +138,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                     content={this.popoverContent}
                     open={this.state.popoverOpen}
                     getPopupContainer={() => document.querySelector("#bilibili-player .bpx-player-container")}
+                    autoAdjustOverflow={false}
                 >
                     <NoticeComponent
                         noticeTitle={this.state.noticeTitle}
