@@ -267,7 +267,6 @@ function setupVideoMutationListener() {
         if (!videoContainer) return;
 
         if (videoMutationObserver) videoMutationObserver.disconnect();
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         videoMutationObserver = new MutationObserver(refreshVideoAttachments);
         videoMutationListenerElement = videoContainer;
 
