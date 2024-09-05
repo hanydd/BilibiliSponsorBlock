@@ -1,15 +1,16 @@
 import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { DescriptionPortPillComponent } from "../components/DescriptionPortPillComponent";
+import YouTubeLogoButton from "../components/YouTubeLogoButton";
+import Config from "../config";
+import { getPageLoaded } from "../content";
+import { getPortVideoByHash } from "../requests/portVideo";
+import { asyncRequestToServer } from "../requests/requests";
 import { VideoID } from "../types";
 import { waitFor } from "../utils/";
-import { getPageLoaded } from "../content";
-import { asyncRequestToServer } from "../requests/requests";
-import { getVideo, getVideoID } from "../utils/video";
-import Config from "../config";
-import { getPortVideoByHash } from "../requests/portVideo";
+import { waitForElement } from "../utils/dom";
 import { getVideoDescriptionFromWindow } from "../utils/injectedScriptMessageUtils";
-import YouTubeLogoButton from "../components/YouTubeLogoButton";
+import { getVideo, getVideoID } from "../utils/video";
 
 const id = "bsbDescriptionContainer";
 
@@ -52,7 +53,7 @@ export class DescriptionPortPill {
         await this.getPortVideo(videoId);
 
         this.hasDescription = true;
-        const referenceNode = await waitFor(() => document.querySelector(".basic-desc-info") as HTMLElement);
+        const referenceNode = (await waitForElement(".basic-desc-info")) as HTMLElement;
         if (!referenceNode) {
             console.error("Description element not found");
         }
@@ -64,9 +65,7 @@ export class DescriptionPortPill {
         // the video has no description
         const desc = await getVideoDescriptionFromWindow();
         if (!desc || desc == "") {
-            const container = (await waitFor(() =>
-                document.querySelector("div.video-desc-container")
-            )) as HTMLDivElement;
+            const container = (await waitFor(() => document.querySelector(".video-desc-container"))) as HTMLDivElement;
             if (container.style.display == "none") {
                 this.hasDescription = false;
             }
