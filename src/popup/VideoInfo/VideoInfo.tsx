@@ -1,4 +1,5 @@
 import { ReloadOutlined } from "@ant-design/icons";
+import { Button } from "antd";
 import { MessageInstance } from "antd/es/message/interface";
 import * as React from "react";
 import Config from "../../config";
@@ -6,6 +7,8 @@ import { Message, RefreshSegmentsResponse } from "../../messageTypes";
 import { SponsorTime } from "../../types";
 import { exportTimes } from "../../utils/exporter";
 import PopupSegment from "./PopupSegment";
+
+const BUTTON_REFRESH_DURATION = 500;
 
 interface VideoInfoProps {
     messageApi: MessageInstance;
@@ -40,23 +43,39 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
     }
 
     private importTextRef = React.createRef<HTMLTextAreaElement>();
+    private stopLoadingTimeout;
+    private lastStartLoadingTime = performance.now();
 
     startLoading() {
         this.setState({ loading: true });
+        this.lastStartLoadingTime = performance.now();
+        if (this.stopLoadingTimeout) {
+            clearTimeout(this.stopLoadingTimeout);
+        }
     }
 
     stopLoading() {
-        this.setState({ loading: false });
+        const timeSinceStart = performance.now() - this.lastStartLoadingTime;
+        if (timeSinceStart < BUTTON_REFRESH_DURATION) {
+            this.stopLoadingTimeout = setTimeout(() => {
+                this.setState({ loading: false });
+                this.stopLoadingTimeout = null;
+            }, BUTTON_REFRESH_DURATION - timeSinceStart);
+        } else {
+            this.setState({ loading: false });
+        }
     }
 
     displayNoVideo() {
         // 无法找到视频，不是播放页面
-        this.setState({ loading: false, videoFound: false });
+        this.setState({ videoFound: false });
+        this.stopLoading();
     }
 
     displayVideoWithMessage(message: string = chrome.i18n.getMessage("sponsorFound")) {
         // 可以找到视频ID
-        this.setState({ loading: false, videoFound: true, loadedMessage: message });
+        this.setState({ videoFound: true, loadedMessage: message });
+        this.stopLoading();
     }
 
     async refreshSegments() {
@@ -143,13 +162,10 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
                 {/* <!-- Loading text --> */}
                 <p className="u-mZ grey-text">{this.computeIndicatorText()}</p>
 
-                <button
-                    id="refreshSegmentsButton"
-                    title={chrome.i18n.getMessage("refreshSegments")}
-                    onClick={this.refreshSegments.bind(this)}
-                >
-                    <ReloadOutlined spin={this.state.loading} style={{ fontSize: 16, padding: 2 }} />
-                </button>
+                <Button id="refreshSegmentsButton" shape="circle" type="text" onClick={this.refreshSegments.bind(this)}>
+                    <ReloadOutlined spin={this.state.loading} style={{ fontSize: 16, padding: 1 }} />
+                </Button>
+
                 {/* <!-- Video Segments --> */}
                 <div id="issueReporterContainer">
                     <div id="issueReporterTimeButtons">{this.SegmentList()}</div>
