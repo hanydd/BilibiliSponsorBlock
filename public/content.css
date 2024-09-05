@@ -876,19 +876,6 @@ input::-webkit-inner-spin-button {
 	max-height: 500px;
 }
 
-#bsbPortButton {
-	cursor: pointer;
-	margin-right: 18px;
-	display: inline-flex;
-	align-items: center;
-	color: var(--text2);
-}
-
-#bsbPortButtonImage {
-	height: 24px;
-	margin-right: 8px;
-}
-
 .ant-popover-content a {
 	color: var(--sb-brand-blue);
 }
