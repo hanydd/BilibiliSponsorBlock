@@ -7,7 +7,7 @@ export async function waitFor<T>(
 ): Promise<T> {
     return await new Promise((resolve, reject) => {
         setTimeout(() => {
-            clearInterval(interval);
+            clearTimeout(interval);
             reject(`TIMEOUT: ${Error().stack}`);
         }, timeout);
 
@@ -15,11 +15,18 @@ export async function waitFor<T>(
             const result = condition();
             if (predicate ? predicate(result) : result) {
                 resolve(result);
-                clearInterval(interval);
+                clearTimeout(interval);
             }
         };
 
-        const interval = setInterval(intervalCheck, check);
+        let interval: NodeJS.Timeout;
+        const timeoutCheck = () => {
+            return setTimeout(() => {
+                intervalCheck();
+                interval = timeoutCheck();
+            }, check);
+        };
+        interval = timeoutCheck();
 
         //run the check once first, this speeds it up a lot
         intervalCheck();
