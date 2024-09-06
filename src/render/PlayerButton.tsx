@@ -82,6 +82,7 @@ export class PlayerButton {
             controlsContainer.prepend(this.container);
 
             // wait a tick for React to render the buttons
+            await waitFor(() => document.getElementById("startSegmentButton"), 5000, 10);
             await waitFor(() => document.getElementById("infoButton"), 5000, 10);
             this.playerButtons = {
                 startSegment: {
