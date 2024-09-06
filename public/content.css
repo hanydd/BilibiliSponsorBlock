@@ -883,7 +883,7 @@ input::-webkit-inner-spin-button {
 /* YouTube Logo Button styles */
 #bsbPortButton {
 	margin-right: 15px;
-	height: 24px;
+	height: 20px;
 }
 
 .youtube-logo-button {
@@ -895,7 +895,7 @@ input::-webkit-inner-spin-button {
 }
 
 .youtube-logo-svg {
-	height: 24px;
+	height: 20px;
 }
 
 .youtube-logo-triangle {
