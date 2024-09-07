@@ -80,11 +80,11 @@ export function PlayerButtonGroupComponent({
             ></PlayerButtonComponent>
 
             <PlayerButtonComponent
-                baseID="submit"
-                title="OpenSubmissionMenu"
-                imageName="PlayerUploadIconSponsorBlocker.svg"
+                baseID="cancelSegment"
+                title="sponsorCancel"
+                imageName="PlayerCancelSegmentIconSponsorBlocker.svg"
                 isDraggable={false}
-                onClick={submitCallback}
+                onClick={cancelSegmentCallback}
             ></PlayerButtonComponent>
 
             <Popconfirm
@@ -102,11 +102,11 @@ export function PlayerButtonGroupComponent({
                 ></PlayerButtonComponent>
             </Popconfirm>
             <PlayerButtonComponent
-                baseID="cancelSegment"
-                title="sponsorCancel"
-                imageName="PlayerCancelSegmentIconSponsorBlocker.svg"
+                baseID="submit"
+                title="OpenSubmissionMenu"
+                imageName="PlayerUploadIconSponsorBlocker.svg"
                 isDraggable={false}
-                onClick={cancelSegmentCallback}
+                onClick={submitCallback}
             ></PlayerButtonComponent>
         </ConfigProvider>
     );
