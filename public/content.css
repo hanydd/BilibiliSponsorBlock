@@ -886,6 +886,18 @@ input::-webkit-inner-spin-button {
 	height: 20px;
 }
 
+@media (min-width: 1164px) {
+	#bsbPortButton {
+		margin-right: 5px;
+	}
+}
+
+@media (min-width: 1176px) {
+	#bsbPortButton {
+		margin-right: 15px;
+	}
+}
+
 .youtube-logo-button {
 	background: none;
 	border: none;
