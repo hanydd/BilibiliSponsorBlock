@@ -8,7 +8,7 @@ import { SponsorTime } from "../../types";
 import { exportTimes } from "../../utils/exporter";
 import PopupSegment from "./PopupSegment";
 
-const BUTTON_REFRESH_DURATION = 500;
+const BUTTON_REFRESH_DURATION = 299;
 
 interface VideoInfoProps {
     messageApi: MessageInstance;

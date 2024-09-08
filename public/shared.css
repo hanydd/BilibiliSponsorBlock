@@ -236,6 +236,6 @@
 
 .anticon-spin::before,
 .anticon-spin {
-  -webkit-animation: loadingCircle 0.5s infinite linear;
-  animation: loadingCircle 0.5s infinite linear;
+  -webkit-animation: loadingCircle 0.35s infinite linear;
+  animation: loadingCircle 0.35s infinite linear;
 }
