@@ -299,6 +299,9 @@
 /*
  * Whitelist add/remove icon
  */
+.SBWhitelistIcon {
+	transition: transform 0.2s ease-in-out;
+}
 .SBWhitelistIcon > path {
 	fill: var(--sb-main-fg-color);
 }
