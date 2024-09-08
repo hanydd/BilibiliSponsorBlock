@@ -174,6 +174,7 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
                 <a
                     id="whitelistForceCheck"
                     className={this.state.hasWhiteListed && !Config.config.forceChannelCheck ? "" : "hidden"}
+                    onClick={() => this.props.openOptionsAt("behavior")}
                 >
                     {chrome.i18n.getMessage("forceChannelCheckPopup")}
                 </a>
