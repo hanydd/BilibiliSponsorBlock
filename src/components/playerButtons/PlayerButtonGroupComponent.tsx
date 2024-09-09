@@ -1,7 +1,7 @@
 import { ConfigProvider, Popconfirm, theme } from "antd";
 import * as React from "react";
 import InfoButtonComponent from "./InfoButton";
-import PlayerButtonComponent from "./PlayerButtonComponent";
+import PlayerButtonComponent from "./PlayerButton";
 import Config from "../../config";
 
 interface PlayerButtonGroupProps {
