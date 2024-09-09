@@ -1,7 +1,7 @@
 import { ConfigProvider, Popconfirm, theme } from "antd";
 import * as React from "react";
-import Config from "../../config";
-import PlayerButtonComponent from "./playerButtonComponent";
+import InfoButtonComponent from "./InfoButton";
+import PlayerButtonComponent from "./PlayerButtonComponent";
 
 interface PlayerButtonGroupProps {
     startSegmentCallback: () => void;
@@ -31,14 +31,16 @@ function PlayerButtonGroupComponent({
 
     return (
         <ConfigProvider theme={{ token: { colorPrimary: "#00aeec" }, algorithm: theme.darkAlgorithm }}>
-            <PlayerButtonComponent
+            <InfoButtonComponent popupOpen={false} infoCallback={infoCallback}></InfoButtonComponent>
+
+            {/* <PlayerButtonComponent
                 baseID="info"
                 title="openPopup"
                 imageName="PlayerInfoIconSponsorBlocker.svg"
                 isDraggable={false}
                 show={!Config.config.hideInfoButtonPlayerControls && !document.URL.includes("/embed/")}
                 onClick={infoCallback}
-            ></PlayerButtonComponent>
+            ></PlayerButtonComponent> */}
 
             <PlayerButtonComponent
                 baseID="submit"
