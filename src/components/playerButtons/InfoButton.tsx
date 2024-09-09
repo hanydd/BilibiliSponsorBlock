@@ -1,7 +1,7 @@
 import * as React from "react";
 import { forwardRef } from "react";
 import Config from "../../config";
-import PlayerButtonComponent from "./PlayerButton";
+import PlayerButtonComponent from "./PlayerButtonComponent";
 
 interface InfoButtonProps {
     infoCallback: () => void;
