@@ -1925,6 +1925,8 @@ function updateEditButtonsOnPlayer(): void {
     // Don't try to update the buttons if we aren't on a Bilibili video page
     if (!getVideoID()) return;
 
+    window.dispatchEvent(new CustomEvent("sponsorTimesSubmittingChange", { detail: sponsorTimesSubmitting }));
+
     const creatingSegment = isSegmentCreationInProgress();
     // Show only if there are any segments to submit
     const submitButtonVisible = sponsorTimesSubmitting.length > 0;
@@ -1933,8 +1935,8 @@ function updateEditButtonsOnPlayer(): void {
         sponsorTimesSubmitting.length > 1 || (sponsorTimesSubmitting.length > 0 && !creatingSegment);
 
     // Update the elements
-    playerButtons.startSegment.button.style.display = "unset";
-    playerButtons.cancelSegment.button.style.display = creatingSegment ? "unset" : "none";
+    // playerButtons.startSegment.button.style.display = "unset";
+    // playerButtons.cancelSegment.button.style.display = creatingSegment ? "unset" : "none";
 
     if (creatingSegment) {
         playerButtons.startSegment.image.src = chrome.runtime.getURL("icons/PlayerStopIconSponsorBlocker.svg");

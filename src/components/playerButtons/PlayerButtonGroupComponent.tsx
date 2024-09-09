@@ -19,6 +19,19 @@ function PlayerButtonGroupComponent({
     submitCallback,
     infoCallback,
 }: PlayerButtonGroupProps) {
+    const [sponsorTimesSubmitting, setSponsorTimesSubmitting] = React.useState([]);
+
+    React.useEffect(() => {
+        const handleShowInfoButton = (e: CustomEvent) => setSponsorTimesSubmitting([...e.detail]);
+        window.addEventListener("sponsorTimesSubmittingChange", handleShowInfoButton);
+        return () => window.removeEventListener("sponsorTimesSubmittingChange", handleShowInfoButton);
+    }, []);
+
+    function isSegmentCreationInProgress(): boolean {
+        const segment = sponsorTimesSubmitting.at(-1);
+        return !!(segment && segment?.segment?.length != 2);
+    }
+
     function getPopconfirmDescription() {
         const message = chrome.i18n.getMessage("confirmMSG").split("\n");
         return (
@@ -34,15 +47,6 @@ function PlayerButtonGroupComponent({
         <ConfigProvider theme={{ token: { colorPrimary: "#00aeec" }, algorithm: theme.darkAlgorithm }}>
             <div style={{ display: Config.config.hideVideoPlayerControls ? "none" : "contents" }}>
                 <InfoButtonComponent infoCallback={infoCallback}></InfoButtonComponent>
-
-                {/* <PlayerButtonComponent
-                baseID="info"
-                title="openPopup"
-                imageName="PlayerInfoIconSponsorBlocker.svg"
-                isDraggable={false}
-                show={!Config.config.hideInfoButtonPlayerControls && !document.URL.includes("/embed/")}
-                onClick={infoCallback}
-            ></PlayerButtonComponent> */}
 
                 <PlayerButtonComponent
                     baseID="submit"
@@ -72,6 +76,7 @@ function PlayerButtonGroupComponent({
                     title="sponsorCancel"
                     imageName="PlayerCancelSegmentIconSponsorBlocker.svg"
                     isDraggable={false}
+                    show={isSegmentCreationInProgress()}
                     onClick={cancelSegmentCallback}
                 ></PlayerButtonComponent>
 
