@@ -2119,62 +2119,13 @@ function openInfoMenu() {
                 "*"
             );
         }
-
-        const enhancerStyle = document.getElementById("efyt-theme");
-        if (enhancerStyle) {
-            const enhancerStyleVariables = document.getElementById("efyt-theme-variables");
-            if (enhancerStyleVariables) {
-                const enhancerCss = await fetch(enhancerStyle.getAttribute("href")).then((response) => response.text());
-                const enhancerVariablesCss = await fetch(enhancerStyleVariables.getAttribute("href")).then((response) =>
-                    response.text()
-                );
-
-                if (enhancerCss && enhancerVariablesCss) {
-                    frame.contentWindow.postMessage(
-                        {
-                            type: "style",
-                            // Image needs needs to reference the full url now
-                            css:
-                                enhancerCss.replace(
-                                    "./images/youtube-deep-dark/IconSponsorBlocker256px.png",
-                                    "https://raw.githubusercontent.com/RaitaroH/YouTube-DeepDark/master/YT_Images/IconSponsorBlocker256px.png"
-                                ) + enhancerVariablesCss,
-                        },
-                        "*"
-                    );
-                }
-            }
-        }
     });
     frame.src = chrome.runtime.getURL("popup.html");
     popup.appendChild(frame);
 
-    const elemHasChild = (elements: NodeListOf<HTMLElement>): Element => {
-        let parentNode: Element;
-        for (const node of elements) {
-            if (node.firstElementChild !== null) {
-                parentNode = node;
-            }
-        }
-        return parentNode;
-    };
-
-    const parentNodeOptions = [
-        {
-            // Bilibili
-            selector: ".up-panel-container", // append inside avatar container to avoid z-index issue
-            hasChildCheck: true,
-        },
-    ];
-    for (const option of parentNodeOptions) {
-        const allElements = document.querySelectorAll(option.selector) as NodeListOf<HTMLElement>;
-        const el = option.hasChildCheck ? elemHasChild(allElements) : allElements[0];
-
-        if (el) {
-            if (option.hasChildCheck) el.appendChild(popup);
-            break;
-        }
-    }
+    // insert into the avatar container to prevent the popup from being cut off
+    const container = document.querySelector(".up-panel-container") as HTMLElement;
+    container.appendChild(popup);
 }
 
 function closeInfoMenu() {
