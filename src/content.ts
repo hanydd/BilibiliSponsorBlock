@@ -1925,36 +1925,23 @@ function updateEditButtonsOnPlayer(): void {
     // Don't try to update the buttons if we aren't on a Bilibili video page
     if (!getVideoID()) return;
 
-    const buttonsEnabled = !Config.config.hideVideoPlayerControls;
-
-    let creatingSegment = false;
-    let submitButtonVisible = false;
-    let deleteButtonVisible = false;
-
-    // Only check if buttons should be visible if they're enabled
-    if (buttonsEnabled) {
-        creatingSegment = isSegmentCreationInProgress();
-
-        // Show only if there are any segments to submit
-        submitButtonVisible = sponsorTimesSubmitting.length > 0;
-
-        // Show only if there are any segments to delete
-        deleteButtonVisible =
-            sponsorTimesSubmitting.length > 1 || (sponsorTimesSubmitting.length > 0 && !creatingSegment);
-    }
+    const creatingSegment = isSegmentCreationInProgress();
+    // Show only if there are any segments to submit
+    const submitButtonVisible = sponsorTimesSubmitting.length > 0;
+    // Show only if there are any segments to delete
+    const deleteButtonVisible =
+        sponsorTimesSubmitting.length > 1 || (sponsorTimesSubmitting.length > 0 && !creatingSegment);
 
     // Update the elements
-    playerButtons.startSegment.button.style.display = buttonsEnabled ? "unset" : "none";
-    playerButtons.cancelSegment.button.style.display = buttonsEnabled && creatingSegment ? "unset" : "none";
+    playerButtons.startSegment.button.style.display = "unset";
+    playerButtons.cancelSegment.button.style.display = creatingSegment ? "unset" : "none";
 
-    if (buttonsEnabled) {
-        if (creatingSegment) {
-            playerButtons.startSegment.image.src = chrome.runtime.getURL("icons/PlayerStopIconSponsorBlocker.svg");
-            playerButtons.startSegment.button.setAttribute("title", chrome.i18n.getMessage("sponsorEnd"));
-        } else {
-            playerButtons.startSegment.image.src = chrome.runtime.getURL("icons/PlayerStartIconSponsorBlocker.svg");
-            playerButtons.startSegment.button.setAttribute("title", chrome.i18n.getMessage("sponsorStart"));
-        }
+    if (creatingSegment) {
+        playerButtons.startSegment.image.src = chrome.runtime.getURL("icons/PlayerStopIconSponsorBlocker.svg");
+        playerButtons.startSegment.button.setAttribute("title", chrome.i18n.getMessage("sponsorEnd"));
+    } else {
+        playerButtons.startSegment.image.src = chrome.runtime.getURL("icons/PlayerStartIconSponsorBlocker.svg");
+        playerButtons.startSegment.button.setAttribute("title", chrome.i18n.getMessage("sponsorStart"));
     }
 
     playerButtons.submit.button.style.display =

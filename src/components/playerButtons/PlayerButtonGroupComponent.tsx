@@ -2,6 +2,7 @@ import { ConfigProvider, Popconfirm, theme } from "antd";
 import * as React from "react";
 import InfoButtonComponent from "./InfoButton";
 import PlayerButtonComponent from "./PlayerButtonComponent";
+import Config from "../../config";
 
 interface PlayerButtonGroupProps {
     startSegmentCallback: () => void;
@@ -31,9 +32,10 @@ function PlayerButtonGroupComponent({
 
     return (
         <ConfigProvider theme={{ token: { colorPrimary: "#00aeec" }, algorithm: theme.darkAlgorithm }}>
-            <InfoButtonComponent infoCallback={infoCallback}></InfoButtonComponent>
+            <div style={{ display: Config.config.hideVideoPlayerControls ? "none" : "contents" }}>
+                <InfoButtonComponent infoCallback={infoCallback}></InfoButtonComponent>
 
-            {/* <PlayerButtonComponent
+                {/* <PlayerButtonComponent
                 baseID="info"
                 title="openPopup"
                 imageName="PlayerInfoIconSponsorBlocker.svg"
@@ -42,44 +44,45 @@ function PlayerButtonGroupComponent({
                 onClick={infoCallback}
             ></PlayerButtonComponent> */}
 
-            <PlayerButtonComponent
-                baseID="submit"
-                title="OpenSubmissionMenu"
-                imageName="PlayerUploadIconSponsorBlocker.svg"
-                isDraggable={false}
-                onClick={submitCallback}
-            ></PlayerButtonComponent>
-
-            <Popconfirm
-                title={chrome.i18n.getMessage("clearThis")}
-                description={getPopconfirmDescription()}
-                onConfirm={deleteCallback}
-                okText={chrome.i18n.getMessage("confirm")}
-                cancelText={chrome.i18n.getMessage("cancel")}
-            >
                 <PlayerButtonComponent
-                    baseID="delete"
-                    title="clearTimes"
-                    imageName="PlayerDeleteIconSponsorBlocker.svg"
+                    baseID="submit"
+                    title="OpenSubmissionMenu"
+                    imageName="PlayerUploadIconSponsorBlocker.svg"
                     isDraggable={false}
+                    onClick={submitCallback}
                 ></PlayerButtonComponent>
-            </Popconfirm>
 
-            <PlayerButtonComponent
-                baseID="cancelSegment"
-                title="sponsorCancel"
-                imageName="PlayerCancelSegmentIconSponsorBlocker.svg"
-                isDraggable={false}
-                onClick={cancelSegmentCallback}
-            ></PlayerButtonComponent>
+                <Popconfirm
+                    title={chrome.i18n.getMessage("clearThis")}
+                    description={getPopconfirmDescription()}
+                    onConfirm={deleteCallback}
+                    okText={chrome.i18n.getMessage("confirm")}
+                    cancelText={chrome.i18n.getMessage("cancel")}
+                >
+                    <PlayerButtonComponent
+                        baseID="delete"
+                        title="clearTimes"
+                        imageName="PlayerDeleteIconSponsorBlocker.svg"
+                        isDraggable={false}
+                    ></PlayerButtonComponent>
+                </Popconfirm>
 
-            <PlayerButtonComponent
-                baseID="startSegment"
-                title="sponsorStart"
-                imageName="PlayerStartIconSponsorBlocker.svg"
-                isDraggable={false}
-                onClick={startSegmentCallback}
-            ></PlayerButtonComponent>
+                <PlayerButtonComponent
+                    baseID="cancelSegment"
+                    title="sponsorCancel"
+                    imageName="PlayerCancelSegmentIconSponsorBlocker.svg"
+                    isDraggable={false}
+                    onClick={cancelSegmentCallback}
+                ></PlayerButtonComponent>
+
+                <PlayerButtonComponent
+                    baseID="startSegment"
+                    title="sponsorStart"
+                    imageName="PlayerStartIconSponsorBlocker.svg"
+                    isDraggable={false}
+                    onClick={startSegmentCallback}
+                ></PlayerButtonComponent>
+            </div>
         </ConfigProvider>
     );
 }
