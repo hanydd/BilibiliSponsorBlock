@@ -1918,17 +1918,6 @@ async function updateVisibilityOfPlayerControlsButton(): Promise<void> {
     playerButtons = await playerButton.createButtons();
 
     updateEditButtonsOnPlayer();
-
-    // Don't show the info button on embeds
-    if (
-        Config.config.hideInfoButtonPlayerControls ||
-        document.URL.includes("/embed/") ||
-        document.getElementById("sponsorBlockPopupContainer") != null
-    ) {
-        playerButtons.info.button.style.display = "none";
-    } else {
-        playerButtons.info.button.style.removeProperty("display");
-    }
 }
 
 /** Updates the visibility of buttons on the player related to creating segments. */

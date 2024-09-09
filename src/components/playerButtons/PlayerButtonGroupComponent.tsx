@@ -1,39 +1,7 @@
 import { ConfigProvider, Popconfirm, theme } from "antd";
 import * as React from "react";
-import { forwardRef } from "react";
-
-interface PlayerButtonProps {
-    baseID: string;
-    title: string;
-    imageName: string;
-    isDraggable?: boolean;
-    onClick?: () => void;
-}
-
-const PlayerButtonComponent = forwardRef<HTMLButtonElement, PlayerButtonProps>(function (
-    { baseID, title, imageName, isDraggable = false, onClick },
-    ref
-) {
-    return (
-        <button
-            ref={ref}
-            id={baseID + "Button"}
-            className="playerButton bpx-player-ctrl-btn"
-            style={{ maxWidth: "40px" }}
-            title={chrome.i18n.getMessage(title)}
-            draggable={isDraggable}
-            onClick={onClick}
-        >
-            <img
-                id={baseID + "Image"}
-                className="playerButtonImage bpx-player-ctrl-btn-icon"
-                src={chrome.runtime.getURL("icons/" + imageName)}
-                draggable={isDraggable}
-            ></img>
-        </button>
-    );
-});
-PlayerButtonComponent.displayName = "PlayerButtonComponent";
+import Config from "../../config";
+import PlayerButtonComponent from "./playerButtonComponent";
 
 interface PlayerButtonGroupProps {
     startSegmentCallback: () => void;
@@ -43,7 +11,7 @@ interface PlayerButtonGroupProps {
     infoCallback: () => void;
 }
 
-export function PlayerButtonGroupComponent({
+function PlayerButtonGroupComponent({
     startSegmentCallback,
     cancelSegmentCallback,
     deleteCallback,
@@ -68,6 +36,7 @@ export function PlayerButtonGroupComponent({
                 title="openPopup"
                 imageName="PlayerInfoIconSponsorBlocker.svg"
                 isDraggable={false}
+                show={!Config.config.hideInfoButtonPlayerControls && !document.URL.includes("/embed/")}
                 onClick={infoCallback}
             ></PlayerButtonComponent>
 
@@ -112,3 +81,5 @@ export function PlayerButtonGroupComponent({
         </ConfigProvider>
     );
 }
+
+export default PlayerButtonGroupComponent;

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
-import { PlayerButtonGroupComponent } from "../components/PlayerButtonComponent";
+import PlayerButtonGroupComponent from "../components/playerButtons/PlayerButtonGroupComponent";
 import Config from "../config";
 import { AnimationUtils } from "../utils/animationUtils";
 import { waitForElement } from "../utils/dom";
