@@ -181,7 +181,7 @@ let categoryPill: CategoryPill = null;
 let descriptionPill: DescriptionPortPill = null;
 
 /** Contains buttons created by `createButton()`. */
-let playerButtons: Record<string, { button: HTMLButtonElement; image: HTMLImageElement; setupListener: boolean }> = {};
+let playerButtons: Record<string, { button: HTMLButtonElement; image: HTMLImageElement }> = {};
 
 addHotkeyListener();
 

@@ -12,7 +12,7 @@ const containerId = "bsbPlayerButtonContainer";
 export class PlayerButton {
     root: Root;
     container: HTMLElement;
-    playerButtons: Record<string, { button: HTMLButtonElement; image: HTMLImageElement; setupListener: boolean }>;
+    playerButtons: Record<string, { button: HTMLButtonElement; image: HTMLImageElement }>;
     creatingButtons: boolean;
 
     startSegmentCallback: () => void;
@@ -41,9 +41,7 @@ export class PlayerButton {
         this.creatingButtons = false;
     }
 
-    public async createButtons(): Promise<
-        Record<string, { button: HTMLButtonElement; image: HTMLImageElement; setupListener: boolean }>
-    > {
+    public async createButtons(): Promise<Record<string, { button: HTMLButtonElement; image: HTMLImageElement }>> {
         if (this.playerButtons) {
             return this.playerButtons;
         }
@@ -82,33 +80,16 @@ export class PlayerButton {
             controlsContainer.prepend(this.container);
 
             // wait a tick for React to render the buttons
-            await waitFor(() => document.getElementById("startSegmentButton"), 5000, 10);
+            await waitFor(() => document.getElementById("submitButton"), 5000, 10);
             await waitFor(() => document.getElementById("infoButton"), 5000, 10);
             this.playerButtons = {
-                startSegment: {
-                    button: document.getElementById("startSegmentButton") as HTMLButtonElement,
-                    image: document.getElementById("startSegmentImage") as HTMLImageElement,
-                    setupListener: false,
-                },
-                cancelSegment: {
-                    button: document.getElementById("cancelSegmentButton") as HTMLButtonElement,
-                    image: document.getElementById("cancelSegmentImage") as HTMLImageElement,
-                    setupListener: false,
-                },
-                delete: {
-                    button: document.getElementById("deleteButton") as HTMLButtonElement,
-                    image: document.getElementById("deleteImage") as HTMLImageElement,
-                    setupListener: false,
-                },
                 submit: {
                     button: document.getElementById("submitButton") as HTMLButtonElement,
                     image: document.getElementById("submitImage") as HTMLImageElement,
-                    setupListener: false,
                 },
                 info: {
                     button: document.getElementById("infoButton") as HTMLButtonElement,
                     image: document.getElementById("infoImage") as HTMLImageElement,
-                    setupListener: false,
                 },
             };
             if (Config.config.autoHideInfoButton) {
