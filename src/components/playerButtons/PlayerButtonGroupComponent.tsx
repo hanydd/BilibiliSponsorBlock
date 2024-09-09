@@ -31,7 +31,7 @@ function PlayerButtonGroupComponent({
 
     return (
         <ConfigProvider theme={{ token: { colorPrimary: "#00aeec" }, algorithm: theme.darkAlgorithm }}>
-            <InfoButtonComponent popupOpen={false} infoCallback={infoCallback}></InfoButtonComponent>
+            <InfoButtonComponent infoCallback={infoCallback}></InfoButtonComponent>
 
             {/* <PlayerButtonComponent
                 baseID="info"

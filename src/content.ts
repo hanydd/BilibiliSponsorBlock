@@ -2095,9 +2095,6 @@ function openInfoMenu() {
 
     popupInitialised = false;
 
-    //hide info button
-    if (playerButtons.info) playerButtons.info.button.style.display = "none";
-
     const popup = document.createElement("div");
     popup.id = "sponsorBlockPopupContainer";
 
@@ -2134,10 +2131,8 @@ function closeInfoMenu() {
 
     popup.remove();
 
-    // Show info button if it's not an embed
-    if (!document.URL.includes("/embed/") && playerButtons.info) {
-        playerButtons.info.button.style.display = "unset";
-    }
+    // show info button again
+    window.dispatchEvent(new Event("closePopupMenu"));
 }
 
 function clearSponsorTimes() {

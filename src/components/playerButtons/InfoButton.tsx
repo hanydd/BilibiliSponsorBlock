@@ -4,20 +4,29 @@ import Config from "../../config";
 import PlayerButtonComponent from "./PlayerButtonComponent";
 
 interface InfoButtonProps {
-    popupOpen: boolean;
     infoCallback: () => void;
 }
 
-const InfoButtonComponent = forwardRef<HTMLButtonElement, InfoButtonProps>(function (
-    { popupOpen = false, infoCallback },
-    ref
-) {
+const InfoButtonComponent = forwardRef<HTMLButtonElement, InfoButtonProps>(function ({ infoCallback }, ref) {
+    const [popupOpen, setPopupOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        const handleShowInfoButton = () => setPopupOpen(false);
+        window.addEventListener("closePopupMenu", handleShowInfoButton);
+        return () => window.removeEventListener("closePopupMenu", handleShowInfoButton);
+    }, []);
+
     function initialShowInfoButton() {
         return !Config.config.hideInfoButtonPlayerControls && !document.URL.includes("/embed/");
     }
 
     function showInfoButton() {
-        return initialShowInfoButton();
+        return !popupOpen && initialShowInfoButton();
+    }
+
+    function handleInfoBUttonClick() {
+        setPopupOpen(true);
+        infoCallback();
     }
 
     return (
@@ -28,7 +37,7 @@ const InfoButtonComponent = forwardRef<HTMLButtonElement, InfoButtonProps>(funct
             imageName="PlayerInfoIconSponsorBlocker.svg"
             isDraggable={false}
             show={showInfoButton()}
-            onClick={infoCallback}
+            onClick={handleInfoBUttonClick}
         ></PlayerButtonComponent>
     );
 });
