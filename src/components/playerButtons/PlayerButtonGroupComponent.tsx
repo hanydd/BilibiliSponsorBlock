@@ -3,7 +3,6 @@ import * as React from "react";
 import Config from "../../config";
 import InfoButtonComponent from "./InfoButton";
 import PlayerButtonComponent from "./PlayerButton";
-import StartEndSegmentButton from "./StartEndSegmentButton";
 
 interface PlayerButtonGroupProps {
     startSegmentCallback: () => void;
@@ -28,7 +27,7 @@ function PlayerButtonGroupComponent({
         return () => window.removeEventListener("sponsorTimesSubmittingChange", handleShowInfoButton);
     }, []);
 
-    function isSegmentCreationInProgress(): boolean {
+    function isCreatingSegment(): boolean {
         const segment = sponsorTimesSubmitting.at(-1);
         return !!(segment && segment?.segment?.length != 2);
     }
@@ -41,9 +40,7 @@ function PlayerButtonGroupComponent({
         if (Config.config.hideUploadButtonPlayerControls) {
             return false;
         }
-        return (
-            sponsorTimesSubmitting.length > 1 || (sponsorTimesSubmitting.length > 0 && !isSegmentCreationInProgress())
-        );
+        return sponsorTimesSubmitting.length > 1 || (sponsorTimesSubmitting.length > 0 && !isCreatingSegment());
     }
 
     function getPopconfirmDescription() {
@@ -92,14 +89,19 @@ function PlayerButtonGroupComponent({
                     title="sponsorCancel"
                     imageName="PlayerCancelSegmentIconSponsorBlocker.svg"
                     isDraggable={false}
-                    show={isSegmentCreationInProgress()}
+                    show={isCreatingSegment()}
                     onClick={cancelSegmentCallback}
                 ></PlayerButtonComponent>
 
-                <StartEndSegmentButton
-                    isCreatingSegment={isSegmentCreationInProgress()}
+                <PlayerButtonComponent
+                    baseID="startSegment"
+                    title={isCreatingSegment() ? "sponsorEnd" : "sponsorStart"}
+                    imageName={
+                        isCreatingSegment() ? "PlayerStopIconSponsorBlocker.svg" : "PlayerStartIconSponsorBlocker.svg"
+                    }
                     onClick={startSegmentCallback}
-                ></StartEndSegmentButton>
+                    isDraggable={false}
+                ></PlayerButtonComponent>
             </div>
         </ConfigProvider>
     );
