@@ -1,8 +1,9 @@
 import { ConfigProvider, Popconfirm, theme } from "antd";
 import * as React from "react";
+import Config from "../../config";
 import InfoButtonComponent from "./InfoButton";
 import PlayerButtonComponent from "./PlayerButton";
-import Config from "../../config";
+import StartEndSegmentButton from "./StartEndSegmentButton";
 
 interface PlayerButtonGroupProps {
     startSegmentCallback: () => void;
@@ -32,6 +33,19 @@ function PlayerButtonGroupComponent({
         return !!(segment && segment?.segment?.length != 2);
     }
 
+    function showSubmitButton() {
+        return sponsorTimesSubmitting.length > 0 && !Config.config.hideUploadButtonPlayerControls;
+    }
+
+    function showdeleteButton() {
+        if (Config.config.hideUploadButtonPlayerControls) {
+            return false;
+        }
+        return (
+            sponsorTimesSubmitting.length > 1 || (sponsorTimesSubmitting.length > 0 && !isSegmentCreationInProgress())
+        );
+    }
+
     function getPopconfirmDescription() {
         const message = chrome.i18n.getMessage("confirmMSG").split("\n");
         return (
@@ -53,6 +67,7 @@ function PlayerButtonGroupComponent({
                     title="OpenSubmissionMenu"
                     imageName="PlayerUploadIconSponsorBlocker.svg"
                     isDraggable={false}
+                    show={showSubmitButton()}
                     onClick={submitCallback}
                 ></PlayerButtonComponent>
 
@@ -68,6 +83,7 @@ function PlayerButtonGroupComponent({
                         title="clearTimes"
                         imageName="PlayerDeleteIconSponsorBlocker.svg"
                         isDraggable={false}
+                        show={showdeleteButton()}
                     ></PlayerButtonComponent>
                 </Popconfirm>
 
@@ -80,13 +96,10 @@ function PlayerButtonGroupComponent({
                     onClick={cancelSegmentCallback}
                 ></PlayerButtonComponent>
 
-                <PlayerButtonComponent
-                    baseID="startSegment"
-                    title="sponsorStart"
-                    imageName="PlayerStartIconSponsorBlocker.svg"
-                    isDraggable={false}
+                <StartEndSegmentButton
+                    isCreatingSegment={isSegmentCreationInProgress()}
                     onClick={startSegmentCallback}
-                ></PlayerButtonComponent>
+                ></StartEndSegmentButton>
             </div>
         </ConfigProvider>
     );
