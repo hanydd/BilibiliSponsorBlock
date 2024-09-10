@@ -212,7 +212,7 @@ const skipNoticeContentContainer: ContentContainer = () => ({
     updatePreviewBar,
     sponsorSubmissionNotice: submissionNotice,
     resetSponsorSubmissionNotice,
-    updateEditButtonsOnPlayer,
+    updateEditButtonsOnPlayer: updateSegmentSubmitting,
     previewTime,
     videoInfo,
     getRealCurrentTime: getRealCurrentTime,
@@ -362,7 +362,7 @@ function messageListener(
                 Config.local.unsubmittedSegments[getVideoID()] = sponsorTimesSubmitting;
                 Config.forceLocalUpdate("unsubmittedSegments");
 
-                updateEditButtonsOnPlayer();
+                updateSegmentSubmitting();
                 updateSponsorTimesSubmitting(false);
                 openSubmissionMenu();
             }
@@ -1917,11 +1917,11 @@ async function updateVisibilityOfPlayerControlsButton(): Promise<void> {
 
     playerButtons = await playerButton.createButtons();
 
-    updateEditButtonsOnPlayer();
+    updateSegmentSubmitting();
 }
 
 /** Updates the visibility of buttons on the player related to creating segments. */
-function updateEditButtonsOnPlayer(): void {
+function updateSegmentSubmitting(): void {
     // Don't try to update the buttons if we aren't on a Bilibili video page
     if (!getVideoID()) return;
     window.dispatchEvent(new CustomEvent("sponsorTimesSubmittingChange", { detail: sponsorTimesSubmitting }));
@@ -1971,7 +1971,7 @@ function startOrEndTimingNewSegment() {
     // Make sure they know if someone has already submitted something it while they were watching
     sponsorsLookup(true, true);
 
-    updateEditButtonsOnPlayer();
+    updateSegmentSubmitting();
     updateSponsorTimesSubmitting(false);
 
     if (
@@ -2011,7 +2011,7 @@ function cancelCreatingSegment() {
         Config.forceLocalUpdate("unsubmittedSegments");
     }
 
-    updateEditButtonsOnPlayer();
+    updateSegmentSubmitting();
     updateSponsorTimesSubmitting(false);
 }
 
@@ -2115,7 +2115,7 @@ function clearSponsorTimes() {
         sponsorTimesSubmitting = [];
 
         updatePreviewBar();
-        updateEditButtonsOnPlayer();
+        updateSegmentSubmitting();
     }
 }
 
@@ -2303,7 +2303,7 @@ async function sendSubmitMessage(): Promise<boolean> {
     // Add loading animation
     playerButtons.submit.image.src = chrome.runtime.getURL("icons/PlayerUploadIconSponsorBlocker.svg");
     const stopAnimation = AnimationUtils.applyLoadingAnimation(playerButtons.submit.button, 1, () =>
-        updateEditButtonsOnPlayer()
+        updateSegmentSubmitting()
     );
 
     //check if a sponsor exceeds the duration of the video
