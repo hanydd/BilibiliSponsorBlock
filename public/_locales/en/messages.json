@@ -652,7 +652,7 @@
         "message": "不包括含有内容的转场"
     },
     "category_outro": {
-        "message": "结束画面/结尾致谢"
+        "message": " 鸣谢/结束画面"
     },
     "category_outro_description": {
         "message": "致谢画面或片尾画面。不包含内容的结尾。"

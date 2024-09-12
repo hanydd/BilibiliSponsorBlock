@@ -591,7 +591,7 @@
         "message": "捐款或自製周邊不屬於此項"
     },
     "category_selfpromo": {
-        "message": "無償推廣/自我推廣"
+        "message": "無償/自我推廣"
     },
     "category_selfpromo_description": {
         "message": "類似於 “贊助廣告” ，但無報酬或是自我推廣。包括有關商品、捐贈的部分或合作者的資訊。"
@@ -652,7 +652,7 @@
         "message": "不包括含有內容的轉場"
     },
     "category_outro": {
-        "message": "結束畫面/結尾致謝"
+        "message": "鳴謝/結束畫面"
     },
     "category_outro_description": {
         "message": "致謝畫面或片尾畫面。不包含內容的結尾。"
@@ -677,7 +677,7 @@
         "message": "不含有新內容"
     },
     "category_filler": {
-        "message": "離題的閒聊/笑話"
+        "message": "離題閒聊/玩笑"
     },
     "category_filler_description": {
         "message": "離題片段標籤僅在出現不需要理解影片主要內容的拖時間/無關笑話片段時使用。此標籤不能包含有意義的內容或背景細節。這是非常激進的類別，代表您沒有心情娛樂。"
@@ -695,7 +695,7 @@
         "message": "不需要理解主題的片段"
     },
     "category_music_offtopic": {
-        "message": "音樂影片的非音樂部分"
+        "message": "音樂:非音樂部分"
     },
     "category_music_offtopic_description": {
         "message": "僅用於音樂影片。此分類只能用於音樂影片中未包括於其他分類的部分。"
@@ -710,7 +710,7 @@
         "message": "現場表演中的非音樂片段"
     },
     "category_poi_highlight": {
-        "message": "精彩時刻"
+        "message": "精彩時刻/重點"
     },
     "category_poi_highlight_description": {
         "message": "大部分人都在尋找的跳轉時間。類似於“封面在12:34”的評論。"

@@ -591,7 +591,7 @@
         "message": "捐款或自制周边不属于此项"
     },
     "category_selfpromo": {
-        "message": "无偿推广/自我推广"
+        "message": "无偿/自我推广"
     },
     "category_selfpromo_description": {
         "message": "类似于 “恰饭广告” ，但无报酬或是自我推广。包括有关商品、捐赠的部分或合作者的信息。"
@@ -677,7 +677,7 @@
         "message": "不含有新内容"
     },
     "category_filler": {
-        "message": "离题的闲聊/笑话"
+        "message": "离题闲聊/玩笑"
     },
     "category_filler_description": {
         "message": "离题片段标签仅在出现不需要理解视频主要内容的拖时间/无关笑话片段时使用。此标签不能包含有意义的内容或背景细节。这是非常激进的类别，代表您没有心情娱乐。"
@@ -695,7 +695,7 @@
         "message": "不需要理解主题的片段"
     },
     "category_music_offtopic": {
-        "message": "音乐视频的非音乐部分"
+        "message": "音乐:非音乐部分"
     },
     "category_music_offtopic_description": {
         "message": "仅用于音乐视频。此分类只能用于音乐视频中未包括于其他分类的部分。"
@@ -710,7 +710,7 @@
         "message": "现场表演中的非音乐片段"
     },
     "category_poi_highlight": {
-        "message": "精彩时刻"
+        "message": "精彩时刻/重点"
     },
     "category_poi_highlight_description": {
         "message": "大部分人都在寻找的空降时间。类似于“封面在12:34”的评论。"
