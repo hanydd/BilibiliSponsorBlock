@@ -23,7 +23,7 @@ const edgeLanguages = [
     "tr",
     "uk",
     "zh_CN"
-]
+];
 
 
 
@@ -144,7 +144,7 @@ module.exports = env => {
                         filter: async (path) => {
                             if (path.match(/(\/|\\)_locales(\/|\\).+/)) {
                                 if (env.browser.toLowerCase() === "edge"
-                                        && !edgeLanguages.includes(path.match(/(?<=\/_locales\/)[^/]+(?=\/[^/]+$)/)[0])) {
+                                    && !edgeLanguages.includes(path.match(/(?<=\/_locales\/)[^/]+(?=\/[^/]+$)/)[0])) {
                                     return false;
                                 }
 
@@ -168,6 +168,13 @@ module.exports = env => {
                                     parsed.Description.message = parsed.Description.message.match(/^.+(?=\. )/)?.[0] || parsed.Description.message;
                                     if (parsed.Description.message.length > 80) {
                                         parsed.Description.message = parsed.Description.message.slice(0, 77) + "...";
+                                    }
+                                }
+
+                                if (env.browser.toLowerCase() === "edge") {
+                                    parsed.Description.message = parsed.Description.message.match(/^.+(?=\. )/)?.[0] || parsed.Description.message;
+                                    if (parsed.Description.message.length > 132) {
+                                        parsed.Description.message = parsed.Description.message.slice(0, 129) + "...";
                                     }
                                 }
 

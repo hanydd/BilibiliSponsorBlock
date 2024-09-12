@@ -134,7 +134,7 @@ body {
 .option-group > div,
 .option-group > div.section > div {
 	min-height: 50px;
-	padding: 20px 0;
+	padding: 15px 0;
 	border-bottom: 1px solid var(--border-color);
 	border-image: linear-gradient(to right, var(--border-color), #00000000 80%) 1;
 }
@@ -165,7 +165,7 @@ body {
 }
 
 .categoryExtraOptions {
-	padding-bottom: 20px;
+	padding-bottom: 15px;
 }
 
 #music_offtopic_autoSkipOnMusicVideos {
@@ -415,10 +415,11 @@ input[type="number"] {
 }
 
 .switch {
-	position: relative;
-	display: inline-block;
-	width: 40px;
-	height: 24px;
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 24px;
+	min-width: 40px;
 }
 
 .switch input {

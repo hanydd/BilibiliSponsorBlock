@@ -63,7 +63,6 @@ interface SBConfig {
     audioNotificationOnSkip: boolean;
     checkForUnlistedVideos: boolean;
     testingServer: boolean;
-    refetchWhenNotFound: boolean;
     ytInfoPermissionGranted: boolean;
     allowExpirements: boolean;
     showDonationLink: boolean;
@@ -152,7 +151,7 @@ interface SBConfig {
         "preview-filler": PreviewBarOption;
     };
 
-    
+
     //动态主页UP主贴片广告
     dynamicSponsorSelections: DynamicSponsorSelection[];
     dynamicSponsorTypes: {
@@ -271,7 +270,6 @@ const syncDefaults = {
     audioNotificationOnSkip: false,
     checkForUnlistedVideos: false,
     testingServer: false,
-    refetchWhenNotFound: true,
     ytInfoPermissionGranted: false,
     allowExpirements: true,
     showDonationLink: true,
@@ -299,7 +297,7 @@ const syncDefaults = {
     dynamicSponsorBlocker: false,
     dynamicSpaceSponsorBlocker: false,
     dynamicSponsorRegexPattern: "(618|11(?!1).11|双(11|十一|12|十二))|恰(?:个|了|到)?饭|((领(?:取)?|抢|有)(?:神|优惠)?券|券后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品",
-    
+
     showNewIcon: true,
 
     categoryPillColors: {},

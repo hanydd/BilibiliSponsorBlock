@@ -8,6 +8,7 @@ import advanceSkipNotice from "./render/advanceSkipNotice";
 import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";
 import { DescriptionPortPill } from "./render/DesciptionPortPill";
+import { DynamicListener } from "./render/DynamicSponsorBlock";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
@@ -63,9 +64,9 @@ import {
     getVideoID,
     setupVideoModule,
     updateFrameRate,
+    waitForVideo,
 } from "./utils/video";
 import { openWarningDialog } from "./utils/warnings";
-import { DynamicListener } from "./render/DynamicSponsorBlock"
 
 cleanPage();
 
@@ -83,8 +84,8 @@ waitFor(() => Config.isReady(), 5000, 10).then(() => {
 detectPageType();
 
 if ((document.hidden && getPageType() == PageType.Video) || getPageType() == PageType.List) {
-    document.addEventListener("visibilitychange", () => videoElementChange(true), { once: true });
-    window.addEventListener("mouseover", () => videoElementChange(true), { once: true });
+    document.addEventListener("visibilitychange", () => videoElementChange(true, getVideo()), { once: true });
+    window.addEventListener("mouseover", () => videoElementChange(true, getVideo()), { once: true });
 }
 
 const skipBuffer = 0.003;
@@ -99,7 +100,6 @@ let sponsorTimes: SponsorTime[] = [];
 const skipNotices: SkipNotice[] = [];
 let advanceSkipNotices: advanceSkipNotice | null = null;
 let activeSkipKeybindElement: ToggleSkippable = null;
-let retryFetchTimeout: NodeJS.Timeout = null;
 let shownSegmentFailedToFetchWarning = false;
 let selectedSegment: SegmentUUID | null = null;
 let previewedSegment = false;
@@ -216,7 +216,6 @@ let popupInitialised = false;
 let submissionNotice: SubmissionNotice = null;
 
 let lastResponseStatus: number;
-let retryCount = 0;
 let lookupWaiting = false;
 
 // Contains all of the functions and variables needed by the skip notice
@@ -454,7 +453,6 @@ if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
 function resetValues() {
     lastCheckTime = 0;
     lastCheckVideoTime = -1;
-    retryCount = 0;
     previewedSegment = false;
 
     sponsorTimes = [];
@@ -748,7 +746,7 @@ async function startSponsorSchedule(
         await skippingFunction(currentTime);
     } else {
         let delayTime = (timeUntilSponsor * 1000) / getVideo().playbackRate;
-        if (delayTime < (isFirefox() ? 750 : 300)) {
+        if (delayTime < (isFirefox() ? 750 : 300) && shouldAutoSkip(skippingSegments[0])) {
             let forceStartIntervalTime: number | null = null;
             if (isFirefox() && delayTime > 300) {
                 forceStartIntervalTime = await waitForNextTimeChange();
@@ -929,7 +927,7 @@ function getVirtualTime(): number {
         lastTimeFromWaitingEvent ??
         (lastKnownVideoTime.videoTime !== null
             ? ((performance.now() - lastKnownVideoTime.preciseTime) * getVideo().playbackRate) / 1000 +
-              lastKnownVideoTime.videoTime
+            lastKnownVideoTime.videoTime
             : null);
 
     if (
@@ -1007,8 +1005,8 @@ async function incorrectVideoCheck(videoID?: string, sponsorTime?: SponsorTime):
 let playbackRateCheckInterval: NodeJS.Timeout | null = null;
 let lastPlaybackSpeed = 1;
 let setupVideoListenersFirstTime = true;
-function setupVideoListeners() {
-    const video = getVideo();
+function setupVideoListeners(video: HTMLVideoElement) {
+    if (!video) return; // Maybe video became invisible
 
     //wait until it is loaded
     video.addEventListener("loadstart", videoOnReadyListener);
@@ -1077,9 +1075,8 @@ function setupVideoListeners() {
             if (startedWaiting) {
                 startedWaiting = false;
                 logDebug(
-                    `[SB] Playing event after buffering: ${
-                        Math.abs(lastCheckVideoTime - video.currentTime) > 0.3 ||
-                        (lastCheckVideoTime !== video.currentTime && Date.now() - lastCheckTime > 2000)
+                    `[SB] Playing event after buffering: ${Math.abs(lastCheckVideoTime - video.currentTime) > 0.3 ||
+                    (lastCheckVideoTime !== video.currentTime && Date.now() - lastCheckTime > 2000)
                     }`
                 );
             }
@@ -1336,9 +1333,17 @@ async function updateSegments(UUID: string): Promise<FetchResponse> {
 }
 
 async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false, forceUpdatePreviewBar = false) {
+    const videoID = getVideoID();
+    if (!videoID) {
+        console.error("[SponsorBlock] Attempted to fetch segments with a null/undefined videoID.");
+        return;
+    }
     if (lookupWaiting) return;
-    //there is still no video here
+
     if (!getVideo()) {
+        //there is still no video here
+        await waitForVideo();
+
         lookupWaiting = true;
         setTimeout(() => {
             lookupWaiting = false;
@@ -1351,8 +1356,11 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
     const hashParams = getHashParams();
     if (hashParams.requiredSegment) extraRequestData.requiredSegment = hashParams.requiredSegment;
 
-    const hashPrefix = (await getVideoIDHash(getVideoID())).slice(0, 4) as VideoID & HashedValue;
-    const segmentResponse = await getSegmentsByVideoID(getVideoID(), extraRequestData, ignoreServerCache);
+    const hashPrefix = (await getVideoIDHash(videoID)).slice(0, 4) as VideoID & HashedValue;
+    const segmentResponse = await getSegmentsByVideoID(videoID, extraRequestData, ignoreServerCache);
+
+    // Make sure an old pending request doesn't get used.
+    if (videoID !== getVideoID()) return;
 
     // store last response status
     lastResponseStatus = segmentResponse?.status;
@@ -1422,11 +1430,7 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
                 //otherwise the listener can handle it
                 updatePreviewBar();
             }
-        } else {
-            retryFetch(404);
         }
-    } else {
-        retryFetch(lastResponseStatus);
     }
 
     // notify popup of segment changes
@@ -1456,32 +1460,10 @@ async function lockedCategoriesLookup(): Promise<void> {
             if (Array.isArray(categoriesResponse)) {
                 lockedCategories = categoriesResponse;
             }
-        } catch (e) {} //eslint-disable-line no-empty
+        } catch (e) { } //eslint-disable-line no-empty
     }
 }
 
-function retryFetch(errorCode: number): void {
-    sponsorDataFound = false;
-    if (!Config.config.refetchWhenNotFound) return;
-
-    if (retryFetchTimeout) clearTimeout(retryFetchTimeout);
-    if ((errorCode !== 404 && retryCount > 1) || (errorCode !== 404 && retryCount > 10)) {
-        // Too many errors (50x), give up
-        return;
-    }
-
-    retryCount++;
-
-    const delay = errorCode === 404 ? 30000 + Math.random() * 30000 : 2000 + Math.random() * 10000;
-    retryFetchTimeout = setTimeout(() => {
-        if (
-            (getVideoID() && sponsorTimes?.length === 0) ||
-            sponsorTimes.every((segment) => segment.source !== SponsorSourceType.Server)
-        ) {
-            // sponsorsLookup();
-        }
-    }, delay);
-}
 
 /**
  * Only should be used when it is okay to skip a sponsor when in the middle of it
@@ -1546,7 +1528,9 @@ function startSkipScheduleCheckingForStartSponsors() {
 
         const fullVideoSegment = sponsorTimes.filter((time) => time.actionType === ActionType.Full)[0];
         if (fullVideoSegment) {
-            categoryPill?.setSegment(fullVideoSegment);
+            waitFor(() => categoryPill).then(() => {
+                categoryPill?.setSegment(fullVideoSegment);
+            });
         }
 
         if (startingSegmentTime !== -1) {
@@ -1637,10 +1621,10 @@ async function channelIDChange(channelIDInfo: ChannelIDInfo) {
     if (Config.config.forceChannelCheck && sponsorTimes?.length > 0) startSkipScheduleCheckingForStartSponsors();
 }
 
-function videoElementChange(newVideo: boolean): void {
+function videoElementChange(newVideo: boolean, video: HTMLVideoElement): void {
     waitFor(() => Config.isReady() && !document.hidden, 24 * 60 * 60, 500).then(() => {
         if (newVideo) {
-            setupVideoListeners();
+            setupVideoListeners(video);
             setupSkipButtonControlBar();
             setupCategoryPill();
             setupDescriptionPill();
@@ -1713,8 +1697,8 @@ function getNextSkipIndex(
             (a, b) =>
                 autoSkipSorter(submittedArray[a]) - autoSkipSorter(submittedArray[b]) ||
                 submittedArray[a].segment[1] -
-                    submittedArray[a].segment[0] -
-                    (submittedArray[b].segment[1] - submittedArray[b].segment[0])
+                submittedArray[a].segment[0] -
+                (submittedArray[b].segment[1] - submittedArray[b].segment[0])
         )[0] ?? -1;
     // Store extra indexes for the non-auto skipping segments if others occur at the exact same start time
     const extraIndexes = minSponsorTimeIndexes.filter(
@@ -2001,7 +1985,7 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
             } else if (autoSkip) {
                 activeSkipKeybindElement?.setShowKeybindHint(false);
                 activeSkipKeybindElement = {
-                    setShowKeybindHint: () => {},
+                    setShowKeybindHint: () => { },
                     toggleSkip: () => {
                         createSkipNotice(skippingSegments, autoSkip, unskipTime, true);
 
@@ -2588,7 +2572,7 @@ async function sendSubmitMessage(): Promise<boolean> {
                     newSegments[i].source = SponsorSourceType.Server;
                 }
             }
-        } catch (e) {} // eslint-disable-line no-empty
+        } catch (e) { } // eslint-disable-line no-empty
 
         // Add submissions to current sponsors list
         sponsorTimes = (sponsorTimes || []).concat(newSegments).sort((a, b) => a.segment[0] - b.segment[0]);
@@ -2607,7 +2591,9 @@ async function sendSubmitMessage(): Promise<boolean> {
 
         const fullVideoSegment = sponsorTimes.filter((time) => time.actionType === ActionType.Full)[0];
         if (fullVideoSegment) {
-            categoryPill?.setSegment(fullVideoSegment);
+            waitFor(() => categoryPill).then(() => {
+                categoryPill?.setSegment(fullVideoSegment);
+            });
             // refresh the video labels cache
             getVideoLabel(getVideoID(), true);
         }
@@ -2730,28 +2716,13 @@ function hotkeyListener(e: KeyboardEvent): void {
         submitSegments();
         return;
     } else if (keybindEquals(key, openSubmissionMenuKey)) {
+        e.preventDefault();
+
         openSubmissionMenu();
         return;
     } else if (keybindEquals(key, previewKey)) {
         previewRecentSegment();
         return;
-    }
-
-    //legacy - to preserve keybinds for skipKey, startSponsorKey and submitKey for people who set it before the update. (shouldn't be changed for future keybind options)
-    if (key.key == skipKey?.key && skipKey.code == null && !keybindEquals(Config.syncDefaults.skipKeybind, skipKey)) {
-        if (activeSkipKeybindElement) activeSkipKeybindElement.toggleSkip.call(activeSkipKeybindElement);
-    } else if (
-        key.key == startSponsorKey?.key &&
-        startSponsorKey.code == null &&
-        !keybindEquals(Config.syncDefaults.startSponsorKeybind, startSponsorKey)
-    ) {
-        startOrEndTimingNewSegment();
-    } else if (
-        key.key == submitKey?.key &&
-        submitKey.code == null &&
-        !keybindEquals(Config.syncDefaults.submitKeybind, submitKey)
-    ) {
-        openSubmissionMenu();
     }
 }
 

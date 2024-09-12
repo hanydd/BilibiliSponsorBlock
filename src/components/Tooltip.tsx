@@ -15,6 +15,7 @@ export interface TooltipProps {
     topOffset?: string;
     leftOffset?: string;
     rightOffset?: string;
+    zIndex?: number;
     innerBottomMargin?: string;
     timeout?: number;
     opacity?: number;
@@ -45,6 +46,7 @@ export class GenericTooltip {
         props.topOffset ??= "inherit";
         props.leftOffset ??= "inherit";
         props.rightOffset ??= "inherit";
+        props.zIndex ??= 10000;
         props.innerBottomMargin ??= "0px";
         props.opacity ??= 0.7;
         props.displayTriangle ??= !props.topTriangle;
@@ -93,6 +95,7 @@ export class GenericTooltip {
                     top: props.topOffset,
                     left: props.leftOffset,
                     right: props.rightOffset,
+                    zIndex: props.zIndex,
                     backgroundColor,
                     margin: props.center ? "auto" : undefined,
                 }}

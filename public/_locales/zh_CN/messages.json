@@ -242,12 +242,6 @@
     "whatQueryByHashPrefix": {
         "message": "使用视频 ID 哈希值的前 4 个字符而非整个视频 ID 向服务器查询片段。服务器将返回所有具有类似哈希值的视频数据。"
     },
-    "enableRefetchWhenNotFound": {
-        "message": "新视频重复获取片段"
-    },
-    "whatRefetchWhenNotFound": {
-        "message": "如果新视频中没有发现可跳片段，将每隔几分钟再次尝试获取片段信息。"
-    },
     "enableShowCategoryWithoutPermission": {
         "message": "在提交菜单中显示类别，即使没有提交权限"
     },

@@ -8,7 +8,7 @@ export async function waitFor<T>(
     return await new Promise((resolve, reject) => {
         setTimeout(() => {
             clearTimeout(interval);
-            reject(`TIMEOUT: ${Error().stack}`);
+            reject(`TIMEOUT waiting for ${condition?.toString()}: ${Error().stack}`);
         }, timeout);
 
         const intervalCheck = () => {

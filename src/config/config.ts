@@ -190,7 +190,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             }),
             new Promise<void>((resolve) => {
                 chrome.storage.local.get(null, (items) => {
-                    this.cachedLocalStorage = <U>(<unknown>items);
+                    this.cachedLocalStorage = <U> <unknown>(items ?? {}) ;
                     resolve();
                 });
             }),

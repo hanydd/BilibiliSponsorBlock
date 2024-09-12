@@ -117,6 +117,8 @@ export class CategoryPill {
     }
 
     async setSegment(segment: SponsorTime): Promise<void> {
+        await waitFor(() => this.ref.current);
+
         if (this.ref.current?.state?.segment !== segment) {
             const newState = {
                 segment,

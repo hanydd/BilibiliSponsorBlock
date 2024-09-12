@@ -36,14 +36,16 @@ let channelIDInfo: ChannelIDInfo;
 let waitingForChannelID = false;
 let frameRate: number = 30;
 
-let contentMethod = {
-    videoIDChange: () => {},
-    channelIDChange: (channelID) => channelID,
-    resetValues: () => {},
-    videoElementChange: (newVideo) => newVideo,
-};
+interface contentMethodType {
+    videoIDChange: () => void;
+    channelIDChange: (channelIDInfo: ChannelIDInfo) => void;
+    resetValues: () => void;
+    videoElementChange?: (newVideo: boolean, video: HTMLVideoElement | null) => void;
+}
 
-export function setupVideoModule(method) {
+let contentMethod: contentMethodType;
+
+export function setupVideoModule(method: contentMethodType) {
     contentMethod = method;
     setupCleanupListener();
 
@@ -276,6 +278,15 @@ function setupVideoMutationListener() {
     }
 }
 
+const waitingForVideoListeners: Array<(video: HTMLVideoElement) => void> = [];
+export function waitForVideo(): Promise<HTMLVideoElement> {
+    if (video) return Promise.resolve(video);
+
+    return new Promise((resolve) => {
+        waitingForVideoListeners.push(resolve);
+    });
+}
+
 // Used only for embeds to wait until the url changes
 let embedLastUrl = "";
 let waitingForEmbed = false;
@@ -298,7 +309,10 @@ async function refreshVideoAttachments(): Promise<void> {
         videosSetup.push(video);
     }
 
-    contentMethod.videoElementChange(isNewVideo);
+    contentMethod.videoElementChange(isNewVideo, video);
+    waitingForVideoListeners.forEach((l) => l(newVideo));
+    waitingForVideoListeners.length = 0;
+
     setupVideoMutationListener();
 
     if (document.URL.includes("/embed/")) {
