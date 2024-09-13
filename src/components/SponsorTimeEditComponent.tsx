@@ -85,15 +85,9 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         });
 
         // Prevent scrolling while changing times
-        document.getElementById("sponsorTimesContainer" + this.idSuffix).addEventListener(
-            "wheel",
-            (e) => {
-                if (this.state.editing) {
-                    e.preventDefault();
-                }
-            },
-            { passive: false }
-        );
+        document
+            .getElementById("sponsorTimesContainer" + this.idSuffix)
+            .addEventListener("wheel", (e) => e.preventDefault());
 
         // Add as a config listener
         if (!this.configUpdateListener) {
@@ -359,6 +353,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
     }
 
     changeTimesWhenScrolling(index: number, e: React.WheelEvent, sponsorTime: SponsorTime): void {
+        e.stopPropagation();
         if (!Config.config.allowScrollingToEdit) return;
         let step = 0;
         // shift + ctrl = 1
