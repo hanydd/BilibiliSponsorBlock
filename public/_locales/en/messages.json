@@ -7,7 +7,7 @@
         "message": "空降助手"
     },
     "Description": {
-        "message": "恰饭？桌子都给你掀了(/= _ =)/~┴┴   带你精准空降到恰饭结束或者高能时刻，自动跳过视频中的赞助广告、订阅提醒等片段。你也可以亲自标记视频中的广告并上传，所有人都会从您的贡献中受益。",
+        "message": "恰饭？桌子都给你掀了(/= _ =)/~┴┴   带你精准空降到赞助广告结束或者高能时刻，自动跳过视频中的赞助广告、订阅提醒等片段。你也可以亲自标记视频中的广告并上传，所有人都会从您的贡献中受益。",
         "description": "Description of the extension."
     },
     "400": {
@@ -279,7 +279,7 @@
         "message": "半透明所有的空降提醒弹窗"
     },
     "longDescription": {
-        "message": "B站空降助手可帮您跳过B站视频中的恰饭广告、开场结尾、三连提醒和其他烦人片段。空降助手是一个众包的浏览器扩展，任何人可以提交B站视频中的广告和其他片段的开始和结束时间。如果有一人提交了信息，其他所有使用此扩展的人都能直接跳过广告片段。您也可以跳过音乐视频中的非音乐部分。",
+        "message": "B站空降助手可帮您跳过B站视频中的赞助广告、开场结尾、三连提醒和其他烦人片段。空降助手是一个众包的浏览器扩展，任何人可以提交B站视频中的广告和其他片段的开始和结束时间。如果有一人提交了信息，其他所有使用此扩展的人都能直接跳过广告片段。您也可以跳过音乐视频中的非音乐部分。",
         "description": "Full description of the extension on the store pages."
     },
     "website": {
@@ -579,7 +579,7 @@
         "message": "跳过后的视频仍然流畅，就好像跳过的片段不存在一样"
     },
     "category_sponsor": {
-        "message": "恰饭广告"
+        "message": "赞助广告"
     },
     "category_sponsor_description": {
         "message": "付费推广、付费推荐和直接广告。不是自我推广或免费提及他们喜欢的商品/创作者/网站/产品。"
@@ -591,10 +591,10 @@
         "message": "捐款或自制周边不属于此项"
     },
     "category_selfpromo": {
-        "message": "无偿推广/自我推广"
+        "message": "无偿/自我推广"
     },
     "category_selfpromo_description": {
-        "message": "类似于 “恰饭广告” ，但无报酬或是自我推广。包括有关商品、捐赠的部分或合作者的信息。"
+        "message": "类似于 “赞助广告” ，但无报酬或是自我推广。包括有关商品、捐赠的部分或合作者的信息。"
     },
     "category_selfpromo_guideline1": {
         "message": "捐赠、会员和自制周边"
@@ -652,7 +652,7 @@
         "message": "不包括含有内容的转场"
     },
     "category_outro": {
-        "message": "结束画面/结尾致谢"
+        "message": "鸣谢/结束画面"
     },
     "category_outro_description": {
         "message": "致谢画面或片尾画面。不包含内容的结尾。"
@@ -677,7 +677,7 @@
         "message": "不含有新内容"
     },
     "category_filler": {
-        "message": "离题的闲聊/笑话"
+        "message": "离题闲聊/玩笑"
     },
     "category_filler_description": {
         "message": "离题片段标签仅在出现不需要理解视频主要内容的拖时间/无关笑话片段时使用。此标签不能包含有意义的内容或背景细节。这是非常激进的类别，代表您没有心情娱乐。"
@@ -695,7 +695,7 @@
         "message": "不需要理解主题的片段"
     },
     "category_music_offtopic": {
-        "message": "音乐视频的非音乐部分"
+        "message": "音乐:非音乐部分"
     },
     "category_music_offtopic_description": {
         "message": "仅用于音乐视频。此分类只能用于音乐视频中未包括于其他分类的部分。"
@@ -710,7 +710,7 @@
         "message": "现场表演中的非音乐片段"
     },
     "category_poi_highlight": {
-        "message": "精彩时刻"
+        "message": "精彩时刻/重点"
     },
     "category_poi_highlight_description": {
         "message": "大部分人都在寻找的空降时间。类似于“封面在12:34”的评论。"
