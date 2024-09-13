@@ -1,7 +1,7 @@
 import Config from "../config";
 import { waitFor } from "../utils/";
 import { getBvIDFromURL } from "../utils/parseVideoID";
-import { getVideoLabel } from "../utils/videoLabels";
+import { getVideoLabel } from "../requests/videoLabels";
 
 export async function labelThumbnails(thumbnails: HTMLElement[]): Promise<void> {
     await Promise.all(thumbnails.map((t) => labelThumbnail(t as HTMLImageElement)));

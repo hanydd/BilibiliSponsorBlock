@@ -1,8 +1,8 @@
-import { asyncRequestToServer } from "../requests/requests";
 import { Category, CategorySkipOption, VideoID } from "../types";
 import Utils from "../utils";
-import { getHash } from "../utils/hash";
-import { logWarn } from "./logger";
+import { getVideoIDHash } from "../utils/hash";
+import { logWarn } from "../utils/logger";
+import { asyncRequestToServer } from "./requests";
 
 const utils = new Utils();
 
@@ -55,7 +55,7 @@ async function getLabelHashBlock(hashPrefix: string): Promise<LabelCacheEntry | 
 }
 
 export async function getVideoLabel(videoID: VideoID): Promise<Category | null> {
-    const prefix = (await getHash(videoID, 1)).slice(0, 3);
+    const prefix = (await getVideoIDHash(videoID)).slice(0, 3);
     const result = await getLabelHashBlock(prefix);
 
     if (result) {

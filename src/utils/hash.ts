@@ -26,3 +26,7 @@ export async function getHash<T extends string>(value: T, times = 5000): Promise
 
     return hashHex as T & HashedValue;
 }
+
+export async function getVideoIDHash(videoID: string): Promise<string> {
+    return getHash(videoID, 1);
+}

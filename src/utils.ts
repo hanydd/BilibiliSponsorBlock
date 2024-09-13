@@ -11,7 +11,7 @@ import {
 
 import { isSafari } from "./config/config";
 import { findValidElementFromSelector } from "./utils/dom";
-import { getHash, HashedValue } from "./utils/hash";
+import { getHash, getVideoIDHash, HashedValue } from "./utils/hash";
 
 export default class Utils {
     // Contains functions needed from the background script
@@ -245,7 +245,7 @@ export default class Utils {
         )
             return;
 
-        const hashedVideoID = (await getHash(videoID, 1)).slice(0, 4) as VideoID & HashedValue;
+        const hashedVideoID = (await getVideoIDHash(videoID)).slice(0, 4) as VideoID & HashedValue;
         const UUIDHash = await getHash(segmentUUID, 1);
 
         const allDownvotes = Config.local.downvotedSegments;
