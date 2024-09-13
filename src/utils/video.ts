@@ -38,6 +38,7 @@ let videoID: VideoID | null = null;
 let pageType: PageType = PageType.Unknown;
 let channelIDInfo: ChannelIDInfo;
 let waitingForChannelID = false;
+let frameRate: number = 30;
 
 let contentMethod = {
     videoIDChange: () => {},
@@ -285,6 +286,8 @@ let waitingForEmbed = false;
 async function refreshVideoAttachments(): Promise<void> {
     if (waitingForNewVideo) return;
 
+    void updateFrameRate();
+
     waitingForNewVideo = true;
     // Compatibility for Vinegar extension
     const newVideo =
@@ -376,14 +379,15 @@ function addPageListeners(): void {
     });
 }
 
-export async function getFrameRate() {
-    return await getPropertyFromWindow<number>({
+export async function updateFrameRate(): Promise<number> {
+    frameRate = await getPropertyFromWindow<number>({
         sendType: "getFrameRate",
         responseType: "returnFrameRate",
     }).catch(() => {
         // fall back to 30 fps
         return 30;
     });
+    return frameRate;
 }
 
 let lastRefresh = 0;
@@ -400,6 +404,10 @@ export function getVideo(): HTMLVideoElement | null {
 
 export function getVideoID(): VideoID | null {
     return videoID;
+}
+
+export function getFrameRate(): number {
+    return frameRate;
 }
 
 export function getWaitingForChannelID(): boolean {

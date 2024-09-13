@@ -53,7 +53,7 @@ import {
     checkVideoIDChange,
     detectPageType,
     getChannelIDInfo,
-    getFrameRate,
+    updateFrameRate,
     getIsLivePremiere,
     getPageType,
     getVideo,
@@ -2528,7 +2528,7 @@ function hotkeyListener(e: KeyboardEvent): void {
  */
 export async function seekFrameByKeyPressListener(key) {
     const vid = getVideo();
-    const frameRate = await getFrameRate();
+    const frameRate = await updateFrameRate();
     if (!vid.paused) return;
 
     if (keybindEquals(key, Config.config.nextFrameKeybind)) {

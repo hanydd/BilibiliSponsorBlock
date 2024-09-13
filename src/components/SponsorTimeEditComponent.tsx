@@ -3,16 +3,16 @@ import { CheckboxChangeEvent } from "antd/es/checkbox";
 import * as React from "react";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
+import { showMessage } from "../render/MessageNotice";
 import { RectangleTooltip } from "../render/RectangleTooltip";
 import { asyncRequestToServer } from "../requests/requests";
 import { ActionType, Category, ChannelIDStatus, ContentContainer, SponsorTime } from "../types";
 import { DEFAULT_CATEGORY } from "../utils/categoryUtils";
 import { defaultPreviewTime } from "../utils/constants";
 import { getFormattedTime, getFormattedTimeToSeconds } from "../utils/formating";
-import { getVideo } from "../utils/video";
+import { getFrameRate, getVideo } from "../utils/video";
 import { SelectorOption } from "./SelectorComponent";
 import SubmissionNoticeComponent from "./SubmissionNoticeComponent";
-import { showMessage } from "../render/MessageNotice";
 export interface SponsorTimeEditProps {
     index: number;
 
@@ -355,15 +355,18 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
     changeTimesWhenScrolling(index: number, e: React.WheelEvent, sponsorTime: SponsorTime): void {
         e.stopPropagation();
         if (!Config.config.allowScrollingToEdit) return;
-        let step = 0;
-        // shift + ctrl = 1
-        // ctrl = 0.1
-        // default = 0.01
-        // shift = 0.001
+
+        // shift = 1s
+        // ctrl = ~0.2s (round up whole frame)
+        // default = 1 frame ()
+        const frameRate = getFrameRate();
+        let step: number;
         if (e.shiftKey) {
-            step = e.ctrlKey ? 1 : 0.001;
+            step = 1;
+        } else if (e.ctrlKey) {
+            step = Math.ceil(frameRate * 0.2) / frameRate;
         } else {
-            step = e.ctrlKey ? 0.1 : 0.01;
+            step = 1 / frameRate;
         }
 
         const sponsorTimeEdits = this.state.sponsorTimeEdits;
