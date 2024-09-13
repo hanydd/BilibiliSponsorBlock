@@ -14,14 +14,14 @@ export interface LabelCacheEntry {
 const labelCache: Record<string, LabelCacheEntry> = {};
 const cacheLimit = 1000;
 
-async function getLabelHashBlock(hashPrefix: string): Promise<LabelCacheEntry | null> {
+async function getLabelHashBlock(hashPrefix: string, refreshCache: boolean = false): Promise<LabelCacheEntry | null> {
     // Check cache
     const cachedEntry = labelCache[hashPrefix];
-    if (cachedEntry) {
+    if (cachedEntry && !refreshCache) {
         return cachedEntry;
     }
 
-    const response = await asyncRequestToServer("GET", `/api/videoLabels/${hashPrefix}`);
+    const response = await asyncRequestToServer("GET", `/api/videoLabels/${hashPrefix}`, {}, refreshCache);
     if (response.status !== 200) {
         // No video labels or server down
         labelCache[hashPrefix] = {
@@ -54,9 +54,9 @@ async function getLabelHashBlock(hashPrefix: string): Promise<LabelCacheEntry | 
     }
 }
 
-export async function getVideoLabel(videoID: VideoID): Promise<Category | null> {
+export async function getVideoLabel(videoID: VideoID, refreshCache: boolean = false): Promise<Category | null> {
     const prefix = (await getVideoIDHash(videoID)).slice(0, 3);
-    const result = await getLabelHashBlock(prefix);
+    const result = await getLabelHashBlock(prefix, refreshCache);
 
     if (result) {
         const category = result.videos[videoID];

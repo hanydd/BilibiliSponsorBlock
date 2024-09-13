@@ -13,6 +13,7 @@ import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
 import { asyncRequestToServer } from "./requests/requests";
+import { getVideoLabel } from "./requests/videoLabels";
 import { setupThumbnailListener, updateAll } from "./thumbnail-utils/thumbnailManagement";
 import {
     ActionType,
@@ -2374,6 +2375,8 @@ async function sendSubmitMessage(): Promise<boolean> {
         const fullVideoSegment = sponsorTimes.filter((time) => time.actionType === ActionType.Full)[0];
         if (fullVideoSegment) {
             categoryPill?.setSegment(fullVideoSegment);
+            // refresh the video labels cache
+            getVideoLabel(getVideoID(), true);
         }
 
         return true;
