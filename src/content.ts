@@ -1,4 +1,3 @@
-import * as CompileConfig from "../config.json";
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import Config from "./config";
 import { isSafari, Keybind, keybindEquals, keybindToString, StorageChangesObject } from "./config/config";
@@ -13,11 +12,11 @@ import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
 import { asyncRequestToServer } from "./requests/requests";
+import { getSegmentsByHash } from "./requests/segments";
 import { getVideoLabel } from "./requests/videoLabels";
 import { setupThumbnailListener, updateAll } from "./thumbnail-utils/thumbnailManagement";
 import {
     ActionType,
-    ActionTypes,
     Category,
     CategorySkipOption,
     ChannelIDInfo,
@@ -43,7 +42,7 @@ import { findValidElement } from "./utils/dom";
 import { importTimes } from "./utils/exporter";
 import { getErrorMessage, getFormattedTime } from "./utils/formating";
 import { GenericUtils } from "./utils/genericUtils";
-import { getHash, HashedValue } from "./utils/hash";
+import { getHash, getVideoIDHash, HashedValue } from "./utils/hash";
 import { logDebug } from "./utils/logger";
 import { getControls, getHashParams, getProgressBar, isPlayingPlaylist } from "./utils/pageUtils";
 import { getBilibiliVideoID } from "./utils/parseVideoID";
@@ -58,7 +57,7 @@ import {
     getVideo,
     getVideoID,
     setupVideoModule,
-    updateFrameRate
+    updateFrameRate,
 } from "./utils/video";
 import { openWarningDialog } from "./utils/warnings";
 
@@ -1136,17 +1135,8 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
     const hashParams = getHashParams();
     if (hashParams.requiredSegment) extraRequestData.requiredSegment = hashParams.requiredSegment;
 
-    const hashPrefix = (await getHash(getVideoID(), 1)).slice(0, 4) as VideoID & HashedValue;
-    const response = await asyncRequestToServer(
-        "GET",
-        "/api/skipSegments/" + hashPrefix,
-        {
-            categories: CompileConfig.categoryList,
-            actionTypes: ActionTypes,
-            ...extraRequestData,
-        },
-        ignoreServerCache
-    );
+    const hashPrefix = (await getVideoIDHash(getVideoID())).slice(0, 4) as VideoID & HashedValue;
+    const response = await getSegmentsByHash(hashPrefix, extraRequestData, ignoreServerCache);
 
     // store last response status
     lastResponseStatus = response?.status;
