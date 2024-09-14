@@ -92,6 +92,11 @@ export interface SponsorTime {
     videoDuration?: number;
 }
 
+export interface SponsorTimeHashedID {
+    videoID: VideoID;
+    segments: SponsorTime[];
+}
+
 export interface ScheduledTime extends SponsorTime {
     scheduledTime: number;
 }

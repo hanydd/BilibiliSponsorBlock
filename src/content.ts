@@ -29,6 +29,7 @@ import {
     SponsorHideType,
     SponsorSourceType,
     SponsorTime,
+    SponsorTimeHashedID,
     ToggleSkippable,
     VideoID,
     VideoInfo,
@@ -1143,17 +1144,17 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
 
     if (response?.ok) {
         const receivedSegments: SponsorTime[] = JSON.parse(response.responseText)
-            ?.filter((video) => video.videoID === getVideoID())
-            ?.map((video) => video.segments)?.[0]
+            ?.filter((video: SponsorTimeHashedID) => video.videoID === getVideoID())
+            ?.map((video: SponsorTimeHashedID) => video.segments)?.[0]
             ?.filter(
-                (segment) =>
+                (segment: SponsorTime) =>
                     getEnabledActionTypes().includes(segment.actionType) && categories.includes(segment.category)
             )
-            ?.map((segment) => ({
+            ?.map((segment: SponsorTime) => ({
                 ...segment,
                 source: SponsorSourceType.Server,
             }))
-            ?.sort((a, b) => a.segment[0] - b.segment[0]);
+            ?.sort((a: SponsorTime, b: SponsorTime) => a.segment[0] - b.segment[0]);
         if (receivedSegments && receivedSegments.length) {
             sponsorDataFound = true;
 
