@@ -289,10 +289,7 @@ async function refreshVideoAttachments(): Promise<void> {
     void updateFrameRate();
 
     waitingForNewVideo = true;
-    // Compatibility for Vinegar extension
-    const newVideo =
-        (isSafari() && (document.querySelector('video[vinegared="true"]') as HTMLVideoElement)) ||
-        ((await waitForElement("#bilibili-player video", false)) as HTMLVideoElement);
+    const newVideo = (await waitForElement("#bilibili-player video", false)) as HTMLVideoElement;
     waitingForNewVideo = false;
 
     if (video === newVideo) return;
