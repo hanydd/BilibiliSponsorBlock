@@ -477,9 +477,6 @@
     "shortCheck": {
         "message": "以下的提交短於您的最小持續時間選項。這代表它們可能已經被提交，只是由於該選項被忽略了。您確定要提交嗎？"
     },
-    "liveOrPremiere": {
-        "message": "無法在進行中的直播或首播提交片段。請等待直播結束後刷新頁面並確認片段仍然有效，再次提交。"
-    },
     "customServerAddress": {
         "message": "Bilibili Sponsor Block伺服器地址"
     },

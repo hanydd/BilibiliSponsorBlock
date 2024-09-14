@@ -1,6 +1,5 @@
 import * as documentScript from "../../dist/js/document.js";
 import Config from "../config";
-import { isSafari } from "../config/config";
 import { newThumbnails } from "../thumbnail-utils/thumbnailManagement";
 import { PageType } from "../types";
 import { waitFor } from "./";
@@ -30,9 +29,6 @@ let videoMutationListenerElement: HTMLElement | null = null;
 // What videos have run through setup so far
 const videosSetup: HTMLVideoElement[] = [];
 let waitingForNewVideo = false;
-
-// if video is live or premiere
-let isLivePremiere: boolean;
 
 let videoID: VideoID | null = null;
 let pageType: PageType = PageType.Unknown;
@@ -159,7 +155,6 @@ function resetValues() {
         status: ChannelIDStatus.Fetching,
         id: null,
     };
-    isLivePremiere = false;
 
     // Reset the last media session link
     window.postMessage(
@@ -357,8 +352,6 @@ function windowListenerHandler(event: MessageEvent): void {
         void videoIDChange(data.videoID);
     } else if (dataType === "data" && data.videoID) {
         void videoIDChange(data.videoID);
-
-        isLivePremiere = data.isLive || data.isPremiere;
     } else if (dataType === "newElement") {
         newThumbnails();
     }
@@ -413,10 +406,6 @@ export function getWaitingForChannelID(): boolean {
 
 export function getChannelIDInfo(): ChannelIDInfo {
     return channelIDInfo;
-}
-
-export function getIsLivePremiere(): boolean {
-    return isLivePremiere;
 }
 
 export function getPageType(): PageType {

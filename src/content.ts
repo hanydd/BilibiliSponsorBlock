@@ -45,7 +45,7 @@ import { getErrorMessage, getFormattedTime } from "./utils/formating";
 import { GenericUtils } from "./utils/genericUtils";
 import { getHash, HashedValue } from "./utils/hash";
 import { logDebug } from "./utils/logger";
-import { getControls, getHashParams, getProgressBar, isPlayingPlaylist, isVisible } from "./utils/pageUtils";
+import { getControls, getHashParams, getProgressBar, isPlayingPlaylist } from "./utils/pageUtils";
 import { getBilibiliVideoID } from "./utils/parseVideoID";
 import { generateUserID } from "./utils/setup";
 import { getStartTimeFromUrl } from "./utils/urlParser";
@@ -54,12 +54,11 @@ import {
     checkVideoIDChange,
     detectPageType,
     getChannelIDInfo,
-    updateFrameRate,
-    getIsLivePremiere,
     getPageType,
     getVideo,
     getVideoID,
     setupVideoModule,
+    updateFrameRate
 } from "./utils/video";
 import { openWarningDialog } from "./utils/warnings";
 
@@ -2277,13 +2276,7 @@ function submitSegments() {
 //send the message to the background js
 //called after all the checks have been made that it's okay to do so
 async function sendSubmitMessage(): Promise<boolean> {
-    // check if all segments are full video
-    const onlyFullVideo = sponsorTimesSubmitting.every((segment) => segment.actionType === ActionType.Full);
-    // Block if submitting on a running livestream or premiere
-    if (!onlyFullVideo && (getIsLivePremiere() || isVisible(document.querySelector(".ytp-live-badge")))) {
-        showMessage(chrome.i18n.getMessage("liveOrPremiere"), "warning");
-        return false;
-    }
+    // TODO: add checks for premiere videos
 
     if (
         !previewedSegment &&
