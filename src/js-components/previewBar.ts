@@ -11,7 +11,6 @@ export interface PreviewBarSegment {
     actionType: ActionType;
     unsubmitted: boolean;
     showLarger: boolean;
-    description: string;
     source: SponsorSourceType;
     requiredSegment?: boolean;
     selectedSegment?: boolean;
@@ -108,7 +107,7 @@ class PreviewBar {
 
     private setTooltipTitle(segment: PreviewBarSegment, tooltip: HTMLElement): void {
         if (segment) {
-            const name = segment.description || shortCategoryName(segment.category);
+            const name = shortCategoryName(segment.category);
             if (segment.unsubmitted) {
                 tooltip.textContent = chrome.i18n.getMessage("unsubmitted") + " " + name;
             } else {
@@ -264,7 +263,7 @@ class PreviewBar {
                         elem.classList.add("sponsorChapterText");
                         return elem;
                     })()) as HTMLDivElement;
-                chapterCustomText.innerText = chosenSegment.description || shortCategoryName(chosenSegment.category);
+                chapterCustomText.innerText = shortCategoryName(chosenSegment.category);
 
                 // if (chosenSegment.actionType !== ActionType.Chapter) {
                 //     chapterTitle.classList.add("sponsorBlock-segment-title");

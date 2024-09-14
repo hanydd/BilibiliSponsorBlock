@@ -1384,7 +1384,6 @@ function updatePreviewBar(): void {
                 actionType: segment.actionType,
                 unsubmitted: false,
                 showLarger: segment.actionType === ActionType.Poi,
-                description: segment.description,
                 source: segment.source,
                 requiredSegment:
                     requiredSegment && (segment.UUID === requiredSegment || segment.UUID?.startsWith(requiredSegment)),
@@ -1400,7 +1399,6 @@ function updatePreviewBar(): void {
             actionType: segment.actionType,
             unsubmitted: true,
             showLarger: segment.actionType === ActionType.Poi,
-            description: segment.description,
             source: segment.source,
         });
     });
@@ -2018,7 +2016,6 @@ function updateSponsorTimesSubmitting(getFromConfig = true) {
                 UUID: segmentTime.UUID,
                 category: segmentTime.category,
                 actionType: segmentTime.actionType,
-                description: segmentTime.description,
                 source: segmentTime.source,
             });
         }
@@ -2589,7 +2586,6 @@ function checkForPreloadedSegment() {
                         UUID: generateUserID() as SegmentUUID,
                         category: segment.category ? segment.category : Config.config.defaultCategory,
                         actionType: segment.actionType ? segment.actionType : ActionType.Skip,
-                        description: segment.description ?? "",
                         source: SponsorSourceType.Local,
                     });
 

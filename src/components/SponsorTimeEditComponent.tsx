@@ -31,7 +31,6 @@ export interface SponsorTimeEditState {
     sponsorTimeEdits: [string, string];
     selectedCategory: Category;
     selectedActionType: ActionType;
-    description: string;
     suggestedNames: SelectorOption[];
     chapterNameSelectorOpen: boolean;
     chapterNameSelectorHovering: boolean;
@@ -71,7 +70,6 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
             sponsorTimeEdits: [null, null],
             selectedCategory: sponsorTime.category ?? (DEFAULT_CATEGORY as Category),
             selectedActionType: sponsorTime.actionType,
-            description: sponsorTime.description || "",
             suggestedNames: [],
             chapterNameSelectorOpen: false,
             chapterNameSelectorHovering: false,
@@ -685,8 +683,6 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
             selectedActionType: actionType,
         });
 
-        sponsorTimesSubmitting[this.props.index].description = "";
-
         Config.local.unsubmittedSegments[this.props.contentContainer().sponsorVideoID] = sponsorTimesSubmitting;
         Config.forceLocalUpdate("unsubmittedSegments");
 
@@ -762,21 +758,6 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         if (sponsorTimes.length === 0 || removingIncomplete) {
             //update video player
             this.props.contentContainer().updateEditButtonsOnPlayer();
-        }
-    }
-
-    descriptionUpdate(description: string): void {
-        this.setState(
-            {
-                description,
-            },
-            () => {
-                this.saveEditTimes();
-            }
-        );
-
-        if (!this.fetchingSuggestions) {
-            this.fetchSuggestions(description);
         }
     }
 

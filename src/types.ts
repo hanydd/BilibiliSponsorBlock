@@ -79,18 +79,13 @@ export enum SponsorSourceType {
     Local = 1,
     YouTube = 2,
 }
-
-export interface SegmentContainer {
+export interface SponsorTime {
     segment: [number] | [number, number];
-}
-
-export interface SponsorTime extends SegmentContainer {
     UUID: SegmentUUID;
     locked?: number;
 
     category: Category;
     actionType: ActionType;
-    description?: string;
 
     hidden?: SponsorHideType;
     source: SponsorSourceType;

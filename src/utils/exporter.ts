@@ -26,7 +26,7 @@ export function exportTimes(segments: SponsorTime[]): string {
 }
 
 function exportTime(segment: SponsorTime): string {
-    const name = segment.description || shortCategoryName(segment.category);
+    const name = shortCategoryName(segment.category);
 
     return `${getFormattedTime(segment.segment[0], true)}${
         segment.segment[1] && segment.segment[0] !== segment.segment[1]
@@ -66,7 +66,6 @@ export function importTimes(data: string, videoDuration: number): SponsorTime[] 
                         segment: [startTime, getFormattedTimeToSeconds(match[1])],
                         category: determinedCategory,
                         actionType: ActionType.Skip,
-                        description: title,
                         source: SponsorSourceType.Local,
                         UUID: generateUserID() as SegmentUUID,
                     };
@@ -104,7 +103,6 @@ export function exportTimesAsHashParam(segments: SponsorTime[]): string {
         actionType: segment.actionType,
         category: segment.category,
         segment: segment.segment,
-        ...(segment.description ? { description: segment.description } : {}), // don't include the description param if empty
     }));
 
     return `#segments=${JSON.stringify(hashparamSegments)}`;
