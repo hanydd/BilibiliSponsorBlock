@@ -10,24 +10,17 @@
 <div align="center">
 
 [![LICENSE](https://img.shields.io/github/license/hanydd/BilibiliSponsorBlock)](LICENSE)
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd?label=Chrome%20%E6%8F%92%E4%BB%B6%E5%95%86%E5%BA%97)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd)
-[![用户数量](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F47.103.74.95%2Fapi%2FgetTotalStats&query=activeUsers&suffix=人&label=用户&color=green&cacheSeconds=3600)](https://www.bsbsb.top/stats/)
 [![片段数量](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F47.103.74.95%2Fapi%2FgetTotalStats&query=totalSubmissions&label=共提交了&suffix=个片段&color=red&cacheSeconds=3600)](https://www.bsbsb.top/stats/)
 [![节省时间](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F47.103.74.95%2Fapi%2FgetTotalStats&query=minutesSaved&suffix=%E5%88%86%E9%92%9F&label=%E5%85%B1%E8%8A%82%E7%9C%81&color=orange&cacheSeconds=3600)](https://www.bsbsb.top/stats/)
 [![CI Status](https://img.shields.io/github/actions/workflow/status/hanydd/BilibiliSponsorBlock/ci.yml)](https://github.com/hanydd/BilibiliSponsorBlock/actions/workflows/ci.yml)
 
+| 用戶數  | 安裝(Chromium)  | 安裝(Firefox)  | 討論群  |
+|----|----------|--------|--------|
+| [![用户数量](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F47.103.74.95%2Fapi%2FgetTotalStats&query=activeUsers&suffix=人&label=用户&color=green&cacheSeconds=3600)](https://www.bsbsb.top/stats/) | [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd?label=Chrome%20%E6%8F%92%E4%BB%B6%E5%95%86%E5%BA%97)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Firefox](https://img.shields.io/amo/v/bilisponsorblock)](https://addons.mozilla.org/zh-TW/firefox/addon/bilisponsorblock/) | [![Group](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-squeare&logo=telegram&logoColor=white)](https://t.me/bsbsb_top) [![QQ](https://img.shields.io/badge/371384235-EB1923?logo=tencent-qq&logoColor=white)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=2EbZ0Qxe-fI_AHJLCMnSIOnqw-nfrFH5&authKey=L31zTMwfbMG0FhIgt8xNHGOFPHc531mSw2YzUVupHLRJ4L2f8xerAd%2ByNl4OigRK&noverify=0&group_code=371384235) |
+
+
 </div>
 
-<p align="center">
-  <b>安装</b>：
-  <a href="https://chromewebstore.google.com/detail/eaoelafamejbnggahofapllmfhlhajdd">Chrome</a>｜
-  <a href="https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha">Edge</a>｜
-  <a href="https://addons.mozilla.org/firefox/addon/bilisponsorblock/">FireFox</a>
-</p>
-
-<p align="center">
-  <span>交流群：371384235 ｜ 网站：<a href="https://www.bsbsb.top">bsbsb.top</a></span>
-</p>
 
 受够了 B 站视频中无处不在的赞助广告了吗？受够了看了一半才发现的软广视频了吗？B 站空降助手是一款帮你精准空降到广告之后的浏览器插件。插件自动获取并跳过广告片段，让你的视频体验毫无中断！
 
