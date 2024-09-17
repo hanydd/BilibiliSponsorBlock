@@ -640,7 +640,7 @@
         "message": "沒有實際內容的間隔片段。可以是暫停、靜態幀或重複動畫。不適用於包含內容的過場。"
     },
     "category_intro_short": {
-        "message": "過場動畫或者開場動畫"
+        "message": "開場動畫"
     },
     "category_intro_guideline1": {
         "message": "不包含任何有意義的內容"
