@@ -9,7 +9,7 @@ interface YouTubeLogoButtonProps {
 
 const YouTubeLogoButton: React.FC<YouTubeLogoButtonProps> = ({ isBound, onClick, title }) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const fillColor = isBound ? "#C20A0A" : "CurrentColor";
+    const fillColor = isBound ? "#c76b6b" : "CurrentColor";
 
     const handleClick = () => {
         setIsExpanded(!isExpanded);
