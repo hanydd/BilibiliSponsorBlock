@@ -762,6 +762,60 @@ async function startSponsorSchedule(
     }
 }
 
+function checkDanmaku(text: string, offset: number) {
+    // const danmakuList = Config.config.danmakuList;
+    const regex = /(?:空降\s*)?(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/;
+    const match = regex.exec(text);
+    if (match) {
+        let hours = 0;
+        let minutes = parseInt(match[1], 10);
+        let seconds = parseInt(match[2], 10);
+        if (match[3]) {
+            hours = parseInt(match[1], 10);
+            minutes = parseInt(match[2], 10);
+            seconds = parseInt(match[3], 10);
+        }
+        const time = hours * 3600 + minutes * 60 + seconds;
+        const currentTime = getVirtualTime() + offset;
+        skipToTime({
+            v: getVideo(),
+            skipTime: [currentTime, time],
+            skippingSegments: [{ actionType: ActionType.Skip, segment: [currentTime, time], source: SponsorSourceType.Local, UUID: "" as SegmentUUID, category: "" as Category}],
+            openNotice: true,
+            forceAutoSkip: true,
+            unskipTime: currentTime
+        });
+    }
+}
+let observer: MutationObserver = null;
+function danmakuForSkip(clean: boolean = false) {
+    if (observer)
+        return;
+    if (clean) {
+        observer.disconnect();
+        return;
+    }
+    const targetNode = document.querySelector('.bpx-player-row-dm-wrap'); // 选择父节点
+    const config = { attributes: true, subtree: true }; // 观察属性变化
+    const callback = (mutationsList: MutationRecord[]) => {
+        // if (!Config.config.danmakuSkip || Config.config.disableSkipping) return;
+        if (targetNode.classList.contains('bili-danmaku-x-paused'))
+            return;
+        for (const mutation of mutationsList) {
+            const target = mutation.target as HTMLElement;
+            if (mutation.type === 'attributes' && target.classList.contains('bili-danmaku-x-dm')) {
+                if (target.classList.contains('bili-danmaku-x-show')) {
+                    const offset = target.classList.contains("bili-danmaku-x-center") ? 0.5 : 2;
+                    const content = mutation.target.textContent;
+                    checkDanmaku(content, offset);
+                }
+            }
+        }
+    };
+    observer = new MutationObserver(callback);
+    observer.observe(targetNode, config);
+}
+
 /**
  * Used on Firefox only, waits for the next animation frame until
  * the video time has changed
@@ -874,6 +928,7 @@ function setupVideoListeners() {
         video.addEventListener("videoSpeed_ratechange", rateChangeListener);
 
         const playListener = () => {
+            danmakuForSkip();
             // If it is not the first event, then the only way to get to 0 is if there is a seek event
             // This check makes sure that changing the video resolution doesn't cause the extension to think it
             // gone back to the begining
