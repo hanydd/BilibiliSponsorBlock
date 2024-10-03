@@ -809,6 +809,30 @@
     "autoSkipOnMusicVideos": {
         "message": "Auto skip all segments when there is a non-music segment"
     },
+    "danmakuSkip": {
+        "message": "Match parachute time from the danmaku"
+    },
+    "autoSkipDanmakuSkip": {
+        "message": "Automatically skip after matching successfully"
+    },
+    "menuDanmakuSkip": {
+        "message": "Open the submission window after matching successfully"
+    },
+    "checkTimeDanmakuSkip": {
+        "message": "Check if there is already uploaded skip info near the segment, if so, this feature will not be triggered"
+    },
+    "danmakuRegexPattern": {
+        "message": "Match Regex: "
+    },
+    "danmakuRegexPatternPlaceholder": {
+        "message": "Regex requires capturing 2 to 3 sets of numbers"
+    },
+    "danmakuRegexTitle": {
+        "message": "Please enter a regex that matches the time format, which should capture 2 to 3 sets of numbers. If you're not sure how to write a regex, do not modify this option"
+    },
+    "danmakuRegexPatternDescription": {
+        "message": "Enable the skip function based on danmaku, currently in experimental status"
+    },
     "muteSegments": {
         "message": "Allow segments that mute audio instead of skip"
     },
