@@ -17,7 +17,7 @@
         "message": "已經提交過了"
     },
     "confirm": {
-        "message": "确定"
+        "message": "確定"
     },
     "close": {
         "message": "關閉"
@@ -92,13 +92,13 @@
         "message": "片段現在結束"
     },
     "sponsorCancel": {
-        "message": "取消創建片段"
+        "message": "取消建立片段"
     },
     "noVideoID": {
-        "message": "未找到影片。\n如果識別錯誤，請刷新此頁面。"
+        "message": "未找到影片。\n如果識別錯誤，請重整此頁面。"
     },
     "refreshSegments": {
-        "message": "刷新片段"
+        "message": "重整片段"
     },
     "success": {
         "message": "成功 ！"
@@ -128,7 +128,7 @@
         "message": "關閉圖示"
     },
     "OpenSubmissionMenu": {
-        "message": "打開提交菜單"
+        "message": "打開提交選單"
     },
     "sortSegments": {
         "message": "排序片段"
@@ -219,28 +219,28 @@
         "message": "啟用跳過次數統計跟蹤"
     },
     "whatViewTracking": {
-        "message": "此功能追蹤您跳過了哪些片段，讓用戶知道他們提交的片段幫助了多少人。同時按讚會作為依據，確保垃圾資訊不會汙染資料庫。在您每次跳過片段時，我們都會向伺服器發送一條消息。希望大家開啟此項設置，以便得到更準確的統計資料。:)"
+        "message": "此功能追蹤您跳過了哪些片段，讓用戶知道他們提交的片段幫助了多少人。同時按讚會作為依據，確保垃圾資訊不會汙染資料庫。在您每次跳過片段時，我們都會向伺服器發送一條消息。希望大家開啟此項設定，以便得到更準確的統計資料。:)"
     },
     "enableViewTrackingInPrivate": {
         "message": "在無痕模式中啟用跳過計數跟蹤"
     },
     "enableTrackDownvotes": {
-        "message": "保存倒讚片段"
+        "message": "儲存倒讚片段"
     },
     "whatTrackDownvotes": {
-        "message": "保存被您倒讚的片段，即使在刷新後也會保持隱藏"
+        "message": "儲存被您倒讚的片段，即使在重整後也會保持隱藏"
     },
     "trackDownvotesWarning": {
-        "message": "警告：禁用此功能將刪除所有先前保存的倒讚"
+        "message": "警告：禁用此功能將刪除所有先前儲存的倒讚"
     },
     "enableTrackDownvotesInPrivate": {
-        "message": "保存在無痕模式中的倒讚"
+        "message": "儲存在無痕模式中的倒讚"
     },
     "enableQueryByHashPrefix": {
-        "message": "按哈希值前綴查詢"
+        "message": "按雜湊值前綴查詢"
     },
     "whatQueryByHashPrefix": {
-        "message": "使用影片 ID 哈希值的前 4 個字元而非整個影片 ID 向伺服器查詢片段。伺服器將返回所有具有類似哈希值的影片資料。"
+        "message": "使用影片 ID 雜湊值的前 4 個字元而非整個影片 ID 向伺服器查詢片段。伺服器將返回所有具有類似雜湊值的影片資料。"
     },
     "enableRefetchWhenNotFound": {
         "message": "新影片重複獲取片段"
@@ -249,7 +249,7 @@
         "message": "如果新影片中沒有發現可跳片段，將每隔幾分鐘再次嘗試獲取片段資訊。"
     },
     "enableShowCategoryWithoutPermission": {
-        "message": "在提交菜單中顯示類別，即使沒有提交權限"
+        "message": "在提交選單中顯示類別，即使沒有提交權限"
     },
     "whatShowCategoryWithoutPermission": {
         "message": "一些類別由於有最低權限要求，需要得到許可才能提交"
@@ -258,25 +258,25 @@
         "message": "重新顯示跳過提醒"
     },
     "showSkipNotice": {
-        "message": "在跳過片段後顯示提醒彈窗"
+        "message": "在跳過片段後顯示提醒跳出視窗"
     },
     "showCategoryGuidelines": {
-        "message": "顯示類別説明"
+        "message": "顯示類別說明"
     },
     "noticeVisibilityMode0": {
-        "message": "全尺寸的跳過提醒彈窗"
+        "message": "全尺寸的跳過提醒跳出視窗"
     },
     "noticeVisibilityMode1": {
-        "message": "縮小自動跳過的提醒彈窗"
+        "message": "縮小自動跳過的提醒跳出視窗"
     },
     "noticeVisibilityMode2": {
-        "message": "縮小所有的跳過提醒彈窗"
+        "message": "縮小所有的跳過提醒跳出視窗"
     },
     "noticeVisibilityMode3": {
-        "message": "半透明自動跳過的提醒彈窗"
+        "message": "半透明自動跳過的提醒跳出視窗"
     },
     "noticeVisibilityMode4": {
-        "message": "半透明所有的跳過提醒彈窗"
+        "message": "半透明所有的跳過提醒跳出視窗"
     },
     "longDescription": {
         "message": "Bilibili Sponsor Block可幫您跳過影片中的贊助廣告、開場結尾、三連提醒和其他煩人片段。Bilibili Sponsor Block是一個瀏覽器擴展，任何人可以提交影片中的廣告和其他片段的開始和結束時間。如果有一人提交了資訊，其他所有使用此擴展的人都能直接跳過廣告片段。您也可以跳過音樂影片中的非音樂部分。",
@@ -302,7 +302,7 @@
         "description": "Keybind label"
     },
     "setOpenSubmissionMenuKeybind": {
-        "message": "打開提交菜單",
+        "message": "打開提交選單",
         "description": "Keybind label"
     },
     "setSubmitKeybind": {
@@ -329,7 +329,7 @@
         "message": "請按下想綁定的按鍵。如果您想使用組合快捷鍵，請勾選左側的選項。"
     },
     "0": {
-        "message": "連接超時。請檢查您的網路連接。如果您的網路運行正常，則可能是伺服器當機。"
+        "message": "連接超時。請檢查您的網路連接。如果您的網路執行正常，則可能是伺服器當機。"
     },
     "disableSkipping": {
         "message": "已啟用跳過"
@@ -395,7 +395,7 @@
         "message": "顯示減去可跳片段後的影片時長"
     },
     "showTimeWithSkipsDescription": {
-        "message": "此時間位於進度條下方的當前時間旁邊，用括號框住。 顯示的是影片減去所有可跳片段後的時間，可跳片段包括標記為“在進度條中顯示”的片段。"
+        "message": "此時間位於進度條下方的目前時間旁邊，用括號框住。 顯示的是影片減去所有可跳片段後的時間，可跳片段包括標記為「在進度條中顯示」的片段。"
     },
     "youHaveSkipped": {
         "message": "您已跳過"
@@ -424,7 +424,7 @@
         "message": "伺服器狀態"
     },
     "projectRepo": {
-        "message": "項目代碼"
+        "message": "項目程式碼"
     },
     "statusReminder": {
         "message": "在 status.bsbsb.top 檢查伺服器狀態。"
@@ -433,16 +433,16 @@
         "message": "匯入/匯出您的私人用戶ID"
     },
     "whatChangeUserID": {
-        "message": "私人ID應該被保密。如果他人獲得了您的私人ID，他就可以冒充您。如果您想找公開用戶ID，請點擊彈出窗口中的剪貼簿圖示。"
+        "message": "私人ID應該被保密。如果他人獲得了您的私人ID，他就可以冒充您。如果您想找公開用戶ID，請點擊彈出視窗中的剪貼簿圖示。"
     },
     "setUserID": {
-        "message": "設置私人用戶ID"
+        "message": "設定私人用戶ID"
     },
     "userIDChangeWarning": {
         "message": "警告：更改私人用戶ID是永久性的。您確定要這麼做嗎？請務必備份您的舊私人ID以防萬一。"
     },
     "createdBy": {
-        "message": "創建者"
+        "message": "建立者"
     },
     "minDuration": {
         "message": "最小片段時長(秒)："
@@ -457,7 +457,7 @@
         "message": "如果您想看推廣影片時不跳過中間的內容，而是觀看完整影片，可以啟用推廣手動跳過"
     },
     "optionSectionSkipNotice": {
-        "message": "跳過提醒彈窗"
+        "message": "跳過提醒跳出視窗"
     },
     "optionSectionPlayerAndButtons": {
         "message": "播放器和按鈕"
@@ -469,10 +469,10 @@
         "message": "插件相關選項"
     },
     "skipNoticeDuration": {
-        "message": "跳過提醒彈窗持續時間（秒）："
+        "message": "跳過提醒跳出視窗持續時間（秒）："
     },
     "skipNoticeDurationDescription": {
-        "message": "跳過提醒彈窗的顯示時常。手動跳過的提醒可能會顯示更久。"
+        "message": "跳過提醒跳出視窗的顯示時常。手動跳過的提醒可能會顯示更久。"
     },
     "shortCheck": {
         "message": "以下的提交短於您的最小持續時間選項。這代表它們可能已經被提交，只是由於該選項被忽略了。您確定要提交嗎？"
@@ -484,7 +484,7 @@
         "message": "Bilibili Sponsor Block的伺服器地址。\n不建議更改，除非您有自己的伺服器。"
     },
     "save": {
-        "message": "保存"
+        "message": "儲存"
     },
     "reset": {
         "message": "重設"
@@ -505,7 +505,7 @@
         "message": "編輯/複製"
     },
     "exportOptionsDownload": {
-        "message": "保存到文件"
+        "message": "儲存到文件"
     },
     "exportOptionsUpload": {
         "message": "從文件載入"
@@ -553,10 +553,10 @@
         "message": "複製到剪貼簿失敗"
     },
     "copyDebugInformationOptions": {
-        "message": "複製資訊到剪貼簿，在提交錯誤時提供給開發者。 敏感資訊如：您的用戶ID、頻道白名單和自訂伺服器地址等已被刪除。然而，它仍然包含諸如您的UserAgent ，瀏覽器，操作系統和外掛程式版本號等資訊。 "
+        "message": "複製資訊到剪貼簿，在提交錯誤時提供給開發者。 敏感資訊如：您的用戶ID、頻道白名單和自訂伺服器地址等已被刪除。然而，它仍然包含諸如您的UserAgent ，瀏覽器，作業系統和外掛程式版本號等資訊。 "
     },
     "copyDebugInformationComplete": {
-        "message": "除錯資訊已複製到剪切板中。 您可以隨意移除任何您不想分享的資訊。請將其另存為 .txt 文件或黏貼到錯誤報告中。"
+        "message": "除錯資訊已複製到剪貼簿中。 您可以隨意移除任何您不想分享的資訊。請將其另存為 .txt 文件或貼到錯誤報告中。"
     },
     "keyAlreadyUsed": {
         "message": "此快捷鍵已綁定到另一個動作。請選擇其他快捷鍵。"
@@ -591,7 +591,7 @@
         "message": "無償/自我推廣"
     },
     "category_selfpromo_description": {
-        "message": "類似於 “贊助廣告” ，但無報酬或是自我推廣。包括有關商品、捐贈的部分或合作者的資訊。"
+        "message": "類似於 「贊助廣告」 ，但無報酬或是自我推廣。包括有關商品、捐贈的部分或合作者的資訊。"
     },
     "category_selfpromo_guideline1": {
         "message": "捐贈、會員和自製周邊"
@@ -710,7 +710,7 @@
         "message": "精彩時刻/重點"
     },
     "category_poi_highlight_description": {
-        "message": "大部分人都在尋找的跳轉時間。類似於“封面在12:34”的評論。"
+        "message": "大部分人都在尋找的跳轉時間。類似於「封面在12:34」的評論。"
     },
     "category_poi_highlight_guideline1": {
         "message": "大部分人想看的片段"
@@ -789,7 +789,7 @@
         "message": "當連接到測試伺服器時，所有的提交和投票將不會計入主伺服器。當您想要進行真實提交時，請確保禁用了此選項。"
     },
     "bracketNow": {
-        "message": "[設為當前]"
+        "message": "[設為目前]"
     },
     "moreCategories": {
         "message": "更多類別"
@@ -798,7 +798,7 @@
         "message": "選擇類別"
     },
     "enableThisCategoryFirst": {
-        "message": "要提交“{0}”類別的片段，您必須在選項中啟用此類別。現在將重定向到選項。",
+        "message": "要提交「{0}」類別的片段，您必須在選項中啟用此類別。現在將重定向到選項。",
         "description": "Used when submitting segments to only let them select a certain category if they have it enabled in the options."
     },
     "poiOnlyOneSegment": {
@@ -831,7 +831,7 @@
         "description": "This error appears in an alert when they try to whitelist a channel and the extension is unable to determine what channel they are looking at."
     },
     "invidiousPermissionRefresh": {
-        "message": "瀏覽器已撤銷在 Invidious 及其他第三方網站運行所需的權限。請點擊下方按鈕重新啟用權限。"
+        "message": "瀏覽器已復原在 Invidious 及其他第三方網站執行所需的權限。請點擊下方按鈕重新啟用權限。"
     },
     "acceptPermission": {
         "message": "接受權限"
@@ -846,10 +846,10 @@
         "message": "跳過前強制進行頻道檢查"
     },
     "whatForceChannelCheck": {
-        "message": "默認情況下，即使還未檢測出當前是什麼頻道，也會立即跳過片段。因此，在白名單中頻道的影片，一些在開頭的片段也可能被跳過。啟用此選項將防止這種情況，但所有的跳過將會產生輕微的延遲，因為獲取頻道 ID 需要一點時間。如果您的網速很快，那延遲可能非常短。"
+        "message": "預設情況下，即使還未檢測出目前是什麼頻道，也會立即跳過片段。因此，在白名單中頻道的影片，一些在開頭的片段也可能被跳過。啟用此選項將防止這種情況，但所有的跳過將會產生輕微的延遲，因為獲取頻道 ID 需要一點時間。如果您的網速很快，那延遲可能非常短。"
     },
     "forceChannelCheckPopup": {
-        "message": "請考慮啟用“跳過前強制進行頻道檢查”"
+        "message": "請考慮啟用「跳過前強制進行頻道檢查」"
     },
     "downvoteDescription": {
         "message": "不正確/錯誤的時間"
@@ -865,7 +865,7 @@
         "message": "更改類別"
     },
     "nonMusicCategoryOnMusic": {
-        "message": "此影片的分類為音樂。 您確定其中包含贊助商廣告嗎？如果這是“非音樂片段”，請打開擴展選項並啟用此類別。 之後，您可以以“非音樂”而不是贊助商廣告類別提交此片段。如果您不太明白，請閱讀指南。"
+        "message": "此影片的分類為音樂。 您確定其中包含贊助商廣告嗎？如果這是「非音樂片段」，請打開擴展選項並啟用此類別。 之後，您可以以「非音樂」而不是贊助商廣告類別提交此片段。如果您不太明白，請閱讀指南。"
     },
     "multipleSegments": {
         "message": "多個片段"
@@ -878,10 +878,10 @@
         "description": "Show the first time they submit or if they are \"high risk\""
     },
     "skipFrameShortcutPopupLine1": {
-        "message": "無法精準定位？可以嘗試使用 “,” 和 “.” 按鍵跳到上一幀或下一幀！試試吧~"
+        "message": "無法精準定位？可以嘗試使用 「,」 和 「.」 按鍵跳到上一幀或下一幀！試試吧~"
     },
     "skipFrameShortcutPopupLine2": {
-        "message": "（快捷鍵只有在打開提交彈窗時可用，案件綁定可以在{0}中修改）"
+        "message": "（快捷鍵只有在打開提交跳出視窗時可用，案件綁定可以在{0}中修改）"
     },
     "optionsPage": {
         "message": "選項頁面"
@@ -900,7 +900,7 @@
         "description": "Used as the button to dismiss a tooltip"
     },
     "fullVideoTooltipWarning": {
-        "message": "片段過長。如果整個影片都是關於同一個主題，請將“跳過”改成“整個影片”標籤。查看指南了解詳情。"
+        "message": "片段過長。如果整個影片都是關於同一個主題，請將「跳過」改成「整個影片」標籤。查看指南了解詳情。"
     },
     "categoryPillTitleText": {
         "message": "整個影片都被標記為此分類且內容過於緊湊，無法分開。"
@@ -952,7 +952,7 @@
         "message": "全部細節"
     },
     "CopyDownvoteButtonInfo": {
-        "message": "倒讚並創建本地副本供您再次提交"
+        "message": "倒讚並建立本機副本供您再次提交"
     },
     "OpenCategoryWikiPage": {
         "message": "打開此類別的百科頁面。"
@@ -1004,7 +1004,7 @@
         "description": "Appears in Options as a tab header for options related to categories and skipping behavior. To fit inside the button, it should not be longer than ~20-25 characters (depending on their width)."
     },
     "optionsTabInterface": {
-        "message": "界面",
+        "message": "介面",
         "description": "Appears in Options as a tab header for options related to GUI and sounds. To fit inside the button, it should not be longer than ~20-25 characters (depending on their width)."
     },
     "optionsTabKeyBinds": {
@@ -1012,7 +1012,7 @@
         "description": "Appears in Options as a tab header for keybinds. To fit inside the button, it should not be longer than ~20-25 characters (depending on their width)."
     },
     "optionsTabBackup": {
-        "message": "備份/恢復",
+        "message": "備份/復原",
         "description": "Appears in Options as a tab header for options related to saving/restoring your settings. To fit inside the button, it should not be longer than ~20-25 characters (depending on their width)."
     },
     "optionsTabAdvanced": {
@@ -1028,7 +1028,7 @@
         "description": "Unbind keyboard shortcut"
     },
     "notSet": {
-        "message": "未設置"
+        "message": "未設定"
     },
     "change": {
         "message": "更改"
@@ -1043,10 +1043,10 @@
         "message": "打開選項頁面"
     },
     "resetToDefault": {
-        "message": "重設所有設置"
+        "message": "重設所有設定"
     },
     "confirmResetToDefault": {
-        "message": "您確定要將所有設置重設為預設值嗎？此操作無法撤銷。"
+        "message": "您確定要將所有設定重設為預設值嗎？此操作無法復原。"
     },
     "exportSegments": {
         "message": "匯出片段"
@@ -1135,7 +1135,7 @@
         "message": "允許滾動編輯時間"
     },
     "showPreviewYoutubeButton": {
-        "message": "搬運影片區域顯示“預覽YouTube影片”按鈕"
+        "message": "搬運影片區域顯示「預覽YouTube影片」按鈕"
     },
     "showPortVideoButton": {
         "message": "顯示綁定搬運影片按鈕"
@@ -1149,7 +1149,7 @@
         "description": "Warning that appears when enabling the filler tangent category"
     },
     "cleanPopup": {
-        "message": "簡化彈出窗口內容"
+        "message": "簡化彈出視窗內容"
     },
     "syncDisabledWarning": {
         "message": "警告：您的瀏覽器已禁用擴充功能儲存功能。如果您嘗試儲存設定，這些設定將無法被儲存。"
