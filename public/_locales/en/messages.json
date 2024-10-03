@@ -755,28 +755,28 @@
         "message": "自动跳过所有音乐视频中的非音乐片段"
     },
     "danmakuSkip": {
-        "message": "Match parachute time from the danmaku"
+        "message": "从弹幕中匹配空降时间"
     },
     "autoSkipDanmakuSkip": {
-        "message": "Automatically skip after matching successfully"
+        "message": "匹配成功后自动跳过"
     },
     "menuDanmakuSkip": {
-        "message": "Open the submission window after matching successfully"
+        "message": "匹配成功后打开提交窗口"
     },
     "checkTimeDanmakuSkip": {
-        "message": "Check if there is already uploaded skip info near the segment, if so, this feature will not be triggered"
+        "message": "检查片段附近是否已有上传的跳过信息，已有则不触发此功能"
     },
     "danmakuRegexPattern": {
-        "message": "Match Regex: "
+        "message": "匹配正则: "
     },
     "danmakuRegexPatternPlaceholder": {
-        "message": "Regex requires capturing 2 to 3 sets of numbers"
+        "message": "正则要求能捕获2到3组数字"
     },
     "danmakuRegexTitle": {
-        "message": "Please enter a regex that matches the time format, which should capture 2 to 3 sets of numbers. If you're not sure how to write a regex, do not modify this option"
+        "message": "请输入一个匹配时间格式的正则表达式，要求能捕获2到3组数字。如果不清楚如何写正则表达式，请勿修改此项"
     },
     "danmakuRegexPatternDescription": {
-        "message": "Enable the skip function based on danmaku, currently in experimental status"
+        "message": "启用基于弹幕的跳过功能，目前处于实验状态"
     },
     "muteSegments": {
         "message": "允许片段静音而不是跳过"
