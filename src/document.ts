@@ -13,11 +13,11 @@ const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): 
 };
 
 function windowMessageListener(message: MessageEvent) {
-    if (!message.data?.source) {
+    const data: InjectedScriptMessageSend = message.data;
+    if (!data || !data?.source) {
         return;
     }
-    if (message.data?.source === sourceId && message.data?.responseType) {
-        const data: InjectedScriptMessageSend = message.data;
+    if (data?.source === sourceId && data?.responseType) {
         if (data.type === "getBvID") {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.bvid);
         } else if (data.type === "getFrameRate") {
