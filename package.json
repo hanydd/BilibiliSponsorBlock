@@ -4,8 +4,8 @@
   "description": "",
   "main": "background.js",
   "dependencies": {
-    "@ant-design/icons": "^5.4.0",
-    "antd": "^5.20.3",
+    "@ant-design/icons": "^5.5.1",
+    "antd": "^5.21.3",
     "content-scripts-register-polyfill": "^4.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -16,12 +16,11 @@
     }
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.269",
+    "@types/chrome": "^0.0.277",
     "@types/firefox-webext-browser": "^120.0.4",
-    "@types/jest": "^29.4.0",
-    "@types/react": "^18.2.0",
+    "@types/jest": "^29.5.13",
+    "@types/react": "^18.3.11",
     "@types/react-dom": "^18.2.0",
-    "@types/selenium-webdriver": "^4.1.22",
     "@types/wicg-mediasession": "^1.1.4",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
@@ -34,13 +33,12 @@
     "jest-environment-jsdom": "^29.5.0",
     "rimraf": "^4.3.1",
     "schema-utils": "^4.0.0",
-    "selenium-webdriver": "^4.18.1",
     "ts-jest": "^29.1.5",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "typescript": "5.5",
-    "web-ext": "^8.2.0",
-    "webpack": "^5.93.0",
+    "typescript": "5.6.3",
+    "web-ext": "^8.3.0",
+    "webpack": "^5.95.0",
     "webpack-cli": "^5.1.4",
     "webpack-merge": "^5.8.0"
   },
