@@ -1178,5 +1178,14 @@
     },
     "bindPortVideoButton": {
         "message": "綁定搬運影片"
+    },
+    "refreshPortedSegments": {
+        "message": "更新來自綁定視頻的片段"
+    },
+    "refreshSuccess": {
+        "message": "更新成功！"
+    },
+    "refreshFailed": {
+        "message": "更新失敗！"
     }
 }
