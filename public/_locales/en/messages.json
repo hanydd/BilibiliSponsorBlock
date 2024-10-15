@@ -1164,7 +1164,7 @@
         "message": "Extension storage is full. Please delete some unsubmitted segments in the options."
     },
     "previewSegmentRequired": {
-        "message": "Please preview your segments before submitting. You can do this by clicking the preview button or using the following shortcut:",
+        "message": "请在提交前预览您的片段，你可以使用快捷键预览：" ,
         "description": "Appears when trying to submit a segment without previewing it first. After the colon, the shortcut will appear"
     },
     "hasbindedPortVideo": {
