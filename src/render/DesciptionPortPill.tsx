@@ -4,13 +4,14 @@ import { DescriptionPortPillComponent } from "../components/DescriptionPortPillC
 import YouTubeLogoButton from "../components/YouTubeLogoButton";
 import Config from "../config";
 import { getPageLoaded } from "../content";
-import { getPortVideoByHash } from "../requests/portVideo";
+import { getPortVideoByHash, updatePortedSegments } from "../requests/portVideo";
 import { asyncRequestToServer } from "../requests/requests";
 import { VideoID } from "../types";
 import { waitFor } from "../utils/";
 import { waitForElement } from "../utils/dom";
 import { getVideoDescriptionFromWindow } from "../utils/injectedScriptMessageUtils";
 import { getVideo, getVideoID } from "../utils/video";
+import { showMessage } from "./MessageNotice";
 
 const id = "bsbDescriptionContainer";
 
@@ -100,6 +101,7 @@ export class DescriptionPortPill {
                 showYtbVideoButton={Config.config.showPreviewYoutubeButton}
                 onSubmitPortVideo={(ytbID) => this.submitPortVideo(ytbID)}
                 onVote={(type) => this.vote(type)}
+                onRefresh={() => this.updateSegments()}
             />
         );
 
@@ -207,5 +209,16 @@ export class DescriptionPortPill {
 
         await this.getPortVideo(this.bvID, true);
         this.ref.current.setState({ ytbVideoID: this.ytbID, previewYtbID: this.ytbID });
+    }
+
+    private async updateSegments() {
+        const response = await updatePortedSegments(this.bvID);
+        if (!response?.ok) {
+            console.error(response.responseText);
+            showMessage(chrome.i18n.getMessage("refreshFailed") + response.responseText, "error");
+            return;
+        }
+        this.sponsorsLookup(true, true, true);
+        showMessage(chrome.i18n.getMessage("refreshSuccess"), "success");
     }
 }

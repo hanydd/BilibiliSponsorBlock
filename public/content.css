@@ -840,6 +840,7 @@ input::-webkit-inner-spin-button {
 }
 
 #bsbDescriptionPortVideoPill .bsbVoteButton {
+	color: var(--sb-brand-blue);
 	cursor: pointer;
 	height: 24px;
 	padding: 0 3px;

@@ -1170,6 +1170,15 @@
     "hasbindedPortVideo": {
         "message": "已绑定搬运视频："
     },
+    "refreshPortedSegments": {
+        "message": "更新绑定视频的片段"
+    },
+    "refreshSuccess": {
+        "message": "更新成功！"
+    },
+    "refreshFailed": {
+        "message": "更新失败！"
+    },
     "enterPortVideoURL": {
         "message": "请输入搬运视频地址"
     },

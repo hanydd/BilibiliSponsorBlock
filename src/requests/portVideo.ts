@@ -1,5 +1,6 @@
 import { VideoID } from "../types";
 import { getHash } from "../utils/hash";
+import { FetchResponse } from "./background-request-proxy";
 import { asyncRequestToServer } from "./requests";
 
 interface RequestOptions {
@@ -48,4 +49,8 @@ export async function getPortVideoByHash(bvID: VideoID, options: RequestOptions 
         return null;
     }
     throw response;
+}
+
+export async function updatePortedSegments(bvID: VideoID): Promise<FetchResponse> {
+    return asyncRequestToServer("POST", "/api/updatePortedSegments", { videoID: bvID });
 }

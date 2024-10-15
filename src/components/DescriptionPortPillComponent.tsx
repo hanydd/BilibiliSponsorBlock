@@ -13,6 +13,7 @@ export interface DescriptionPortPillProps {
 
     onSubmitPortVideo: (ytbID: VideoID) => Promise<PortVideo>;
     onVote(type: number): Promise<void>;
+    onRefresh(): Promise<void>;
 }
 
 export interface DescriptionPortPillState {
@@ -60,6 +61,12 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                                     title={chrome.i18n.getMessage("downvote")}
                                     src={chrome.runtime.getURL("icons/thumbs_down_blue.svg")}
                                     onClick={(e) => this.vote(e, 0)}
+                                ></img>
+                                <img
+                                    className="bsbVoteButton"
+                                    title={chrome.i18n.getMessage("refreshPortedSegments")}
+                                    src={chrome.runtime.getURL("icons/refresh.svg")}
+                                    onClick={() => this.props.onRefresh()}
                                 ></img>
                             </>
                         )}
