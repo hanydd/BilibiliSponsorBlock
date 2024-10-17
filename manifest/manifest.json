@@ -1,7 +1,7 @@
 {
     "name": "__MSG_fullName__",
     "short_name": "__MSG_shortName__",
-    "version": "0.3.5",
+    "version": "0.4.0",
     "default_locale": "zh_CN",
     "description": "__MSG_Description__",
     "icons": {
