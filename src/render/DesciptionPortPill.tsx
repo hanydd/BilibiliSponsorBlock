@@ -216,10 +216,11 @@ export class DescriptionPortPill {
         if (!response?.ok) {
             if (response.status === 429) {
                 showMessage(response.responseText, "info");
+            } else {
+                console.error(response.responseText);
+                showMessage(chrome.i18n.getMessage("refreshFailed") + response.responseText, "error");
+                return;
             }
-            console.error(response.responseText);
-            showMessage(chrome.i18n.getMessage("refreshFailed") + response.responseText, "error");
-            return;
         }
         this.sponsorsLookup(true, true, true);
         showMessage(chrome.i18n.getMessage("refreshSuccess"), "success");
