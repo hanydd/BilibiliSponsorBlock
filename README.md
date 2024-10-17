@@ -71,21 +71,9 @@
 
 -   更新 UI。
 
-## 功能更新计划（按优先级排序）
+## 功能更新计划
 
--   制作功能介绍视频
-
--   支持分 P 视频标注（目前所有分 P 都会被当作同一段视频，导致提交的片段互相覆盖）
-
--   完善 API 接口文档
-
--   通过空降弹幕自动获取片段 “空降 xx:xx”、“猝不及防”等 [#3](https://github.com/hanydd/BilibiliSponsorBlock/issues/3)
-
--   评论和动态标记
-
--   支持悬浮预览 / 小窗播放器 / 嵌入式播放器
-
--   欢迎大家提出意见和建议！
+参考 [Github Project](https://github.com/users/hanydd/projects/2/)
 
 # 服务端
 
