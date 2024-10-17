@@ -214,6 +214,9 @@ export class DescriptionPortPill {
     private async updateSegments() {
         const response = await updatePortedSegments(this.bvID);
         if (!response?.ok) {
+            if (response.status === 429) {
+                showMessage(response.responseText, "info");
+            }
             console.error(response.responseText);
             showMessage(chrome.i18n.getMessage("refreshFailed") + response.responseText, "error");
             return;
