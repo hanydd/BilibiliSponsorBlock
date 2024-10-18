@@ -43,18 +43,18 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       # Create Chrome crx file
-      - name: Create Chrome CRX
-        uses: cardinalby/webext-buildtools-chrome-crx-action@v2
-        with:
-          zipFilePath: ./builds/ChromeExtension.zip
-          crxFilePath: ./builds/ChromeExtension.crx
-          privateKey: ${{ secrets.PEM_KEY }}
-      - name: Upload Chrome.crx to release
-        uses: Shopify/upload-to-release@v2.0.0
-        with:
-          name: Chrome
-          path: ./builds/ChromeExtension.crx
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Create Chrome CRX
+      #  uses: cardinalby/webext-buildtools-chrome-crx-action@v2
+      #  with:
+      #    zipFilePath: ./builds/ChromeExtension.zip
+      #    crxFilePath: ./builds/ChromeExtension.crx
+      #    privateKey: ${{ secrets.PEM_KEY }}
+      # - name: Upload Chrome.crx to release
+      #  uses: Shopify/upload-to-release@v2.0.0
+      #  with:
+      #    name: Chrome
+      #    path: ./builds/ChromeExtension.crx
+      #    repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       # Create Firefox artifacts
       - name: Create Firefox artifacts
