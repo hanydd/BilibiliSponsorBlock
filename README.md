@@ -79,11 +79,13 @@
 
 服务端代码：https://github.com/hanydd/BilibiliSponsorBlockServer
 
+为了方便大家二次开发，所有片段的数据现在开发下载：https://bsbsb.top/database.zip
+
 # API
 
-本项目对 API 改动不大，可以先参考[原项目文档](https://wiki.sponsor.ajay.app/w/API_Docs)。
+API文档：https://github.com/hanydd/BilibiliSponsorBlock/wiki/API
 
-为了方便大家二次开发，所有片段的数据现在开发下载：https://bsbsb.top/database.zip
+本项目对 API 改动不大，也可以先参考[原项目文档](https://wiki.sponsor.ajay.app/w/API_Docs)。
 
 # 搭建项目
 
