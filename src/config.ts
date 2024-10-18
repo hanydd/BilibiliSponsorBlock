@@ -30,6 +30,11 @@ interface SBConfig {
     submissionCountSinceCategories: number; // New count used to show the "Read The Guidelines!!" message
     showTimeWithSkips: boolean;
     disableSkipping: boolean;
+    enableDanmakuSkip: boolean;
+    enableAutoSkipDanmakuSkip: boolean;
+    enableMenuDanmakuSkip: boolean;
+    danmakuRegexPattern: string;
+    checkTimeDanmakuSkip: boolean;
     muteSegments: boolean;
     fullVideoSegments: boolean;
     fullVideoLabelsOnThumbnails: boolean;
@@ -197,6 +202,11 @@ const syncDefaults = {
     submissionCountSinceCategories: 0,
     showTimeWithSkips: true,
     disableSkipping: false,
+    enableDanmakuSkip: false,
+    enableAutoSkipDanmakuSkip: false,
+    enableMenuDanmakuSkip: false,
+    danmakuRegexPattern: "(?:空降\\s*)?(\\d{1,2}):(\\d{1,2})(?::(\\d{1,2}))?",
+    checkTimeDanmakuSkip: true,
     muteSegments: true,
     fullVideoSegments: true,
     fullVideoLabelsOnThumbnails: true,
