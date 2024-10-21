@@ -754,6 +754,30 @@
     "autoSkipOnMusicVideos": {
         "message": "自动跳过所有音乐视频中的非音乐片段"
     },
+    "danmakuSkip": {
+        "message": "从弹幕中匹配空降时间"
+    },
+    "autoSkipDanmakuSkip": {
+        "message": "匹配成功后自动跳过"
+    },
+    "menuDanmakuSkip": {
+        "message": "匹配成功后打开提交窗口"
+    },
+    "checkTimeDanmakuSkip": {
+        "message": "检查片段附近是否已有上传的跳过信息，已有则不触发此功能"
+    },
+    "danmakuRegexPattern": {
+        "message": "匹配正则: "
+    },
+    "danmakuRegexPatternPlaceholder": {
+        "message": "正则要求能捕获2到3组数字"
+    },
+    "danmakuRegexTitle": {
+        "message": "请输入一个匹配时间格式的正则表达式，要求能捕获2到3组数字。如果不清楚如何写正则表达式，请勿修改此项"
+    },
+    "danmakuRegexPatternDescription": {
+        "message": "启用基于弹幕的跳过功能，目前处于实验状态"
+    },
     "muteSegments": {
         "message": "允许片段静音而不是跳过"
     },

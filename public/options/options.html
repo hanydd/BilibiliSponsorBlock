@@ -65,6 +65,54 @@
 			<div id="behavior" class="option-group hidden">
 
 				<div id="category-type" data-type="react-CategoryChooserComponent"></div>
+			
+				<div>
+					<div class="switch-container" data-type="toggle" data-sync="enableDanmakuSkip">
+						<label class="switch">
+							<input id="enableDanmakuSkip" type="checkbox" checked>
+							<span class="slider round"></span>
+						</label>
+						<label class="switch-label" for="enableDanmakuSkip">
+							__MSG_danmakuSkip__
+						</label>
+					</div>
+					<div class="switch-container" data-type="toggle" data-sync="enableAutoSkipDanmakuSkip">
+						<label class="switch">
+							<input id="enableAutoSkipDanmakuSkip" type="checkbox" checked>
+							<span class="slider round"></span>
+						</label>
+						<label class="switch-label" for="enableAutoSkipDanmakuSkip">
+							__MSG_autoSkipDanmakuSkip__
+						</label>
+					</div>
+					<div class="switch-container" data-type="toggle" data-sync="enableMenuDanmakuSkip">
+						<label class="switch">
+							<input id="enableMenuDanmakuSkip" type="checkbox" checked>
+							<span class="slider round"></span>
+						</label>
+						<label class="switch-label" for="enableMenuDanmakuSkip">
+							__MSG_menuDanmakuSkip__
+						</label>
+					</div>
+					<div class="switch-container" data-type="toggle" data-sync="checkTimeDanmakuSkip">
+						<label class="switch">
+							<input id="checkTimeDanmakuSkip" type="checkbox" checked>
+							<span class="slider round"></span>
+						</label>
+						<label class="switch-label" for="checkTimeDanmakuSkip">
+							__MSG_checkTimeDanmakuSkip__
+						</label>
+					</div>
+					<div class="input-container" data-type="text-change" data-sync="danmakuRegexPattern">
+						<label for="danmakuRegexPattern">__MSG_danmakuRegexPattern__</label>
+						<input id="danmakuRegexPattern" class="option-text-box"
+							type="text" placeholder="__MSG_danmakuRegexPatternPlaceholder__"
+							title="__MSG_danmakuRegexTitle__">
+						<button class="text-change-set">__MSG_save__</button>
+						<button class="text-change-reset">__MSG_reset__</button>
+					</div>
+					<div class="small-description">__MSG_danmakuRegexPatternDescription__</div>
+				</div>
 
 				<div data-type="toggle" data-sync="muteSegments">
 					<div class="switch-container">
