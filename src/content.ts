@@ -763,77 +763,81 @@ async function startSponsorSchedule(
 }
 
 function checkDanmaku(text: string, offset: number) {
-    const regex = new RegExp(Config.config.danmakuRegexPattern)
-    const match = regex.exec(text);
-
-    if (match) {
-        const timeComponents = match.slice(1).filter(Boolean).map((value) => parseInt(value, 10));
-        let hours = 0, minutes = 0, seconds = 0;
-        
-        if (timeComponents.length === 2) {
-            minutes = timeComponents[0];
-            seconds = timeComponents[1];
-        } else if (timeComponents.length === 3) {
-            hours = timeComponents[0];
-            minutes = timeComponents[1];
-            seconds = timeComponents[2];
-        }
-
-        const time = hours * 3600 + minutes * 60 + seconds;
-        const currentTime = getVirtualTime() + offset;
-
-        if (Config.config.checkTimeDanmakuSkip && isSegmentMarkedNearCurrentTime(currentTime))
-            return;
-
-        const skippingSegments: SponsorTime[] =
-            [{ actionType: ActionType.Skip, segment: [currentTime, time],
-                source: SponsorSourceType.Local, UUID: generateUserID() as SegmentUUID,
-                category: "sponsor" as Category}];
-        setTimeout(() => {
-            skipToTime({
-                v: getVideo(),
-                skipTime: [currentTime, time],
-                skippingSegments,
-                openNotice: true,
-                forceAutoSkip: Config.config.enableAutoSkipDanmakuSkip,
-                unskipTime: currentTime
-            });
-            if (Config.config.enableMenuDanmakuSkip) {
-                setTimeout(() => {
-                    if (!sponsorTimesSubmitting?.some((s) => s.segment[1] === skippingSegments[0].segment[1])) {
-                        sponsorTimesSubmitting.push(skippingSegments[0]);
-                    }
-                    openSubmissionMenu();
-                }, Config.config.skipNoticeDuration * 1000 + 500);
-            }
-        }, offset * 1000 - 100);
+    const match = new RegExp(Config.config.danmakuRegexPattern).exec(text);
+    if (!match) {
+        return;
     }
+
+    const timeComponents = match
+        .slice(1)
+        .filter(Boolean)
+        .map((value) => parseInt(value, 10));
+    let hours = 0,
+        minutes = 0,
+        seconds = 0;
+
+    if (timeComponents.length === 2) {
+        minutes = timeComponents[0];
+        seconds = timeComponents[1];
+    } else if (timeComponents.length === 3) {
+        hours = timeComponents[0];
+        minutes = timeComponents[1];
+        seconds = timeComponents[2];
+    }
+
+    const targetTime = hours * 3600 + minutes * 60 + seconds;
+    const startTime = getVirtualTime() + offset;
+
+    if (Config.config.checkTimeDanmakuSkip && isSegmentMarkedNearCurrentTime(startTime)) return;
+
+    const skippingSegments: SponsorTime[] = [
+        {
+            actionType: ActionType.Skip,
+            segment: [startTime, targetTime],
+            source: SponsorSourceType.Local,
+            UUID: generateUserID() as SegmentUUID,
+            category: "sponsor" as Category,
+        },
+    ];
+
+    setTimeout(() => {
+        skipToTime({
+            v: getVideo(),
+            skipTime: [startTime, targetTime],
+            skippingSegments,
+            openNotice: true,
+            forceAutoSkip: Config.config.enableAutoSkipDanmakuSkip,
+            unskipTime: startTime,
+            forceNoAutoSkip: !Config.config.enableAutoSkipDanmakuSkip,
+        });
+        if (Config.config.enableMenuDanmakuSkip) {
+            setTimeout(() => {
+                if (!sponsorTimesSubmitting?.some((s) => s.segment[1] === skippingSegments[0].segment[1])) {
+                    sponsorTimesSubmitting.push(skippingSegments[0]);
+                }
+                openSubmissionMenu();
+            }, Config.config.skipNoticeDuration * 1000 + 500);
+        }
+    }, offset * 1000 - 100);
 }
 
 let observer: MutationObserver = null;
 const processedDanmaku = new Set<string>();
 
-function danmakuForSkip(clean: boolean = false) {
-    if (observer)
-        return;
-    if (clean) {
-        observer.disconnect();
-        observer = null;
-        processedDanmaku.clear();
-        return;
-    }
-    const targetNode = document.querySelector('.bpx-player-row-dm-wrap'); // 选择父节点
+function danmakuForSkip() {
+    if (!Config.config.enableDanmakuSkip || Config.config.disableSkipping) return;
+    if (observer) return;
+
+    const targetNode = document.querySelector(".bpx-player-row-dm-wrap"); // 选择父节点
     const config = { attributes: true, subtree: true }; // 观察属性变化
     const callback = (mutationsList: MutationRecord[]) => {
-        if (!Config.config.enableDanmakuSkip || Config.config.disableSkipping)
-            return;
-        if (targetNode.classList.contains('bili-danmaku-x-paused'))
-            return;
+        if (!Config.config.enableDanmakuSkip || Config.config.disableSkipping) return;
+        if (targetNode.classList.contains("bili-danmaku-x-paused")) return;
         for (const mutation of mutationsList) {
             const target = mutation.target as HTMLElement;
-            if (mutation.type === 'attributes' && target.classList.contains('bili-danmaku-x-dm')) {
+            if (mutation.type === "attributes" && target.classList.contains("bili-danmaku-x-dm")) {
                 const content = mutation.target.textContent;
-                if (target.classList.contains('bili-danmaku-x-show')) {
+                if (target.classList.contains("bili-danmaku-x-show")) {
                     if (!content || processedDanmaku.has(content)) {
                         continue;
                     }
@@ -852,7 +856,10 @@ function danmakuForSkip(clean: boolean = false) {
     observer.observe(targetNode, config);
     addCleanupListener(() => {
         if (observer) {
-            danmakuForSkip(true);
+            observer.disconnect();
+            observer = null;
+            processedDanmaku.clear();
+            return;
         }
     });
 }
@@ -901,8 +908,10 @@ function isSegmentMarkedNearCurrentTime(currentTime: number, range: number = 5):
     const lowerBound = currentTime - range;
     const upperBound = currentTime + range;
 
-    return sponsorTimes?.some(sponsorTime => {
-        const { segment: [startTime, endTime] } = sponsorTime;
+    return sponsorTimes?.some((sponsorTime) => {
+        const {
+            segment: [startTime, endTime],
+        } = sponsorTime;
         return startTime <= upperBound && endTime >= lowerBound;
     });
 }
@@ -964,6 +973,7 @@ function setupVideoListeners() {
 
     if (!Config.config.disableSkipping) {
         danmakuForSkip();
+
         switchingVideos = false;
 
         let startedWaiting = false;
@@ -1830,11 +1840,19 @@ function sendTelemetryAndCount(skippingSegments: SponsorTime[], secondsSkipped: 
 }
 
 //skip from the start time to the end time for a certain index sponsor time
-function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, unskipTime }: SkipToTimeParams): void {
+function skipToTime({
+    v,
+    skipTime,
+    skippingSegments,
+    openNotice,
+    forceAutoSkip,
+    unskipTime,
+    forceNoAutoSkip,
+}: SkipToTimeParams): void {
     if (Config.config.disableSkipping) return;
 
     // There will only be one submission if it is manual skip
-    const autoSkip: boolean = forceAutoSkip || shouldAutoSkip(skippingSegments[0]);
+    const autoSkip: boolean = forceAutoSkip || (!forceNoAutoSkip && shouldAutoSkip(skippingSegments[0]));
     const isSubmittingSegment = sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment);
 
     if ((autoSkip || isSubmittingSegment) && v.currentTime !== skipTime[1]) {

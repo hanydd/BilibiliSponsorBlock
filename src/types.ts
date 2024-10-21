@@ -218,6 +218,7 @@ export interface SkipToTimeParams {
     openNotice: boolean;
     forceAutoSkip?: boolean;
     unskipTime?: number;
+    forceNoAutoSkip?: boolean;
 }
 
 export interface ToggleSkippable {
