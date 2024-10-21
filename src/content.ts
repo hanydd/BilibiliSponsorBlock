@@ -767,7 +767,7 @@ function checkDanmaku(text: string, offset: number) {
     const match = regex.exec(text);
 
     if (match) {
-        let timeComponents = match.slice(1).filter(Boolean).map((value) => parseInt(value, 10));
+        const timeComponents = match.slice(1).filter(Boolean).map((value) => parseInt(value, 10));
         let hours = 0, minutes = 0, seconds = 0;
         
         if (timeComponents.length === 2) {
