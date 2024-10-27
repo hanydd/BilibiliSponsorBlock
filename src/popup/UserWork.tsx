@@ -3,7 +3,7 @@ import { Spin } from "antd";
 import { MessageInstance } from "antd/es/message/interface";
 import * as React from "react";
 import Config from "../config";
-import { asyncRequestToServer } from "../requests/requests";
+import { getUserInfo, setUsername } from "../requests/user";
 import { getErrorMessage, getFormattedHours } from "../utils/formating";
 import { getHash } from "../utils/hash";
 
@@ -40,12 +40,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
         this.userNameInputRef = React.createRef<HTMLInputElement>();
 
         getHash(Config.config.userID)
-            .then((hash) =>
-                asyncRequestToServer("GET", "/api/userInfo", {
-                    publicUserID: hash,
-                    values: ["userName", "viewCount", "minutesSaved", "vip", "permissions", "segmentCount"],
-                })
-            )
+            .then((hash) => getUserInfo(hash))
             .then((res) => {
                 if (res.status === 200) {
                     const userInfo = JSON.parse(res.responseText);
@@ -84,7 +79,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
 
         this.setState({ usernameLoading: true });
 
-        asyncRequestToServer("POST", "/api/setUsername?userID=" + Config.config.userID + "&username=" + inputUserName)
+        setUsername(inputUserName)
             .then((response) => {
                 if (response.status == 200) {
                     this.setState({ editingUsername: false, userName: inputUserName });
