@@ -3,11 +3,10 @@ import { createRoot, Root } from "react-dom/client";
 import CategoryPillComponent, { CategoryPillState } from "../components/CategoryPillComponent";
 import Config from "../config";
 import { getPageLoaded } from "../content";
-import { waitFor } from "../utils/";
-import { addCleanupListener } from "../utils/cleanup";
 import { VoteResponse } from "../messageTypes";
 import { Category, SegmentUUID, SponsorTime } from "../types";
-import { Tooltip } from "./Tooltip";
+import { waitFor } from "../utils/";
+import { addCleanupListener } from "../utils/cleanup";
 
 const id = "categoryPill";
 
@@ -130,19 +129,6 @@ export class CategoryPill {
 
             if (!Config.config.categoryPillUpdate) {
                 Config.config.categoryPillUpdate = true;
-
-                const watchDiv = await waitFor(() => document.querySelector("#info.ytd-watch-flexy") as HTMLElement);
-                if (watchDiv) {
-                    new Tooltip({
-                        text: chrome.i18n.getMessage("categoryPillNewFeature"),
-                        link: "https://blog.ajay.app/full-video-sponsorblock",
-                        referenceNode: watchDiv,
-                        prependElement: watchDiv.firstChild as HTMLElement,
-                        bottomOffset: "-10px",
-                        opacity: 0.95,
-                        timeout: 50000,
-                    });
-                }
             }
         }
         this.isSegmentSet = true;
