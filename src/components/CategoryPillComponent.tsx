@@ -159,17 +159,18 @@ class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryP
             this.tooltip.close();
         }
 
-        const tooltipMount = document.querySelector("#above-the-fold, ytm-slim-owner-renderer") as HTMLElement;
+        const tooltipMount = document.querySelector("#viewbox_report") as HTMLElement;
         if (tooltipMount) {
             this.tooltip = new Tooltip({
                 text: this.getTitleText(),
                 referenceNode: tooltipMount,
-                bottomOffset: "0px",
+                bottomOffset: "unset",
+                topOffset: "4px",
                 opacity: 0.95,
                 displayTriangle: false,
                 showLogo: false,
                 showGotIt: false,
-                prependElement: tooltipMount.firstElementChild as HTMLElement,
+                prependElement: tooltipMount.childNodes[1] as HTMLElement,
             });
         }
     }
