@@ -606,14 +606,14 @@
         "message": "獨家限定"
     },
     "category_exclusive_access_description": {
-        "message": "僅用於標記整個影片。當影片展示了免費或被幫助以獲得產品、服務或訪問地點時使用。"
+        "message": "僅用於標記整個影片。適用於影片展示創作者免費或獲得補助使用的產品、服務或場地。"
     },
     "category_exclusive_access_pill": {
-        "message": "此影片展示了免費或被幫助以獲得產品、服務或訪問地點",
+        "message": "此影片展示了創作者免費或獲得補助使用的產品、服務或場地",
         "description": "Short description for this category"
     },
     "category_exclusive_access_guideline1": {
-        "message": "整個影片都在展示免費/受助以獲得和訪問的事物"
+        "message": "整個影片都在展示免費或獲得補助使用的內容"
     },
     "category_interaction": {
         "message": "三連/訂閱提醒"
@@ -677,7 +677,7 @@
         "message": "離題閒聊/玩笑"
     },
     "category_filler_description": {
-        "message": "離題片段標籤僅在出現不需要理解影片主要內容的拖時間/無關笑話片段時使用。此標籤不能包含有意義的內容或背景細節。這是非常激進的類別，代表您沒有心情娛樂。"
+        "message": "僅作為填充內容或增添趣味而添加的離題片段，這些內容對理解影片的主要內容並非必要。這不包括提供背景資訊或上下文的片段。這是一個非常激進的分類，適用於當你不想看「娛樂性」內容的時候。"
     },
     "category_filler_short": {
         "message": "離題"
