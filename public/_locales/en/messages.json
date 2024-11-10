@@ -1043,6 +1043,9 @@
         "message": "其他",
         "description": "Appears in Options as a tab header for advanced/niche options. To fit inside the button, it should not be longer than ~20-25 characters (depending on their width)."
     },
+    "optionsTabExperiment": {
+        "message": "实验功能"
+    },
     "noticeVisibilityLabel": {
         "message": "空降提醒外观",
         "description": "Option label"
@@ -1188,7 +1191,7 @@
         "message": "Extension storage is full. Please delete some unsubmitted segments in the options."
     },
     "previewSegmentRequired": {
-        "message": "请在提交前预览您的片段，你可以使用快捷键预览：" ,
+        "message": "请在提交前预览您的片段，你可以使用快捷键预览：",
         "description": "Appears when trying to submit a segment without previewing it first. After the colon, the shortcut will appear"
     },
     "hasbindedPortVideo": {

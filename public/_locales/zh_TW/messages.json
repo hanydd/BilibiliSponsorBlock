@@ -1043,6 +1043,9 @@
         "message": "其他",
         "description": "Appears in Options as a tab header for advanced/niche options. To fit inside the button, it should not be longer than ~20-25 characters (depending on their width)."
     },
+    "optionsTabExperiment": {
+        "message": "實驗功能"
+    },
     "noticeVisibilityLabel": {
         "message": "跳過提醒外觀",
         "description": "Option label"
