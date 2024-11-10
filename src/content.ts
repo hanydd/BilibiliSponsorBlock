@@ -501,7 +501,7 @@ function createPreviewBar(): void {
     const progressElementOptions = [
         {
             // For Desktop Bilibili
-            selector: ".bpx-player-progress-schedule-wrap",
+            selector: ".bpx-player-progress",
             shadowSelector: ".bpx-player-shadow-progress-area",
             isVisibleCheck: true,
         },
