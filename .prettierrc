@@ -11,6 +11,13 @@
             "options": {
                 "useTabs": true
             }
+        },
+        {
+            "files": "*.html",
+            "options": {
+                "tabWidth": 2,
+                "useTabs": true
+            }
         }
     ]
 }
