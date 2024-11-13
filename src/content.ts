@@ -790,6 +790,7 @@ function checkDanmaku(text: string, offset: number) {
 
     // ignore if the time is in the past
     if (targetTime < startTime + 5) return;
+    if (targetTime > getVideo().duration) return;
 
     if (Config.config.checkTimeDanmakuSkip && isSegmentMarkedNearCurrentTime(startTime)) return;
 
