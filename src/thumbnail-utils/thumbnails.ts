@@ -7,7 +7,10 @@ export async function labelThumbnails(thumbnails: HTMLElement[]): Promise<void> 
     await Promise.all(thumbnails.map((t) => labelThumbnail(t as HTMLImageElement)));
 }
 
-export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLElement | null> {
+export async function labelThumbnail(
+    thumbnail: HTMLImageElement,
+    thumbnailOldHref?: string
+): Promise<HTMLElement | null> {
     if (!Config.config?.fullVideoSegments || !Config.config?.fullVideoLabelsOnThumbnails) {
         hideThumbnailLabel(thumbnail);
         return null;
@@ -28,13 +31,21 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
     }
     const [videoID] = videoIDs;
 
+    // 获取或创建缩略图标签
+    const { overlay, text } = await createOrGetThumbnail(thumbnail);
+
+    if (thumbnailOldHref) {
+        const oldVideoID = getBvIDFromURL(thumbnailOldHref);
+        if (oldVideoID && oldVideoID == videoID) {
+            return overlay;
+        }
+    }
+
     const category = await getVideoLabel(videoID);
     if (!category) {
         hideThumbnailLabel(thumbnail);
         return null;
     }
-
-    const { overlay, text } = await createOrGetThumbnail(thumbnail);
 
     overlay.style.setProperty(
         "--category-color",
@@ -51,7 +62,7 @@ export async function labelThumbnail(thumbnail: HTMLImageElement): Promise<HTMLE
 }
 
 function getOldThumbnailLabel(thumbnail: HTMLImageElement): HTMLElement | null {
-    return thumbnail.querySelector(".sponsorThumbnailLabel") as HTMLElement | null;
+    return thumbnail.querySelector("#sponsorThumbnailLabel") as HTMLElement | null;
 }
 
 function hideThumbnailLabel(thumbnail: HTMLImageElement): void {
