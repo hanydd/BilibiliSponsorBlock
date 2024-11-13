@@ -3,7 +3,7 @@ import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
 import { getPageType } from "../utils/video";
 import { getThumbnailContainerElements, getThumbnailLink, getThumbnailSelectors } from "./thumbnail-selectors";
-import { insertSBIconDefinition, labelThumbnails } from "./thumbnails";
+import { insertSBIconDefinition, labelThumbnail, labelThumbnails } from "./thumbnails";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 
@@ -83,7 +83,7 @@ export function newThumbnails() {
             const observer = new MutationObserver((mutations) => {
                 for (const mutation of mutations) {
                     if (mutation.type === "attributes" && mutation.attributeName === "href") {
-                        labelThumbnails([thumbnail]);
+                        labelThumbnail(thumbnail as HTMLImageElement, mutation.oldValue);
                         break;
                     }
                 }
@@ -91,7 +91,7 @@ export function newThumbnails() {
             handledThumbnailsObserverMap.set(thumbnail, observer);
 
             const link = getThumbnailLink(thumbnail);
-            if (link) observer.observe(link, { attributes: true });
+            if (link) observer.observe(link, { attributes: true, attributeOldValue: true, attributeFilter: ["href"] });
         }
     }
 
