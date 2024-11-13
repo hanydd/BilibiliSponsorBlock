@@ -78,6 +78,7 @@ export enum SponsorSourceType {
     Server = undefined,
     Local = 1,
     YouTube = 2,
+    Danmaku = 3,
 }
 export interface SponsorTime {
     segment: [number] | [number, number];

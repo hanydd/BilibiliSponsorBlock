@@ -788,13 +788,16 @@ function checkDanmaku(text: string, offset: number) {
     const targetTime = hours * 3600 + minutes * 60 + seconds;
     const startTime = getVirtualTime() + offset;
 
+    // ignore if the time is in the past
+    if (targetTime < startTime + 5) return;
+
     if (Config.config.checkTimeDanmakuSkip && isSegmentMarkedNearCurrentTime(startTime)) return;
 
     const skippingSegments: SponsorTime[] = [
         {
             actionType: ActionType.Skip,
             segment: [startTime, targetTime],
-            source: SponsorSourceType.Local,
+            source: SponsorSourceType.Danmaku,
             UUID: generateUserID() as SegmentUUID,
             category: "sponsor" as Category,
         },
@@ -808,7 +811,6 @@ function checkDanmaku(text: string, offset: number) {
             openNotice: true,
             forceAutoSkip: Config.config.enableAutoSkipDanmakuSkip,
             unskipTime: startTime,
-            forceNoAutoSkip: !Config.config.enableAutoSkipDanmakuSkip,
         });
         if (Config.config.enableMenuDanmakuSkip) {
             setTimeout(() => {
@@ -1840,19 +1842,11 @@ function sendTelemetryAndCount(skippingSegments: SponsorTime[], secondsSkipped: 
 }
 
 //skip from the start time to the end time for a certain index sponsor time
-function skipToTime({
-    v,
-    skipTime,
-    skippingSegments,
-    openNotice,
-    forceAutoSkip,
-    unskipTime,
-    forceNoAutoSkip,
-}: SkipToTimeParams): void {
+function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, unskipTime }: SkipToTimeParams): void {
     if (Config.config.disableSkipping) return;
 
     // There will only be one submission if it is manual skip
-    const autoSkip: boolean = forceAutoSkip || (!forceNoAutoSkip && shouldAutoSkip(skippingSegments[0]));
+    const autoSkip: boolean = forceAutoSkip || shouldAutoSkip(skippingSegments[0]);
     const isSubmittingSegment = sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment);
 
     if ((autoSkip || isSubmittingSegment) && v.currentTime !== skipTime[1]) {
@@ -2001,15 +1995,39 @@ function reskipSponsorTime(segment: SponsorTime, forceSeek = false) {
 }
 
 function shouldAutoSkip(segment: SponsorTime): boolean {
-    return (
-        (!Config.config.manualSkipOnFullVideo ||
-            !sponsorTimes?.some((s) => s.category === segment.category && s.actionType === ActionType.Full)) &&
-        (utils.getCategorySelection(segment.category)?.option === CategorySkipOption.AutoSkip ||
-            (Config.config.autoSkipOnMusicVideos &&
-                sponsorTimes?.some((s) => s.category === "music_offtopic") &&
-                segment.actionType === ActionType.Skip) ||
-            sponsorTimesSubmitting.some((s) => s.segment === segment.segment))
-    );
+    // danmaku segments are controlled by config
+    if (segment.source === SponsorSourceType.Danmaku) {
+        return Config.config.enableAutoSkipDanmakuSkip;
+    }
+    // Check if manual skip on full video is disabled or there is no full video segment for this category
+    if (
+        Config.config.manualSkipOnFullVideo &&
+        sponsorTimes?.some((s) => s.category === segment.category && s.actionType === ActionType.Full)
+    ) {
+        return false;
+    }
+
+    const categoryOption = utils.getCategorySelection(segment.category)?.option;
+
+    // Check if the category is set to AutoSkip
+    if (categoryOption === CategorySkipOption.AutoSkip) {
+        return true;
+    }
+    // Check if auto skip on music videos is enabled and there's a "music_offtopic" segment, and the current segment is of type Skip
+    else if (
+        Config.config.autoSkipOnMusicVideos &&
+        sponsorTimes?.some((s) => s.category === "music_offtopic") &&
+        segment.actionType === ActionType.Skip
+    ) {
+        return true;
+    }
+    // Check if this segment is in the submitting segments
+    else if (sponsorTimesSubmitting.some((s) => s.segment === segment.segment)) {
+        return true;
+    }
+
+    // Do not auto-skip in other cases
+    return false;
 }
 
 function shouldSkip(segment: SponsorTime): boolean {
