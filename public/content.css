@@ -749,7 +749,7 @@ input::-webkit-inner-spin-button {
 	padding: 0.5em;
 	margin: 0.5em;
 	border-radius: 2em;
-	z-index: auto;
+	z-index: 5;
 	background-color: var(--category-color, #000);
 	opacity: 0.7;
 	box-shadow: 0 0 8px 2px #333;
