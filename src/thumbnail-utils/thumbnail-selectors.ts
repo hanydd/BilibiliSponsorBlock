@@ -57,7 +57,12 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         thumbnailSelector: ".small-item",
     },
     "dynamic": {
-        // 动态页面
+        // 动态首页页面
+        containerSelector: "section:has(.bili-dyn-list)",
+        thumbnailSelector: ".bili-dyn-content",
+    },
+    "channelDynamic": {
+        // 用户空间动态
         containerSelector: ".bili-dyn-list",
         thumbnailSelector: ".bili-dyn-content",
     },
@@ -76,7 +81,7 @@ const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
     [PageType.List]: ["listPlayerSideRecommendation", "listPlayerListCard"],
     [PageType.Search]: ["search"],
     [PageType.Dynamic]: ["dynamic"],
-    [PageType.Channel]: ["spaceMain", "spaceUpload", "dynamic"],
+    [PageType.Channel]: ["spaceMain", "spaceUpload", "channelDynamic"],
     [PageType.Message]: [],
     [PageType.Manga]: [],
     [PageType.Anime]: [],
