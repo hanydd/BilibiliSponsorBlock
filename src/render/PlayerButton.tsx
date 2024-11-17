@@ -66,7 +66,7 @@ export class PlayerButton {
             this.creatingButtons = true;
             this.container = document.createElement("div");
             this.container.id = containerId;
-            this.container.style.display = "contents";
+            this.container.style.display = "flex";
             this.root = createRoot(this.container);
             this.root.render(
                 <PlayerButtonGroupComponent
@@ -93,7 +93,7 @@ export class PlayerButton {
                 },
             };
             if (Config.config.autoHideInfoButton) {
-                AnimationUtils.setupAutoHideAnimation(this.playerButtons.info.button, controlsContainer);
+                AnimationUtils.setupAutoHideAnimation(this.playerButtons.info.button, this.container);
             }
             this.creatingButtons = false;
         }

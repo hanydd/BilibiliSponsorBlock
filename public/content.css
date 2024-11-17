@@ -71,6 +71,11 @@
 .playerButtonImage {
 	height: 22px;
 	vertical-align: top;
+	opacity: 0.9;
+}
+
+.playerButtonImage:hover {
+	opacity: 1;
 }
 
 .playerButton {
@@ -101,17 +106,21 @@
 }
 
 .autoHiding:not(.sbhidden) {
-	transform: translateX(0%) scale(1);
-	/* opacity is from YouTube page */
-	transition: transform 0.2s, width 0.2s, opacity 0.1s cubic-bezier(0.4, 0, 1, 1) !important;
+	transform: translateX(0%);
+	transition: transform 0.2s cubic-bezier(0.215, 0.61, 0.355, 1), width 0.2s cubic-bezier(0.215, 0.61, 0.355, 1), opacity 0.2s cubic-bezier(0.19, 1, 0.22, 1) !important;
 }
 
 .autoHiding.sbhidden {
-	transform: translateX(100%) scale(0);
-	/* opacity is from YouTube page */
-	transition: transform 0.2s, width 0.2s, opacity 0.1s cubic-bezier(0.4, 0, 1, 1) !important;
+	transform: translateX(100%);
+	transition: transform 0.2s cubic-bezier(0.215, 0.61, 0.355, 1), width 0.2s cubic-bezier(0.215, 0.61, 0.355, 1), opacity 0.2s cubic-bezier(0.19, 1, 0.22, 1) !important;
+	/* width: 0px !important; */
+	opacity: 0;
+}
 
-	width: 0px !important;
+@media (max-width: 1260px){
+	.autoHiding.sbhidden{
+		width: 0px !important;
+	}
 }
 
 .autoHiding.sbhidden.autoHideLeft {
