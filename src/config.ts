@@ -186,6 +186,14 @@ function migrateOldSyncFormats(config: SBConfig) {
     if (config["serverAddress"].includes("47.103.74.95")) {
         config["serverAddress"] = CompileConfig.serverAddress;
     }
+
+    // danmaku regex update since 0.5.0
+    const oldDanmakuRegexPatterns = [
+        "(?:空降\\s*)?(\\d{1,2}):(\\d{1,2})(?::(\\d{1,2}))?", // 0.5.0
+    ];
+    if (oldDanmakuRegexPatterns.includes(config["danmakuRegexPattern"])) {
+        config["danmakuRegexPattern"] = syncDefaults.danmakuRegexPattern;
+    }
 }
 
 const syncDefaults = {
@@ -207,7 +215,7 @@ const syncDefaults = {
     enableDanmakuSkip: false,
     enableAutoSkipDanmakuSkip: false,
     enableMenuDanmakuSkip: false,
-    danmakuRegexPattern: "(?:空降\\s*)?(\\d{1,2}):(\\d{1,2})(?::(\\d{1,2}))?",
+    danmakuRegexPattern: "(?:空降\\s*)?(\\d{1,2})[:：](\\d{1,2})(?:[:：](\\d{1,2}))?$",
     checkTimeDanmakuSkip: true,
 
     muteSegments: true,
