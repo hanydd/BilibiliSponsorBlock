@@ -202,11 +202,14 @@ const syncDefaults = {
     submissionCountSinceCategories: 0,
     showTimeWithSkips: true,
     disableSkipping: false,
+
+    // danmaku skip
     enableDanmakuSkip: false,
     enableAutoSkipDanmakuSkip: false,
     enableMenuDanmakuSkip: false,
     danmakuRegexPattern: "(?:空降\\s*)?(\\d{1,2}):(\\d{1,2})(?::(\\d{1,2}))?",
     checkTimeDanmakuSkip: true,
+
     muteSegments: true,
     fullVideoSegments: true,
     fullVideoLabelsOnThumbnails: true,
