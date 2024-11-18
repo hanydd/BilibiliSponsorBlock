@@ -21,7 +21,7 @@ export interface ContentContainer {
     (): {
         vote: (type: number, UUID: SegmentUUID, category?: Category, skipNotice?: SkipNoticeComponent) => void;
         dontShowNoticeAgain: () => void;
-        unskipSponsorTime: (segment: SponsorTime, unskipTime: number, forceSeek?: boolean) => void;
+        unskipSponsorTime: (segment: SponsorTime, unskipTime: number, readySkip: NodeJS.Timeout, forceSeek?: boolean) => void;
         sponsorTimes: SponsorTime[];
         sponsorTimesSubmitting: SponsorTime[];
         skipNotices: SkipNotice[];

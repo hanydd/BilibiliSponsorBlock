@@ -368,11 +368,11 @@
         "description": "Used for skipping to things (Skip to Highlight)"
     },
     "skipped": {
-        "message": "{0} 已跳过",
+        "message": "{0} 准备跳过",
         "description": "Example: Sponsor Skipped"
     },
     "muted": {
-        "message": "{0} 已静音",
+        "message": "{0} 准备静音",
         "description": "Example: Sponsor Muted"
     },
     "skipped_to_category": {

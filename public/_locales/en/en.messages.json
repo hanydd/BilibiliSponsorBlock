@@ -371,11 +371,11 @@
         "description": "Used for skipping to things (Skip to Highlight)"
     },
     "skipped": {
-        "message": "{0} Skipped",
+        "message": "{0} Ready Skipped",
         "description": "Example: Sponsor Skipped"
     },
     "muted": {
-        "message": "{0} Muted",
+        "message": "{0} Ready Muted",
         "description": "Example: Sponsor Muted"
     },
     "skipped_to_category": {

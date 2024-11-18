@@ -44,6 +44,7 @@ export interface SkipNoticeProps {
     smaller: boolean;
 
     unskipTime?: number;
+    readySkip: NodeJS.Timeout
 }
 
 export interface SkipNoticeState {
@@ -72,6 +73,8 @@ export interface SkipNoticeState {
 
     voted?: SkipNoticeAction[];
     copied?: SkipNoticeAction[];
+
+    readySkip: NodeJS.Timeout;
 }
 
 class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeState> {
@@ -173,6 +176,8 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             // Keep track of what segment the user interacted with.
             voted: new Array(this.props.segments.length).fill(SkipNoticeAction.None),
             copied: new Array(this.props.segments.length).fill(SkipNoticeAction.None),
+
+            readySkip: this.props.readySkip,
         };
 
         if (!this.autoSkip) {
@@ -678,7 +683,8 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     unskip(buttonIndex: number, index: number, forceSeek: boolean): void {
-        this.contentContainer().unskipSponsorTime(this.segments[index], this.props.unskipTime, forceSeek);
+        this.contentContainer().unskipSponsorTime(this.segments[index], this.props.unskipTime, this.state.readySkip, forceSeek);
+        this.setState({ readySkip: null });
 
         this.unskippedMode(buttonIndex, index, SkipButtonState.Redo);
     }
@@ -698,6 +704,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
 
             maxCountdownTime: () => Config.config.skipNoticeDuration,
             countdownTime: Config.config.skipNoticeDuration,
+            readySkip: null
         };
 
         //reset countdown

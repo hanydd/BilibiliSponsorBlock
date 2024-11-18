@@ -92,6 +92,7 @@ let retryFetchTimeout: NodeJS.Timeout = null;
 let shownSegmentFailedToFetchWarning = false;
 let selectedSegment: SegmentUUID | null = null;
 let previewedSegment = false;
+let readySkip: NodeJS.Timeout
 
 // JSON video info
 let videoInfo: VideoInfo = null;
@@ -306,6 +307,7 @@ function messageListener(
         case "unskip":
             unskipSponsorTime(
                 sponsorTimes.find((segment) => segment.UUID === request.UUID),
+                null,
                 null,
                 true
             );
@@ -651,7 +653,7 @@ async function startSponsorSchedule(
             shouldSkip(currentSkip) ||
             sponsorTimesSubmitting?.some((segment) => segment.segment === currentSkip.segment)
         ) {
-            if (forceVideoTime >= skipTime[0] - skipBuffer && forceVideoTime < skipTime[1]) {
+            if (forceVideoTime >= skipTime[0] - skipBuffer - Config.config.skipNoticeDuration * 1000 && forceVideoTime < skipTime[1]) {
                 skipToTime({
                     v: getVideo(),
                     skipTime,
@@ -757,7 +759,7 @@ async function startSponsorSchedule(
 
             const offset = isFirefoxOrSafari() && !isSafari() ? 600 : 150;
             // Schedule for right before to be more precise than normal timeout
-            currentSkipSchedule = setTimeout(skippingFunction, Math.max(0, delayTime - offset));
+            currentSkipSchedule = setTimeout(skippingFunction, Math.max(0, delayTime - offset - Config.config.skipNoticeDuration * 1000));
         }
     }
 }
@@ -1850,50 +1852,54 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
     const autoSkip: boolean = forceAutoSkip || shouldAutoSkip(skippingSegments[0]);
     const isSubmittingSegment = sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment);
 
-    if ((autoSkip || isSubmittingSegment) && v.currentTime !== skipTime[1]) {
-        switch (skippingSegments[0].actionType) {
-            case ActionType.Poi:
-            case ActionType.Skip: {
-                // Fix for looped videos not working when skipping to the end #426
-                // for some reason you also can't skip to 1 second before the end
-                if (v.loop && v.duration > 1 && skipTime[1] >= v.duration - 1) {
-                    v.currentTime = 0;
-                } else if (
-                    v.duration > 1 &&
-                    skipTime[1] >= v.duration &&
-                    (navigator.vendor === "Apple Computer, Inc." || isPlayingPlaylist())
-                ) {
-                    // MacOS will loop otherwise #1027
-                    // Sometimes playlists loop too #1804
-                    v.currentTime = v.duration - 0.001;
-                } else if (
-                    v.duration > 1 &&
-                    Math.abs(skipTime[1] - v.duration) < endTimeSkipBuffer &&
-                    isFirefoxOrSafari() &&
-                    !isSafari()
-                ) {
-                    v.currentTime = v.duration;
-                } else {
-                    if (inMuteSegment(skipTime[1], true)) {
-                        // Make sure not to mute if skipping into a mute segment
+    //防止重复调用导致反复横跳
+    clearTimeout(readySkip)
+    readySkip = setTimeout(function () {
+        if ((autoSkip || isSubmittingSegment) && v.currentTime !== skipTime[1]) {
+            switch (skippingSegments[0].actionType) {
+                case ActionType.Poi:
+                case ActionType.Skip: {
+                    // Fix for looped videos not working when skipping to the end #426
+                    // for some reason you also can't skip to 1 second before the end
+                    if (v.loop && v.duration > 1 && skipTime[1] >= v.duration - 1) {
+                        v.currentTime = 0;
+                    } else if (
+                        v.duration > 1 &&
+                        skipTime[1] >= v.duration &&
+                        (navigator.vendor === "Apple Computer, Inc." || isPlayingPlaylist())
+                    ) {
+                        // MacOS will loop otherwise #1027
+                        // Sometimes playlists loop too #1804
+                        v.currentTime = v.duration - 0.001;
+                    } else if (
+                        v.duration > 1 &&
+                        Math.abs(skipTime[1] - v.duration) < endTimeSkipBuffer &&
+                        isFirefoxOrSafari() &&
+                        !isSafari()
+                    ) {
+                        v.currentTime = v.duration;
+                    } else {
+                        if (inMuteSegment(skipTime[1], true)) {
+                            // Make sure not to mute if skipping into a mute segment
+                            v.muted = true;
+                            videoMuted = true;
+                        }
+
+                        v.currentTime = skipTime[1];
+                    }
+
+                    break;
+                }
+                case ActionType.Mute: {
+                    if (!v.muted) {
                         v.muted = true;
                         videoMuted = true;
                     }
-
-                    v.currentTime = skipTime[1];
+                    break;
                 }
-
-                break;
-            }
-            case ActionType.Mute: {
-                if (!v.muted) {
-                    v.muted = true;
-                    videoMuted = true;
-                }
-                break;
             }
         }
-    }
+    }, Math.min(Config.config.skipNoticeDuration * 1000 / getVideo().playbackRate, (skipTime[0] - getVideo().currentTime) * 1000 / getVideo().playbackRate));
 
     if (autoSkip && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
         const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
@@ -1919,15 +1925,15 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
         if (openNotice) {
             //send out the message saying that a sponsor message was skipped
             if (!Config.config.dontShowNotice || !autoSkip) {
-                createSkipNotice(skippingSegments, autoSkip, unskipTime, false);
+                createSkipNotice(skippingSegments, autoSkip, unskipTime, false, readySkip);
             } else if (autoSkip) {
                 activeSkipKeybindElement?.setShowKeybindHint(false);
                 activeSkipKeybindElement = {
-                    setShowKeybindHint: () => {}, //eslint-disable-line @typescript-eslint/no-empty-function
+                    setShowKeybindHint: () => {},
                     toggleSkip: () => {
-                        unskipSponsorTime(skippingSegments[0], unskipTime);
+                        createSkipNotice(skippingSegments, autoSkip, unskipTime, true, readySkip);
 
-                        createSkipNotice(skippingSegments, autoSkip, unskipTime, true);
+                        readySkip = unskipSponsorTime(skippingSegments[0], unskipTime, readySkip);
                     },
                 };
             }
@@ -1942,7 +1948,8 @@ function createSkipNotice(
     skippingSegments: SponsorTime[],
     autoSkip: boolean,
     unskipTime: number,
-    startReskip: boolean
+    startReskip: boolean,
+    readySkip: NodeJS.Timeout
 ) {
     for (const skipNotice of skipNotices) {
         if (
@@ -1959,7 +1966,8 @@ function createSkipNotice(
         autoSkip,
         skipNoticeContentContainer,
         unskipTime,
-        startReskip
+        startReskip,
+        readySkip
     );
     if (Config.config.skipKeybind == null) newSkipNotice.setShowKeybindHint(false);
     skipNotices.push(newSkipNotice);
@@ -1968,7 +1976,7 @@ function createSkipNotice(
     activeSkipKeybindElement = newSkipNotice;
 }
 
-function unskipSponsorTime(segment: SponsorTime, unskipTime: number = null, forceSeek = false) {
+function unskipSponsorTime(segment: SponsorTime, unskipTime: number, readySkip: NodeJS.Timeout, forceSeek = false) {
     if (segment.actionType === ActionType.Mute) {
         getVideo().muted = false;
         videoMuted = false;
@@ -1976,7 +1984,12 @@ function unskipSponsorTime(segment: SponsorTime, unskipTime: number = null, forc
 
     if (forceSeek || segment.actionType === ActionType.Skip) {
         //add a tiny bit of time to make sure it is not skipped again
-        getVideo().currentTime = unskipTime ?? segment.segment[0] + 0.001;
+        if(readySkip){
+            clearTimeout(readySkip)
+            return null
+        }else{
+            getVideo().currentTime = unskipTime ?? segment.segment[0] + 0.001;
+        }
     }
 }
 

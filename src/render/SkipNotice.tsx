@@ -25,7 +25,8 @@ class SkipNotice {
         autoSkip = false,
         contentContainer: ContentContainer,
         unskipTime: number = null,
-        startReskip = false
+        startReskip = false,
+        readySkip: NodeJS.Timeout
     ) {
         this.skipNoticeRef = React.createRef();
 
@@ -63,6 +64,7 @@ class SkipNotice {
                     (Config.config.noticeVisibilityMode >= NoticeVisbilityMode.MiniForAutoSkip && autoSkip)
                 }
                 unskipTime={unskipTime}
+                readySkip={readySkip}
             />
         );
     }
