@@ -1899,7 +1899,7 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
                 }
             }
         }
-    }, Math.min(Config.config.skipNoticeDuration * 1000 / getVideo().playbackRate, (skipTime[0] - getVideo().currentTime) * 1000 / getVideo().playbackRate));
+    }, howLongToSkip(skippingSegments, skipTime));
 
     if (autoSkip && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
         const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
@@ -1990,6 +1990,17 @@ function unskipSponsorTime(segment: SponsorTime, unskipTime: number, readySkip: 
         }else{
             getVideo().currentTime = unskipTime ?? segment.segment[0] + 0.001;
         }
+    }
+}
+
+//适配不同的片段
+function howLongToSkip(skippingSegments: SponsorTime[], skipTime: number[]){
+    if (skippingSegments[0].category === "sponsor" || skippingSegments[0].category === "selfpromo" || skippingSegments[0].category === "filler" || skippingSegments[0].category === "music_offtopic") {
+        return Math.min(Config.config.skipNoticeDuration * 1000 / getVideo().playbackRate, (skipTime[0] - getVideo().currentTime) * 1000 / getVideo().playbackRate)
+    } else if (skippingSegments[0].category === "poi_highlight" || skippingSegments[0].category === "preview" || skippingSegments[0].category === "interaction" || skippingSegments[0].category === "intro" || skippingSegments[0].category === "outro") {
+        return 0
+    } else {//防止未来加入新的片段类型导致不可用
+        return Math.min(Config.config.skipNoticeDuration * 1000 / getVideo().playbackRate, (skipTime[0] - getVideo().currentTime) * 1000 / getVideo().playbackRate)
     }
 }
 
