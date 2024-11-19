@@ -7,7 +7,7 @@
         "message": "空降助手"
     },
     "Description": {
-        "message": "廣告？桌子都給你掀了(/= _ =)/~┴┴   帶您精準跳轉到高能時刻，自動跳過影片中的贊助廣告、訂閱提醒等片段。您也可以親自標記影片中的廣告並上傳，所有人都會從您的貢獻中受益。",
+        "message": "廣告？桌子都給你掀了(/= _ =)/~┴┴   帶您精準跳轉到贊助廣告結束或者高能時刻，自動跳過影片中的贊助廣告、訂閱提醒等片段。您也可以親自標記影片中的廣告並上傳，所有人都會從您的貢獻中受益。",
         "description": "Description of the extension."
     },
     "400": {
@@ -119,7 +119,7 @@
         "message": "清除片段"
     },
     "openPopup": {
-        "message": "打開Bilibili Sponsor Block跳出視窗"
+        "message": "打開B站空降助手跳出視窗"
     },
     "closePopup": {
         "message": "關閉跳出視窗"
@@ -279,7 +279,7 @@
         "message": "半透明所有的跳過提醒跳出視窗"
     },
     "longDescription": {
-        "message": "Bilibili Sponsor Block可幫您跳過影片中的贊助廣告、開場結尾、三連提醒和其他煩人片段。Bilibili Sponsor Block是一個瀏覽器擴展，任何人可以提交影片中的廣告和其他片段的開始和結束時間。如果有一人提交了資訊，其他所有使用此擴展的人都能直接跳過廣告片段。您也可以跳過音樂影片中的非音樂部分。",
+        "message": "B站空降助手可幫您跳過影片中的贊助廣告、開場結尾、三連提醒和其他煩人片段。空降助手是一個瀏覽器擴展，任何人可以提交影片中的廣告和其他片段的開始和結束時間。如果有一人提交了資訊，其他所有使用此擴展的人都能直接跳過廣告片段。您也可以跳過音樂影片中的非音樂部分。",
         "description": "Full description of the extension on the store pages."
     },
     "website": {
@@ -478,10 +478,10 @@
         "message": "以下的提交短於您的最小持續時間選項。這代表它們可能已經被提交，只是由於該選項被忽略了。您確定要提交嗎？"
     },
     "customServerAddress": {
-        "message": "Bilibili Sponsor Block伺服器地址"
+        "message": "空降助手伺服器地址"
     },
     "customServerAddressDescription": {
-        "message": "Bilibili Sponsor Block的伺服器地址。\n不建議更改，除非您有自己的伺服器。"
+        "message": "B站空降助手的伺服器地址。\n不建議更改，除非您有自己的伺服器。"
     },
     "save": {
         "message": "儲存"
@@ -591,7 +591,7 @@
         "message": "無償/自我推廣"
     },
     "category_selfpromo_description": {
-        "message": "類似於 「贊助廣告」 ，但無報酬或是自我推廣。包括有關商品、捐贈的部分或合作者的資訊。"
+        "message": "類似於「贊助廣告」 ，但無報酬或是自我推廣。包括有關商品、捐贈的部分或合作者的資訊。"
     },
     "category_selfpromo_guideline1": {
         "message": "捐贈、會員和自製周邊"
@@ -610,7 +610,7 @@
     },
     "category_exclusive_access_pill": {
         "message": "此影片展示了創作者免費或獲得補助使用的產品、服務或場地",
-        "description": "Short description for this category"
+        "description": "此類別的簡短描述"
     },
     "category_exclusive_access_guideline1": {
         "message": "整個影片都在展示免費或獲得補助使用的內容"
@@ -764,7 +764,7 @@
         "message": "匹配成功後打開提交窗口"
     },
     "checkTimeDanmakuSkip": {
-        "message": "檢查片段附近是否已有上傳的跳過信息，已有則不觸發此功能"
+        "message": "檢查片段附近是否已有上傳的跳過資訊，已有則不觸發此功能"
     },
     "danmakuRegexPattern": {
         "message": "匹配正則: "
@@ -1162,7 +1162,7 @@
         "message": "允許滾動編輯時間"
     },
     "showPreviewYoutubeButton": {
-        "message": "搬運影片區域顯示「預覽YouTube影片」按鈕"
+        "message": "搬運影片區域顯示「預覽 YouTube 影片」按鈕"
     },
     "showPortVideoButton": {
         "message": "顯示綁定搬運影片按鈕"
@@ -1201,13 +1201,13 @@
         "message": "請輸入搬運影片網址"
     },
     "previewYoutubeVideoButton": {
-        "message": "預覽YouTube影片"
+        "message": "預覽 YouTube 影片"
     },
     "bindPortVideoButton": {
         "message": "綁定搬運影片"
     },
     "refreshPortedSegments": {
-        "message": "更新來自綁定視頻的片段"
+        "message": "更新來自綁定影片的片段"
     },
     "refreshSuccess": {
         "message": "更新成功！"
