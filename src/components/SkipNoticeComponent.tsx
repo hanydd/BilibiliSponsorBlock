@@ -44,7 +44,7 @@ export interface SkipNoticeProps {
     smaller: boolean;
 
     unskipTime?: number;
-    readySkip: NodeJS.Timeout
+    readySkip: NodeJS.Timeout;
 }
 
 export interface SkipNoticeState {

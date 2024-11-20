@@ -92,7 +92,8 @@ let retryFetchTimeout: NodeJS.Timeout = null;
 let shownSegmentFailedToFetchWarning = false;
 let selectedSegment: SegmentUUID | null = null;
 let previewedSegment = false;
-let readySkip: NodeJS.Timeout
+let readySkip: NodeJS.Timeout;
+let readySkipCheck: number;
 
 // JSON video info
 let videoInfo: VideoInfo = null;
@@ -1853,8 +1854,13 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
     const isSubmittingSegment = sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment);
 
     //防止重复调用导致反复横跳
-    clearTimeout(readySkip)
-    readySkip = setTimeout(function () {
+    let Check = readySkipCheck != skipTime[0];
+    readySkipCheck = skipTime[0];
+    if(!Check) return;
+    clearTimeout(readySkip);
+    const handleSkip = () => {
+        cleanListeners();
+
         if ((autoSkip || isSubmittingSegment) && v.currentTime !== skipTime[1]) {
             switch (skippingSegments[0].actionType) {
                 case ActionType.Poi:
@@ -1899,7 +1905,31 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
                 }
             }
         }
-    }, howLongToSkip(skippingSegments, skipTime));
+    }
+
+    //防止在片段前暂停等
+    const cleanListeners = () => {
+        v.removeEventListener("seeked", handleSeeked);
+        v.removeEventListener("pause", handlePause);
+        v.removeEventListener("play", handlePlay);
+    };
+    const handlePause = () => {
+        clearTimeout(readySkip);
+    };
+    const handlePlay = () => {
+        const text = document.querySelector('.sponsorSkipObject.sponsorSkipNoticeButton') as HTMLButtonElement;
+        if (text.textContent.slice(0, 4) === chrome.i18n.getMessage('unskip')) {
+            readySkip = setTimeout(handleSkip, howLongToSkip(skippingSegments, skipTime));
+        };
+    };
+    const handleSeeked = () => {
+        readySkipCheck = null;
+        clearTimeout(readySkip);
+    };
+    v.addEventListener("pause", handlePause);
+    v.addEventListener("play", handlePlay);
+    v.addEventListener("seeked", handleSeeked);
+    readySkip = setTimeout(handleSkip, howLongToSkip(skippingSegments, skipTime));
 
     if (autoSkip && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
         const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
@@ -1983,11 +2013,15 @@ function unskipSponsorTime(segment: SponsorTime, unskipTime: number, readySkip: 
     }
 
     if (forceSeek || segment.actionType === ActionType.Skip) {
-        //add a tiny bit of time to make sure it is not skipped again
-        if(readySkip){
-            clearTimeout(readySkip)
-            return null
-        }else{
+        if (readySkip && getVideo().currentTime > segment.segment[0]) {
+            clearTimeout(readySkip);
+            getVideo().currentTime = unskipTime ?? segment.segment[0] + 0.001;
+            return null;
+        } else if (readySkip) {
+            clearTimeout(readySkip);
+            return null;
+        } else {
+            //add a tiny bit of time to make sure it is not skipped again
             getVideo().currentTime = unskipTime ?? segment.segment[0] + 0.001;
         }
     }
