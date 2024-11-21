@@ -92,8 +92,11 @@ let retryFetchTimeout: NodeJS.Timeout = null;
 let shownSegmentFailedToFetchWarning = false;
 let selectedSegment: SegmentUUID | null = null;
 let previewedSegment = false;
-let readySkip: NodeJS.Timeout;
-let readySkipCheck: number;
+const readySkip = {
+    readySkip: null as NodeJS.Timeout,
+    readySkipCheck: null as number,
+    ManualSkipSetTimeOut: null as NodeJS.Timeout,
+};
 
 // JSON video info
 let videoInfo: VideoInfo = null;
@@ -308,7 +311,6 @@ function messageListener(
         case "unskip":
             unskipSponsorTime(
                 sponsorTimes.find((segment) => segment.UUID === request.UUID),
-                null,
                 null,
                 true
             );
@@ -1854,12 +1856,14 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
     const isSubmittingSegment = sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment);
 
     //防止重复调用导致反复横跳
-    let Check = readySkipCheck != skipTime[0];
-    readySkipCheck = skipTime[0];
-    if(!Check) return;
-    clearTimeout(readySkip);
+    const Check = readySkip.readySkipCheck != skipTime[0];
+    readySkip.readySkipCheck = skipTime[0];
+    if (!Check) return;
+    clearTimeout(readySkip.readySkip);
+
     const handleSkip = () => {
         cleanListeners();
+        readySkip.readySkipCheck = null;
 
         if ((autoSkip || isSubmittingSegment) && v.currentTime !== skipTime[1]) {
             switch (skippingSegments[0].actionType) {
@@ -1912,24 +1916,25 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
         v.removeEventListener("seeked", handleSeeked);
         v.removeEventListener("pause", handlePause);
         v.removeEventListener("play", handlePlay);
-    };
+    }
     const handlePause = () => {
-        clearTimeout(readySkip);
-    };
+        clearTimeout(readySkip.readySkip);
+    }
     const handlePlay = () => {
         const text = document.querySelector('.sponsorSkipObject.sponsorSkipNoticeButton') as HTMLButtonElement;
-        if (text.textContent.slice(0, 4) === chrome.i18n.getMessage('unskip')) {
-            readySkip = setTimeout(handleSkip, howLongToSkip(skippingSegments, skipTime));
-        };
-    };
+        if (text && text.textContent.slice(0, 4) === chrome.i18n.getMessage('unskip')) {
+            readySkip.readySkip = setTimeout(handleSkip, howLongToSkip(skipTime));
+        }
+    }
     const handleSeeked = () => {
-        readySkipCheck = null;
-        clearTimeout(readySkip);
-    };
+        cleanListeners();
+        readySkip.readySkipCheck = null;
+        clearTimeout(readySkip.readySkip);
+    }
     v.addEventListener("pause", handlePause);
     v.addEventListener("play", handlePlay);
     v.addEventListener("seeked", handleSeeked);
-    readySkip = setTimeout(handleSkip, howLongToSkip(skippingSegments, skipTime));
+    readySkip.readySkip = setTimeout(handleSkip, howLongToSkip(skipTime));
 
     if (autoSkip && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
         const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
@@ -1955,15 +1960,15 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
         if (openNotice) {
             //send out the message saying that a sponsor message was skipped
             if (!Config.config.dontShowNotice || !autoSkip) {
-                createSkipNotice(skippingSegments, autoSkip, unskipTime, false, readySkip);
+                createSkipNotice(skippingSegments, autoSkip, unskipTime, false);
             } else if (autoSkip) {
                 activeSkipKeybindElement?.setShowKeybindHint(false);
                 activeSkipKeybindElement = {
                     setShowKeybindHint: () => {},
                     toggleSkip: () => {
-                        createSkipNotice(skippingSegments, autoSkip, unskipTime, true, readySkip);
+                        createSkipNotice(skippingSegments, autoSkip, unskipTime, true);
 
-                        readySkip = unskipSponsorTime(skippingSegments[0], unskipTime, readySkip);
+                        unskipSponsorTime(skippingSegments[0], unskipTime);
                     },
                 };
             }
@@ -1979,7 +1984,6 @@ function createSkipNotice(
     autoSkip: boolean,
     unskipTime: number,
     startReskip: boolean,
-    readySkip: NodeJS.Timeout
 ) {
     for (const skipNotice of skipNotices) {
         if (
@@ -1997,7 +2001,6 @@ function createSkipNotice(
         skipNoticeContentContainer,
         unskipTime,
         startReskip,
-        readySkip
     );
     if (Config.config.skipKeybind == null) newSkipNotice.setShowKeybindHint(false);
     skipNotices.push(newSkipNotice);
@@ -2006,35 +2009,25 @@ function createSkipNotice(
     activeSkipKeybindElement = newSkipNotice;
 }
 
-function unskipSponsorTime(segment: SponsorTime, unskipTime: number, readySkip: NodeJS.Timeout, forceSeek = false) {
+function unskipSponsorTime(segment: SponsorTime, unskipTime: number, forceSeek = false) {
     if (segment.actionType === ActionType.Mute) {
         getVideo().muted = false;
         videoMuted = false;
     }
 
     if (forceSeek || segment.actionType === ActionType.Skip) {
-        if (readySkip && getVideo().currentTime > segment.segment[0]) {
-            clearTimeout(readySkip);
+        if (readySkip.readySkip && getVideo().currentTime > segment.segment[0]) {
+            clearTimeout(readySkip.readySkip);
             getVideo().currentTime = unskipTime ?? segment.segment[0] + 0.001;
-            return null;
-        } else if (readySkip) {
-            clearTimeout(readySkip);
-            return null;
+        } else if (readySkip.readySkip) {
+            clearTimeout(readySkip.readySkip);
+            clearTimeout(readySkip.ManualSkipSetTimeOut);
+        } else if (readySkip.ManualSkipSetTimeOut){
+            clearTimeout(readySkip.ManualSkipSetTimeOut);
         } else {
             //add a tiny bit of time to make sure it is not skipped again
             getVideo().currentTime = unskipTime ?? segment.segment[0] + 0.001;
         }
-    }
-}
-
-//适配不同的片段
-function howLongToSkip(skippingSegments: SponsorTime[], skipTime: number[]){
-    if (skippingSegments[0].category === "sponsor" || skippingSegments[0].category === "selfpromo" || skippingSegments[0].category === "filler" || skippingSegments[0].category === "music_offtopic") {
-        return Math.min(Config.config.skipNoticeDuration * 1000 / getVideo().playbackRate, (skipTime[0] - getVideo().currentTime) * 1000 / getVideo().playbackRate)
-    } else if (skippingSegments[0].category === "poi_highlight" || skippingSegments[0].category === "preview" || skippingSegments[0].category === "interaction" || skippingSegments[0].category === "intro" || skippingSegments[0].category === "outro") {
-        return 0
-    } else {//防止未来加入新的片段类型导致不可用
-        return Math.min(Config.config.skipNoticeDuration * 1000 / getVideo().playbackRate, (skipTime[0] - getVideo().currentTime) * 1000 / getVideo().playbackRate)
     }
 }
 
@@ -2043,6 +2036,26 @@ function reskipSponsorTime(segment: SponsorTime, forceSeek = false) {
         getVideo().muted = true;
         videoMuted = true;
     } else {
+        if (utils.getCategorySelection(segment.category)?.option === CategorySkipOption.ManualSkip) {
+            readySkip.ManualSkipSetTimeOut = setTimeout(() => {
+                const skippedTime = Math.max(segment.segment[1] - getVideo().currentTime, 0);
+                const segmentDuration = segment.segment[1] - segment.segment[0];
+                const fullSkip = skippedTime / segmentDuration > manualSkipPercentCount;
+
+                getVideo().currentTime = segment.segment[1];
+                sendTelemetryAndCount([segment], skippedTime, fullSkip);
+                startSponsorSchedule(true, segment.segment[1], false);
+            }, howLongToSkip(segment.segment));
+        } else if (getVideo().currentTime < segment.segment[0]) {
+            readySkip.readySkipCheck = null;
+            const skipInfo = getNextSkipIndex(getVideo().currentTime, false, true);
+            skipToTime({
+                v: getVideo(),
+                skipTime: segment.segment,
+                skippingSegments: [segment],
+                openNotice: skipInfo.openNotice,
+            });
+        } else { 
         const skippedTime = Math.max(segment.segment[1] - getVideo().currentTime, 0);
         const segmentDuration = segment.segment[1] - segment.segment[0];
         const fullSkip = skippedTime / segmentDuration > manualSkipPercentCount;
@@ -2050,7 +2063,12 @@ function reskipSponsorTime(segment: SponsorTime, forceSeek = false) {
         getVideo().currentTime = segment.segment[1];
         sendTelemetryAndCount([segment], skippedTime, fullSkip);
         startSponsorSchedule(true, segment.segment[1], false);
+        }
     }
+}
+
+function howLongToSkip(skipTime: number[]) {
+    return Math.min(Config.config.skipNoticeDuration * 1000 / getVideo().playbackRate, (skipTime[0] - getVideo().currentTime) * 1000 / getVideo().playbackRate)
 }
 
 function shouldAutoSkip(segment: SponsorTime): boolean {
