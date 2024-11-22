@@ -1858,7 +1858,7 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
     //防止重复调用导致反复横跳
     const Check = readySkip.readySkipCheck != skipTime[0];
     readySkip.readySkipCheck = skipTime[0];
-    if (!Check) return;
+    if (!Check || !(getVideo().currentTime < 5 || getVideo().currentTime + howLongToSkip(skipTime) >= skipTime[0])) return;
     clearTimeout(readySkip.readySkip);
 
     const handleSkip = () => {
@@ -2056,13 +2056,13 @@ function reskipSponsorTime(segment: SponsorTime, forceSeek = false) {
                 openNotice: skipInfo.openNotice,
             });
         } else { 
-        const skippedTime = Math.max(segment.segment[1] - getVideo().currentTime, 0);
-        const segmentDuration = segment.segment[1] - segment.segment[0];
-        const fullSkip = skippedTime / segmentDuration > manualSkipPercentCount;
+            const skippedTime = Math.max(segment.segment[1] - getVideo().currentTime, 0);
+            const segmentDuration = segment.segment[1] - segment.segment[0];
+            const fullSkip = skippedTime / segmentDuration > manualSkipPercentCount;
 
-        getVideo().currentTime = segment.segment[1];
-        sendTelemetryAndCount([segment], skippedTime, fullSkip);
-        startSponsorSchedule(true, segment.segment[1], false);
+            getVideo().currentTime = segment.segment[1];
+            sendTelemetryAndCount([segment], skippedTime, fullSkip);
+            startSponsorSchedule(true, segment.segment[1], false);
         }
     }
 }
