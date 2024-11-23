@@ -367,12 +367,20 @@
         "message": "要跳到 {0} 吗?",
         "description": "Used for skipping to things (Skip to Highlight)"
     },
-    "skipped": {
+    "autoSkipped": {
         "message": "{0} 准备跳过",
+        "description": "Example: Ready Sponsor Skipped"
+    },
+    "autoMuted": {
+        "message": "{0} 准备静音",
+        "description": "Example: Ready Sponsor Muted"
+    },
+    "skipped": {
+        "message": "{0} 已跳过",
         "description": "Example: Sponsor Skipped"
     },
     "muted": {
-        "message": "{0} 准备静音",
+        "message": "{0} 已静音",
         "description": "Example: Sponsor Muted"
     },
     "skipped_to_category": {
@@ -468,11 +476,20 @@
     "optionSectionExtensionRelated": {
         "message": "插件相关选项"
     },
+    "advanceSkipNotice": {
+        "message": "提前显示“空降提醒弹窗”"
+    },
+    "skipNoticeDurationBefore": {
+        "message": "“空降提醒弹窗”提前显示时间（秒）："
+    },
+    "skipNoticeDurationBeforeDescription": {
+        "message": "提前提醒您跳过片段的弹窗的提前时间。"
+    },
     "skipNoticeDuration": {
-        "message": "“空降提醒弹窗”显示持续时间（秒）："
+        "message": "“空降提醒弹窗”跳过后或跳过提醒显示时间（秒）："
     },
     "skipNoticeDurationDescription": {
-        "message": "提醒您跳过片段的弹窗的显示时长。手动跳过片段的提醒弹窗可能会显示更久。"
+        "message": "您跳过片段或者提醒您跳过片段的弹窗的显示时长。用于您对片段投票或跳过/取消跳过。\n手动跳过片段的提醒弹窗可能会显示更久。"
     },
     "shortCheck": {
         "message": "以下的提交短于您的最小持续时间选项。这代表它们可能已经被提交，只是由于该选项被忽略了。您确定要提交吗？"

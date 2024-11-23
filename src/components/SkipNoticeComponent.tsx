@@ -128,10 +128,16 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         this.unselectedColor = Config.config.colorPalette.white;
         this.lockedColor = Config.config.colorPalette.locked;
 
+        let countDown: number = 0;
+        if (Config.config.advanceSkipNotice) {
+            countDown = Number(Config.config.skipNoticeDurationBefore) + Number(Config.config.skipNoticeDuration);
+        } else {
+            countDown = Number(Config.config.skipNoticeDuration);
+        }
         const isMuteSegment = this.segments[0].actionType === ActionType.Mute;
         const maxCountdownTime = isMuteSegment
             ? this.getFullDurationCountdown(0)
-            : () => Config.config.skipNoticeDuration;
+            : () => countDown;
 
         const defaultSkipButtonState = this.props.startReskip ? SkipButtonState.Redo : SkipButtonState.Undo;
         const skipButtonStates = [
@@ -692,12 +698,26 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         const skipButtonCallbacks = this.state.skipButtonCallbacks;
         skipButtonCallbacks[buttonIndex] = this.unskip.bind(this);
 
+        let countDown: number;
+        if (Config.config.advanceSkipNotice) {
+            if (this.props.segments[0].segment[0] > getVideo().currentTime) {
+                countDown = Number(Config.config.skipNoticeDurationBefore) + Number(Config.config.skipNoticeDuration);
+            } else {
+                if (Config.config.skipNoticeDuration < 1) {
+                    countDown = Config.config.skipNoticeDurationBefore;
+                } else {
+                    countDown = Config.config.skipNoticeDuration;
+                }
+            }
+        } else {
+            countDown = Config.config.skipNoticeDuration;
+        }
         const newState: SkipNoticeState = {
             skipButtonStates,
             skipButtonCallbacks,
 
-            maxCountdownTime: () => Config.config.skipNoticeDuration,
-            countdownTime: Config.config.skipNoticeDuration,
+            maxCountdownTime: () => countDown,
+            countdownTime: countDown,
         };
 
         //reset countdown
@@ -754,7 +774,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 (sponsorTime.segment[1] - getVideo().currentTime) * (1 / getVideo().playbackRate)
             );
 
-            return Math.max(duration, Config.config.skipNoticeDuration);
+            return Math.max(duration, Config.config.skipNoticeDurationBefore);
         };
     }
 

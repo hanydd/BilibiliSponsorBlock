@@ -761,8 +761,12 @@ async function startSponsorSchedule(
             logDebug(`Starting timeout to skip ${getVideo().currentTime} to skip at ${skipTime[0]}`);
 
             const offset = isFirefoxOrSafari() && !isSafari() ? 600 : 150;
+            let advance: number = 0;
+            if(Config.config.advanceSkipNotice){
+                advance = Config.config.skipNoticeDurationBefore * 1000;
+            }
             // Schedule for right before to be more precise than normal timeout
-            currentSkipSchedule = setTimeout(skippingFunction, Math.max(0, delayTime - offset - Config.config.skipNoticeDuration * 1000));
+            currentSkipSchedule = setTimeout(skippingFunction, Math.max(0, delayTime - offset - advance));
         }
     }
 }
@@ -1858,7 +1862,11 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
     //防止重复调用导致反复横跳
     const Check = readySkip.readySkipCheck != skipTime[0];
     readySkip.readySkipCheck = skipTime[0];
-    if (!Check || !(getVideo().currentTime < 5 || getVideo().currentTime + howLongToSkip(skipTime) >= skipTime[0])) return;
+    if (Config.config.advanceSkipNotice) {
+        if (!Check || !(getVideo().currentTime < 5 || getVideo().currentTime + howLongToSkip(skipTime) >= skipTime[0])) return;
+    } else {
+        if (!Check || !(getVideo().currentTime < 5 || getVideo().currentTime + 5 >= skipTime[0])) return;
+    }
     clearTimeout(readySkip.readySkip);
 
     const handleSkip = () => {
@@ -2068,7 +2076,11 @@ function reskipSponsorTime(segment: SponsorTime, forceSeek = false) {
 }
 
 function howLongToSkip(skipTime: number[]) {
-    return Math.min(Config.config.skipNoticeDuration * 1000 / getVideo().playbackRate, (skipTime[0] - getVideo().currentTime) * 1000 / getVideo().playbackRate)
+    if (Config.config.advanceSkipNotice) {
+        return Math.min(Config.config.skipNoticeDurationBefore * 1000 / getVideo().playbackRate, (skipTime[0] - getVideo().currentTime) * 1000 / getVideo().playbackRate);
+    } else {
+        return 0;
+    }
 }
 
 function shouldAutoSkip(segment: SponsorTime): boolean {

@@ -1,4 +1,5 @@
 import { ActionType, Category, SponsorTime } from "../types";
+import Config from "../config";
 
 export function getSkippingText(segments: SponsorTime[], autoSkip: boolean): string {
     const categoryName =
@@ -9,10 +10,18 @@ export function getSkippingText(segments: SponsorTime[], autoSkip: boolean): str
         let messageId = "";
         switch (segments[0].actionType) {
             case ActionType.Skip:
-                messageId = "skipped";
+                if(Config.config.advanceSkipNotice){
+                    messageId = "autoSkipped";
+                }else{
+                    messageId = "skipped";
+                }
                 break;
             case ActionType.Mute:
-                messageId = "muted";
+                if(Config.config.advanceSkipNotice){
+                    messageId = "autoMuted";
+                }else{
+                    messageId = "muted";
+                }
                 break;
             case ActionType.Poi:
                 messageId = "skipped_to_category";
