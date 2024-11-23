@@ -197,7 +197,12 @@ export interface VideoInfo {
     messages: unknown;
 }
 
-export type VideoID = string;
+export type AID = number & { __avID: never };
+export type BvID = string & { __bvID: never };
+export type CID = number & { __cID: never };
+
+export type VideoID = { bvid: BvID; cid: CID; p: number; aid?: AID };
+export type YoutubeID = string & { __youtubeID: never };
 
 export type UnEncodedSegmentTimes = [string, SponsorTime[]][];
 

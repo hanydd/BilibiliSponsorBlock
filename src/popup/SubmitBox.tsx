@@ -2,6 +2,7 @@ import * as React from "react";
 import Config from "../config";
 import { Message } from "../messageTypes";
 import { SponsorTime, VideoID } from "../types";
+import { getUnsubmittedSegmentKey } from "../config/configUtils";
 
 interface SubmitBoxProps {
     sendTabMessage: (data: Message, callback?) => void;
@@ -9,7 +10,7 @@ interface SubmitBoxProps {
 }
 
 interface SubmitBoxState {
-    unsubmittedSegments: Record<VideoID, SponsorTime[]>;
+    unsubmittedSegments: Record<string, SponsorTime[]>;
     currentVideoID: VideoID;
 
     showSubmitBox: boolean;
@@ -27,11 +28,11 @@ class SubmitBox extends React.Component<SubmitBoxProps, SubmitBoxState> {
     }
 
     private sponsorTimes(): SponsorTime[] {
-        return this.state.unsubmittedSegments[this.state.currentVideoID] || [];
+        return this.state.unsubmittedSegments[getUnsubmittedSegmentKey(this.state.currentVideoID)] || [];
     }
 
     private isCreatingSegment(): boolean {
-        const segments = this.state.unsubmittedSegments[this.state.currentVideoID];
+        const segments = this.state.unsubmittedSegments[getUnsubmittedSegmentKey(this.state.currentVideoID)];
         if (!segments) return false;
         const lastSegment = segments[segments.length - 1];
         return lastSegment && lastSegment?.segment?.length !== 2;

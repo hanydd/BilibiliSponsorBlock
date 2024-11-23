@@ -1,6 +1,6 @@
-import { VideoID } from "../types";
+import { AID, VideoID } from "../types";
 
-export async function getBvIDfromAvIDBiliApi(avID: VideoID): Promise<VideoID | null> {
+export async function getBvIDfromAvIDBiliApi(avID: AID): Promise<VideoID | null> {
     try {
         const response = await fetch(`https://api.bilibili.com/x/web-interface/view?aid=${avID}`);
         if (!response.ok) {

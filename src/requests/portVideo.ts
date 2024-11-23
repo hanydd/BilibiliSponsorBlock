@@ -1,6 +1,8 @@
 import { VideoID } from "../types";
 import { getHash } from "../utils/hash";
 import { FetchResponse } from "./background-request-proxy";
+import { VideoID, YoutubeID } from "../types";
+import { getVideoIDHash } from "../utils/hash";
 import { asyncRequestToServer } from "./requests";
 
 interface RequestOptions {
@@ -8,8 +10,8 @@ interface RequestOptions {
 }
 
 export interface PortVideoRecord {
-    bvID: VideoID;
-    ytbID: VideoID;
+    videoID: VideoID;
+    ytbID: YoutubeID;
     UUID: string;
     votes: number;
     locked: boolean;
@@ -21,7 +23,7 @@ export async function getPortVideo(bvID: VideoID, options: RequestOptions = {}):
     );
     if (response && response?.ok) {
         const responseData = JSON.parse(response?.responseText) as PortVideoRecord;
-        if (responseData?.bvID == bvID) {
+        if (responseData?.videoID == bvID) {
             return responseData;
         }
     } else if (response?.status == 404) {
@@ -30,8 +32,8 @@ export async function getPortVideo(bvID: VideoID, options: RequestOptions = {}):
     throw response;
 }
 
-export async function getPortVideoByHash(bvID: VideoID, options: RequestOptions = {}): Promise<PortVideoRecord> {
-    const hashedBvID = await getHash(bvID, 1);
+export async function getPortVideoByHash(videoID: VideoID, options: RequestOptions = {}): Promise<PortVideoRecord> {
+    const hashedBvID = await getVideoIDHash(videoID);
     const response = await asyncRequestToServer(
         "GET",
         `/api/portVideo/${hashedBvID.slice(0, 3)}`,
@@ -39,7 +41,8 @@ export async function getPortVideoByHash(bvID: VideoID, options: RequestOptions 
     ).catch((e) => e);
     if (response && response?.ok) {
         const responseData = JSON.parse(response?.responseText) as PortVideoRecord[];
-        const portVideo = responseData.filter((portVideo) => portVideo.bvID == bvID);
+        // TODO video id equality check
+        const portVideo = responseData.filter((portVideo) => portVideo.videoID == videoID);
         if (portVideo.length > 0) {
             return portVideo[0];
         } else {

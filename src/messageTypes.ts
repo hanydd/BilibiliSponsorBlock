@@ -2,7 +2,7 @@
 // Message and Response Types
 //
 
-import { SegmentUUID, SponsorHideType, SponsorTime } from "./types";
+import { SegmentUUID, SponsorHideType, SponsorTime, VideoID } from "./types";
 
 interface BaseMessage {
     from?: string;
@@ -90,7 +90,7 @@ export interface IsInfoFoundMessageResponse {
 }
 
 interface GetVideoIdResponse {
-    videoID: string;
+    videoID: VideoID;
 }
 
 export interface GetChannelIDResponse {
@@ -141,7 +141,7 @@ export type InfoUpdatedMessage = IsInfoFoundMessageResponse & {
 
 export interface VideoChangedPopupMessage {
     message: "videoChanged";
-    videoID: string;
+    videoID: VideoID;
     whitelisted: boolean;
 }
 

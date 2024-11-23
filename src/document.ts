@@ -1,3 +1,4 @@
+import { AID, BvID, CID, VideoID } from "./types";
 import { InjectedScriptMessageSend, sourceId } from "./utils/injectedScriptMessageUtils";
 
 const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): void => {
@@ -18,8 +19,14 @@ function windowMessageListener(message: MessageEvent) {
         return;
     }
     if (data?.source === sourceId && data?.responseType) {
-        if (data.type === "getBvID") {
-            sendMessageToContent(data, window?.__INITIAL_STATE__?.bvid);
+        if (data.type === "getVideoID") {
+            const videoID = {
+                bvid: window?.__INITIAL_STATE__?.bvid,
+                aid: window?.__INITIAL_STATE__?.aid,
+                p: window?.__INITIAL_STATE__?.p,
+                cid: window?.__INITIAL_STATE__?.videoData?.cid,
+            } as VideoID;
+            sendMessageToContent(data, videoID);
         } else if (data.type === "getFrameRate") {
             const currentQuality = window?.__playinfo__?.data?.quality;
             const frameRate = window?.__playinfo__?.data?.dash?.video.filter((v) => v.id === currentQuality)[0]

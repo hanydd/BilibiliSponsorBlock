@@ -2,16 +2,16 @@ import { ConfigProvider, Spin } from "antd";
 import * as React from "react";
 import { PortVideo } from "../render/DesciptionPortPill";
 import { showMessage } from "../render/MessageNotice";
-import { VideoID } from "../types";
+import { VideoID, YoutubeID } from "../types";
 import { AnimationUtils } from "../utils/animationUtils";
 import { parseYoutubeID } from "../utils/parseVideoID";
 
 export interface DescriptionPortPillProps {
-    bvID: VideoID;
-    ytbID: VideoID;
+    videoID: VideoID;
+    ytbID: YoutubeID;
     showYtbVideoButton: boolean;
 
-    onSubmitPortVideo: (ytbID: VideoID) => Promise<PortVideo>;
+    onSubmitPortVideo: (ytbID: YoutubeID) => Promise<PortVideo>;
     onVote(type: number): Promise<void>;
     onRefresh(): Promise<void>;
 }
@@ -20,8 +20,8 @@ export interface DescriptionPortPillState {
     show: boolean;
     showPreviewYtbVideo: boolean;
     loading: boolean;
-    ytbVideoID: VideoID;
-    previewYtbID: VideoID;
+    ytbVideoID: YoutubeID;
+    previewYtbID: YoutubeID;
 }
 
 export class DescriptionPortPillComponent extends React.Component<DescriptionPortPillProps, DescriptionPortPillState> {

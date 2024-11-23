@@ -1,7 +1,7 @@
 import * as documentScript from "../../dist/js/document.js";
 import Config from "../config";
 import { newThumbnails } from "../thumbnail-utils/thumbnailManagement";
-import { PageType } from "../types";
+import { PageType, VideoID } from "../types";
 import { waitFor } from "./";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
 import { getElement, isVisible, waitForElement } from "./dom";
@@ -9,7 +9,6 @@ import { getPropertyFromWindow } from "./injectedScriptMessageUtils";
 import { getBilibiliVideoID } from "./parseVideoID";
 import { injectScript } from "./scriptInjector";
 
-export type VideoID = string & { __videoID: never };
 export type ChannelID = string & { __channelID: never };
 export enum ChannelIDStatus {
     Fetching,

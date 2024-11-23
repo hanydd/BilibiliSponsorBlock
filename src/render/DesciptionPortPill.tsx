@@ -6,7 +6,7 @@ import Config from "../config";
 import { getPageLoaded } from "../content";
 import { getPortVideoByHash, updatePortedSegments } from "../requests/portVideo";
 import { asyncRequestToServer } from "../requests/requests";
-import { VideoID } from "../types";
+import { VideoID, YoutubeID } from "../types";
 import { waitFor } from "../utils/";
 import { waitForElement } from "../utils/dom";
 import { getVideoDescriptionFromWindow } from "../utils/injectedScriptMessageUtils";
@@ -16,16 +16,16 @@ import { showMessage } from "./MessageNotice";
 const id = "bsbDescriptionContainer";
 
 export interface PortVideo {
-    bvID: VideoID;
-    ytbID: VideoID;
+    videoID: VideoID;
+    ytbID: YoutubeID;
     UUID: string;
     votes: number;
     locked: boolean;
 }
 
 export class DescriptionPortPill {
-    bvID: VideoID;
-    ytbID: VideoID;
+    videoID: VideoID;
+    ytbID: YoutubeID;
     portUUID: string;
     hasDescription: boolean;
     sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean, forceUpdatePreviewBar: boolean) => void;
@@ -43,10 +43,10 @@ export class DescriptionPortPill {
         if (!Config.config.showPortVideoButton) {
             return;
         }
-        if (this.bvID === videoId) {
+        if (this.videoID === videoId) {
             return;
         }
-        this.bvID = videoId;
+        this.videoID = videoId;
 
         this.cleanup();
 
@@ -96,7 +96,7 @@ export class DescriptionPortPill {
         this.root.render(
             <DescriptionPortPillComponent
                 ref={this.ref}
-                bvID={this.bvID}
+                videoID={this.videoID}
                 ytbID={this.ytbID}
                 showYtbVideoButton={Config.config.showPreviewYoutubeButton}
                 onSubmitPortVideo={(ytbID) => this.submitPortVideo(ytbID)}
@@ -169,7 +169,7 @@ export class DescriptionPortPill {
         }
     }
 
-    private async submitPortVideo(ytbID: VideoID): Promise<PortVideo> {
+    private async submitPortVideo(ytbID: YoutubeID): Promise<PortVideo> {
         const response = await asyncRequestToServer("POST", "/api/portVideo", {
             bvID: getVideoID(),
             ytbID,
@@ -199,7 +199,7 @@ export class DescriptionPortPill {
 
         const response = await asyncRequestToServer("POST", "/api/votePort", {
             UUID: this.portUUID,
-            bvID: this.bvID,
+            bvID: this.videoID,
             userID: Config.config.userID,
             type: voteType,
         });
@@ -207,7 +207,7 @@ export class DescriptionPortPill {
             throw response?.responseText ? response.responseText : "投票失败！";
         }
 
-        await this.getPortVideo(this.bvID, true);
+        await this.getPortVideo(this.videoID, true);
         this.ref.current.setState({ ytbVideoID: this.ytbID, previewYtbID: this.ytbID });
     }
 

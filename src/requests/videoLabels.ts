@@ -1,4 +1,4 @@
-import { Category, CategorySkipOption, VideoID } from "../types";
+import { BvID, Category, CategorySkipOption, VideoID } from "../types";
 import Utils from "../utils";
 import { getVideoIDHash } from "../utils/hash";
 import { logWarn } from "../utils/logger";
@@ -8,7 +8,7 @@ const utils = new Utils();
 
 export interface LabelCacheEntry {
     timestamp: number;
-    videos: Record<VideoID, Category>;
+    videos: Record<BvID, Category>;
 }
 
 const labelCache: Record<string, LabelCacheEntry> = {};
@@ -59,7 +59,7 @@ export async function getVideoLabel(videoID: VideoID, refreshCache: boolean = fa
     const result = await getLabelHashBlock(prefix, refreshCache);
 
     if (result) {
-        const category = result.videos[videoID];
+        const category = result.videos[videoID.bvid];
         if (category && utils.getCategorySelection(category).option !== CategorySkipOption.Disabled) {
             return category;
         } else {
