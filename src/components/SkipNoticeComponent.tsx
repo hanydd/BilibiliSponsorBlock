@@ -129,7 +129,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         this.lockedColor = Config.config.colorPalette.locked;
 
         let countDown: number = 0;
-        if (Config.config.advanceSkipNotice) {
+        if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
             countDown = Number(Config.config.skipNoticeDurationBefore) + Number(Config.config.skipNoticeDuration);
         } else {
             countDown = Number(Config.config.skipNoticeDuration);
@@ -699,7 +699,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         skipButtonCallbacks[buttonIndex] = this.unskip.bind(this);
 
         let countDown: number;
-        if (Config.config.advanceSkipNotice) {
+        if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
             if (this.props.segments[0].segment[0] > getVideo().currentTime) {
                 countDown = Number(Config.config.skipNoticeDurationBefore) + Number(Config.config.skipNoticeDuration);
             } else {

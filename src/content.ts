@@ -762,7 +762,7 @@ async function startSponsorSchedule(
 
             const offset = isFirefoxOrSafari() && !isSafari() ? 600 : 150;
             let advance: number = 0;
-            if(Config.config.advanceSkipNotice){
+            if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
                 advance = Config.config.skipNoticeDurationBefore * 1000;
             }
             // Schedule for right before to be more precise than normal timeout
@@ -1859,13 +1859,13 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
     const autoSkip: boolean = forceAutoSkip || shouldAutoSkip(skippingSegments[0]);
     const isSubmittingSegment = sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment);
 
-    //防止重复调用导致反复横跳
+    //防止重复调用导致反复横跳和错误调用
     const Check = readySkip.readySkipCheck != skipTime[0];
     readySkip.readySkipCheck = skipTime[0];
-    if (Config.config.advanceSkipNotice) {
+    if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
         if (!Check || !(getVideo().currentTime < 5 || getVideo().currentTime + howLongToSkip(skipTime) >= skipTime[0])) return;
     } else {
-        if (!Check || !(getVideo().currentTime < 5 || getVideo().currentTime + 5 >= skipTime[0])) return;
+        if (!Check || !(getVideo().currentTime < 5 || getVideo().currentTime + 1 >= skipTime[0])) return;
     }
     clearTimeout(readySkip.readySkip);
 
@@ -2076,7 +2076,7 @@ function reskipSponsorTime(segment: SponsorTime, forceSeek = false) {
 }
 
 function howLongToSkip(skipTime: number[]) {
-    if (Config.config.advanceSkipNotice) {
+    if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
         return Math.min(Config.config.skipNoticeDurationBefore * 1000 / getVideo().playbackRate, (skipTime[0] - getVideo().currentTime) * 1000 / getVideo().playbackRate);
     } else {
         return 0;

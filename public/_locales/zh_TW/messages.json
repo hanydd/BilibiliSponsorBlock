@@ -258,7 +258,7 @@
         "message": "重新顯示跳過提醒"
     },
     "showSkipNotice": {
-        "message": "在跳過片段前顯示提醒跳出視窗"
+        "message": "跳過片段時顯示提醒跳出視窗"
     },
     "showCategoryGuidelines": {
         "message": "顯示類別說明"

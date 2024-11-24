@@ -10,16 +10,16 @@ export function getSkippingText(segments: SponsorTime[], autoSkip: boolean): str
         let messageId = "";
         switch (segments[0].actionType) {
             case ActionType.Skip:
-                if(Config.config.advanceSkipNotice){
+                if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
                     messageId = "autoSkipped";
-                }else{
+                } else {
                     messageId = "skipped";
                 }
                 break;
             case ActionType.Mute:
-                if(Config.config.advanceSkipNotice){
+                if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
                     messageId = "autoMuted";
-                }else{
+                } else {
                     messageId = "muted";
                 }
                 break;
