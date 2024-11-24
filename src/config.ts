@@ -88,6 +88,8 @@ interface SBConfig {
     showPortVideoButton: boolean;
     cleanPopup: boolean;
 
+    showNewIcon: boolean;
+
     // Used to cache calculated text color info
     categoryPillColors: {
         [key in Category]: {
@@ -264,11 +266,9 @@ const syncDefaults = {
     allowScrollingToEdit: true,
     showPreviewYoutubeButton: true,
     showPortVideoButton: true,
-    deArrowInstalled: false,
-    showDeArrowPromotion: true,
-    showDeArrowInSettings: true,
-    shownDeArrowPromotion: false,
     cleanPopup: false,
+
+    showNewIcon: true,
 
     categoryPillColors: {},
 

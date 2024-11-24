@@ -1,5 +1,6 @@
 import * as React from "react";
 import { forwardRef } from "react";
+import { getIconLink } from "../../config/configUtils";
 
 interface PlayerButtonProps {
     baseID: string;
@@ -27,7 +28,7 @@ const PlayerButtonComponent = forwardRef<HTMLButtonElement, PlayerButtonProps>(f
             <img
                 id={baseID + "Image"}
                 className="playerButtonImage bpx-player-ctrl-btn-icon"
-                src={chrome.runtime.getURL("icons/" + imageName)}
+                src={chrome.runtime.getURL("icons/" + getIconLink(imageName))}
                 draggable={isDraggable}
             ></img>
         </button>
