@@ -90,6 +90,8 @@ interface SBConfig {
     showPortVideoButton: boolean;
     cleanPopup: boolean;
 
+    showNewIcon: boolean;
+
     // Used to cache calculated text color info
     categoryPillColors: {
         [key in Category]: {
@@ -188,6 +190,14 @@ function migrateOldSyncFormats(config: SBConfig) {
     if (config["serverAddress"].includes("47.103.74.95")) {
         config["serverAddress"] = CompileConfig.serverAddress;
     }
+
+    // danmaku regex update since 0.5.0
+    const oldDanmakuRegexPatterns = [
+        "(?:空降\\s*)?(\\d{1,2}):(\\d{1,2})(?::(\\d{1,2}))?", // 0.5.0
+    ];
+    if (oldDanmakuRegexPatterns.includes(config["danmakuRegexPattern"])) {
+        config["danmakuRegexPattern"] = syncDefaults.danmakuRegexPattern;
+    }
 }
 
 const syncDefaults = {
@@ -204,11 +214,14 @@ const syncDefaults = {
     submissionCountSinceCategories: 0,
     showTimeWithSkips: true,
     disableSkipping: false,
+
+    // danmaku skip
     enableDanmakuSkip: false,
     enableAutoSkipDanmakuSkip: false,
     enableMenuDanmakuSkip: false,
-    danmakuRegexPattern: "(?:空降\\s*)?(\\d{1,2}):(\\d{1,2})(?::(\\d{1,2}))?",
+    danmakuRegexPattern: "(?:空降\\s*)?(\\d{1,2})[:：](\\d{1,2})(?:[:：](\\d{1,2}))?$",
     checkTimeDanmakuSkip: true,
+
     muteSegments: true,
     fullVideoSegments: true,
     fullVideoLabelsOnThumbnails: true,
@@ -257,11 +270,9 @@ const syncDefaults = {
     allowScrollingToEdit: true,
     showPreviewYoutubeButton: true,
     showPortVideoButton: true,
-    deArrowInstalled: false,
-    showDeArrowPromotion: true,
-    showDeArrowInSettings: true,
-    shownDeArrowPromotion: false,
     cleanPopup: false,
+
+    showNewIcon: true,
 
     categoryPillColors: {},
 

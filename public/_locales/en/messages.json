@@ -470,6 +470,9 @@
     "optionSectionPlayerAndButtons": {
         "message": "播放器和按钮区"
     },
+    "showNewIcon": {
+        "message": "使用新图标"
+    },
     "optionSectionPortVideo": {
         "message": "搬运视频绑定"
     },
