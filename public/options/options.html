@@ -242,7 +242,7 @@
 					<h3>__MSG_optionSectionPlayerAndButtons__</h3>
 
 					<div data-type="toggle" data-sync="showNewIcon">
-						<div class="switch-container">
+						<div class="switch-container" style="position: relative;">
 							<label class="switch">
 								<input id="showNewIcon" type="checkbox" checked>
 								<span class="slider round"></span>
@@ -250,17 +250,17 @@
 							<label class="switch-label" for="showNewIcon">
 								__MSG_showNewIcon__
 							</label>
-							<div class="switch-label">
+							<div class="switch-label" data-dependent-on="showNewIcon" style="position: absolute;">
 								<img class="playerButtonImage" src="../icons/PlayerStartIconSponsorBlocker.svg">
 							</div>
-							<div class="switch-label">
+							<div class="switch-label" data-dependent-on="showNewIcon" data-dependent-on-inverted="true" style="position: absolute;">
 								<img class="playerButtonImage" src="../icons/oldIcon/PlayerStartIconSponsorBlocker.svg">
 							</div>
 						</div>
 					</div>
 
 					<div data-type="toggle" data-toggle-type="reverse" data-sync="hideVideoPlayerControls">
-						<div class="switch-container">
+						<div class="switch-container" style="position: relative;">
 							<label class="switch">
 								<input id="hideVideoPlayerControls" type="checkbox" checked>
 								<span class="slider round"></span>
@@ -268,8 +268,11 @@
 							<label class="switch-label" for="hideVideoPlayerControls">
 								__MSG_showButtons__
 							</label>
-							<div class="switch-label">
+							<div class="switch-label" data-dependent-on="showNewIcon" style="position: absolute;">
 								<img class="playerButtonImage" src="../icons/PlayerStartIconSponsorBlocker.svg">
+							</div>
+							<div class="switch-label" data-dependent-on="showNewIcon" data-dependent-on-inverted="true" style="position: absolute;">
+								<img class="playerButtonImage" src="../icons/oldIcon/PlayerStartIconSponsorBlocker.svg">
 							</div>
 						</div>
 
@@ -278,7 +281,7 @@
 
 					<div data-type="toggle" data-toggle-type="reverse" data-sync="hideDeleteButtonPlayerControls"
 						data-dependent-on="hideVideoPlayerControls">
-						<div class="switch-container">
+						<div class="switch-container" style="position: relative;">
 							<label class="switch">
 								<input id="hideDeleteButtonPlayerControls" type="checkbox" checked>
 								<span class="slider round"></span>
@@ -286,15 +289,18 @@
 							<label class="switch-label" for="hideDeleteButtonPlayerControls">
 								__MSG_showDeleteButton__
 							</label>
-							<div class="switch-label">
+							<div class="switch-label" data-dependent-on="showNewIcon"  style="position: absolute;">
 								<img class="playerButtonImage" src="../icons/PlayerDeleteIconSponsorBlocker.svg">
+							</div>
+							<div class="switch-label" data-dependent-on="showNewIcon" data-dependent-on-inverted="true" style="position: absolute;">
+								<img class="playerButtonImage" src="../icons/oldIcon/PlayerDeleteIconSponsorBlocker.svg">
 							</div>
 						</div>
 					</div>
 
 					<div data-type="toggle" data-toggle-type="reverse" data-sync="hideUploadButtonPlayerControls"
 						data-dependent-on="hideVideoPlayerControls">
-						<div class="switch-container">
+						<div class="switch-container" style="position: relative;">
 							<label class="switch">
 								<input id="hideUploadButtonPlayerControls" type="checkbox" checked>
 								<span class="slider round"></span>
@@ -302,14 +308,17 @@
 							<label class="switch-label" for="hideUploadButtonPlayerControls">
 								__MSG_showUploadButton__
 							</label>
-							<div class="switch-label">
+							<div class="switch-label" data-dependent-on="showNewIcon" style="position: absolute;">
 								<img class="playerButtonImage" src="../icons/PlayerUploadIconSponsorBlocker.svg">
+							</div>
+							<div class="switch-label" data-dependent-on="showNewIcon" data-dependent-on-inverted="true" style="position: absolute;">
+								<img class="playerButtonImage" src="../icons/oldIcon/PlayerUploadIconSponsorBlocker.svg">
 							</div>
 						</div>
 					</div>
 
 					<div data-type="toggle" data-toggle-type="reverse" data-sync="hideSkipButtonPlayerControls">
-						<div class="switch-container">
+						<div class="switch-container" style="position: relative;">
 							<label class="switch">
 								<input id="hideSkipButtonPlayerControls" type="checkbox" checked>
 								<span class="slider round"></span>
@@ -317,14 +326,17 @@
 							<label class="switch-label" for="hideSkipButtonPlayerControls">
 								__MSG_showSkipButton__
 							</label>
-							<div class="switch-label">
+							<div class="switch-label" data-dependent-on="showNewIcon" style="position: absolute;">
 								<img class="playerButtonImage" src="../icons/skip.svg">
+							</div>
+							<div class="switch-label" data-dependent-on="showNewIcon" data-dependent-on-inverted="true" style="position: absolute;">
+								<img class="playerButtonImage" src="../icons/oldIcon/skipIcon.svg">
 							</div>
 						</div>
 					</div>
 
 					<div data-type="toggle" data-toggle-type="reverse" data-sync="hideInfoButtonPlayerControls">
-						<div class="switch-container">
+						<div class="switch-container" style="position: relative;">
 							<label class="switch">
 								<input id="hideInfoButtonPlayerControls" type="checkbox" checked>
 								<span class="slider round"></span>
@@ -332,8 +344,11 @@
 							<label class="switch-label" for="hideInfoButtonPlayerControls">
 								__MSG_showInfoButton__
 							</label>
-							<div class="switch-label">
+							<div class="switch-label" data-dependent-on="showNewIcon" style="position: absolute;">
 								<img class="playerButtonImage" src="../icons/PlayerInfoIconSponsorBlocker.svg">
+							</div>
+							<div class="switch-label" data-dependent-on="showNewIcon" data-dependent-on-inverted="true" style="position: absolute;">
+								<img class="playerButtonImage" src="../icons/oldIcon/PlayerInfoIconSponsorBlocker.svg">
 							</div>
 						</div>
 					</div>
