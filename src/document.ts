@@ -30,7 +30,7 @@ let frameRate: number = 30;
         }
         return response;
     };
-})
+})();
 
 function windowMessageListener(message: MessageEvent) {
     const data: InjectedScriptMessageSend = message.data;
