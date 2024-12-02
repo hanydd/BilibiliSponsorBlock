@@ -11,6 +11,26 @@ const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): 
         "/"
     );
 };
+let frameRate: number = 30;
+
+(function () {
+    const originalFetch = window.fetch;
+
+    window.fetch = async function (input, init) {
+        const url = typeof input === 'string' ? input : (input as Request).url;
+
+        const response = await originalFetch(input, init);
+        if (url.includes('/player/wbi/playurl') && url.includes(window.__INITIAL_STATE__.cid.toString())) {
+            response.clone().json().then(data => {
+                frameRate = data.data.dash.video
+                    .filter((v) => v.id === data.data.quality && v.codecid === data.data.video_codecid)[0]?.frameRate;
+            }).catch(() => {
+                frameRate = 30;
+            });
+        }
+        return response;
+    };
+})();
 
 function windowMessageListener(message: MessageEvent) {
     const data: InjectedScriptMessageSend = message.data;
@@ -21,12 +41,9 @@ function windowMessageListener(message: MessageEvent) {
         if (data.type === "getBvID") {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.bvid);
         } else if (data.type === "getFrameRate") {
-            const currentQuality = window?.__playinfo__?.data?.quality;
-            const frameRate = window?.__playinfo__?.data?.dash?.video.filter((v) => v.id === currentQuality)[0]
-                ?.frameRate;
             sendMessageToContent(data, frameRate);
         } else if (data.type === "getChannelID") {
-            sendMessageToContent(data, window?.__INITIAL_STATE__?.upInfo?.mid);
+            sendMessageToContent(data, window?.__INITIAL_STATE__?.upData?.mid);
         } else if (data.type === "getDescription") {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.videoData?.desc);
         }

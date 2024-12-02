@@ -55,7 +55,7 @@
 
 如果你使用过 YouTube 的原插件，你会发现在核心功能和交互上，本插件基本没有做出大的改动。可以先参照原插件的使用方法尝试使用。
 
-可以先在这个[示例视频](https://www.bilibili.com/video/BV1Km42177kz/)上试一试精准空降的快乐！
+可以先在这个[示例视频](https://www.bilibili.com/video/BV1bY4y1v7Mb/)上试一试精准空降的快乐！
 
 视频使用说明正在计划制作中。
 
@@ -79,7 +79,7 @@
 
 服务端代码：https://github.com/hanydd/BilibiliSponsorBlockServer
 
-为了方便大家二次开发，所有片段的数据现在开发下载：https://bsbsb.top/database.zip
+为了方便大家二次开发，所有片段的数据现在开放下载：https://bsbsb.top/database.zip
 
 # API
 

@@ -377,6 +377,9 @@ export async function updateFrameRate(): Promise<number> {
         // fall back to 30 fps
         return 30;
     });
+    if (!frameRate || frameRate < 1) {
+        frameRate = 30;
+    }
     return frameRate;
 }
 
