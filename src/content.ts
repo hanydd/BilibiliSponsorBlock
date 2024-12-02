@@ -2650,7 +2650,6 @@ function hotkeyListener(e: KeyboardEvent): void {
  * Hot keys to jump to the next or previous frame, for easier segment time editting
  * only effective when the SubmissionNotice is open
  *
- * Uses 1/30s as the frame rate, as it's the most common frame rate for videos
  * @param key keydown event
  */
 export async function seekFrameByKeyPressListener(key) {
