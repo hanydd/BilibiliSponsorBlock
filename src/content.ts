@@ -656,7 +656,10 @@ async function startSponsorSchedule(
             shouldSkip(currentSkip) ||
             sponsorTimesSubmitting?.some((segment) => segment.segment === currentSkip.segment)
         ) {
-            if (forceVideoTime >= skipTime[0] - skipBuffer - Config.config.skipNoticeDuration * 1000 && forceVideoTime < skipTime[1]) {
+            if (
+                forceVideoTime >= skipTime[0] - skipBuffer - Config.config.skipNoticeDuration * 1000 &&
+                forceVideoTime < skipTime[1]
+            ) {
                 skipToTime({
                     v: getVideo(),
                     skipTime,
@@ -1863,7 +1866,8 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
     const Check = readySkip.readySkipCheck != skipTime[0];
     readySkip.readySkipCheck = skipTime[0];
     if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
-        if (!Check || !(getVideo().currentTime < 5 || getVideo().currentTime + howLongToSkip(skipTime) >= skipTime[0])) return;
+        if (!Check || !(getVideo().currentTime < 5 || getVideo().currentTime + howLongToSkip(skipTime) >= skipTime[0]))
+            return;
     } else {
         if (!Check || !(getVideo().currentTime < 5 || getVideo().currentTime + 1 >= skipTime[0])) return;
     }
@@ -1917,28 +1921,28 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
                 }
             }
         }
-    }
+    };
 
     //防止在片段前暂停等
     const cleanListeners = () => {
         v.removeEventListener("seeked", handleSeeked);
         v.removeEventListener("pause", handlePause);
         v.removeEventListener("play", handlePlay);
-    }
+    };
     const handlePause = () => {
         clearTimeout(readySkip.readySkip);
-    }
+    };
     const handlePlay = () => {
-        const text = document.querySelector('.sponsorSkipObject.sponsorSkipNoticeButton') as HTMLButtonElement;
-        if (text && text.textContent.slice(0, 4) === chrome.i18n.getMessage('unskip')) {
+        const text = document.querySelector(".sponsorSkipObject.sponsorSkipNoticeButton") as HTMLButtonElement;
+        if (text && text.textContent.slice(0, 4) === chrome.i18n.getMessage("unskip")) {
             readySkip.readySkip = setTimeout(handleSkip, howLongToSkip(skipTime));
         }
-    }
+    };
     const handleSeeked = () => {
         cleanListeners();
         readySkip.readySkipCheck = null;
         clearTimeout(readySkip.readySkip);
-    }
+    };
     v.addEventListener("pause", handlePause);
     v.addEventListener("play", handlePlay);
     v.addEventListener("seeked", handleSeeked);
@@ -1991,7 +1995,7 @@ function createSkipNotice(
     skippingSegments: SponsorTime[],
     autoSkip: boolean,
     unskipTime: number,
-    startReskip: boolean,
+    startReskip: boolean
 ) {
     for (const skipNotice of skipNotices) {
         if (
@@ -2008,7 +2012,7 @@ function createSkipNotice(
         autoSkip,
         skipNoticeContentContainer,
         unskipTime,
-        startReskip,
+        startReskip
     );
     if (Config.config.skipKeybind == null) newSkipNotice.setShowKeybindHint(false);
     skipNotices.push(newSkipNotice);
@@ -2030,7 +2034,7 @@ function unskipSponsorTime(segment: SponsorTime, unskipTime: number, forceSeek =
         } else if (readySkip.readySkip) {
             clearTimeout(readySkip.readySkip);
             clearTimeout(readySkip.ManualSkipSetTimeOut);
-        } else if (readySkip.ManualSkipSetTimeOut){
+        } else if (readySkip.ManualSkipSetTimeOut) {
             clearTimeout(readySkip.ManualSkipSetTimeOut);
         } else {
             //add a tiny bit of time to make sure it is not skipped again
@@ -2063,7 +2067,7 @@ function reskipSponsorTime(segment: SponsorTime, forceSeek = false) {
                 skippingSegments: [segment],
                 openNotice: skipInfo.openNotice,
             });
-        } else { 
+        } else {
             const skippedTime = Math.max(segment.segment[1] - getVideo().currentTime, 0);
             const segmentDuration = segment.segment[1] - segment.segment[0];
             const fullSkip = skippedTime / segmentDuration > manualSkipPercentCount;
@@ -2077,7 +2081,10 @@ function reskipSponsorTime(segment: SponsorTime, forceSeek = false) {
 
 function howLongToSkip(skipTime: number[]) {
     if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
-        return Math.min(Config.config.skipNoticeDurationBefore * 1000 / getVideo().playbackRate, (skipTime[0] - getVideo().currentTime) * 1000 / getVideo().playbackRate);
+        return Math.min(
+            (Config.config.skipNoticeDurationBefore * 1000) / getVideo().playbackRate,
+            ((skipTime[0] - getVideo().currentTime) * 1000) / getVideo().playbackRate
+        );
     } else {
         return 0;
     }

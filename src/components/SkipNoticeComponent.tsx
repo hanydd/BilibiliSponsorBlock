@@ -128,16 +128,15 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         this.unselectedColor = Config.config.colorPalette.white;
         this.lockedColor = Config.config.colorPalette.locked;
 
-        let countDown: number = 0;
-        if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
-            countDown = Number(Config.config.skipNoticeDurationBefore) + Number(Config.config.skipNoticeDuration);
-        } else {
-            countDown = Number(Config.config.skipNoticeDuration);
-        }
+        const calculateCountDown = () => {
+            if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
+                return Config.config.skipNoticeDurationBefore + Config.config.skipNoticeDuration;
+            } else {
+                return Config.config.skipNoticeDuration;
+            }
+        };
         const isMuteSegment = this.segments[0].actionType === ActionType.Mute;
-        const maxCountdownTime = isMuteSegment
-            ? this.getFullDurationCountdown(0)
-            : () => countDown;
+        const maxCountdownTime = isMuteSegment ? this.getFullDurationCountdown(0) : calculateCountDown;
 
         const defaultSkipButtonState = this.props.startReskip ? SkipButtonState.Redo : SkipButtonState.Undo;
         const skipButtonStates = [
@@ -684,7 +683,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     unskip(buttonIndex: number, index: number, forceSeek: boolean): void {
-        (this.contentContainer().unskipSponsorTime(this.segments[index], this.props.unskipTime, forceSeek));
+        this.contentContainer().unskipSponsorTime(this.segments[index], this.props.unskipTime, forceSeek);
 
         this.unskippedMode(buttonIndex, index, SkipButtonState.Redo);
     }
@@ -701,7 +700,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         let countDown: number;
         if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
             if (this.props.segments[0].segment[0] > getVideo().currentTime) {
-                countDown = Number(Config.config.skipNoticeDurationBefore) + Number(Config.config.skipNoticeDuration);
+                countDown = Config.config.skipNoticeDurationBefore + Config.config.skipNoticeDuration;
             } else {
                 if (Config.config.skipNoticeDuration < 1) {
                     countDown = Config.config.skipNoticeDurationBefore;
