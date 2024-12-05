@@ -1,6 +1,6 @@
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import Config from "./config";
-import { isSafari, Keybind, keybindEquals, keybindToString, StorageChangesObject } from "./config/config";
+import { Keybind, keybindEquals, keybindToString, StorageChangesObject } from "./config/config";
 import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";
 import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
@@ -35,7 +35,7 @@ import {
     VideoInfo,
 } from "./types";
 import Utils from "./utils";
-import { isFirefoxOrSafari, sleep, waitFor } from "./utils/";
+import { isFirefox, isFirefoxOrSafari, isSafari, sleep, waitFor } from "./utils/";
 import { AnimationUtils } from "./utils/animationUtils";
 import { addCleanupListener, cleanPage } from "./utils/cleanup";
 import { defaultPreviewTime } from "./utils/constants";
@@ -713,9 +713,9 @@ async function startSponsorSchedule(
         await skippingFunction(currentTime);
     } else {
         let delayTime = timeUntilSponsor * 1000 * (1 / getVideo().playbackRate);
-        if (delayTime < (isFirefoxOrSafari() && !isSafari() ? 750 : 300)) {
+        if (delayTime < (isFirefox() ? 750 : 300)) {
             let forceStartIntervalTime: number | null = null;
-            if (isFirefoxOrSafari() && !isSafari() && delayTime > 300) {
+            if (isFirefox() && delayTime > 300) {
                 forceStartIntervalTime = await waitForNextTimeChange();
             }
 
@@ -763,7 +763,7 @@ async function startSponsorSchedule(
         } else {
             logDebug(`Starting timeout to skip ${getVideo().currentTime} to skip at ${skipTime[0]}`);
 
-            const offset = isFirefoxOrSafari() && !isSafari() ? 600 : 150;
+            const offset = isFirefox() ? 600 : 150;
             let advance: number = 0;
             if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
                 advance = Config.config.skipNoticeDurationBefore * 1000;
@@ -836,12 +836,12 @@ function checkDanmaku(text: string, offset: number) {
     }, offset * 1000 - 100);
 }
 
-let observer: MutationObserver = null;
+let danmakuObserver: MutationObserver = null;
 const processedDanmaku = new Set<string>();
 
 function danmakuForSkip() {
     if (!Config.config.enableDanmakuSkip || Config.config.disableSkipping) return;
-    if (observer) return;
+    if (danmakuObserver) return;
 
     const targetNode = document.querySelector(".bpx-player-row-dm-wrap"); // 选择父节点
     const config = { attributes: true, subtree: true }; // 观察属性变化
@@ -867,12 +867,12 @@ function danmakuForSkip() {
             }
         }
     };
-    observer = new MutationObserver(callback);
-    observer.observe(targetNode, config);
+    danmakuObserver = new MutationObserver(callback);
+    danmakuObserver.observe(targetNode, config);
     addCleanupListener(() => {
-        if (observer) {
-            observer.disconnect();
-            observer = null;
+        if (danmakuObserver) {
+            danmakuObserver.disconnect();
+            danmakuObserver = null;
             processedDanmaku.clear();
             return;
         }
@@ -2745,7 +2745,6 @@ function hotkeyListener(e: KeyboardEvent): void {
  * Hot keys to jump to the next or previous frame, for easier segment time editting
  * only effective when the SubmissionNotice is open
  *
- * Uses 1/30s as the frame rate, as it's the most common frame rate for videos
  * @param key keydown event
  */
 export async function seekFrameByKeyPressListener(key) {
