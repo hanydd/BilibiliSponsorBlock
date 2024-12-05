@@ -1,3 +1,4 @@
+import { getFrameRate } from "./document/frameRateUtils";
 import { InjectedScriptMessageSend, sourceId } from "./utils/injectedScriptMessageUtils";
 
 const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): void => {
@@ -11,26 +12,28 @@ const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): 
         "/"
     );
 };
-let frameRate: number = 30;
 
-(function () {
+let frameRate: number;
+function overwriteFetch() {
     const originalFetch = window.fetch;
 
     window.fetch = async function (input, init) {
-        const url = typeof input === 'string' ? input : (input as Request).url;
-
+        const url = typeof input === "string" ? input : (input as Request).url;
         const response = await originalFetch(input, init);
-        if (url.includes('/player/wbi/playurl') && url.includes(window.__INITIAL_STATE__.cid.toString())) {
-            response.clone().json().then(data => {
-                frameRate = data.data.dash.video
-                    .filter((v) => v.id === data.data.quality && v.codecid === data.data.video_codecid)[0]?.frameRate;
-            }).catch(() => {
-                frameRate = 30;
-            });
+
+        if (url.includes("/player/wbi/playurl") && url.includes(window?.__INITIAL_STATE__?.cid.toString())) {
+            response
+                .clone()
+                .json()
+                .then((data) => {
+                    frameRate = data.data.dash.video.filter(
+                        (v) => v.id === data.data.quality && v.codecid === data.data.video_codecid
+                    )[0]?.frameRate;
+                });
         }
         return response;
     };
-})();
+}
 
 function windowMessageListener(message: MessageEvent) {
     const data: InjectedScriptMessageSend = message.data;
@@ -41,7 +44,8 @@ function windowMessageListener(message: MessageEvent) {
         if (data.type === "getBvID") {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.bvid);
         } else if (data.type === "getFrameRate") {
-            sendMessageToContent(data, frameRate);
+            console.log("Frame rate", getFrameRate());
+            sendMessageToContent(data, getFrameRate());
         } else if (data.type === "getChannelID") {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.upData?.mid);
         } else if (data.type === "getDescription") {
@@ -52,6 +56,7 @@ function windowMessageListener(message: MessageEvent) {
 
 function init(): void {
     window.addEventListener("message", windowMessageListener);
+    overwriteFetch();
 }
 
 init();
