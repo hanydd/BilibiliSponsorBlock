@@ -2,7 +2,7 @@ import { getFrameRate, PlayInfo } from "./document/frameRateUtils";
 import { DataCache } from "./utils/cache";
 import { InjectedScriptMessageSend, sourceId } from "./utils/injectedScriptMessageUtils";
 
-const cache = new DataCache<string, PlayInfo[]>(() => []);
+const playInfoCache = new DataCache<string, PlayInfo[]>(() => []);
 
 const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): void => {
     window.postMessage(
@@ -29,8 +29,13 @@ function overwriteFetch() {
                 const url = new URL(urlStr);
                 if (url.pathname.includes("/player/wbi/playurl")) {
                     const cid = url.searchParams.get("cid");
-                    if (!cache.getFromCache(cid) && res?.data?.dash?.video) {
-                        cache.setupCache(cid).push(...res.data.dash.video);
+                    if (!playInfoCache.getFromCache(cid) && res?.data?.dash?.video) {
+                        playInfoCache.setupCache(cid).push(
+                            ...res.data.dash.video.map((v) => ({
+                                id: v.id,
+                                frameRate: parseFloat(v.frameRate),
+                            }))
+                        );
                     }
                 }
             })
@@ -48,8 +53,7 @@ function windowMessageListener(message: MessageEvent) {
         if (data.type === "getBvID") {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.bvid);
         } else if (data.type === "getFrameRate") {
-            console.log("Frame rate", getFrameRate());
-            sendMessageToContent(data, getFrameRate());
+            sendMessageToContent(data, getFrameRate(playInfoCache));
         } else if (data.type === "getChannelID") {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.upData?.mid);
         } else if (data.type === "getDescription") {
