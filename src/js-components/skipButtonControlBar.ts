@@ -38,11 +38,13 @@ export class SkipButtonControlBar {
         this.skipButton = document.createElement("button");
         this.skipButton.classList.add("bpx-player-ctrl-btn", "playerButton");
         this.skipButton.id = "sbSkipIconControlBarButton";
+        this.skipButton.draggable = false;
 
         this.skipIcon = document.createElement("img");
         this.skipIcon.src = chrome.runtime.getURL("icons/skipIcon.svg");
         this.skipIcon.classList.add("bpx-player-ctrl-btn-icon", "playerButtonImage");
         this.skipIcon.id = "sbSkipIconControlBarImage";
+        this.skipIcon.draggable = false;
 
         this.skipButton.appendChild(this.skipIcon);
 
