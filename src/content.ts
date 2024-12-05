@@ -574,8 +574,9 @@ async function startSponsorSchedule(
         return;
     }
 
-    logDebug(`Considering to start skipping: ${!getVideo()}, ${getVideo()?.paused}`);
-    if (!getVideo()) return;
+    const video = getVideo();
+    logDebug(`Considering to start skipping: ${!video}, ${video?.paused}`);
+    if (!video) return;
     if (currentTime === undefined || currentTime === null) {
         currentTime = getVirtualTime();
     }
@@ -583,7 +584,7 @@ async function startSponsorSchedule(
 
     updateActiveSegment(currentTime);
 
-    if (getVideo().paused || (getVideo().currentTime >= getVideo().duration - 0.01 && getVideo().duration > 1)) return;
+    if (video.paused || (video.currentTime >= video.duration - 0.01 && video.duration > 1)) return;
     const skipInfo = getNextSkipIndex(currentTime, includeIntersectingSegments, includeNonIntersectingSegments);
 
     const currentSkip = skipInfo.array[skipInfo.index];
@@ -598,7 +599,7 @@ async function startSponsorSchedule(
             skipInfo.index !== -1 && timeUntilSponsor < skipBuffer && shouldAutoSkip(currentSkip)
         )
     ) {
-        getVideo().muted = false;
+        video.muted = false;
         videoMuted = false;
 
         for (const notice of skipNotices) {
@@ -712,7 +713,7 @@ async function startSponsorSchedule(
     if (timeUntilSponsor < skipBuffer) {
         await skippingFunction(currentTime);
     } else {
-        let delayTime = timeUntilSponsor * 1000 * (1 / getVideo().playbackRate);
+        let delayTime = (timeUntilSponsor * 1000) / getVideo().playbackRate;
         if (delayTime < (isFirefox() ? 750 : 300)) {
             let forceStartIntervalTime: number | null = null;
             if (isFirefox() && delayTime > 300) {
@@ -763,13 +764,14 @@ async function startSponsorSchedule(
         } else {
             logDebug(`Starting timeout to skip ${getVideo().currentTime} to skip at ${skipTime[0]}`);
 
-            const offset = isFirefox() ? 600 : 150;
-            let advance: number = 0;
+            // 提前触发跳过通知
             if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
-                advance = Config.config.skipNoticeDurationBefore * 1000;
+                delayTime -= Config.config.skipNoticeDurationBefore * 1000;
             }
+
+            const offset = isFirefox() ? 600 : 150;
             // Schedule for right before to be more precise than normal timeout
-            currentSkipSchedule = setTimeout(skippingFunction, Math.max(0, delayTime - offset - advance));
+            currentSkipSchedule = setTimeout(skippingFunction, Math.max(0, delayTime - offset));
         }
     }
 }
