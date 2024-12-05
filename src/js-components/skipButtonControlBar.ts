@@ -1,8 +1,10 @@
 import Config from "../config";
-import { SegmentUUID, SponsorTime } from "../types";
-import { getSkippingText } from "../utils/categoryUtils";
-import { AnimationUtils } from "../utils/animationUtils";
 import { keybindToString } from "../config/config";
+import { getPageLoaded } from "../content";
+import { SegmentUUID, SponsorTime } from "../types";
+import { AnimationUtils } from "../utils/animationUtils";
+import { getSkippingText } from "../utils/categoryUtils";
+import { waitFor } from "../utils/index";
 
 export interface SkipButtonControlBarProps {
     skip: (segment: SponsorTime) => void;
@@ -12,8 +14,8 @@ export interface SkipButtonControlBarProps {
 export class SkipButtonControlBar {
     container: HTMLElement;
     skipIcon: HTMLImageElement;
-    textContainer: HTMLElement;
-    chapterText: HTMLElement;
+    // textContainer: HTMLElement;
+    // chapterText: HTMLElement;
     segment: SponsorTime;
 
     showKeybindHint = true;
@@ -30,17 +32,22 @@ export class SkipButtonControlBar {
 
         this.container = document.createElement("div");
         this.container.classList.add("skipButtonControlBarContainer");
-        this.container.classList.add("sbhidden");
+        // this.container.classList.add("sbhidden");
+
+        const button = document.createElement("button");
+        button.classList.add("bpx-player-ctrl-btn", "playerButton");
+        button.id = "sbSkipIconControlBarButton";
 
         this.skipIcon = document.createElement("img");
         this.skipIcon.src = chrome.runtime.getURL("icons/skipIcon.svg");
-        this.skipIcon.classList.add("ytp-button");
+        this.skipIcon.classList.add("bpx-player-ctrl-btn-icon", "playerButtonImage");
         this.skipIcon.id = "sbSkipIconControlBarImage";
 
-        this.textContainer = document.createElement("div");
+        // this.textContainer = document.createElement("div");
 
-        this.container.appendChild(this.skipIcon);
-        this.container.appendChild(this.textContainer);
+        button.appendChild(this.skipIcon);
+        this.container.appendChild(button);
+        // this.container.appendChild(this.textContainer);
         this.container.addEventListener("click", () => this.toggleSkip());
         this.container.addEventListener("mouseenter", () => {
             this.stopTimer();
@@ -60,18 +67,19 @@ export class SkipButtonControlBar {
         return this.container;
     }
 
-    attachToPage(): void {
+    async attachToPage(): Promise<void> {
+        await waitFor(getPageLoaded, 10000, 10);
         const mountingContainer = this.getMountingContainer();
-        this.chapterText = document.querySelector(".ytp-chapter-container");
+        // this.chapterText = document.querySelector(".ytp-chapter-container");
 
         if (mountingContainer && !mountingContainer.contains(this.container)) {
-            mountingContainer.insertBefore(this.container, this.chapterText);
-            AnimationUtils.setupAutoHideAnimation(this.skipIcon, mountingContainer, false, false);
+            mountingContainer.append(this.container);
+            AnimationUtils.setupAutoHideAnimation(this.skipIcon, mountingContainer, true, false);
         }
     }
 
     private getMountingContainer(): HTMLElement {
-        return document.querySelector(".ytp-left-controls");
+        return document.querySelector(".bpx-player-control-bottom-left");
     }
 
     enable(segment: SponsorTime, duration?: number): void {
@@ -81,7 +89,7 @@ export class SkipButtonControlBar {
 
         this.refreshText();
         this.container?.classList?.remove("textDisabled");
-        this.textContainer?.classList?.remove("sbhidden");
+        // this.textContainer?.classList?.remove("sbhidden");
         AnimationUtils.disableAutoHideAnimation(this.skipIcon);
 
         this.startTimer();
@@ -89,9 +97,9 @@ export class SkipButtonControlBar {
 
     refreshText(): void {
         if (this.segment) {
-            this.chapterText?.classList?.add("sbhidden");
+            // this.chapterText?.classList?.add("sbhidden");
             this.container.classList.remove("sbhidden");
-            this.textContainer.innerText = this.getTitle();
+            // this.textContainer.innerText = this.getTitle();
             this.skipIcon.setAttribute("title", this.getTitle());
         }
     }
@@ -117,8 +125,8 @@ export class SkipButtonControlBar {
     disable(): void {
         this.container.classList.add("sbhidden");
 
-        this.chapterText?.classList?.remove("sbhidden");
-        this.getChapterPrefix()?.classList?.remove("sbhidden");
+        // this.chapterText?.classList?.remove("sbhidden");
+        // this.getChapterPrefix()?.classList?.remove("sbhidden");
 
         this.enabled = false;
     }
@@ -141,8 +149,8 @@ export class SkipButtonControlBar {
         }
 
         this.container.classList.add("textDisabled");
-        this.textContainer?.classList?.add("sbhidden");
-        this.chapterText?.classList?.remove("sbhidden");
+        // this.textContainer?.classList?.add("sbhidden");
+        // this.chapterText?.classList?.remove("sbhidden");
 
         this.getChapterPrefix()?.classList?.add("sbhidden");
 

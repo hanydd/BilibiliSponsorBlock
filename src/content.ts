@@ -1566,9 +1566,11 @@ function videoElementChange(newVideo: boolean): void {
     waitFor(() => Config.isReady() && !document.hidden, 24 * 60 * 60, 500).then(() => {
         if (newVideo) {
             setupVideoListeners();
-            setupSkipButtonControlBar();
-            setupCategoryPill();
-            setupDescriptionPill();
+            waitFor(getPageLoaded, 20000, 10).then(() => {
+                setupSkipButtonControlBar();
+                setupCategoryPill();
+                setupDescriptionPill();
+            });
         }
 
         updatePreviewBar();
