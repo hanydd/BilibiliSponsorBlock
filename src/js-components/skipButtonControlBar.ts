@@ -13,6 +13,7 @@ export interface SkipButtonControlBarProps {
 
 export class SkipButtonControlBar {
     container: HTMLElement;
+    skipButton: HTMLButtonElement;
     skipIcon: HTMLImageElement;
     // textContainer: HTMLElement;
     // chapterText: HTMLElement;
@@ -34,19 +35,20 @@ export class SkipButtonControlBar {
         this.container.classList.add("skipButtonControlBarContainer");
         // this.container.classList.add("sbhidden");
 
-        const button = document.createElement("button");
-        button.classList.add("bpx-player-ctrl-btn", "playerButton");
-        button.id = "sbSkipIconControlBarButton";
+        this.skipButton = document.createElement("button");
+        this.skipButton.classList.add("bpx-player-ctrl-btn", "playerButton");
+        this.skipButton.id = "sbSkipIconControlBarButton";
 
         this.skipIcon = document.createElement("img");
         this.skipIcon.src = chrome.runtime.getURL("icons/skipIcon.svg");
         this.skipIcon.classList.add("bpx-player-ctrl-btn-icon", "playerButtonImage");
         this.skipIcon.id = "sbSkipIconControlBarImage";
 
+        this.skipButton.appendChild(this.skipIcon);
+
         // this.textContainer = document.createElement("div");
 
-        button.appendChild(this.skipIcon);
-        this.container.appendChild(button);
+        this.container.appendChild(this.skipButton);
         // this.container.appendChild(this.textContainer);
         this.container.addEventListener("click", () => this.toggleSkip());
         this.container.addEventListener("mouseenter", () => {
@@ -74,7 +76,7 @@ export class SkipButtonControlBar {
 
         if (mountingContainer && !mountingContainer.contains(this.container)) {
             mountingContainer.append(this.container);
-            AnimationUtils.setupAutoHideAnimation(this.skipIcon, mountingContainer, true, false);
+            AnimationUtils.setupAutoHideAnimation(this.skipButton, mountingContainer, false, false);
         }
     }
 
@@ -90,7 +92,7 @@ export class SkipButtonControlBar {
         this.refreshText();
         this.container?.classList?.remove("textDisabled");
         // this.textContainer?.classList?.remove("sbhidden");
-        AnimationUtils.disableAutoHideAnimation(this.skipIcon);
+        AnimationUtils.disableAutoHideAnimation(this.skipButton);
 
         this.startTimer();
     }
@@ -100,7 +102,7 @@ export class SkipButtonControlBar {
             // this.chapterText?.classList?.add("sbhidden");
             this.container.classList.remove("sbhidden");
             // this.textContainer.innerText = this.getTitle();
-            this.skipIcon.setAttribute("title", this.getTitle());
+            this.skipButton.setAttribute("title", this.getTitle());
         }
     }
 
@@ -154,7 +156,7 @@ export class SkipButtonControlBar {
 
         this.getChapterPrefix()?.classList?.add("sbhidden");
 
-        AnimationUtils.enableAutoHideAnimation(this.skipIcon);
+        AnimationUtils.enableAutoHideAnimation(this.skipButton);
     }
 
     private getTitle(): string {
