@@ -824,12 +824,12 @@ function checkDanmaku(text: string, offset: number) {
     }, offset * 1000 - 100);
 }
 
-let observer: MutationObserver = null;
+let danmakuObserver: MutationObserver = null;
 const processedDanmaku = new Set<string>();
 
 function danmakuForSkip() {
     if (!Config.config.enableDanmakuSkip || Config.config.disableSkipping) return;
-    if (observer) return;
+    if (danmakuObserver) return;
 
     const targetNode = document.querySelector(".bpx-player-row-dm-wrap"); // 选择父节点
     const config = { attributes: true, subtree: true }; // 观察属性变化
@@ -855,12 +855,12 @@ function danmakuForSkip() {
             }
         }
     };
-    observer = new MutationObserver(callback);
-    observer.observe(targetNode, config);
+    danmakuObserver = new MutationObserver(callback);
+    danmakuObserver.observe(targetNode, config);
     addCleanupListener(() => {
-        if (observer) {
-            observer.disconnect();
-            observer = null;
+        if (danmakuObserver) {
+            danmakuObserver.disconnect();
+            danmakuObserver = null;
             processedDanmaku.clear();
             return;
         }
