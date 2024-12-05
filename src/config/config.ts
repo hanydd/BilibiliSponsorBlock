@@ -1,4 +1,4 @@
-import { isFirefoxOrSafari } from "../utils/";
+import { isFirefox } from "../utils/";
 
 export interface SyncStorage {
     invidiousInstances: string[];
@@ -177,7 +177,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
                                 `${chrome.i18n.getMessage("syncDisabledWarning")}${
                                     this.inDeArrow ? `\n\n${chrome.i18n.getMessage("syncDisabledWarningDeArrow")}` : ``
                                 }${
-                                    isFirefoxOrSafari() && !isSafari()
+                                    isFirefox()
                                         ? `\n\n${chrome.i18n.getMessage("syncDisabledFirefoxSuggestions")}`
                                         : ``
                                 }`
@@ -234,9 +234,6 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
     }
 }
 
-export function isSafari(): boolean {
-    return typeof navigator !== "undefined" && navigator.vendor === "Apple Computer, Inc.";
-}
 
 export function keybindEquals(first: Keybind, second: Keybind): boolean {
     if (

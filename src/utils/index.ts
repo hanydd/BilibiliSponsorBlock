@@ -79,3 +79,11 @@ export function isFirefoxOrSafari(): boolean {
     // @ts-ignore
     return typeof browser !== "undefined";
 }
+
+export function isSafari(): boolean {
+    return typeof navigator !== "undefined" && navigator.vendor === "Apple Computer, Inc.";
+}
+
+export function isFirefox(): boolean {
+    return isFirefoxOrSafari() && !isSafari();
+}

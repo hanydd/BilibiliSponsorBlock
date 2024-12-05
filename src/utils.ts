@@ -8,8 +8,8 @@ import {
     SponsorTime,
     VideoID,
 } from "./types";
+import { isSafari } from "./utils/index";
 
-import { isSafari } from "./config/config";
 import { findValidElementFromSelector } from "./utils/dom";
 import { getHash, getVideoIDHash, HashedValue } from "./utils/hash";
 

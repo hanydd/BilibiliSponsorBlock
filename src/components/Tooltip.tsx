@@ -1,8 +1,7 @@
 import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
+import { isFirefox } from "../utils/";
 import { ButtonListener } from "./component-types";
-import { isFirefoxOrSafari } from "../utils/";
-import { isSafari } from "../config/config";
 
 export interface TooltipProps {
     text?: string;
@@ -67,7 +66,7 @@ export class GenericTooltip {
         if (props.positionRealtive) this.container.style.position = "relative";
         if (props.containerAbsolute) this.container.style.position = "absolute";
         if (props.center) {
-            if (isFirefoxOrSafari() && !isSafari()) {
+            if (isFirefox()) {
                 this.container.style.width = "-moz-available";
             } else {
                 this.container.style.width = "-webkit-fill-available";

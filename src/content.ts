@@ -1,6 +1,6 @@
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import Config from "./config";
-import { isSafari, Keybind, keybindEquals, keybindToString, StorageChangesObject } from "./config/config";
+import { Keybind, keybindEquals, keybindToString, StorageChangesObject } from "./config/config";
 import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";
 import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
@@ -35,7 +35,7 @@ import {
     VideoInfo,
 } from "./types";
 import Utils from "./utils";
-import { isFirefoxOrSafari, sleep, waitFor } from "./utils/";
+import { isFirefox, isFirefoxOrSafari, isSafari, sleep, waitFor } from "./utils/";
 import { AnimationUtils } from "./utils/animationUtils";
 import { addCleanupListener, cleanPage } from "./utils/cleanup";
 import { defaultPreviewTime } from "./utils/constants";
@@ -705,9 +705,9 @@ async function startSponsorSchedule(
         await skippingFunction(currentTime);
     } else {
         let delayTime = timeUntilSponsor * 1000 * (1 / getVideo().playbackRate);
-        if (delayTime < (isFirefoxOrSafari() && !isSafari() ? 750 : 300)) {
+        if (delayTime < (isFirefox() ? 750 : 300)) {
             let forceStartIntervalTime: number | null = null;
-            if (isFirefoxOrSafari() && !isSafari() && delayTime > 300) {
+            if (isFirefox() && delayTime > 300) {
                 forceStartIntervalTime = await waitForNextTimeChange();
             }
 
@@ -755,7 +755,7 @@ async function startSponsorSchedule(
         } else {
             logDebug(`Starting timeout to skip ${getVideo().currentTime} to skip at ${skipTime[0]}`);
 
-            const offset = isFirefoxOrSafari() && !isSafari() ? 600 : 150;
+            const offset = isFirefox() ? 600 : 150;
             // Schedule for right before to be more precise than normal timeout
             currentSkipSchedule = setTimeout(skippingFunction, Math.max(0, delayTime - offset));
         }
