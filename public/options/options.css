@@ -98,7 +98,7 @@ body {
 #navigation {
 	display: flex;
 	flex-direction: column;
-	gap: 25px;
+	gap: 20px;
 }
 
 .tab-heading {
@@ -655,7 +655,7 @@ svg {
 }
 
 /* Top bar navigation for smaller screens */
-@media only screen and (max-height: 750px), only screen and (max-width: 1200px) {
+@media only screen and (max-height: 765px), only screen and (max-width: 1200px) {
 	#options-container {
 		flex-direction: column;
 	}
