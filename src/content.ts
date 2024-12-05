@@ -1912,11 +1912,13 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
     }
 
     if (!autoSkip && skippingSegments.length === 1 && skippingSegments[0].actionType === ActionType.Poi) {
-        skipButtonControlBar.enable(skippingSegments[0]);
-        if (Config.config.skipKeybind == null) skipButtonControlBar.setShowKeybindHint(false);
+        waitFor(() => skipButtonControlBar).then(() => {
+            skipButtonControlBar.enable(skippingSegments[0]);
+            if (Config.config.skipKeybind == null) skipButtonControlBar.setShowKeybindHint(false);
 
-        activeSkipKeybindElement?.setShowKeybindHint(false);
-        activeSkipKeybindElement = skipButtonControlBar;
+            activeSkipKeybindElement?.setShowKeybindHint(false);
+            activeSkipKeybindElement = skipButtonControlBar;
+        });
     } else {
         if (openNotice) {
             //send out the message saying that a sponsor message was skipped
