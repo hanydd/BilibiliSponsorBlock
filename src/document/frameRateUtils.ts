@@ -1,4 +1,4 @@
-interface PlayInfo {
+export interface PlayInfo {
     id: number;
     frameRate: number;
 }

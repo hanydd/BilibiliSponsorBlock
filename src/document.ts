@@ -1,5 +1,8 @@
-import { getFrameRate } from "./document/frameRateUtils";
+import { getFrameRate, PlayInfo } from "./document/frameRateUtils";
+import { DataCache } from "./utils/cache";
 import { InjectedScriptMessageSend, sourceId } from "./utils/injectedScriptMessageUtils";
+
+const cache = new DataCache<string, PlayInfo[]>(() => []);
 
 const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): void => {
     window.postMessage(
@@ -13,24 +16,25 @@ const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): 
     );
 };
 
-let frameRate: number;
 function overwriteFetch() {
     const originalFetch = window.fetch;
 
     window.fetch = async function (input, init) {
-        const url = typeof input === "string" ? input : (input as Request).url;
+        const urlStr = typeof input === "string" ? input : (input as Request).url;
         const response = await originalFetch(input, init);
-
-        if (url.includes("/player/wbi/playurl") && url.includes(window?.__INITIAL_STATE__?.cid.toString())) {
-            response
-                .clone()
-                .json()
-                .then((data) => {
-                    frameRate = data.data.dash.video.filter(
-                        (v) => v.id === data.data.quality && v.codecid === data.data.video_codecid
-                    )[0]?.frameRate;
-                });
-        }
+        response
+            .clone()
+            .json()
+            .then((res) => {
+                const url = new URL(urlStr);
+                if (url.pathname.includes("/player/wbi/playurl")) {
+                    const cid = url.searchParams.get("cid");
+                    if (!cache.getFromCache(cid) && res?.data?.dash?.video) {
+                        cache.setupCache(cid).push(...res.data.dash.video);
+                    }
+                }
+            })
+            .catch(() => {});
         return response;
     };
 }
