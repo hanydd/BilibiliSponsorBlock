@@ -30,11 +30,9 @@ function overwriteFetch() {
                 if (url.pathname.includes("/player/wbi/playurl")) {
                     const cid = url.searchParams.get("cid");
                     if (!playInfoCache.getFromCache(cid) && res?.data?.dash?.video) {
-                        playInfoCache.setupCache(cid).push(
-                            ...res.data.dash.video.map((v) => ({
-                                id: v.id,
-                                frameRate: parseFloat(v.frameRate),
-                            }))
+                        playInfoCache.set(
+                            cid,
+                            res.data.dash.video.map((v) => ({ id: v.id, frameRate: parseFloat(v.frameRate) }))
                         );
                     }
                 }

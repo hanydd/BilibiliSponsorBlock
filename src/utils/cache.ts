@@ -7,7 +7,7 @@ export class DataCache<T extends string, V> {
     private init: () => V;
     private cacheLimit: number;
 
-    constructor(init: () => V, cacheLimit = 2000) {
+    constructor(init?: () => V, cacheLimit = 2000) {
         this.cache = {};
         this.init = init;
         this.cacheLimit = cacheLimit;
@@ -17,17 +17,17 @@ export class DataCache<T extends string, V> {
         return this.cache[key];
     }
 
-    public setupCache(key: T): V & CacheRecord {
-        if (!this.cache[key]) {
-            this.cache[key] = {
-                ...this.init(),
-                lastUsed: Date.now(),
-            };
+    public set(key: T, value: V): void {
+        this.cache[key] = {
+            ...value,
+            lastUsed: Date.now(),
+        };
+        this.gc();
+    }
 
-            if (Object.keys(this.cache).length > this.cacheLimit) {
-                const oldest = Object.entries(this.cache).reduce((a, b) => (a[1].lastUsed < b[1].lastUsed ? a : b));
-                delete this.cache[oldest[0]];
-            }
+    public setupCache(key: T): V & CacheRecord {
+        if (!this.cache[key] && this.init) {
+            this.set(key, this.init());
         }
 
         return this.cache[key];
@@ -37,5 +37,12 @@ export class DataCache<T extends string, V> {
         if (this.cache[key]) this.cache[key].lastUsed = Date.now();
 
         return !!this.cache[key];
+    }
+
+    private gc(): void {
+        if (Object.keys(this.cache).length > this.cacheLimit) {
+            const oldest = Object.entries(this.cache).reduce((a, b) => (a[1].lastUsed < b[1].lastUsed ? a : b));
+            delete this.cache[oldest[0]];
+        }
     }
 }
