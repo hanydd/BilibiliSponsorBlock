@@ -62,7 +62,7 @@ function windowMessageListener(message: MessageEvent) {
 
 function init(): void {
     window.addEventListener("message", windowMessageListener);
-    overwriteFetch();
+    // overwriteFetch();
 }
 
 init();
