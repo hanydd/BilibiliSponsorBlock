@@ -103,18 +103,16 @@
 
 .autoHiding {
 	overflow: visible !important;
+	transition: transform 0.2s cubic-bezier(0.215, 0.61, 0.355, 1), width 0.2s cubic-bezier(0.215, 0.61, 0.355, 1),
+		opacity 0.2s cubic-bezier(0.19, 1, 0.22, 1) !important;
 }
 
 .autoHiding:not(.sbhidden) {
 	transform: translateX(0%);
-	transition: transform 0.2s cubic-bezier(0.215, 0.61, 0.355, 1), width 0.2s cubic-bezier(0.215, 0.61, 0.355, 1),
-		opacity 0.2s cubic-bezier(0.19, 1, 0.22, 1) !important;
 }
 
 .autoHiding.sbhidden {
 	transform: translateX(100%);
-	transition: transform 0.2s cubic-bezier(0.215, 0.61, 0.355, 1), width 0.2s cubic-bezier(0.215, 0.61, 0.355, 1),
-		opacity 0.2s cubic-bezier(0.19, 1, 0.22, 1) !important;
 	opacity: 0;
 }
 
