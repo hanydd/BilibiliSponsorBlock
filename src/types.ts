@@ -1,6 +1,7 @@
 import SubmissionNotice from "./render/SubmissionNotice";
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import SkipNotice from "./render/SkipNotice";
+import advanceSkipNotice from "./render/advanceSkipNotice";
 
 export enum PageType {
     Unknown = "unknown",
@@ -25,6 +26,7 @@ export interface ContentContainer {
         sponsorTimes: SponsorTime[];
         sponsorTimesSubmitting: SponsorTime[];
         skipNotices: SkipNotice[];
+        advanceSkipNotices: advanceSkipNotice;
         sponsorVideoID;
         reskipSponsorTime: (segment: SponsorTime, forceSeek?: boolean) => void;
         updatePreviewBar: () => void;
