@@ -33,7 +33,7 @@ export class SkipButtonControlBar {
 
         this.container = document.createElement("div");
         this.container.classList.add("skipButtonControlBarContainer");
-        // this.container.classList.add("sbhidden");
+        this.container.classList.add("sbhidden");
 
         this.skipButton = document.createElement("button");
         this.skipButton.classList.add("bpx-player-ctrl-btn", "playerButton");
