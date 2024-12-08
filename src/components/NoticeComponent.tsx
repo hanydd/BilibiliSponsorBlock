@@ -315,7 +315,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
         });
     }
 
-    toggleManualPause = (): void => {
+    toggleManualPause(): void {
         this.setState(
             {
                 countdownMode:

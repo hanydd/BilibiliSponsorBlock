@@ -25,6 +25,7 @@ class advanceSkipNotices {
         contentContainer: ContentContainer,
         unskipTime: number,
         autoSkip: boolean,
+        startReskip: boolean
     ) {
         this.advanceSkipNoticeRef = React.createRef();
 
@@ -44,6 +45,7 @@ class advanceSkipNotices {
                 segments={segments}
                 autoSkip={autoSkip}
                 advanceSkipNotice={true}
+                startReskip={startReskip}
                 contentContainer={contentContainer}
                 ref={this.advanceSkipNoticeRef}
                 closeListener={() => this.close()}

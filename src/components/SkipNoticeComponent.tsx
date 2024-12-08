@@ -434,7 +434,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                     : this.unselectedColor,
             };
 
-            const showSkipButton = (buttonIndex !== 0 || this.props.smaller || this.segments[0].actionType === ActionType.Mute) && !this.props.advanceSkipNotice;
+            const showSkipButton = (buttonIndex !== 0 || this.props.smaller || this.segments[0].actionType === ActionType.Mute);
 
             return (
                 <span className="sponsorSkipNoticeUnskipSection" style={{ visibility: !showSkipButton ? "hidden" : null }}>
@@ -699,13 +699,23 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     unskip(buttonIndex: number, index: number, forceSeek: boolean): void {
-        this.contentContainer().unskipSponsorTime(this.segments[index], this.props.unskipTime, forceSeek);
+        if (this.props.advanceSkipNoticeShow && getVideo().currentTime < this.segments[0].segment[0]) {
+            sessionStorage.setItem('SKIPPING', 'false');
+        } else {
+            this.contentContainer().unskipSponsorTime(this.segments[index], this.props.unskipTime, forceSeek);
+            document.querySelector("#sponsorSkipMessage"+ this.idSuffix).textContent = getSkippingText(this.segments, this.props.autoSkip)
+        }
 
         this.unskippedMode(buttonIndex, index, SkipButtonState.Redo);
     }
 
     reskip(buttonIndex: number, index: number, forceSeek: boolean): void {
-        this.contentContainer().reskipSponsorTime(this.segments[index], forceSeek);
+        if (this.props.advanceSkipNoticeShow && getVideo().currentTime < this.segments[0].segment[0]) {
+            sessionStorage.setItem('SKIPPING', 'true');
+        } else {
+            this.contentContainer().reskipSponsorTime(this.segments[index], forceSeek);
+            document.querySelector("#sponsorSkipMessage"+ this.idSuffix).textContent = getSkippingText(this.segments, this.props.autoSkip)
+        }
 
         const skipButtonStates = this.state.skipButtonStates;
         skipButtonStates[buttonIndex] = SkipButtonState.Undo;
