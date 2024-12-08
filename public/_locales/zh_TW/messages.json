@@ -480,7 +480,7 @@
         "message": "插件相關選項"
     },
     "advanceSkipNotice": {
-        "message": "提前顯示跳過提醒視窗"
+        "message": "提前顯示跳過提醒視窗（仅启用＂自动跳过＂的片段）"
     },
     "skipNoticeDurationBefore": {
         "message": "跳過提醒提前跳出視窗時間（秒）："

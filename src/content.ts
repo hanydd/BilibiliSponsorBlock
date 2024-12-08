@@ -10,6 +10,7 @@ import { DescriptionPortPill } from "./render/DesciptionPortPill";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
+import advanceSkipNotice from "./render/advanceSkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
 import { asyncRequestToServer } from "./requests/requests";
 import { getSegmentsByHash } from "./requests/segments";
@@ -87,6 +88,7 @@ let sponsorDataFound = false;
 let sponsorTimes: SponsorTime[] = [];
 // List of open skip notices
 const skipNotices: SkipNotice[] = [];
+let advanceSkipNotices: advanceSkipNotice | null = null;
 let activeSkipKeybindElement: ToggleSkippable = null;
 let retryFetchTimeout: NodeJS.Timeout = null;
 let shownSegmentFailedToFetchWarning = false;
@@ -118,6 +120,7 @@ let lastTimeFromWaitingEvent: number = null;
 let currentSkipSchedule: NodeJS.Timeout = null;
 let currentSkipInterval: NodeJS.Timeout = null;
 let currentVirtualTimeInterval: NodeJS.Timeout = null;
+let currentadvanceSkipSchedule: NodeJS.Timeout = null;
 
 /** Has the sponsor been skipped */
 let sponsorSkipped: boolean[] = [];
@@ -212,6 +215,7 @@ const skipNoticeContentContainer: ContentContainer = () => ({
     sponsorTimes,
     sponsorTimesSubmitting,
     skipNotices,
+    advanceSkipNotices,
     sponsorVideoID: getVideoID(),
     reskipSponsorTime,
     updatePreviewBar,
@@ -465,6 +469,11 @@ function resetValues() {
     for (let i = 0; i < skipNotices.length; i++) {
         skipNotices.pop()?.close();
     }
+
+    if(advanceSkipNotices){
+        advanceSkipNotices.close();
+        advanceSkipNotices = null;
+    }
 }
 
 async function videoIDChange(): Promise<void> {
@@ -556,6 +565,11 @@ function cancelSponsorSchedule(): void {
     if (currentSkipInterval !== null) {
         clearInterval(currentSkipInterval);
         currentSkipInterval = null;
+    }
+
+    if (currentadvanceSkipSchedule !== null) {
+        clearInterval(currentadvanceSkipSchedule);
+        currentadvanceSkipSchedule = null;
     }
 }
 
@@ -764,14 +778,28 @@ async function startSponsorSchedule(
         } else {
             logDebug(`Starting timeout to skip ${getVideo().currentTime} to skip at ${skipTime[0]}`);
 
-            // 提前触发跳过通知
-            if (Config.config.advanceSkipNotice && Config.config.skipNoticeDurationBefore > 0) {
-                delayTime -= Config.config.skipNoticeDurationBefore * 1000;
-            }
-
-            const offset = isFirefox() ? 600 : 150;
+            const offset = (isFirefoxOrSafari() && !isSafari() ? 600 : 150);
             // Schedule for right before to be more precise than normal timeout
-            currentSkipSchedule = setTimeout(skippingFunction, Math.max(0, delayTime - offset));
+            const offsetDelayTime = Math.max(0, delayTime - offset);
+            currentSkipSchedule = setTimeout(skippingFunction, offsetDelayTime);
+
+            if (Config.config.advanceSkipNotice
+                && Config.config.skipNoticeDurationBefore > 0
+                && getVideo().currentTime < skippingSegments[0].segment[0]
+                && !sponsorTimesSubmitting?.some((segment) => segment.segment === currentSkip.segment)
+                && [ActionType.Skip, ActionType.Mute].includes(skippingSegments[0].actionType)
+                && shouldAutoSkip(skippingSegments[0])
+                && !getVideo()?.paused) {
+                const maxPopupTime = Config.config.skipNoticeDurationBefore * 1000;
+                const timeUntilPopup = Math.max(0, offsetDelayTime - maxPopupTime);
+                const popupTime = offsetDelayTime - timeUntilPopup;
+                const autoSkip = shouldAutoSkip(skippingSegments[0]);
+
+                if (currentadvanceSkipSchedule) clearTimeout(currentadvanceSkipSchedule);
+                currentadvanceSkipSchedule = setTimeout(() => {
+                    createAdvanceSkipNotice([skippingSegments[0]], popupTime, autoSkip);
+                }, timeUntilPopup);
+            }
         }
     }
 }
@@ -1950,19 +1978,19 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
     v.addEventListener("seeked", handleSeeked);
     readySkip.readySkip = setTimeout(handleSkip, howLongToSkip(skipTime));
 
-    if (autoSkip && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
-        const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
-        beep.volume = getVideo().volume * 0.1;
-        const oldMetadata = navigator.mediaSession.metadata;
-        beep.play();
-        beep.addEventListener("ended", () => {
-            navigator.mediaSession.metadata = null;
-            setTimeout(() => {
-                navigator.mediaSession.metadata = oldMetadata;
-                beep.remove();
+        if (autoSkip && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
+            const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
+            beep.volume = getVideo().volume * 0.1;
+            const oldMetadata = navigator.mediaSession.metadata;
+            beep.play();
+            beep.addEventListener("ended", () => {
+                navigator.mediaSession.metadata = null;
+                setTimeout(() => {
+                    navigator.mediaSession.metadata = oldMetadata;
+                    beep.remove();
+                });
             });
-        });
-    }
+        }
 
     if (!autoSkip && skippingSegments.length === 1 && skippingSegments[0].actionType === ActionType.Poi) {
         skipButtonControlBar.enable(skippingSegments[0]);
@@ -2009,13 +2037,17 @@ function createSkipNotice(
         }
     }
 
+    const advanceSkipNoticeShow = !!advanceSkipNotices;
     const newSkipNotice = new SkipNotice(
         skippingSegments,
         autoSkip,
-        skipNoticeContentContainer,
+        skipNoticeContentContainer, () => {
+            advanceSkipNotices?.close();
+            advanceSkipNotices = null;
+        },
         unskipTime,
-        startReskip
-    );
+        startReskip,
+        advanceSkipNoticeShow);
     if (Config.config.skipKeybind == null) newSkipNotice.setShowKeybindHint(false);
     skipNotices.push(newSkipNotice);
 
@@ -2023,7 +2055,27 @@ function createSkipNotice(
     activeSkipKeybindElement = newSkipNotice;
 }
 
-function unskipSponsorTime(segment: SponsorTime, unskipTime: number, forceSeek = false) {
+function createAdvanceSkipNotice(
+    skippingSegments: SponsorTime[],
+    unskipTime: number,
+    autoSkip: boolean
+) {
+    if (advanceSkipNotices
+        && !advanceSkipNotices.closed
+        && advanceSkipNotices.sameNotice(skippingSegments)) {
+        return;
+    }
+
+    advanceSkipNotices?.close();
+    advanceSkipNotices = new advanceSkipNotice(
+        skippingSegments,
+        skipNoticeContentContainer,
+        unskipTime,
+        autoSkip
+    );
+}
+
+function unskipSponsorTime(segment: SponsorTime, unskipTime: number = null, forceSeek = false) {
     if (segment.actionType === ActionType.Mute) {
         getVideo().muted = false;
         videoMuted = false;

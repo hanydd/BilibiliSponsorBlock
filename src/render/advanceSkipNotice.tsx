@@ -1,53 +1,40 @@
 import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
+import { ContentContainer, SponsorTime, NoticeVisbilityMode } from "../types";
 
+import Config from "../config";
 import Utils from "../utils";
+import SkipNoticeComponent from "../components/SkipNoticeComponent";
+import { SkipNoticeAction } from "../utils/noticeUtils";
 const utils = new Utils();
 
-import SkipNoticeComponent from "../components/SkipNoticeComponent";
-import { SponsorTime, ContentContainer, NoticeVisbilityMode } from "../types";
-import Config from "../config";
-import { SkipNoticeAction } from "../utils/noticeUtils";
-
-class SkipNotice {
+class advanceSkipNotices {
     segments: SponsorTime[];
-    autoSkip: boolean;
     // Contains functions and variables from the content script needed by the skip notice
     contentContainer: ContentContainer;
 
     noticeElement: HTMLDivElement;
 
-    skipNoticeRef: React.MutableRefObject<SkipNoticeComponent>;
+    advanceSkipNoticeRef: React.MutableRefObject<SkipNoticeComponent>;
     root: Root;
+
+    closed = false;
 
     constructor(
         segments: SponsorTime[],
-        autoSkip = false,
         contentContainer: ContentContainer,
-        componentDidMount: () => void,
-        unskipTime: number = null,
-        startReskip = false,
-        advanceSkipNoticeShow: boolean
+        unskipTime: number,
+        autoSkip: boolean,
     ) {
-        this.skipNoticeRef = React.createRef();
+        this.advanceSkipNoticeRef = React.createRef();
 
         this.segments = segments;
-        this.autoSkip = autoSkip;
         this.contentContainer = contentContainer;
 
         const referenceNode = utils.findReferenceNode();
 
-        const amountOfPreviousNotices = document.getElementsByClassName("sponsorSkipNotice").length;
-        //this is the suffix added at the end of every id
-        let idSuffix = "";
-        for (const segment of this.segments) {
-            idSuffix += segment.UUID;
-        }
-        idSuffix += amountOfPreviousNotices;
-
         this.noticeElement = document.createElement("div");
         this.noticeElement.className = "sponsorSkipNoticeContainer";
-        this.noticeElement.id = "sponsorSkipNoticeContainer" + idSuffix;
 
         referenceNode.prepend(this.noticeElement);
 
@@ -56,45 +43,52 @@ class SkipNotice {
             <SkipNoticeComponent
                 segments={segments}
                 autoSkip={autoSkip}
-                startReskip={startReskip}
+                advanceSkipNotice={true}
                 contentContainer={contentContainer}
-                ref={this.skipNoticeRef}
+                ref={this.advanceSkipNoticeRef}
                 closeListener={() => this.close()}
                 smaller={
                     Config.config.noticeVisibilityMode >= NoticeVisbilityMode.MiniForAll ||
                     (Config.config.noticeVisibilityMode >= NoticeVisbilityMode.MiniForAutoSkip && autoSkip)
                 }
-                fadeIn={!advanceSkipNoticeShow}
-                fadeOut={true}
+                fadeIn={true}
+                fadeOut={false}
                 unskipTime={unskipTime}
-                componentDidMount={componentDidMount} 
-                advanceSkipNoticeShow={false}
-            />
+                advanceSkipNoticeShow={true}
+                 />
         );
     }
-
+    
     setShowKeybindHint(value: boolean): void {
-        this.skipNoticeRef?.current?.setState({
+        this.advanceSkipNoticeRef?.current?.setState({
             showKeybindHint: value,
         });
     }
 
     close(): void {
         this.root.unmount();
-
         this.noticeElement.remove();
 
-        const skipNotices = this.contentContainer().skipNotices;
-        skipNotices.splice(skipNotices.indexOf(this), 1);
+        this.closed = true;
+    }
+
+    sameNotice(segments: SponsorTime[]): boolean {
+        if (segments.length !== this.segments.length) return false;
+
+        for (let i = 0; i < segments.length; i++) {
+            if (segments[i].UUID !== this.segments[i].UUID) return false;
+        }
+
+        return true;
     }
 
     toggleSkip(): void {
-        this.skipNoticeRef?.current?.prepAction(SkipNoticeAction.Unskip0);
+        this.advanceSkipNoticeRef?.current?.prepAction(SkipNoticeAction.Unskip0);
     }
 
     unmutedListener(time: number): void {
-        this.skipNoticeRef?.current?.unmutedListener(time);
+        this.advanceSkipNoticeRef?.current?.unmutedListener(time);
     }
 }
 
-export default SkipNotice;
+export default advanceSkipNotices;

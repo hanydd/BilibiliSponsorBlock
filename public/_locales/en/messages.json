@@ -480,7 +480,7 @@
         "message": "插件相关选项"
     },
     "advanceSkipNotice": {
-        "message": "提前显示“空降提醒弹窗”"
+        "message": "提前显示“空降提醒弹窗”（仅启用＂自动跳过＂的片段）"
     },
     "skipNoticeDurationBefore": {
         "message": "“空降提醒弹窗”提前显示时间（秒）："

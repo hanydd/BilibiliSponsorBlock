@@ -243,7 +243,7 @@ const syncDefaults = {
     serverAddress: CompileConfig.serverAddress,
     minDuration: 0,
     skipNoticeDuration: 4,
-    skipNoticeDurationBefore: 4,
+    skipNoticeDurationBefore: 3,
     advanceSkipNotice:false,
     audioNotificationOnSkip: false,
     checkForUnlistedVideos: false,
