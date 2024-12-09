@@ -1,4 +1,5 @@
 import SBObject from "./config";
+import { BilibiliResponse, BiliPlayInfo } from "./requests/type/BilibiliRequestType";
 declare global {
     interface Window {
         SB: typeof SBObject;
@@ -9,6 +10,6 @@ declare global {
             upData: { mid: string };
             videoData: { desc: string };
         };
-        __playinfo__?: { data: { quality: number; dash: { video: { id: number; frameRate: string }[] } } };
+        __playinfo__?: BilibiliResponse<BiliPlayInfo>;
     }
 }
