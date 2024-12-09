@@ -10,6 +10,7 @@ import { DescriptionPortPill } from "./render/DesciptionPortPill";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
+import advanceSkipNotice from "./render/advanceSkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
 import { asyncRequestToServer } from "./requests/requests";
 import { getSegmentsByHash } from "./requests/segments";
@@ -87,6 +88,7 @@ let sponsorDataFound = false;
 let sponsorTimes: SponsorTime[] = [];
 // List of open skip notices
 const skipNotices: SkipNotice[] = [];
+let advanceSkipNotices: advanceSkipNotice | null = null;
 let activeSkipKeybindElement: ToggleSkippable = null;
 let retryFetchTimeout: NodeJS.Timeout = null;
 let shownSegmentFailedToFetchWarning = false;
@@ -113,6 +115,7 @@ let lastTimeFromWaitingEvent: number = null;
 let currentSkipSchedule: NodeJS.Timeout = null;
 let currentSkipInterval: NodeJS.Timeout = null;
 let currentVirtualTimeInterval: NodeJS.Timeout = null;
+let currentadvanceSkipSchedule: NodeJS.Timeout = null;
 
 /** Has the sponsor been skipped */
 let sponsorSkipped: boolean[] = [];
@@ -207,6 +210,7 @@ const skipNoticeContentContainer: ContentContainer = () => ({
     sponsorTimes,
     sponsorTimesSubmitting,
     skipNotices,
+    advanceSkipNotices,
     sponsorVideoID: getVideoID(),
     reskipSponsorTime,
     updatePreviewBar,
@@ -460,6 +464,11 @@ function resetValues() {
     for (let i = 0; i < skipNotices.length; i++) {
         skipNotices.pop()?.close();
     }
+
+    if(advanceSkipNotices){
+        advanceSkipNotices.close();
+        advanceSkipNotices = null;
+    }
 }
 
 async function videoIDChange(): Promise<void> {
@@ -552,6 +561,11 @@ function cancelSponsorSchedule(): void {
         clearInterval(currentSkipInterval);
         currentSkipInterval = null;
     }
+
+    if (currentadvanceSkipSchedule !== null) {
+        clearInterval(currentadvanceSkipSchedule);
+        currentadvanceSkipSchedule = null;
+    }
 }
 
 /**
@@ -569,8 +583,9 @@ async function startSponsorSchedule(
         return;
     }
 
-    logDebug(`Considering to start skipping: ${!getVideo()}, ${getVideo()?.paused}`);
-    if (!getVideo()) return;
+    const video = getVideo();
+    logDebug(`Considering to start skipping: ${!video}, ${video?.paused}`);
+    if (!video) return;
     if (currentTime === undefined || currentTime === null) {
         currentTime = getVirtualTime();
     }
@@ -578,7 +593,7 @@ async function startSponsorSchedule(
 
     updateActiveSegment(currentTime);
 
-    if (getVideo().paused || (getVideo().currentTime >= getVideo().duration - 0.01 && getVideo().duration > 1)) return;
+    if (video.paused || (video.currentTime >= video.duration - 0.01 && video.duration > 1)) return;
     const skipInfo = getNextSkipIndex(currentTime, includeIntersectingSegments, includeNonIntersectingSegments);
 
     const currentSkip = skipInfo.array[skipInfo.index];
@@ -593,7 +608,7 @@ async function startSponsorSchedule(
             skipInfo.index !== -1 && timeUntilSponsor < skipBuffer && shouldAutoSkip(currentSkip)
         )
     ) {
-        getVideo().muted = false;
+        video.muted = false;
         videoMuted = false;
 
         for (const notice of skipNotices) {
@@ -651,7 +666,9 @@ async function startSponsorSchedule(
             shouldSkip(currentSkip) ||
             sponsorTimesSubmitting?.some((segment) => segment.segment === currentSkip.segment)
         ) {
-            if (forceVideoTime >= skipTime[0] - skipBuffer && forceVideoTime < skipTime[1]) {
+            if (
+                forceVideoTime >= skipTime[0] - skipBuffer && forceVideoTime < skipTime[1]
+            ) {
                 skipToTime({
                     v: getVideo(),
                     skipTime,
@@ -704,7 +721,7 @@ async function startSponsorSchedule(
     if (timeUntilSponsor < skipBuffer) {
         await skippingFunction(currentTime);
     } else {
-        let delayTime = timeUntilSponsor * 1000 * (1 / getVideo().playbackRate);
+        let delayTime = (timeUntilSponsor * 1000) / getVideo().playbackRate;
         if (delayTime < (isFirefox() ? 750 : 300)) {
             let forceStartIntervalTime: number | null = null;
             if (isFirefox() && delayTime > 300) {
@@ -755,9 +772,28 @@ async function startSponsorSchedule(
         } else {
             logDebug(`Starting timeout to skip ${getVideo().currentTime} to skip at ${skipTime[0]}`);
 
-            const offset = isFirefox() ? 600 : 150;
+            const offset = (isFirefoxOrSafari() && !isSafari() ? 600 : 150);
             // Schedule for right before to be more precise than normal timeout
-            currentSkipSchedule = setTimeout(skippingFunction, Math.max(0, delayTime - offset));
+            const offsetDelayTime = Math.max(0, delayTime - offset);
+            currentSkipSchedule = setTimeout(skippingFunction, offsetDelayTime);
+
+            if (Config.config.advanceSkipNotice
+                && Config.config.skipNoticeDurationBefore > 0
+                && getVideo().currentTime < skippingSegments[0].segment[0]
+                && !sponsorTimesSubmitting?.some((segment) => segment.segment === currentSkip.segment)
+                && [ActionType.Skip, ActionType.Mute].includes(skippingSegments[0].actionType)
+                && shouldAutoSkip(skippingSegments[0])
+                && !getVideo()?.paused) {
+                const maxPopupTime = Config.config.skipNoticeDurationBefore * 1000;
+                const timeUntilPopup = Math.max(0, offsetDelayTime - maxPopupTime);
+                const autoSkip = shouldAutoSkip(skippingSegments[0]);
+
+                if (currentadvanceSkipSchedule) clearTimeout(currentadvanceSkipSchedule);
+                currentadvanceSkipSchedule = setTimeout(() => {
+                    createAdvanceSkipNotice([skippingSegments[0]], skipTime[0], autoSkip, false);
+                    sessionStorage.setItem('SKIPPING', 'true');
+                }, timeUntilPopup);
+            }
         }
     }
 }
@@ -1844,7 +1880,9 @@ function sendTelemetryAndCount(skippingSegments: SponsorTime[], secondsSkipped: 
 
 //skip from the start time to the end time for a certain index sponsor time
 function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, unskipTime }: SkipToTimeParams): void {
-    if (Config.config.disableSkipping) return;
+    if (Config.config.disableSkipping
+        || sessionStorage.getItem('SKIPPING') === 'false'
+    ) return sessionStorage.setItem('SKIPPING', 'null');
 
     // There will only be one submission if it is manual skip
     const autoSkip: boolean = forceAutoSkip || shouldAutoSkip(skippingSegments[0]);
@@ -1925,11 +1963,11 @@ function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, 
             } else if (autoSkip) {
                 activeSkipKeybindElement?.setShowKeybindHint(false);
                 activeSkipKeybindElement = {
-                    setShowKeybindHint: () => {}, //eslint-disable-line @typescript-eslint/no-empty-function
+                    setShowKeybindHint: () => {},
                     toggleSkip: () => {
-                        unskipSponsorTime(skippingSegments[0], unskipTime);
-
                         createSkipNotice(skippingSegments, autoSkip, unskipTime, true);
+
+                        unskipSponsorTime(skippingSegments[0], unskipTime);
                     },
                 };
             }
@@ -1956,18 +1994,48 @@ function createSkipNotice(
         }
     }
 
+    const advanceSkipNoticeShow = !!advanceSkipNotices;
     const newSkipNotice = new SkipNotice(
         skippingSegments,
         autoSkip,
-        skipNoticeContentContainer,
+        skipNoticeContentContainer, () => {
+            advanceSkipNotices?.close();
+            advanceSkipNotices = null;
+        },
         unskipTime,
-        startReskip
-    );
+        startReskip,
+        advanceSkipNoticeShow);
     if (Config.config.skipKeybind == null) newSkipNotice.setShowKeybindHint(false);
     skipNotices.push(newSkipNotice);
 
     activeSkipKeybindElement?.setShowKeybindHint(false);
     activeSkipKeybindElement = newSkipNotice;
+}
+
+function createAdvanceSkipNotice(
+    skippingSegments: SponsorTime[],
+    unskipTime: number,
+    autoSkip: boolean,
+    startReskip: boolean,
+) {
+    if (advanceSkipNotices
+        && !advanceSkipNotices.closed
+        && advanceSkipNotices.sameNotice(skippingSegments)) {
+        return;
+    }
+
+    advanceSkipNotices?.close();
+    advanceSkipNotices = new advanceSkipNotice(
+        skippingSegments,
+        skipNoticeContentContainer,
+        unskipTime,
+        autoSkip,
+        startReskip
+    );
+    if (Config.config.skipKeybind == null) advanceSkipNotices.setShowKeybindHint(false);
+
+    activeSkipKeybindElement?.setShowKeybindHint(false);
+    activeSkipKeybindElement = advanceSkipNotices;
 }
 
 function unskipSponsorTime(segment: SponsorTime, unskipTime: number = null, forceSeek = false) {
