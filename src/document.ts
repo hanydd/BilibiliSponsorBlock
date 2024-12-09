@@ -26,7 +26,7 @@ function overwriteFetch() {
             .clone()
             .json()
             .then((res) => {
-                const url = new URL(urlStr);
+                const url = new URL(urlStr, window.location.href);
                 if (url.pathname.includes("/player/wbi/playurl")) {
                     const cid = url.searchParams.get("cid");
                     if (!playInfoCache.getFromCache(cid) && res?.data?.dash?.video) {
@@ -39,6 +39,30 @@ function overwriteFetch() {
             })
             .catch(() => {});
         return response;
+    };
+}
+
+function overwriteXHR() {
+    const originalSend = XMLHttpRequest.prototype.send;
+
+    XMLHttpRequest.prototype.send = function (body?: Document | BodyInit | null) {
+        this.addEventListener("loadend", function () {
+            if (this.readyState === 4 && this.status >= 200 && this.status < 300) {
+                const url = new URL(this.responseURL);
+
+                if (url.pathname.includes("/player/wbi/playurl")) {
+                    const cid = url.searchParams.get("cid");
+                    const res = JSON.parse(this.responseText);
+                    if (!playInfoCache.getFromCache(cid) && res?.data?.dash?.video) {
+                        playInfoCache.set(
+                            cid,
+                            res.data.dash.video.map((v) => ({ id: v.id, frameRate: parseFloat(v.frameRate) }))
+                        );
+                    }
+                }
+            }
+        });
+        originalSend.call(this, body);
     };
 }
 
@@ -63,6 +87,7 @@ function windowMessageListener(message: MessageEvent) {
 function init(): void {
     window.addEventListener("message", windowMessageListener);
     overwriteFetch();
+    overwriteXHR();
 }
 
 init();
