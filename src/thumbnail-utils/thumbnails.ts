@@ -19,10 +19,9 @@ export async function labelThumbnail(
     // find all links in the thumbnail, reduce to only one video ID
     const links = Array.from(thumbnail.querySelectorAll("a[href]")) as Array<HTMLAnchorElement>;
     const videoIDs = new Set(
-        links
-            .filter((link) => link && link.href)
-            .map((link) => getBvIDFromURL(link.href))
-            .filter((id) => id)
+        (await Promise.allSettled(links.filter((link) => link && link.href).map((link) => getBvIDFromURL(link.href))))
+            .filter((result) => result.status === "fulfilled")
+            .map((result) => result.value)
     );
     if (videoIDs.size !== 1) {
         // none or multiple video IDs found
@@ -35,7 +34,7 @@ export async function labelThumbnail(
     const { overlay, text } = await createOrGetThumbnail(thumbnail);
 
     if (thumbnailOldHref) {
-        const oldVideoID = getBvIDFromURL(thumbnailOldHref);
+        const oldVideoID = await getBvIDFromURL(thumbnailOldHref);
         if (oldVideoID && oldVideoID == videoID) {
             return overlay;
         }

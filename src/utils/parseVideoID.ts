@@ -1,6 +1,5 @@
-import { getBvIDfromAvIDBiliApi } from "../requests/bilibiliApi";
 import { BILI_DOMAINS } from "./constants";
-import { getPropertyFromWindow } from "./injectedScriptMessageUtils";
+import { getBvidFromAidFromWindow, getPropertyFromWindow } from "./injectedScriptMessageUtils";
 import { VideoID } from "./video";
 
 export async function getBilibiliVideoID(url?: string): Promise<VideoID | null> {
@@ -32,7 +31,7 @@ const BILIBILI_VIDEO_URL_REGEX = /^\/video\/((BV1[a-zA-Z0-9]{9})|(av\d+))\/?/;
 /**
  * Parse without side effects
  */
-export function getBvIDFromURL(url: string): VideoID | null {
+export async function getBvIDFromURL(url: string): Promise<VideoID | null> {
     //Attempt to parse url
     let urlObject: URL | null = null;
     try {
@@ -56,7 +55,7 @@ export function getBvIDFromURL(url: string): VideoID | null {
             return idMatch[2] as VideoID;
         } else if (idMatch && idMatch[3]) {
             // av id
-            return getBvIDFromCache(idMatch[3], "-1" as VideoID);
+            return await getBvIDFromCache(idMatch[3], "-1" as VideoID);
         }
     } else if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/list/")) {
         const id = urlObject.searchParams.get("bvid");
@@ -66,21 +65,22 @@ export function getBvIDFromURL(url: string): VideoID | null {
     return null;
 }
 
-const AvToBvMapCache = new Map<string, VideoID>();
-const AvToBvLoading = new Set<string>();
-function getBvIDFromCache(avID: string, placeholder: null | VideoID = null): VideoID | null {
-    const bvID = AvToBvMapCache.get(avID);
-    if (bvID) return bvID;
+// const AvToBvMapCache = new Map<string, VideoID>();
+// const AvToBvLoading = new Set<string>();
+async function getBvIDFromCache(avID: string, placeholder: null | VideoID = null): Promise<VideoID> {
+    // const bvID = AvToBvMapCache.get(avID);
+    // if (bvID) return bvID;
 
-    if (!AvToBvLoading.has(avID)) {
-        AvToBvLoading.add(avID);
-        getBvIDfromAvIDBiliApi(avID.replace("av", "")).then((bvID) => {
-            AvToBvMapCache.set(avID, bvID as VideoID);
-            AvToBvLoading.delete(avID);
-        });
-    }
+    // if (!AvToBvLoading.has(avID)) {
+    //     AvToBvLoading.add(avID);
+    //     getBvIDfromAvIDBiliApi(avID.replace("av", "")).then((bvID) => {
+    //         AvToBvMapCache.set(avID, bvID as VideoID);
+    //         AvToBvLoading.delete(avID);
+    //     });
+    // }
+    return await getBvidFromAidFromWindow(avID);
 
-    return placeholder;
+    // return placeholder;
 }
 
 /**
