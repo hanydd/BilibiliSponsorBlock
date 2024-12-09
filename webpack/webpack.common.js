@@ -30,7 +30,7 @@ const edgeLanguages = [
 module.exports = env => {
     const documentScriptBuild = webpack({
         entry: {
-            document: path.join(__dirname, srcDir + 'document.ts')
+            document: path.join(__dirname, srcDir + 'document/document.ts')
         },
         output: {
             path: path.join(__dirname, '../dist/js'),

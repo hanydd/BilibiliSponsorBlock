@@ -1,6 +1,6 @@
-import { getFrameRate, PlayInfo } from "./document/frameRateUtils";
-import { DataCache } from "./utils/cache";
-import { InjectedScriptMessageSend, sourceId } from "./utils/injectedScriptMessageUtils";
+import { DataCache } from "../utils/cache";
+import { InjectedScriptMessageSend, sourceId } from "../utils/injectedScriptMessageUtils";
+import { PlayInfo, getFrameRate } from "./frameRateUtils";
 
 const playInfoCache = new DataCache<string, PlayInfo[]>(() => []);
 
