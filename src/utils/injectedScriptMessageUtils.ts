@@ -1,6 +1,8 @@
+import { VideoID } from "./video";
+
 export const sourceId = "biliSponsorBlock";
 
-export interface InjectedScriptMessageBase {
+interface InjectedScriptMessageBase {
     source: string;
     id: string;
     type: string;
@@ -8,19 +10,21 @@ export interface InjectedScriptMessageBase {
 
 export interface InjectedScriptMessageSend extends InjectedScriptMessageBase {
     responseType: string;
+    payload?: unknown;
 }
 
 export interface InjectedScriptMessageRecieve extends InjectedScriptMessageBase {
     data: unknown;
 }
 
-export interface InjectedScriptMessageType {
+interface InjectedScriptMessageType {
     sendType: string;
     responseType: string;
 }
 
 export async function getPropertyFromWindow<T>(
     messageType: InjectedScriptMessageType,
+    payload?: unknown,
     timeout = 200
 ): Promise<T | null> {
     return new Promise((resolve) => {
@@ -42,6 +46,7 @@ export async function getPropertyFromWindow<T>(
                 source: sourceId,
                 type: messageType.sendType,
                 responseType: messageType.responseType,
+                payload: payload,
                 id: id,
             } as InjectedScriptMessageSend,
             "/"
@@ -60,4 +65,14 @@ export async function getVideoDescriptionFromWindow(): Promise<string | null> {
         sendType: "getDescription",
         responseType: "returnDescription",
     });
+}
+
+export async function getBvidFromAidFromWindow(aid: string): Promise<VideoID | null> {
+    return getPropertyFromWindow<VideoID>(
+        {
+            sendType: "convertAidToBvid",
+            responseType: "returnAidToBvid",
+        },
+        aid
+    );
 }

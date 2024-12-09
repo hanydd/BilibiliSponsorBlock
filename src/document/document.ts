@@ -1,5 +1,6 @@
-import { BilibiliResponse, BiliPlayInfo } from "../requests/type/BilibiliRequestType";
+import { BilibiliResponse, BiliPlayInfo, BiliVideoDetail } from "../requests/type/BilibiliRequestType";
 import { InjectedScriptMessageSend, sourceId } from "../utils/injectedScriptMessageUtils";
+import { getBvid, saveAidFromDetail } from "./aidMap";
 import { getFrameRate, playUrlResponseToPlayInfo, savePlayInfo } from "./frameRateUtils";
 
 const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): void => {
@@ -54,6 +55,9 @@ function processURLRequest(url: URL, responseText: string): void {
         if (cid && response?.data?.dash?.video) {
             savePlayInfo(cid, playUrlResponseToPlayInfo(response.data));
         }
+    } else if (url.pathname.includes("/x/player/wbi/v2")) {
+        const response = JSON.parse(responseText) as BilibiliResponse<BiliVideoDetail>;
+        saveAidFromDetail(response.data);
     }
 }
 
@@ -71,6 +75,8 @@ function windowMessageListener(message: MessageEvent) {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.upData?.mid);
         } else if (data.type === "getDescription") {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.videoData?.desc);
+        } else if (data.type === "convertAidToBvid") {
+            sendMessageToContent(data, getBvid(data.payload as string));
         }
     }
 }
