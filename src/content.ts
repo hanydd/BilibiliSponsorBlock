@@ -2199,7 +2199,7 @@ function openInfoMenu() {
     frame.width = "374";
     frame.height = "500";
     frame.style.borderRadius = "6px";
-    frame.style.margin = "20px auto 0px";
+    frame.style.margin = "0px auto 20px";
     frame.addEventListener("load", async () => {
         frame.contentWindow.postMessage("", "*");
 
@@ -2220,7 +2220,7 @@ function openInfoMenu() {
 
     // insert into the avatar container to prevent the popup from being cut off
     const container = document.querySelector("#danmukuBox") as HTMLElement;
-    container.appendChild(popup);
+    container.prepend(popup);
 }
 
 function closeInfoMenu() {
