@@ -596,7 +596,7 @@
         "message": "跳過後的影片仍然流暢，就好像跳過的片段不存在一樣"
     },
     "category_sponsor": {
-        "message": "贊助廣告"
+        "message": "廣告"
     },
     "category_sponsor_description": {
         "message": "付費推廣、付費推薦和直接廣告。不是自我推廣或免費提及他們喜歡的商品/創作者/網站/產品。"
@@ -623,10 +623,10 @@
         "message": "不是公司設計的產品和周邊"
     },
     "category_exclusive_access": {
-        "message": "品牌合作"
+        "message": "柔性推廣/品牌合作"
     },
     "category_exclusive_access_description": {
-        "message": "僅用於標記整個影片。適用於影片展示創作者免費或獲得補助使用的產品、服務或場地。"
+        "message": "僅用於標記整個影片。適用於影片展示創作者免費或獲得補助使用的產品或者服務，包括軟廣、產品推廣或者品牌推廣。"
     },
     "category_exclusive_access_pill": {
         "message": "此影片展示了創作者免費或獲得補助使用的產品、服務或場地",
