@@ -55,7 +55,7 @@ export async function getBvIDFromURL(url: string): Promise<VideoID | null> {
             return idMatch[2] as VideoID;
         } else if (idMatch && idMatch[3]) {
             // av id
-            return await getBvIDFromCache(idMatch[3], "-1" as VideoID);
+            return await getBvidFromAidFromWindow(idMatch[3]);
         }
     } else if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/list/")) {
         const id = urlObject.searchParams.get("bvid");
@@ -63,24 +63,6 @@ export async function getBvIDFromURL(url: string): Promise<VideoID | null> {
     }
 
     return null;
-}
-
-// const AvToBvMapCache = new Map<string, VideoID>();
-// const AvToBvLoading = new Set<string>();
-async function getBvIDFromCache(avID: string, placeholder: null | VideoID = null): Promise<VideoID> {
-    // const bvID = AvToBvMapCache.get(avID);
-    // if (bvID) return bvID;
-
-    // if (!AvToBvLoading.has(avID)) {
-    //     AvToBvLoading.add(avID);
-    //     getBvIDfromAvIDBiliApi(avID.replace("av", "")).then((bvID) => {
-    //         AvToBvMapCache.set(avID, bvID as VideoID);
-    //         AvToBvLoading.delete(avID);
-    //     });
-    // }
-    return await getBvidFromAidFromWindow(avID);
-
-    // return placeholder;
 }
 
 /**
