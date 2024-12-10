@@ -39,6 +39,10 @@ export class DataCache<T extends string, V> {
         return !!this.cache[key];
     }
 
+    public contains(key: T): boolean {
+        return !!this.cache[key];
+    }
+
     private gc(): void {
         if (Object.keys(this.cache).length > this.cacheLimit) {
             const oldest = Object.entries(this.cache).reduce((a, b) => (a[1].lastUsed < b[1].lastUsed ? a : b));

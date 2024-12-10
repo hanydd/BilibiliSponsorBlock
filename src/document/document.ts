@@ -49,6 +49,7 @@ function overwriteXHR() {
 }
 
 function processURLRequest(url: URL, responseText: string): void {
+    console.log(url, JSON.parse(responseText));
     if (url.pathname.includes("/player/wbi/playurl")) {
         const response = JSON.parse(responseText) as BilibiliResponse<BiliPlayInfo>;
         const cid = url.searchParams.get("cid");
@@ -61,7 +62,7 @@ function processURLRequest(url: URL, responseText: string): void {
     }
 }
 
-function windowMessageListener(message: MessageEvent) {
+async function windowMessageListener(message: MessageEvent) {
     const data: InjectedScriptMessageSend = message.data;
     if (!data || !data?.source) {
         return;
@@ -76,7 +77,7 @@ function windowMessageListener(message: MessageEvent) {
         } else if (data.type === "getDescription") {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.videoData?.desc);
         } else if (data.type === "convertAidToBvid") {
-            sendMessageToContent(data, getBvid(data.payload as string));
+            sendMessageToContent(data, await getBvid(data.payload as string));
         }
     }
 }
