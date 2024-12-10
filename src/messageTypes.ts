@@ -2,6 +2,7 @@
 // Message and Response Types
 //
 
+import { PortVideo } from "./render/DesciptionPortPill";
 import { SegmentUUID, SponsorHideType, SponsorTime } from "./types";
 
 interface BaseMessage {
@@ -86,6 +87,7 @@ export interface IsInfoFoundMessageResponse {
     found: boolean;
     status: number;
     sponsorTimes: SponsorTime[];
+    portVideo: PortVideo;
     time: number;
 }
 

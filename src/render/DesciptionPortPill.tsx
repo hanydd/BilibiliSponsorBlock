@@ -28,6 +28,7 @@ export class DescriptionPortPill {
     ytbID: VideoID;
     portUUID: string;
     hasDescription: boolean;
+    updatePortvideo: (newPortVideo: PortVideo) => void;
     sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean, forceUpdatePreviewBar: boolean) => void;
 
     inputContainer: HTMLElement;
@@ -35,7 +36,8 @@ export class DescriptionPortPill {
     ref: React.RefObject<DescriptionPortPillComponent>;
     root: Root;
 
-    constructor(sponsorsLookup: () => void) {
+    constructor(updatePortvideo: (newPortVideo: PortVideo) => void, sponsorsLookup: () => void) {
+        this.updatePortvideo = updatePortvideo;
         this.sponsorsLookup = sponsorsLookup;
     }
 
@@ -163,9 +165,11 @@ export class DescriptionPortPill {
         if (portVideo) {
             this.ytbID = portVideo.ytbID;
             this.portUUID = portVideo.UUID;
+            this.updatePortvideo(portVideo);
         } else {
             this.ytbID = null;
             this.portUUID = null;
+            this.updatePortvideo(null);
         }
     }
 

@@ -6,7 +6,7 @@ import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";
-import { DescriptionPortPill } from "./render/DesciptionPortPill";
+import { DescriptionPortPill, PortVideo } from "./render/DesciptionPortPill";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
@@ -92,6 +92,8 @@ let retryFetchTimeout: NodeJS.Timeout = null;
 let shownSegmentFailedToFetchWarning = false;
 let selectedSegment: SegmentUUID | null = null;
 let previewedSegment = false;
+
+let portVideo: PortVideo = null;
 
 // JSON video info
 let videoInfo: VideoInfo = null;
@@ -246,10 +248,12 @@ function messageListener(
             break;
         case "isInfoFound":
             //send the sponsor times along with if it's found
+            console.log(portVideo);
             sendResponse({
                 found: sponsorDataFound,
                 status: lastResponseStatus,
                 sponsorTimes: sponsorTimes,
+                portVideo: portVideo,
                 time: getVideo()?.currentTime ?? 0,
             });
 
@@ -1232,9 +1236,13 @@ function setupCategoryPill() {
 
 function setupDescriptionPill() {
     if (!descriptionPill) {
-        descriptionPill = new DescriptionPortPill(sponsorsLookup);
+        descriptionPill = new DescriptionPortPill(updatePortvideo, sponsorsLookup);
     }
     descriptionPill.setupDecription(getVideoID());
+}
+
+function updatePortvideo(newPortVideo: PortVideo) {
+    portVideo = newPortVideo;
 }
 
 async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false, forceUpdatePreviewBar = false) {
