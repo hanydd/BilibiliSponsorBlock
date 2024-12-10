@@ -11,6 +11,7 @@ import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
+import { getPortVideoByHash } from "./requests/portVideo";
 import { asyncRequestToServer } from "./requests/requests";
 import { getSegmentsByHash } from "./requests/segments";
 import { getVideoLabel } from "./requests/videoLabels";
@@ -1236,13 +1237,19 @@ function setupCategoryPill() {
 
 function setupDescriptionPill() {
     if (!descriptionPill) {
-        descriptionPill = new DescriptionPortPill(updatePortvideo, sponsorsLookup);
+        descriptionPill = new DescriptionPortPill(getPortVideo, sponsorsLookup);
     }
     descriptionPill.setupDecription(getVideoID());
 }
 
-function updatePortvideo(newPortVideo: PortVideo) {
+async function getPortVideo(videoId: VideoID, bypassCache = false) {
+    const newPortVideo = await getPortVideoByHash(videoId, { bypassCache });
+    if (newPortVideo.UUID === portVideo?.UUID) return;
     portVideo = newPortVideo;
+
+    // notify description pill
+    waitFor(() => descriptionPill).then(() => descriptionPill.setPortVideoData(portVideo));
+
     // notify popup of port video changes
     chrome.runtime.sendMessage({
         message: "infoUpdated",

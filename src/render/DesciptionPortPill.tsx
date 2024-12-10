@@ -4,7 +4,7 @@ import { DescriptionPortPillComponent } from "../components/DescriptionPortPillC
 import YouTubeLogoButton from "../components/YouTubeLogoButton";
 import Config from "../config";
 import { getPageLoaded } from "../content";
-import { getPortVideoByHash, updatePortedSegments } from "../requests/portVideo";
+import { updatePortedSegments } from "../requests/portVideo";
 import { asyncRequestToServer } from "../requests/requests";
 import { PortVideo, VideoID } from "../types";
 import { waitFor } from "../utils/";
@@ -20,7 +20,7 @@ export class DescriptionPortPill {
     ytbID: VideoID;
     portUUID: string;
     hasDescription: boolean;
-    updatePortvideo: (newPortVideo: PortVideo) => void;
+    getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void;
     sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean, forceUpdatePreviewBar: boolean) => void;
 
     inputContainer: HTMLElement;
@@ -28,8 +28,8 @@ export class DescriptionPortPill {
     ref: React.RefObject<DescriptionPortPillComponent>;
     root: Root;
 
-    constructor(updatePortvideo: (newPortVideo: PortVideo) => void, sponsorsLookup: () => void) {
-        this.updatePortvideo = updatePortvideo;
+    constructor(getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void, sponsorsLookup: () => void) {
+        this.getPortVideo = getPortVideo;
         this.sponsorsLookup = sponsorsLookup;
     }
 
@@ -45,7 +45,7 @@ export class DescriptionPortPill {
         this.cleanup();
 
         // make request to get the port video first, while waiting for the page to load
-        await this.getPortVideo(videoId);
+        this.getPortVideo(videoId);
 
         this.hasDescription = true;
         const referenceNode = (await waitForElement(".basic-desc-info")) as HTMLElement;
@@ -74,6 +74,13 @@ export class DescriptionPortPill {
         }
 
         this.attachToPage(referenceNode);
+    }
+
+    setPortVideoData(portVideo: PortVideo) {
+        this.bvID = portVideo.bvID;
+        this.ytbID = portVideo.ytbID;
+        this.portUUID = portVideo.UUID;
+        if (this?.ref?.current) this.ref.current.setPortVideoData(portVideo);
     }
 
     private attachToPage(referenceNode: HTMLElement) {
@@ -150,19 +157,6 @@ export class DescriptionPortPill {
         this.buttonContainer = null;
         this.ytbID = null;
         this.portUUID = null;
-    }
-
-    private async getPortVideo(videoId: VideoID, bypassCache = false) {
-        const portVideo = await getPortVideoByHash(videoId, { bypassCache });
-        if (portVideo) {
-            this.ytbID = portVideo.ytbID;
-            this.portUUID = portVideo.UUID;
-            this.updatePortvideo(portVideo);
-        } else {
-            this.ytbID = null;
-            this.portUUID = null;
-            this.updatePortvideo(null);
-        }
     }
 
     private async submitPortVideo(ytbID: VideoID): Promise<PortVideo> {

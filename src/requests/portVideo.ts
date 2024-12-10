@@ -31,12 +31,10 @@ export async function getPortVideo(bvID: VideoID, options: RequestOptions = {}):
 }
 
 export async function getPortVideoByHash(bvID: VideoID, options: RequestOptions = {}): Promise<PortVideoRecord> {
-    const hashedBvID = await getHash(bvID, 1);
-    const response = await asyncRequestToServer(
-        "GET",
-        `/api/portVideo/${hashedBvID.slice(0, 3)}`,
-        options?.bypassCache
-    ).catch((e) => e);
+    const hashedPrefix = (await getHash(bvID, 1)).slice(0, 3);
+    const response = await asyncRequestToServer("GET", `/api/portVideo/${hashedPrefix}`, options?.bypassCache).catch(
+        (e) => e
+    );
     if (response && response?.ok) {
         const responseData = JSON.parse(response?.responseText) as PortVideoRecord[];
         const portVideo = responseData.filter((portVideo) => portVideo.bvID == bvID);

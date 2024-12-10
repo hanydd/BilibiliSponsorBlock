@@ -105,6 +105,14 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
         );
     }
 
+    setPortVideoData(portVideo: PortVideo): void {
+        if (portVideo) {
+            this.setState({ ytbVideoID: portVideo.ytbID, previewYtbID: portVideo.ytbID, loading: false });
+        } else {
+            this.setState({ ytbVideoID: null, previewYtbID: null, loading: false });
+        }
+    }
+
     toggleInput(): void {
         this.setState({ show: !this.state.show });
     }
