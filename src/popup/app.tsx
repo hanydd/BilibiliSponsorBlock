@@ -3,7 +3,7 @@ import * as React from "react";
 import Config from "../config";
 import { StorageChangesObject } from "../config/config";
 import { IsChannelWhitelistedResponse, IsInfoFoundMessageResponse, Message, PopupMessage } from "../messageTypes";
-import { SponsorTime, VideoID } from "../types";
+import { PortVideo, SponsorTime, VideoID } from "../types";
 import { waitFor } from "../utils/index";
 import ControlMenu from "./ControlMenu";
 import PopupFooter from "./PopupFooter";
@@ -95,13 +95,7 @@ function app() {
     }
 
     function getSegmentsFromContentScript(updating: boolean): void {
-        messageHandler.query(
-            {
-                active: true,
-                currentWindow: true,
-            },
-            (tabs) => onTabs(tabs, updating)
-        );
+        messageHandler.query({ active: true, currentWindow: true }, (tabs) => onTabs(tabs, updating));
     }
 
     async function infoFound(request: IsInfoFoundMessageResponse) {
@@ -119,7 +113,7 @@ function app() {
         submitBoxRef.current?.showSubmitBox();
         controlMenuRef.current.setState({ hasVideo: true });
 
-        displayDownloadedSponsorTimes(request.sponsorTimes ?? [], request.time);
+        displayDownloadedSponsorTimes(request.sponsorTimes ?? [], request.portVideo ?? null, request.time);
         if (request.found) {
             videoInfoRef.current.displayVideoWithMessage();
         } else if (request.status == 404 || request.status == 200) {
@@ -142,8 +136,8 @@ function app() {
     }
 
     //display the video times from the array at the top, in a different section
-    function displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
-        videoInfoRef.current.displayDownloadedSponsorTimes(sponsorTimes, time);
+    function displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], portVideo: PortVideo, time: number) {
+        videoInfoRef.current.displayDownloadedSponsorTimes(sponsorTimes, portVideo, time);
     }
 
     /** this is not a Bilibili video page */
@@ -233,7 +227,7 @@ function app() {
                 // Clear segments list & start loading animation
                 // We'll get a ping once they're loaded
                 startLoadingAnimation();
-                displayDownloadedSponsorTimes([], 0);
+                displayDownloadedSponsorTimes([], null, 0);
                 break;
         }
     }

@@ -121,6 +121,14 @@ export interface BackgroundScriptContainer {
     unregisterFirefoxContentScript: (id: string) => void;
 }
 
+export interface PortVideo {
+    bvID: VideoID;
+    ytbID: VideoID;
+    UUID: string;
+    votes: number;
+    locked: boolean;
+}
+
 export interface VideoInfo {
     responseContext: {
         serviceTrackingParams: Array<{ service: string; params: Array<{ key: string; value: string }> }>;

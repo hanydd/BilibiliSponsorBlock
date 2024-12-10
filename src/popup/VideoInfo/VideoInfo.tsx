@@ -4,7 +4,7 @@ import { MessageInstance } from "antd/es/message/interface";
 import * as React from "react";
 import Config from "../../config";
 import { Message, RefreshSegmentsResponse } from "../../messageTypes";
-import { SponsorTime } from "../../types";
+import { PortVideo, SponsorTime } from "../../types";
 import { exportTimes } from "../../utils/exporter";
 import PopupSegment from "./PopupSegment";
 
@@ -25,6 +25,7 @@ interface VideoInfoState {
     importInputOpen: boolean;
 
     downloadedTimes: SponsorTime[];
+    portVideo: PortVideo;
     currentTime: number;
 }
 
@@ -38,6 +39,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
             importInputOpen: false,
 
             downloadedTimes: [],
+            portVideo: null,
             currentTime: 0,
         };
     }
@@ -133,13 +135,13 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
     }
 
     //display the video times from the array at the top, in a different section
-    displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
+    displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], portVideo: PortVideo, time: number) {
         // Sort list by start time
         const downloadedTimes = sponsorTimes
             .sort((a, b) => a.segment[1] - b.segment[1])
             .sort((a, b) => a.segment[0] - b.segment[0]);
 
-        this.setState({ downloadedTimes: downloadedTimes, currentTime: time });
+        this.setState({ downloadedTimes: downloadedTimes, portVideo: portVideo, currentTime: time });
     }
 
     private SegmentList(): React.ReactNode[] {
@@ -159,14 +161,12 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
     render() {
         return (
             <div style={Config.config.cleanPopup ? { marginTop: 20 } : {}}>
-                {/* <!-- Loading text --> */}
+                {/* Loading text */}
                 <p className="u-mZ grey-text">{this.computeIndicatorText()}</p>
-
                 <Button id="refreshSegmentsButton" shape="circle" type="text" onClick={this.refreshSegments.bind(this)}>
                     <ReloadOutlined spin={this.state.loading} style={{ fontSize: 16, padding: 1 }} />
                 </Button>
-
-                {/* <!-- Video Segments --> */}
+                {/* Video Segments */}
                 <div id="issueReporterContainer">
                     <div id="issueReporterTimeButtons">{this.SegmentList()}</div>
                     <div id="issueReporterImportExport" className={this.state.videoFound ? "" : "hidden"}>

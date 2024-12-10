@@ -1,8 +1,7 @@
 import { ConfigProvider, Spin } from "antd";
 import * as React from "react";
-import { PortVideo } from "../render/DesciptionPortPill";
 import { showMessage } from "../render/MessageNotice";
-import { VideoID } from "../types";
+import { PortVideo, VideoID } from "../types";
 import { AnimationUtils } from "../utils/animationUtils";
 import { parseYoutubeID } from "../utils/parseVideoID";
 

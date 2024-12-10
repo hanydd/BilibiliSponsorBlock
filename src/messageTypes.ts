@@ -2,8 +2,7 @@
 // Message and Response Types
 //
 
-import { PortVideo } from "./render/DesciptionPortPill";
-import { SegmentUUID, SponsorHideType, SponsorTime } from "./types";
+import { PortVideo, SegmentUUID, SponsorHideType, SponsorTime } from "./types";
 
 interface BaseMessage {
     from?: string;

@@ -6,7 +6,7 @@ import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";
-import { DescriptionPortPill, PortVideo } from "./render/DesciptionPortPill";
+import { DescriptionPortPill } from "./render/DesciptionPortPill";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
@@ -23,6 +23,7 @@ import {
     ChannelIDStatus,
     ContentContainer,
     PageType,
+    PortVideo,
     ScheduledTime,
     SegmentUUID,
     SkipToTimeParams,
@@ -248,7 +249,6 @@ function messageListener(
             break;
         case "isInfoFound":
             //send the sponsor times along with if it's found
-            console.log(portVideo);
             sendResponse({
                 found: sponsorDataFound,
                 status: lastResponseStatus,
@@ -1243,6 +1243,15 @@ function setupDescriptionPill() {
 
 function updatePortvideo(newPortVideo: PortVideo) {
     portVideo = newPortVideo;
+    // notify popup of port video changes
+    chrome.runtime.sendMessage({
+        message: "infoUpdated",
+        found: sponsorDataFound,
+        status: lastResponseStatus,
+        sponsorTimes: sponsorTimes,
+        portVideo: portVideo,
+        time: getVideo()?.currentTime ?? 0,
+    });
 }
 
 async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false, forceUpdatePreviewBar = false) {
@@ -1357,6 +1366,7 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
         found: sponsorDataFound,
         status: lastResponseStatus,
         sponsorTimes: sponsorTimes,
+        portVideo: portVideo,
         time: getVideo()?.currentTime ?? 0,
     });
 

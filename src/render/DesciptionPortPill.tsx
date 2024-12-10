@@ -6,7 +6,7 @@ import Config from "../config";
 import { getPageLoaded } from "../content";
 import { getPortVideoByHash, updatePortedSegments } from "../requests/portVideo";
 import { asyncRequestToServer } from "../requests/requests";
-import { VideoID } from "../types";
+import { PortVideo, VideoID } from "../types";
 import { waitFor } from "../utils/";
 import { waitForElement } from "../utils/dom";
 import { getVideoDescriptionFromWindow } from "../utils/injectedScriptMessageUtils";
@@ -14,14 +14,6 @@ import { getVideo, getVideoID } from "../utils/video";
 import { showMessage } from "./MessageNotice";
 
 const id = "bsbDescriptionContainer";
-
-export interface PortVideo {
-    bvID: VideoID;
-    ytbID: VideoID;
-    UUID: string;
-    votes: number;
-    locked: boolean;
-}
 
 export class DescriptionPortPill {
     bvID: VideoID;
