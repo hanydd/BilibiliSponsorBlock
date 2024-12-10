@@ -11,7 +11,7 @@ import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
-import { getPortVideoByHash } from "./requests/portVideo";
+import { getPortVideoByHash, postPortVideoVote } from "./requests/portVideo";
 import { asyncRequestToServer } from "./requests/requests";
 import { getSegmentsByHash } from "./requests/segments";
 import { getVideoLabel } from "./requests/videoLabels";
@@ -1237,7 +1237,7 @@ function setupCategoryPill() {
 
 function setupDescriptionPill() {
     if (!descriptionPill) {
-        descriptionPill = new DescriptionPortPill(getPortVideo, sponsorsLookup);
+        descriptionPill = new DescriptionPortPill(getPortVideo, portVideoVote, sponsorsLookup);
     }
     descriptionPill.setupDecription(getVideoID());
 }
@@ -1259,6 +1259,11 @@ async function getPortVideo(videoId: VideoID, bypassCache = false) {
         portVideo: portVideo,
         time: getVideo()?.currentTime ?? 0,
     });
+}
+
+async function portVideoVote(UUID: string, bvID: VideoID, voteType: number) {
+    postPortVideoVote(UUID, bvID, voteType);
+    await getPortVideo(this.bvID, true);
 }
 
 async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false, forceUpdatePreviewBar = false) {

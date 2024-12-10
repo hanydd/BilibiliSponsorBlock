@@ -1,3 +1,4 @@
+import Config from "../config";
 import { VideoID } from "../types";
 import { getHash } from "../utils/hash";
 import { FetchResponse } from "./background-request-proxy";
@@ -47,6 +48,18 @@ export async function getPortVideoByHash(bvID: VideoID, options: RequestOptions 
         return null;
     }
     throw response;
+}
+
+export async function postPortVideoVote(UUID: string, bvID: VideoID, voteType: number) {
+    const response = await asyncRequestToServer("POST", "/api/votePort", {
+        UUID: UUID,
+        bvID: bvID,
+        userID: Config.config.userID,
+        type: voteType,
+    });
+    if (!response?.ok) {
+        throw response?.responseText ? response.responseText : "投票失败！";
+    }
 }
 
 export async function updatePortedSegments(bvID: VideoID): Promise<FetchResponse> {

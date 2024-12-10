@@ -21,6 +21,7 @@ export class DescriptionPortPill {
     portUUID: string;
     hasDescription: boolean;
     getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void;
+    portVideoVote: (UUID: string, bvID: VideoID, voteType: number) => void;
     sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean, forceUpdatePreviewBar: boolean) => void;
 
     inputContainer: HTMLElement;
@@ -28,8 +29,13 @@ export class DescriptionPortPill {
     ref: React.RefObject<DescriptionPortPillComponent>;
     root: Root;
 
-    constructor(getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void, sponsorsLookup: () => void) {
+    constructor(
+        getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void,
+        portVideoVote: (UUID: string, bvID: VideoID, voteType: number) => void,
+        sponsorsLookup: () => void
+    ) {
         this.getPortVideo = getPortVideo;
+        this.portVideoVote = portVideoVote;
         this.sponsorsLookup = sponsorsLookup;
     }
 
@@ -187,18 +193,7 @@ export class DescriptionPortPill {
             return;
         }
 
-        const response = await asyncRequestToServer("POST", "/api/votePort", {
-            UUID: this.portUUID,
-            bvID: this.bvID,
-            userID: Config.config.userID,
-            type: voteType,
-        });
-        if (!response?.ok) {
-            throw response?.responseText ? response.responseText : "投票失败！";
-        }
-
-        await this.getPortVideo(this.bvID, true);
-        this.ref.current.setState({ ytbVideoID: this.ytbID, previewYtbID: this.ytbID });
+        this.portVideoVote(this.portUUID, this.bvID, voteType);
     }
 
     private async updateSegments() {
