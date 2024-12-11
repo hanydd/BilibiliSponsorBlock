@@ -83,9 +83,11 @@ export class DescriptionPortPill {
     }
 
     setPortVideoData(portVideo: PortVideo) {
-        this.bvID = portVideo.bvID;
-        this.ytbID = portVideo.ytbID;
-        this.portUUID = portVideo.UUID;
+        if (portVideo) {
+            this.bvID = portVideo.bvID;
+            this.ytbID = portVideo.ytbID;
+            this.portUUID = portVideo.UUID;
+        }
         if (this?.ref?.current) this.ref.current.setPortVideoData(portVideo);
     }
 

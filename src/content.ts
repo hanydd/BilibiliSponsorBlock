@@ -1244,7 +1244,7 @@ function setupDescriptionPill() {
 
 async function getPortVideo(videoId: VideoID, bypassCache = false) {
     const newPortVideo = await getPortVideoByHash(videoId, { bypassCache });
-    if (newPortVideo.UUID === portVideo?.UUID) return;
+    if (newPortVideo?.UUID === portVideo?.UUID) return;
     portVideo = newPortVideo;
 
     // notify description pill
