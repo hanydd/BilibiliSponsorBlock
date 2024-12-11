@@ -11,7 +11,8 @@ import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
-import { getPortVideoByHash, postPortVideo, postPortVideoVote } from "./requests/portVideo";
+import { FetchResponse } from "./requests/background-request-proxy";
+import { getPortVideoByHash, postPortVideo, postPortVideoVote, updatePortedSegments } from "./requests/portVideo";
 import { asyncRequestToServer } from "./requests/requests";
 import { getSegmentsByHash } from "./requests/segments";
 import { getVideoLabel } from "./requests/videoLabels";
@@ -1237,7 +1238,13 @@ function setupCategoryPill() {
 
 function setupDescriptionPill() {
     if (!descriptionPill) {
-        descriptionPill = new DescriptionPortPill(getPortVideo, submitPortVideo, portVideoVote, sponsorsLookup);
+        descriptionPill = new DescriptionPortPill(
+            getPortVideo,
+            submitPortVideo,
+            portVideoVote,
+            updateSegments,
+            sponsorsLookup
+        );
     }
     descriptionPill.setupDecription(getVideoID());
 }
@@ -1277,6 +1284,14 @@ async function submitPortVideo(ytbID: VideoID): Promise<PortVideo> {
 async function portVideoVote(UUID: string, bvID: VideoID, voteType: number) {
     await postPortVideoVote(UUID, bvID, voteType);
     await getPortVideo(this.bvID, true);
+}
+
+async function updateSegments(): Promise<FetchResponse> {
+    const response = await updatePortedSegments(getVideoID());
+    if (response.ok) {
+        this.sponsorsLookup(true, true, true);
+    }
+    return response;
 }
 
 async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false, forceUpdatePreviewBar = false) {

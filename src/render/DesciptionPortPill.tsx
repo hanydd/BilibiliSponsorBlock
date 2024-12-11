@@ -4,7 +4,7 @@ import { DescriptionPortPillComponent } from "../components/DescriptionPortPillC
 import YouTubeLogoButton from "../components/YouTubeLogoButton";
 import Config from "../config";
 import { getPageLoaded } from "../content";
-import { updatePortedSegments } from "../requests/portVideo";
+import { FetchResponse } from "../requests/background-request-proxy";
 import { PortVideo, VideoID } from "../types";
 import { waitFor } from "../utils/";
 import { waitForElement } from "../utils/dom";
@@ -21,6 +21,7 @@ export class DescriptionPortPill {
     getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void;
     submitPortVideo: (ytbID: VideoID) => Promise<PortVideo>;
     portVideoVote: (UUID: string, bvID: VideoID, voteType: number) => void;
+    updateSegments: () => Promise<FetchResponse>;
     sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean, forceUpdatePreviewBar: boolean) => void;
 
     inputContainer: HTMLElement;
@@ -32,11 +33,13 @@ export class DescriptionPortPill {
         getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void,
         submitPortVideo: (ytbID: VideoID) => Promise<PortVideo>,
         portVideoVote: (UUID: string, bvID: VideoID, voteType: number) => void,
+        updateSegments: () => Promise<FetchResponse>,
         sponsorsLookup: () => void
     ) {
         this.getPortVideo = getPortVideo;
         this.submitPortVideo = submitPortVideo;
         this.portVideoVote = portVideoVote;
+        this.updateSegments = updateSegments;
         this.sponsorsLookup = sponsorsLookup;
     }
 
@@ -111,7 +114,7 @@ export class DescriptionPortPill {
                 showYtbVideoButton={Config.config.showPreviewYoutubeButton}
                 onSubmitPortVideo={(ytbID) => this.submitPortVideo(ytbID)}
                 onVote={(type) => this.vote(type)}
-                onRefresh={() => this.updateSegments()}
+                onRefresh={() => this.updateSegmentHandler()}
             />
         );
 
@@ -168,28 +171,6 @@ export class DescriptionPortPill {
         this.portUUID = null;
     }
 
-    // private async submitPortVideo(ytbID: VideoID): Promise<PortVideo> {
-    //     const response = await asyncRequestToServer("POST", "/api/portVideo", {
-    //         bvID: getVideoID(),
-    //         ytbID,
-    //         biliDuration: getVideo().duration,
-    //         userID: Config.config.userID,
-    //         userAgent: `${chrome.runtime.id}/v${chrome.runtime.getManifest().version}`,
-    //     });
-    //     if (response?.ok) {
-    //         const newPortVideo = JSON.parse(response.responseText) as PortVideo;
-    //         this.ytbID = ytbID;
-    //         this.portUUID = newPortVideo.UUID;
-
-    //         this.sponsorsLookup(true, true, true);
-
-    //         return newPortVideo;
-    //     } else {
-    //         throw response.responseText;
-    //     }
-    //     return null;
-    // }
-
     private async vote(voteType: number) {
         if (!this.portUUID) {
             console.error("No port video to vote on");
@@ -199,18 +180,17 @@ export class DescriptionPortPill {
         this.portVideoVote(this.portUUID, this.bvID, voteType);
     }
 
-    private async updateSegments() {
-        const response = await updatePortedSegments(this.bvID);
+    private async updateSegmentHandler() {
+        const response = await this.updateSegments();
         if (!response?.ok) {
             if (response.status === 429) {
                 showMessage(response.responseText, "info");
             } else {
                 console.error(response.responseText);
                 showMessage(chrome.i18n.getMessage("refreshFailed") + response.responseText, "error");
-                return;
             }
+        } else {
+            showMessage(chrome.i18n.getMessage("refreshSuccess"), "success");
         }
-        this.sponsorsLookup(true, true, true);
-        showMessage(chrome.i18n.getMessage("refreshSuccess"), "success");
     }
 }
