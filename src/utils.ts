@@ -230,14 +230,6 @@ export default class Utils {
         return referenceNode;
     }
 
-    isContentScript(): boolean {
-        return window.location.protocol === "http:" || window.location.protocol === "https:";
-    }
-
-    isHex(num: string): boolean {
-        return Boolean(num.match(/^[0-9a-f]+$/i));
-    }
-
     async addHiddenSegment(videoID: VideoID, segmentUUID: string, hidden: SponsorHideType) {
         if (
             (chrome.extension.inIncognitoContext && !Config.config.trackDownvotesInPrivate) ||
