@@ -11,7 +11,7 @@ import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
-import { getPortVideoByHash, postPortVideoVote } from "./requests/portVideo";
+import { getPortVideoByHash, postPortVideo, postPortVideoVote } from "./requests/portVideo";
 import { asyncRequestToServer } from "./requests/requests";
 import { getSegmentsByHash } from "./requests/segments";
 import { getVideoLabel } from "./requests/videoLabels";
@@ -1237,18 +1237,15 @@ function setupCategoryPill() {
 
 function setupDescriptionPill() {
     if (!descriptionPill) {
-        descriptionPill = new DescriptionPortPill(getPortVideo, portVideoVote, sponsorsLookup);
+        descriptionPill = new DescriptionPortPill(getPortVideo, submitPortVideo, portVideoVote, sponsorsLookup);
     }
     descriptionPill.setupDecription(getVideoID());
 }
 
-async function getPortVideo(videoId: VideoID, bypassCache = false) {
-    const newPortVideo = await getPortVideoByHash(videoId, { bypassCache });
-    if (newPortVideo?.UUID === portVideo?.UUID) return;
+async function updatePortVideoElements(newPortVideo: PortVideo) {
     portVideo = newPortVideo;
-
     // notify description pill
-    waitFor(() => descriptionPill).then(() => descriptionPill.setPortVideoData(portVideo));
+    waitFor(() => descriptionPill).then(() => descriptionPill.setPortVideoData(newPortVideo));
 
     // notify popup of port video changes
     chrome.runtime.sendMessage({
@@ -1256,13 +1253,29 @@ async function getPortVideo(videoId: VideoID, bypassCache = false) {
         found: sponsorDataFound,
         status: lastResponseStatus,
         sponsorTimes: sponsorTimes,
-        portVideo: portVideo,
+        portVideo: newPortVideo,
         time: getVideo()?.currentTime ?? 0,
     });
 }
 
+async function getPortVideo(videoId: VideoID, bypassCache = false) {
+    const newPortVideo = await getPortVideoByHash(videoId, { bypassCache });
+    if (newPortVideo?.UUID === portVideo?.UUID) return;
+    portVideo = newPortVideo;
+
+    updatePortVideoElements(portVideo);
+}
+
+async function submitPortVideo(ytbID: VideoID): Promise<PortVideo> {
+    const newPortVideo = await postPortVideo(getVideoID(), ytbID, getVideo()?.duration);
+    portVideo = newPortVideo;
+    updatePortVideoElements(portVideo);
+    this.sponsorsLookup(true, true, true);
+    return newPortVideo;
+}
+
 async function portVideoVote(UUID: string, bvID: VideoID, voteType: number) {
-    postPortVideoVote(UUID, bvID, voteType);
+    await postPortVideoVote(UUID, bvID, voteType);
     await getPortVideo(this.bvID, true);
 }
 

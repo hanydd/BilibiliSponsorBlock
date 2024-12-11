@@ -5,12 +5,10 @@ import YouTubeLogoButton from "../components/YouTubeLogoButton";
 import Config from "../config";
 import { getPageLoaded } from "../content";
 import { updatePortedSegments } from "../requests/portVideo";
-import { asyncRequestToServer } from "../requests/requests";
 import { PortVideo, VideoID } from "../types";
 import { waitFor } from "../utils/";
 import { waitForElement } from "../utils/dom";
 import { getVideoDescriptionFromWindow } from "../utils/injectedScriptMessageUtils";
-import { getVideo, getVideoID } from "../utils/video";
 import { showMessage } from "./MessageNotice";
 
 const id = "bsbDescriptionContainer";
@@ -21,6 +19,7 @@ export class DescriptionPortPill {
     portUUID: string;
     hasDescription: boolean;
     getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void;
+    submitPortVideo: (ytbID: VideoID) => Promise<PortVideo>;
     portVideoVote: (UUID: string, bvID: VideoID, voteType: number) => void;
     sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean, forceUpdatePreviewBar: boolean) => void;
 
@@ -31,10 +30,12 @@ export class DescriptionPortPill {
 
     constructor(
         getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void,
+        submitPortVideo: (ytbID: VideoID) => Promise<PortVideo>,
         portVideoVote: (UUID: string, bvID: VideoID, voteType: number) => void,
         sponsorsLookup: () => void
     ) {
         this.getPortVideo = getPortVideo;
+        this.submitPortVideo = submitPortVideo;
         this.portVideoVote = portVideoVote;
         this.sponsorsLookup = sponsorsLookup;
     }
@@ -167,27 +168,27 @@ export class DescriptionPortPill {
         this.portUUID = null;
     }
 
-    private async submitPortVideo(ytbID: VideoID): Promise<PortVideo> {
-        const response = await asyncRequestToServer("POST", "/api/portVideo", {
-            bvID: getVideoID(),
-            ytbID,
-            biliDuration: getVideo().duration,
-            userID: Config.config.userID,
-            userAgent: `${chrome.runtime.id}/v${chrome.runtime.getManifest().version}`,
-        });
-        if (response?.ok) {
-            const newPortVideo = JSON.parse(response.responseText) as PortVideo;
-            this.ytbID = ytbID;
-            this.portUUID = newPortVideo.UUID;
+    // private async submitPortVideo(ytbID: VideoID): Promise<PortVideo> {
+    //     const response = await asyncRequestToServer("POST", "/api/portVideo", {
+    //         bvID: getVideoID(),
+    //         ytbID,
+    //         biliDuration: getVideo().duration,
+    //         userID: Config.config.userID,
+    //         userAgent: `${chrome.runtime.id}/v${chrome.runtime.getManifest().version}`,
+    //     });
+    //     if (response?.ok) {
+    //         const newPortVideo = JSON.parse(response.responseText) as PortVideo;
+    //         this.ytbID = ytbID;
+    //         this.portUUID = newPortVideo.UUID;
 
-            this.sponsorsLookup(true, true, true);
+    //         this.sponsorsLookup(true, true, true);
 
-            return newPortVideo;
-        } else {
-            throw response.responseText;
-        }
-        return null;
-    }
+    //         return newPortVideo;
+    //     } else {
+    //         throw response.responseText;
+    //     }
+    //     return null;
+    // }
 
     private async vote(voteType: number) {
         if (!this.portUUID) {

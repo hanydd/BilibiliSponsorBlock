@@ -1,5 +1,5 @@
 import Config from "../config";
-import { VideoID } from "../types";
+import { PortVideo, VideoID } from "../types";
 import { getHash } from "../utils/hash";
 import { FetchResponse } from "./background-request-proxy";
 import { asyncRequestToServer } from "./requests";
@@ -48,6 +48,21 @@ export async function getPortVideoByHash(bvID: VideoID, options: RequestOptions 
         return null;
     }
     throw response;
+}
+
+export async function postPortVideo(bvID: VideoID, ytbID: VideoID, duration: number): Promise<PortVideoRecord> {
+    const response = await asyncRequestToServer("POST", "/api/portVideo", {
+        bvID: bvID,
+        ytbID,
+        biliDuration: duration,
+        userID: Config.config.userID,
+        userAgent: `${chrome.runtime.id}/v${chrome.runtime.getManifest().version}`,
+    });
+    if (response?.ok) {
+        return JSON.parse(response.responseText) as PortVideo;
+    } else {
+        throw response.responseText;
+    }
 }
 
 export async function postPortVideoVote(UUID: string, bvID: VideoID, voteType: number) {
