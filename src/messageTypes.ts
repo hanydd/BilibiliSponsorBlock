@@ -69,6 +69,11 @@ interface KeyDownMessage {
     metaKey: boolean;
 }
 
+interface SubmitPortVideoMessage {
+    message: "submitPortVideo";
+    ytbID: string;
+}
+
 export type Message = BaseMessage &
     (
         | DefaultMessage
@@ -80,6 +85,7 @@ export type Message = BaseMessage &
         | CopyToClipboardMessage
         | ImportSegmentsMessage
         | KeyDownMessage
+        | SubmitPortVideoMessage
     );
 
 export interface IsInfoFoundMessageResponse {
@@ -115,7 +121,8 @@ export type MessageResponse =
     | Record<string, never> // empty object response {}
     | VoteResponse
     | ImportSegmentsResponse
-    | RefreshSegmentsResponse;
+    | RefreshSegmentsResponse
+    | PortVideo;
 
 export interface VoteResponse {
     successType: number;

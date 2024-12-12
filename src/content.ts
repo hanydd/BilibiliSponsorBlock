@@ -392,6 +392,9 @@ function messageListener(
                 })
             );
             break;
+        case "submitPortVideo":
+            submitPortVideo(request.ytbID).then((response) => sendResponse(response));
+            break;
     }
 
     sendResponse({});
@@ -1277,7 +1280,7 @@ async function submitPortVideo(ytbID: VideoID): Promise<PortVideo> {
     const newPortVideo = await postPortVideo(getVideoID(), ytbID, getVideo()?.duration);
     portVideo = newPortVideo;
     updatePortVideoElements(portVideo);
-    this.sponsorsLookup(true, true, true);
+    sponsorsLookup(true, true, true);
     return newPortVideo;
 }
 
@@ -1289,7 +1292,7 @@ async function portVideoVote(UUID: string, bvID: VideoID, voteType: number) {
 async function updateSegments(): Promise<FetchResponse> {
     const response = await updatePortedSegments(getVideoID());
     if (response.ok) {
-        this.sponsorsLookup(true, true, true);
+        sponsorsLookup(true, true, true);
     }
     return response;
 }

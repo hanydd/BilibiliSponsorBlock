@@ -25,7 +25,6 @@ interface VideoInfoState {
     importInputOpen: boolean;
 
     downloadedTimes: SponsorTime[];
-    portVideo: PortVideo;
     currentTime: number;
 }
 
@@ -39,7 +38,6 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
             importInputOpen: false,
 
             downloadedTimes: [],
-            portVideo: null,
             currentTime: 0,
         };
     }
@@ -141,7 +139,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
             .sort((a, b) => a.segment[1] - b.segment[1])
             .sort((a, b) => a.segment[0] - b.segment[0]);
 
-        this.setState({ downloadedTimes: downloadedTimes, portVideo: portVideo, currentTime: time });
+        this.setState({ downloadedTimes: downloadedTimes, currentTime: time });
     }
 
     private SegmentList(): React.ReactNode[] {
@@ -166,6 +164,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
                 <Button id="refreshSegmentsButton" shape="circle" type="text" onClick={this.refreshSegments.bind(this)}>
                     <ReloadOutlined spin={this.state.loading} style={{ fontSize: 16, padding: 1 }} />
                 </Button>
+
                 {/* Video Segments */}
                 <div id="issueReporterContainer">
                     <div id="issueReporterTimeButtons">{this.SegmentList()}</div>

@@ -8,6 +8,7 @@ import { waitFor } from "../utils/index";
 import ControlMenu from "./ControlMenu";
 import PopupFooter from "./PopupFooter";
 import { MessageHandler } from "./PopupMessageHandler";
+import { PortVideoSection } from "./PortVideoSection";
 import SubmitBox from "./SubmitBox";
 import UserWork from "./UserWork";
 import VideoInfo from "./VideoInfo/VideoInfo";
@@ -15,6 +16,7 @@ import VideoInfo from "./VideoInfo/VideoInfo";
 function app() {
     const videoInfoRef = React.createRef<VideoInfo>();
     const controlMenuRef = React.createRef<ControlMenu>();
+    const portVideoRef = React.createRef<PortVideoSection>();
     const submitBoxRef = React.createRef<SubmitBox>();
 
     const [messageApi, messageContextHolder] = message.useMessage();
@@ -279,6 +281,13 @@ function app() {
                     ref={controlMenuRef}
                     messageApi={messageApi}
                     openOptionsAt={openOptionsAt}
+                    sendTabMessage={sendTabMessage}
+                    sendTabMessageAsync={sendTabMessageAsync}
+                />
+
+                <PortVideoSection
+                    ref={portVideoRef}
+                    messageApi={messageApi}
                     sendTabMessage={sendTabMessage}
                     sendTabMessageAsync={sendTabMessageAsync}
                 />
