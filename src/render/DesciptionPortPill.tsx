@@ -27,6 +27,7 @@ export class DescriptionPortPill {
     inputContainer: HTMLElement;
     buttonContainer: HTMLElement;
     ref: React.RefObject<DescriptionPortPillComponent>;
+    buttonRef: React.RefObject<YouTubeLogoButton>;
     root: Root;
 
     constructor(
@@ -41,6 +42,8 @@ export class DescriptionPortPill {
         this.portVideoVote = portVideoVote;
         this.updateSegments = updateSegments;
         this.sponsorsLookup = sponsorsLookup;
+
+        this.setPortVideoData = this.setPortVideoData.bind(this);
     }
 
     async setupDecription(videoId: VideoID) {
@@ -92,7 +95,8 @@ export class DescriptionPortPill {
             this.ytbID = portVideo.ytbID;
             this.portUUID = portVideo.UUID;
         }
-        if (this?.ref?.current) this.ref.current.setPortVideoData(portVideo);
+        waitFor(() => this.ref?.current).then(() => this.ref?.current?.setPortVideoData(portVideo));
+        waitFor(() => this.buttonRef?.current).then(() => this.buttonRef?.current?.setPortVideo(portVideo));
     }
 
     private attachToPage(referenceNode: HTMLElement) {
@@ -133,9 +137,10 @@ export class DescriptionPortPill {
         buttonContainer.id = "bsbPortButton";
 
         const root = createRoot(buttonContainer);
+        this.buttonRef = React.createRef();
         root.render(
             <YouTubeLogoButton
-                isBound={Boolean(this.ytbID)}
+                ref={this.buttonRef}
                 onClick={() => {
                     this.ref.current.toggleInput();
                     // toggle display state of the input container

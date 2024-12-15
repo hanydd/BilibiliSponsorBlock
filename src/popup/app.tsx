@@ -115,7 +115,8 @@ function app() {
         submitBoxRef.current?.showSubmitBox();
         controlMenuRef.current.setState({ hasVideo: true });
 
-        displayDownloadedSponsorTimes(request.sponsorTimes ?? [], request.portVideo ?? null, request.time);
+        displayDownloadedSponsorTimes(request.sponsorTimes ?? [], request.time);
+        displayPortVideo(request.portVideo);
         if (request.found) {
             videoInfoRef.current.displayVideoWithMessage();
         } else if (request.status == 404 || request.status == 200) {
@@ -138,14 +139,19 @@ function app() {
     }
 
     //display the video times from the array at the top, in a different section
-    function displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], portVideo: PortVideo, time: number) {
-        videoInfoRef.current.displayDownloadedSponsorTimes(sponsorTimes, portVideo, time);
+    function displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
+        videoInfoRef.current.displayDownloadedSponsorTimes(sponsorTimes, time);
+    }
+
+    function displayPortVideo(portVideo: PortVideo) {
+        portVideoRef.current?.setPortVideo(portVideo);
     }
 
     /** this is not a Bilibili video page */
     function displayNoVideo() {
         videoInfoRef.current.displayNoVideo();
         submitBoxRef.current?.hideSubmitBox();
+        portVideoRef.current?.displayNoVideo();
     }
 
     /** Update Unsubmitted Segments when Config changes */
@@ -229,7 +235,8 @@ function app() {
                 // Clear segments list & start loading animation
                 // We'll get a ping once they're loaded
                 startLoadingAnimation();
-                displayDownloadedSponsorTimes([], null, 0);
+                displayDownloadedSponsorTimes([], 0);
+                displayPortVideo(null);
                 break;
         }
     }

@@ -4,7 +4,7 @@ import { MessageInstance } from "antd/es/message/interface";
 import * as React from "react";
 import Config from "../../config";
 import { Message, RefreshSegmentsResponse } from "../../messageTypes";
-import { PortVideo, SponsorTime } from "../../types";
+import { SponsorTime } from "../../types";
 import { exportTimes } from "../../utils/exporter";
 import PopupSegment from "./PopupSegment";
 
@@ -133,7 +133,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
     }
 
     //display the video times from the array at the top, in a different section
-    displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], portVideo: PortVideo, time: number) {
+    displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
         // Sort list by start time
         const downloadedTimes = sponsorTimes
             .sort((a, b) => a.segment[1] - b.segment[1])

@@ -74,6 +74,10 @@ interface SubmitPortVideoMessage {
     ytbID: string;
 }
 
+interface GetPortVideoMessage {
+    message: "getPortVideo";
+}
+
 export type Message = BaseMessage &
     (
         | DefaultMessage
@@ -86,6 +90,7 @@ export type Message = BaseMessage &
         | ImportSegmentsMessage
         | KeyDownMessage
         | SubmitPortVideoMessage
+        | GetPortVideoMessage
     );
 
 export interface IsInfoFoundMessageResponse {

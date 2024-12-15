@@ -11,6 +11,8 @@ interface PortVideoProps {
 }
 
 interface PortVideoState {
+    show: boolean;
+    loading: boolean;
     portVideo: PortVideo;
 }
 
@@ -18,11 +20,21 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
     constructor(props: PortVideoProps) {
         super(props);
         this.state = {
+            show: false,
+            loading: false,
             portVideo: null,
         };
     }
 
     private inputRef = React.createRef<HTMLInputElement>();
+
+    displayNoVideo(): void {
+        this.setState({ portVideo: null, show: false, loading: false });
+    }
+
+    setPortVideo(portVideo: PortVideo): void {
+        this.setState({ portVideo, show: true, loading: false });
+    }
 
     private hasPortVideo(): boolean {
         return !!this.state.portVideo;
@@ -48,24 +60,28 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
 
     render() {
         return (
-            <div>
-                {this.hasPortVideo() ? (
+            <>
+                {this.state.show && (
                     <div>
-                        <div>{this.state.portVideo.ytbID}</div>
+                        {this.hasPortVideo() ? (
+                            <div>
+                                <div>{this.state.portVideo.ytbID}</div>
+                            </div>
+                        ) : (
+                            <>
+                                <input
+                                    ref={this.inputRef}
+                                    type="text"
+                                    placeholder={chrome.i18n.getMessage("enterPortVideoURL")}
+                                ></input>
+                                <button className="active" onClick={() => this.submitPortVideo()}>
+                                    {chrome.i18n.getMessage("submit")}
+                                </button>
+                            </>
+                        )}
                     </div>
-                ) : (
-                    <>
-                        <input
-                            ref={this.inputRef}
-                            type="text"
-                            placeholder={chrome.i18n.getMessage("enterPortVideoURL")}
-                        ></input>
-                        <button className="active" onClick={() => this.submitPortVideo()}>
-                            {chrome.i18n.getMessage("submit")}
-                        </button>
-                    </>
                 )}
-            </div>
+            </>
         );
     }
 }
