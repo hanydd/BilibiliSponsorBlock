@@ -393,7 +393,7 @@ function messageListener(
             );
             break;
         case "submitPortVideo":
-            submitPortVideo(request.ytbID).then((response) => sendResponse(response));
+            submitPortVideo(request.ytbID);
             break;
     }
 

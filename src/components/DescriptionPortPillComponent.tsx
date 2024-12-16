@@ -1,3 +1,4 @@
+import { LoadingOutlined } from "@ant-design/icons";
 import { ConfigProvider, Spin } from "antd";
 import * as React from "react";
 import { showMessage } from "../render/MessageNotice";
@@ -41,7 +42,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
     render(): React.ReactElement {
         return (
             <ConfigProvider>
-                <Spin delay={100} spinning={this.state.loading}>
+                <Spin indicator={<LoadingOutlined spin />} delay={100} spinning={this.state.loading}>
                     <div hidden={!this.state.show} id="bsbDescriptionPortVideoPill">
                         {this.hasYtbVideo() && (
                             <>

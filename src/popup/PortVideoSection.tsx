@@ -1,8 +1,10 @@
+import { LoadingOutlined } from "@ant-design/icons";
+import { Spin } from "antd";
 import { MessageInstance } from "antd/es/message/interface";
 import * as React from "react";
 import { Message } from "../messageTypes";
-import { parseYoutubeID } from "../utils/parseVideoID";
 import { PortVideo } from "../types";
+import { parseYoutubeID } from "../utils/parseVideoID";
 
 interface PortVideoProps {
     messageApi: MessageInstance;
@@ -21,7 +23,7 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
         super(props);
         this.state = {
             show: false,
-            loading: false,
+            loading: true,
             portVideo: null,
         };
     }
@@ -37,7 +39,7 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
     }
 
     private hasPortVideo(): boolean {
-        return !!this.state.portVideo;
+        return !!this.state.portVideo?.UUID;
     }
 
     private async submitPortVideo(): Promise<void> {
@@ -46,13 +48,15 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
             return;
         }
         const ytbID = parseYoutubeID(YtbInput);
-        // this.setState({ loading: true });
+        if (!ytbID) {
+            this.props.messageApi.warning("YouTube视频ID有误");
+            return;
+        }
+        console.log("portvideo submitPortVideo", ytbID, this.state);
+        this.setState({ loading: true });
 
         try {
-            const newPortVideo = await this.props.sendTabMessageAsync({ message: "submitPortVideo", ytbID: ytbID });
-            if (newPortVideo) {
-                this.setState({ portVideo: newPortVideo as PortVideo });
-            }
+            await this.props.sendTabMessageAsync({ message: "submitPortVideo", ytbID: ytbID });
         } catch (e) {
             this.props.messageApi.error(e.getMessage());
         }
@@ -60,13 +64,14 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
 
     render() {
         return (
-            <>
+            <div>
                 {this.state.show && (
-                    <div>
+                    <Spin indicator={<LoadingOutlined spin />} delay={100} spinning={this.state.loading}>
                         {this.hasPortVideo() ? (
-                            <div>
-                                <div>{this.state.portVideo.ytbID}</div>
-                            </div>
+                            <>
+                                <span>{chrome.i18n.getMessage("hasbindedPortVideo")}</span>
+                                <span>{this.state.portVideo.ytbID}</span>
+                            </>
                         ) : (
                             <>
                                 <input
@@ -79,9 +84,9 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
                                 </button>
                             </>
                         )}
-                    </div>
+                    </Spin>
                 )}
-            </>
+            </div>
         );
     }
 }
