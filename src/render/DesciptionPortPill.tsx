@@ -21,7 +21,7 @@ export class DescriptionPortPill {
     getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void;
     submitPortVideo: (ytbID: VideoID) => Promise<PortVideo>;
     portVideoVote: (UUID: string, bvID: VideoID, voteType: number) => void;
-    updateSegments: () => Promise<FetchResponse>;
+    updateSegments: (UUID: string) => Promise<FetchResponse>;
     sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean, forceUpdatePreviewBar: boolean) => void;
 
     inputContainer: HTMLElement;
@@ -34,7 +34,7 @@ export class DescriptionPortPill {
         getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void,
         submitPortVideo: (ytbID: VideoID) => Promise<PortVideo>,
         portVideoVote: (UUID: string, bvID: VideoID, voteType: number) => void,
-        updateSegments: () => Promise<FetchResponse>,
+        updateSegments: (UUID: string) => Promise<FetchResponse>,
         sponsorsLookup: () => void
     ) {
         this.getPortVideo = getPortVideo;
@@ -186,7 +186,7 @@ export class DescriptionPortPill {
     }
 
     private async updateSegmentHandler() {
-        const response = await this.updateSegments();
+        const response = await this.updateSegments(this.portUUID);
         if (!response?.ok) {
             if (response.status === 429) {
                 showMessage(response.responseText, "info");

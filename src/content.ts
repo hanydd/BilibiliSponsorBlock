@@ -395,6 +395,12 @@ function messageListener(
         case "submitPortVideo":
             submitPortVideo(request.ytbID);
             break;
+        case "votePortVideo":
+            portVideoVote(request.UUID, request.bvid, request.vote);
+            break;
+        case "updatePortedSegments":
+            updateSegments(request.UUID);
+            break;
     }
 
     sendResponse({});
@@ -1289,8 +1295,8 @@ async function portVideoVote(UUID: string, bvID: VideoID, voteType: number) {
     await getPortVideo(this.bvID, true);
 }
 
-async function updateSegments(): Promise<FetchResponse> {
-    const response = await updatePortedSegments(getVideoID());
+async function updateSegments(UUID: string): Promise<FetchResponse> {
+    const response = await updatePortedSegments(getVideoID(), UUID);
     if (response.ok) {
         sponsorsLookup(true, true, true);
     }

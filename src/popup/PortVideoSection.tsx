@@ -26,6 +26,11 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
             loading: true,
             portVideo: null,
         };
+        this.displayNoVideo = this.displayNoVideo.bind(this);
+        this.setPortVideo = this.setPortVideo.bind(this);
+        this.submitPortVideo = this.submitPortVideo.bind(this);
+        this.vote = this.vote.bind(this);
+        this.updatePortedSegments = this.updatePortedSegments.bind(this);
     }
 
     private inputRef = React.createRef<HTMLInputElement>();
@@ -62,6 +67,22 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
         }
     }
 
+    private async vote(vote: number): Promise<void> {
+        await this.props.sendTabMessageAsync({
+            message: "votePortVideo",
+            vote: vote,
+            bvid: this.state.portVideo.bvID,
+            UUID: this.state.portVideo.UUID,
+        });
+    }
+
+    private async updatePortedSegments(): Promise<void> {
+        await this.props.sendTabMessageAsync({
+            message: "updatePortedSegments",
+            UUID: this.state.portVideo.UUID,
+        });
+    }
+
     render() {
         return (
             <div>
@@ -71,6 +92,25 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
                             <>
                                 <span>{chrome.i18n.getMessage("hasbindedPortVideo")}</span>
                                 <span>{this.state.portVideo.ytbID}</span>
+
+                                <img
+                                    className="bsbVoteButton"
+                                    title={chrome.i18n.getMessage("upvote")}
+                                    src={chrome.runtime.getURL("icons/thumbs_up_blue.svg")}
+                                    onClick={() => this.vote(1)}
+                                ></img>
+                                <img
+                                    className="bsbVoteButton"
+                                    title={chrome.i18n.getMessage("downvote")}
+                                    src={chrome.runtime.getURL("icons/thumbs_down_blue.svg")}
+                                    onClick={() => this.vote(0)}
+                                ></img>
+                                <img
+                                    className="bsbVoteButton"
+                                    title={chrome.i18n.getMessage("refreshPortedSegments")}
+                                    src={chrome.runtime.getURL("icons/refresh.svg")}
+                                    onClick={() => this.updatePortedSegments()}
+                                ></img>
                             </>
                         ) : (
                             <>

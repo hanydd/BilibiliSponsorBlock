@@ -2,7 +2,7 @@
 // Message and Response Types
 //
 
-import { PortVideo, SegmentUUID, SponsorHideType, SponsorTime } from "./types";
+import { PortVideo, SegmentUUID, SponsorHideType, SponsorTime, VideoID } from "./types";
 
 interface BaseMessage {
     from?: string;
@@ -78,6 +78,18 @@ interface GetPortVideoMessage {
     message: "getPortVideo";
 }
 
+interface votePortVideoMessage {
+    message: "votePortVideo";
+    vote: number;
+    UUID: string;
+    bvid: VideoID;
+}
+
+interface updatePortVideoMessage {
+    message: "updatePortedSegments";
+    UUID: string;
+}
+
 export type Message = BaseMessage &
     (
         | DefaultMessage
@@ -91,6 +103,8 @@ export type Message = BaseMessage &
         | KeyDownMessage
         | SubmitPortVideoMessage
         | GetPortVideoMessage
+        | votePortVideoMessage
+        | updatePortVideoMessage
     );
 
 export interface IsInfoFoundMessageResponse {
