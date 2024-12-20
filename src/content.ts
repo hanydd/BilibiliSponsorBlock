@@ -396,7 +396,7 @@ function messageListener(
             submitPortVideo(request.ytbID);
             break;
         case "votePortVideo":
-            portVideoVote(request.UUID, request.bvid, request.vote);
+            portVideoVote(request.UUID, request.vote);
             break;
         case "updatePortedSegments":
             updateSegments(request.UUID);
@@ -1290,9 +1290,9 @@ async function submitPortVideo(ytbID: VideoID): Promise<PortVideo> {
     return newPortVideo;
 }
 
-async function portVideoVote(UUID: string, bvID: VideoID, voteType: number) {
-    await postPortVideoVote(UUID, bvID, voteType);
-    await getPortVideo(this.bvID, true);
+async function portVideoVote(UUID: string, voteType: number) {
+    await postPortVideoVote(UUID, getVideoID(), voteType);
+    await getPortVideo(getVideoID(), true);
 }
 
 async function updateSegments(UUID: string): Promise<FetchResponse> {

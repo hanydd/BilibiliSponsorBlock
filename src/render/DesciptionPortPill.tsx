@@ -20,7 +20,7 @@ export class DescriptionPortPill {
     hasDescription: boolean;
     getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void;
     submitPortVideo: (ytbID: VideoID) => Promise<PortVideo>;
-    portVideoVote: (UUID: string, bvID: VideoID, voteType: number) => void;
+    portVideoVote: (UUID: string, voteType: number) => void;
     updateSegments: (UUID: string) => Promise<FetchResponse>;
     sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean, forceUpdatePreviewBar: boolean) => void;
 
@@ -33,7 +33,7 @@ export class DescriptionPortPill {
     constructor(
         getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void,
         submitPortVideo: (ytbID: VideoID) => Promise<PortVideo>,
-        portVideoVote: (UUID: string, bvID: VideoID, voteType: number) => void,
+        portVideoVote: (UUID: string, voteType: number) => void,
         updateSegments: (UUID: string) => Promise<FetchResponse>,
         sponsorsLookup: () => void
     ) {
@@ -182,7 +182,7 @@ export class DescriptionPortPill {
             return;
         }
 
-        this.portVideoVote(this.portUUID, this.bvID, voteType);
+        this.portVideoVote(this.portUUID, voteType);
     }
 
     private async updateSegmentHandler() {

@@ -344,6 +344,16 @@
 }
 
 /*
+* Port Video Sections
+*/
+.port-video-section {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+}
+
+/*
  * Submit box
  */
 #mainControls {

@@ -85,28 +85,28 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
 
     render() {
         return (
-            <div>
+            <Spin indicator={<LoadingOutlined spin />} delay={100} spinning={this.state.loading}>
                 {this.state.show && (
-                    <Spin indicator={<LoadingOutlined spin />} delay={100} spinning={this.state.loading}>
+                    <div className="port-video-section">
                         {this.hasPortVideo() ? (
                             <>
                                 <span>{chrome.i18n.getMessage("hasbindedPortVideo")}</span>
                                 <span>{this.state.portVideo.ytbID}</span>
 
                                 <img
-                                    className="bsbVoteButton"
+                                    className="voteButton"
                                     title={chrome.i18n.getMessage("upvote")}
-                                    src={chrome.runtime.getURL("icons/thumbs_up_blue.svg")}
+                                    src={chrome.runtime.getURL("icons/thumbs_up.svg")}
                                     onClick={() => this.vote(1)}
                                 ></img>
                                 <img
-                                    className="bsbVoteButton"
+                                    className="voteButton"
                                     title={chrome.i18n.getMessage("downvote")}
-                                    src={chrome.runtime.getURL("icons/thumbs_down_blue.svg")}
+                                    src={chrome.runtime.getURL("icons/thumbs_down.svg")}
                                     onClick={() => this.vote(0)}
                                 ></img>
                                 <img
-                                    className="bsbVoteButton"
+                                    className="voteButton"
                                     title={chrome.i18n.getMessage("refreshPortedSegments")}
                                     src={chrome.runtime.getURL("icons/refresh.svg")}
                                     onClick={() => this.updatePortedSegments()}
@@ -124,9 +124,9 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
                                 </button>
                             </>
                         )}
-                    </Spin>
+                    </div>
                 )}
-            </div>
+            </Spin>
         );
     }
 }
