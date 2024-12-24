@@ -5,10 +5,10 @@
   "main": "background.js",
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
-    "antd": "^5.21.3",
+    "antd": "^5.22.6",
     "content-scripts-register-polyfill": "^4.0.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "overrides": {
     "content-scripts-register-polyfill": {
@@ -16,11 +16,11 @@
     }
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.277",
+    "@types/chrome": "^0.0.287",
     "@types/firefox-webext-browser": "^120.0.4",
     "@types/jest": "^29.5.13",
-    "@types/react": "^18.3.11",
-    "@types/react-dom": "^18.2.0",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
     "@types/wicg-mediasession": "^1.1.4",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
