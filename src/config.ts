@@ -58,7 +58,7 @@ interface SBConfig {
     minDuration: number;
     skipNoticeDuration: number;
     skipNoticeDurationBefore: number;
-    advanceSkipNotice:boolean;
+    advanceSkipNotice: boolean;
     audioNotificationOnSkip: boolean;
     checkForUnlistedVideos: boolean;
     testingServer: boolean;
@@ -192,7 +192,8 @@ function migrateOldSyncFormats(config: SBConfig) {
         config["serverAddress"] = CompileConfig.serverAddress;
     }
 
-    // "danmakuRegexPattern" 参数在 0.5.9 版本（预计）中被移除，取而代之的是 "danmakuTimeMatchingRegexPattern" 和 "danmakuOffsetMatchingRegexPattern" 参数
+    // "danmakuRegexPattern" 在 0.5.9 版本中被移除，
+    // 取而代之的是 "danmakuTimeMatchingRegexPattern" 和 "danmakuOffsetMatchingRegexPattern"
     delete config["danmakuRegexPattern"];
 }
 
@@ -242,7 +243,7 @@ const syncDefaults = {
     minDuration: 0,
     skipNoticeDuration: 4,
     skipNoticeDurationBefore: 3,
-    advanceSkipNotice:false,
+    advanceSkipNotice: false,
     audioNotificationOnSkip: false,
     checkForUnlistedVideos: false,
     testingServer: false,
