@@ -5,6 +5,7 @@ import { showMessage } from "../render/MessageNotice";
 import { PortVideo, VideoID } from "../types";
 import { AnimationUtils } from "../utils/animationUtils";
 import { parseYoutubeID } from "../utils/parseVideoID";
+import { RefreshIcon } from "./icon/refresh";
 
 export interface DescriptionPortPillProps {
     bvID: VideoID;
@@ -62,12 +63,13 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                                     src={chrome.runtime.getURL("icons/thumbs_down_blue.svg")}
                                     onClick={(e) => this.vote(e, 0)}
                                 ></img>
-                                <img
+                                <div
                                     className="bsbVoteButton"
                                     title={chrome.i18n.getMessage("refreshPortedSegments")}
-                                    src={chrome.runtime.getURL("icons/refresh.svg")}
                                     onClick={() => this.props.onRefresh()}
-                                ></img>
+                                >
+                                    <RefreshIcon color="#00aeec" />
+                                </div>
                             </>
                         )}
                         {!this.hasYtbVideo() && (

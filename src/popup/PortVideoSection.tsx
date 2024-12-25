@@ -5,6 +5,7 @@ import * as React from "react";
 import { Message } from "../messageTypes";
 import { PortVideo } from "../types";
 import { parseYoutubeID } from "../utils/parseVideoID";
+import { RefreshIcon } from "../components/icon/refresh";
 
 interface PortVideoProps {
     messageApi: MessageInstance;
@@ -105,12 +106,13 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
                                     src={chrome.runtime.getURL("icons/thumbs_down.svg")}
                                     onClick={() => this.vote(0)}
                                 ></img>
-                                <img
+                                <div
                                     className="voteButton"
                                     title={chrome.i18n.getMessage("refreshPortedSegments")}
-                                    src={chrome.runtime.getURL("icons/refresh.svg")}
                                     onClick={() => this.updatePortedSegments()}
-                                ></img>
+                                >
+                                    <RefreshIcon style={{ height: 18 }} />
+                                </div>
                             </>
                         ) : (
                             <>

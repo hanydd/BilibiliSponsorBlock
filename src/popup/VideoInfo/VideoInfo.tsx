@@ -1,7 +1,7 @@
-import { ReloadOutlined } from "@ant-design/icons";
 import { Button } from "antd";
 import { MessageInstance } from "antd/es/message/interface";
 import * as React from "react";
+import { RefreshIcon } from "../../components/icon/refresh";
 import Config from "../../config";
 import { Message, RefreshSegmentsResponse } from "../../messageTypes";
 import { SponsorTime } from "../../types";
@@ -162,7 +162,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
                 {/* Loading text */}
                 <p className="u-mZ grey-text">{this.computeIndicatorText()}</p>
                 <Button id="refreshSegmentsButton" shape="circle" type="text" onClick={this.refreshSegments.bind(this)}>
-                    <ReloadOutlined spin={this.state.loading} style={{ fontSize: 16, padding: 1 }} />
+                    <RefreshIcon spin={this.state.loading} style={{ fontSize: 16, padding: 1 }} />
                 </Button>
 
                 {/* Video Segments */}
