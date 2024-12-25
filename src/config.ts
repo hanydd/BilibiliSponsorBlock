@@ -33,7 +33,8 @@ interface SBConfig {
     enableDanmakuSkip: boolean;
     enableAutoSkipDanmakuSkip: boolean;
     enableMenuDanmakuSkip: boolean;
-    danmakuRegexPattern: string;
+    danmakuTimeMatchingRegexPattern: string;
+    danmakuOffsetMatchingRegexPattern: string;
     checkTimeDanmakuSkip: boolean;
     muteSegments: boolean;
     fullVideoSegments: boolean;
@@ -189,13 +190,8 @@ function migrateOldSyncFormats(config: SBConfig) {
         config["serverAddress"] = CompileConfig.serverAddress;
     }
 
-    // danmaku regex update since 0.5.0
-    const oldDanmakuRegexPatterns = [
-        "(?:空降\\s*)?(\\d{1,2}):(\\d{1,2})(?::(\\d{1,2}))?", // 0.5.0
-    ];
-    if (oldDanmakuRegexPatterns.includes(config["danmakuRegexPattern"])) {
-        config["danmakuRegexPattern"] = syncDefaults.danmakuRegexPattern;
-    }
+    // "danmakuRegexPattern" 参数在 0.5.9 版本（预计）中被移除，取而代之的是 "danmakuTimeMatchingRegexPattern" 和 "danmakuOffsetMatchingRegexPattern" 参数
+    delete config["danmakuRegexPattern"];
 }
 
 const syncDefaults = {
@@ -217,7 +213,9 @@ const syncDefaults = {
     enableDanmakuSkip: false,
     enableAutoSkipDanmakuSkip: false,
     enableMenuDanmakuSkip: false,
-    danmakuRegexPattern: "(?:空降\\s*)?(\\d{1,2})[:：](\\d{1,2})(?:[:：](\\d{1,2}))?$",
+    danmakuTimeMatchingRegexPattern:
+        "(?:(\\d{1,2})\\s*(?:小时|h|H|:|：|；|;|\\.|-|—)\\s*)?(?:(\\d{1,2})\\s*(?:分钟|分|:|：|；|;|\\.|-|—|m|M)\\s*)?(?:(\\d{1,2})\\s*(秒|s|S)?)",
+    danmakuOffsetMatchingRegexPattern: "(?:^|(右|右滑|按|右下|右向|右方向|→|⇒|⇢|⇨|⮕|🡆|🠺|🠾|🢒|👉))(\\d+)(下|次)?$",
     checkTimeDanmakuSkip: true,
 
     muteSegments: true,

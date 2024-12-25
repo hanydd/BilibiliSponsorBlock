@@ -751,16 +751,27 @@
 						<label class="switch-label" for="checkTimeDanmakuSkip"> __MSG_checkTimeDanmakuSkip__</label>
 					</div>
 				</div>
-
-				<div data-type="text-change" data-sync="danmakuRegexPattern">
+				
+				<div data-type="text-change" data-sync="danmakuTimeMatchingRegexPattern" class="no-bottom-border">
 					<div class="input-container">
-						<label for="danmakuRegexPattern">__MSG_danmakuRegexPattern__</label>
-						<input id="danmakuRegexPattern" class="option-text-box" type="text"
-							placeholder="__MSG_danmakuRegexPatternPlaceholder__" title="__MSG_danmakuRegexTitle__" />
+						<label for="danmakuTimeMatchingRegexPattern">__MSG_danmakuTimeMatchingRegexPattern__</label>
+						<input id="danmakuTimeMatchingRegexPattern" class="option-text-box" type="text"
+							placeholder="__MSG_danmakuTimeMatchingRegexPatternPlaceholder__" title="__MSG_danmakuRegexTitle__" />
 						<button class="text-change-set">__MSG_save__</button>
 						<button class="text-change-reset">__MSG_reset__</button>
 					</div>
-					<div class="small-description">__MSG_danmakuRegexPatternDescription__</div>
+					<div class="small-description">__MSG_danmakuTimeMatchingRegexPatternDescription__</div>
+					</div>
+					
+					<div data-type="text-change" data-sync="danmakuOffsetMatchingRegexPattern">
+						<div class="input-container">
+							<label for="danmakuOffsetMatchingRegexPattern">__MSG_danmakuOffsetMatchingRegexPattern__</label>
+							<input id="danmakuOffsetMatchingRegexPattern" class="option-text-box" type="text"
+								placeholder="__MSG_danmakuOffsetMatchingRegexPatternPlaceholder__" title="__MSG_danmakuRegexTitle__" />
+							<button class="text-change-set">__MSG_save__</button>
+							<button class="text-change-reset">__MSG_reset__</button>
+						</div>
+						<div class="small-description">__MSG_danmakuOffsetRegexPatternDescription__</div>
 				</div>
 
 			</div>

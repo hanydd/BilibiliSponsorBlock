@@ -42,6 +42,7 @@ import { isFirefox, isFirefoxOrSafari, isSafari, sleep, waitFor } from "./utils/
 import { AnimationUtils } from "./utils/animationUtils";
 import { addCleanupListener, cleanPage } from "./utils/cleanup";
 import { defaultPreviewTime } from "./utils/constants";
+import { parseTargetTimeFromDanmaku } from "./utils/danmakusUtils";
 import { findValidElement } from "./utils/dom";
 import { importTimes } from "./utils/exporter";
 import { getErrorMessage, getFormattedTime } from "./utils/formating";
@@ -778,29 +779,12 @@ async function startSponsorSchedule(
 }
 
 function checkDanmaku(text: string, offset: number) {
-    const match = new RegExp(Config.config.danmakuRegexPattern).exec(text);
-    if (!match) {
-        return;
-    }
+    const targetTime = parseTargetTimeFromDanmaku(text, getVirtualTime());
+    if (targetTime === null) return;
 
-    const timeComponents = match
-        .slice(1)
-        .filter(Boolean)
-        .map((value) => parseInt(value, 10));
-    let hours = 0,
-        minutes = 0,
-        seconds = 0;
+    // [DEBUG]
+    // console.debug("检测到空降弹幕: ", text, "请求跳转到: ", targetTime);
 
-    if (timeComponents.length === 2) {
-        minutes = timeComponents[0];
-        seconds = timeComponents[1];
-    } else if (timeComponents.length === 3) {
-        hours = timeComponents[0];
-        minutes = timeComponents[1];
-        seconds = timeComponents[2];
-    }
-
-    const targetTime = hours * 3600 + minutes * 60 + seconds;
     const startTime = getVirtualTime() + offset;
 
     // ignore if the time is in the past
