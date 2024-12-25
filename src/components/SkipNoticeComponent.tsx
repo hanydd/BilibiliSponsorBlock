@@ -11,7 +11,7 @@ import {
     SponsorTime,
 } from "../types";
 import Utils from "../utils";
-import { getSkippingText } from "../utils/categoryUtils";
+import { getSkippingText, getAdvanceSkipText } from "../utils/categoryUtils";
 import NoticeComponent from "./NoticeComponent";
 import NoticeTextSelectionComponent from "./NoticeTextSectionComponent";
 const utils = new Utils();
@@ -36,14 +36,21 @@ export interface SkipNoticeProps {
 
     autoSkip: boolean;
     startReskip?: boolean;
+    advanceSkipNotice?: boolean;
     // Contains functions and variables from the content script needed by the skip notice
     contentContainer: ContentContainer;
 
     closeListener: () => void;
     showKeybindHint?: boolean;
     smaller: boolean;
+    fadeIn: boolean;
+    fadeOut: boolean;
+
+    componentDidMount?: () => void;
 
     unskipTime?: number;
+
+    advanceSkipNoticeShow: boolean;
 }
 
 export interface SkipNoticeState {
@@ -79,6 +86,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     autoSkip: boolean;
     // Contains functions and variables from the content script needed by the skip notice
     contentContainer: ContentContainer;
+    advanceSkipNoticeShow: boolean;
 
     amountOfPreviousNotices: number;
     showInSecondSlot: boolean;
@@ -103,10 +111,12 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         this.segments = props.segments;
         this.autoSkip = props.autoSkip;
         this.contentContainer = props.contentContainer;
+        this.advanceSkipNoticeShow = props.advanceSkipNotice
 
-        const noticeTitle = getSkippingText(this.segments, this.props.autoSkip);
+        const noticeTitle = !this.props.advanceSkipNotice ? 
+            getSkippingText(this.segments, this.props.autoSkip) : getAdvanceSkipText(this.segments, this.props.autoSkip);
 
-        const previousSkipNotices = document.getElementsByClassName("sponsorSkipNoticeParent");
+        const previousSkipNotices = document.querySelectorAll(".sponsorSkipNoticeParent:not(.sponsorSkipUpcomingNotice)");
         this.amountOfPreviousNotices = previousSkipNotices.length;
         // If there is at least one already in the first slot
         this.showInSecondSlot =
@@ -195,7 +205,8 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 amountOfPreviousNotices={this.amountOfPreviousNotices}
                 showInSecondSlot={this.showInSecondSlot}
                 idSuffix={this.idSuffix}
-                fadeIn={true}
+                fadeIn={this.props.fadeIn}
+                fadeOut={!this.props.fadeOut}
                 startFaded={
                     Config.config.noticeVisibilityMode >= NoticeVisbilityMode.FadedForAll ||
                     (Config.config.noticeVisibilityMode >= NoticeVisbilityMode.FadedForAutoSkip && this.autoSkip)
@@ -210,10 +221,18 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 logoFill={Config.config.barTypes[this.segments[0].category].color}
                 limitWidth={true}
                 firstColumn={firstColumn}
-                bottomRow={[...this.getMessageBoxes(), ...this.getBottomRow()]}
+                bottomRow={[...this.getMessageBoxes(), ...this.getBottomRow() ]}
+                extraClass={this.props.advanceSkipNotice ? "sponsorSkipUpcomingNotice" : ""}
                 onMouseEnter={() => this.onMouseEnter()}
+                advanceSkipNoticeShow={this.advanceSkipNoticeShow}
             ></NoticeComponent>
         );
+    }
+
+    componentDidMount(): void {
+        if (this.props.componentDidMount) {
+            this.props.componentDidMount();
+        }
     }
 
     getBottomRow(): JSX.Element[] {
@@ -415,8 +434,10 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                     : this.unselectedColor,
             };
 
+            const showSkipButton = (buttonIndex !== 0 || this.props.smaller || this.segments[0].actionType === ActionType.Mute);
+
             return (
-                <span className="sponsorSkipNoticeUnskipSection">
+                <span className="sponsorSkipNoticeUnskipSection" style={{ visibility: !showSkipButton ? "hidden" : null }}>
                     <button
                         id={"sponsorSkipUnskipButton" + this.idSuffix}
                         className="sponsorSkipObject sponsorSkipNoticeButton"
@@ -478,7 +499,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     onMouseEnter(): void {
-        if (this.state.smaller) {
+        if (this.state.smaller && !this.props.advanceSkipNotice) {
             this.setState({
                 smaller: false,
             });
@@ -678,13 +699,23 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     unskip(buttonIndex: number, index: number, forceSeek: boolean): void {
-        this.contentContainer().unskipSponsorTime(this.segments[index], this.props.unskipTime, forceSeek);
+        if (this.props.advanceSkipNoticeShow && getVideo().currentTime < this.segments[0].segment[0]) {
+            sessionStorage.setItem('SKIPPING', 'false');
+        } else {
+            this.contentContainer().unskipSponsorTime(this.segments[index], this.props.unskipTime, forceSeek);
+            document.querySelector("#sponsorSkipMessage"+ this.idSuffix).textContent = getSkippingText(this.segments, this.props.autoSkip)
+        }
 
         this.unskippedMode(buttonIndex, index, SkipButtonState.Redo);
     }
 
     reskip(buttonIndex: number, index: number, forceSeek: boolean): void {
-        this.contentContainer().reskipSponsorTime(this.segments[index], forceSeek);
+        if (this.props.advanceSkipNoticeShow && getVideo().currentTime < this.segments[0].segment[0]) {
+            sessionStorage.setItem('SKIPPING', 'true');
+        } else {
+            this.contentContainer().reskipSponsorTime(this.segments[index], forceSeek);
+            document.querySelector("#sponsorSkipMessage"+ this.idSuffix).textContent = getSkippingText(this.segments, this.props.autoSkip)
+        }
 
         const skipButtonStates = this.state.skipButtonStates;
         skipButtonStates[buttonIndex] = SkipButtonState.Undo;
@@ -692,6 +723,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         const skipButtonCallbacks = this.state.skipButtonCallbacks;
         skipButtonCallbacks[buttonIndex] = this.unskip.bind(this);
 
+        
         const newState: SkipNoticeState = {
             skipButtonStates,
             skipButtonCallbacks,

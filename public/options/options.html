@@ -194,8 +194,32 @@
 							<span class="optionLabel">__MSG_skipNoticeDuration__</span>
 							<input type="number" step="1" min="1">
 						</label>
-
+					
 						<div class="small-description">__MSG_skipNoticeDurationDescription__</div>
+					</div>
+
+					<div data-type="toggle" data-toggle-type="switch" data-sync="advanceSkipNotice">
+						<div class="switch-container">
+							<label class="switch">
+								<input id="advanceSkipNotice" type="checkbox" checked>
+								<span class="slider round"></span>
+							</label>
+							<label class="switch-label" for="advanceSkipNotice">
+								__MSG_advanceSkipNotice__
+							</label>
+						</div>
+					
+						<div data-type="number-change" data-sync="skipNoticeDurationBefore" data-dependent-on="advanceSkipNotice">
+							<br />
+
+							<label class="number-container">
+								<span class="optionLabel">__MSG_skipNoticeDurationBefore__</span>
+								<input type="number" step="1" min="1">
+							</label>
+							<span > + 1 </span>
+					
+							<div class="small-description">__MSG_skipNoticeDurationBeforeDescription__</div>
+						</div>
 					</div>
 
 					<div data-type="toggle" data-toggle-type="reverse" data-sync="dontShowNotice">

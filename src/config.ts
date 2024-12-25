@@ -57,6 +57,8 @@ interface SBConfig {
     serverAddress: string;
     minDuration: number;
     skipNoticeDuration: number;
+    skipNoticeDurationBefore: number;
+    advanceSkipNotice:boolean;
     audioNotificationOnSkip: boolean;
     checkForUnlistedVideos: boolean;
     testingServer: boolean;
@@ -239,6 +241,8 @@ const syncDefaults = {
     serverAddress: CompileConfig.serverAddress,
     minDuration: 0,
     skipNoticeDuration: 4,
+    skipNoticeDurationBefore: 3,
+    advanceSkipNotice:false,
     audioNotificationOnSkip: false,
     checkForUnlistedVideos: false,
     testingServer: false,

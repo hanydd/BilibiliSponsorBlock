@@ -73,6 +73,7 @@ export default class GenericNotice {
                 hideLogo={options.hideLogo}
                 hideRightInfo={options.hideRightInfo}
                 closeListener={() => this.close()}
+                advanceSkipNoticeShow={false}
             >
                 {options.textBoxes?.length > 0 ? (
                     <tr

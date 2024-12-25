@@ -258,7 +258,7 @@
         "message": "重新顯示跳過提醒"
     },
     "showSkipNotice": {
-        "message": "在跳過片段後顯示提醒跳出視窗"
+        "message": "跳過片段時顯示提醒跳出視窗"
     },
     "showCategoryGuidelines": {
         "message": "顯示類別說明"
@@ -367,6 +367,14 @@
         "message": "要跳到 {0} 嗎?",
         "description": "Used for skipping to things (Skip to Highlight)"
     },
+    "autoSkipped": {
+        "message": "{0} 準備跳過",
+        "description": "Example: Ready Sponsor Skipped"
+    },
+    "autoMuted": {
+        "message": "{0} 準備靜音",
+        "description": "Example: Ready Sponsor Muted"
+    },
     "skipped": {
         "message": "{0} 已跳過",
         "description": "Example: Sponsor Skipped"
@@ -471,11 +479,20 @@
     "optionSectionExtensionRelated": {
         "message": "插件相關選項"
     },
+    "advanceSkipNotice": {
+        "message": "提前顯示跳過提醒視窗（仅启用＂自动跳过＂的片段）"
+    },
+    "skipNoticeDurationBefore": {
+        "message": "跳過提醒提前跳出視窗時間（秒）："
+    },
+    "skipNoticeDurationBeforeDescription": {
+        "message": "跳過提醒提前跳出視窗的提前時常。"
+    },
     "skipNoticeDuration": {
-        "message": "跳過提醒跳出視窗持續時間（秒）："
+        "message": "跳過后或跳過提醒顯示時間（秒）："
     },
     "skipNoticeDurationDescription": {
-        "message": "跳過提醒跳出視窗的顯示時常。手動跳過的提醒可能會顯示更久。"
+        "message": "您跳過片段或者跳過提醒跳出視窗的顯示時常。用於您對片段進行投票或者跳過/取消跳過。\n手動跳過的提醒可能會顯示更久。"
     },
     "shortCheck": {
         "message": "以下的提交短於您的最小持續時間選項。這代表它們可能已經被提交，只是由於該選項被忽略了。您確定要提交嗎？"

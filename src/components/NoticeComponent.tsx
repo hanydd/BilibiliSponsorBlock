@@ -19,6 +19,8 @@ export interface NoticeProps {
     idSuffix?: string;
 
     fadeIn?: boolean;
+    fadeOut?: boolean;
+
     startFaded?: boolean;
     firstColumn?: React.ReactElement[] | React.ReactElement;
     firstRow?: React.ReactElement;
@@ -39,6 +41,8 @@ export interface NoticeProps {
     style?: React.CSSProperties;
     biggerCloseButton?: boolean;
     children?: React.ReactNode;
+
+    advanceSkipNoticeShow: boolean;
 }
 
 interface MouseDownInfo {
@@ -84,6 +88,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
         this.parentRef = React.createRef();
 
         const maxCountdownTime = () => {
+            if (this.props.advanceSkipNoticeShow) return Number(Config.config.skipNoticeDurationBefore) + 1;
             if (this.props.maxCountdownTime) return this.props.maxCountdownTime();
             else return Config.config.skipNoticeDuration;
         };
@@ -342,7 +347,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
             return;
         }
 
-        if (countdownTime == 3) {
+        if (countdownTime == 3 && !this.props.fadeOut) {
             //start fade out animation
             const notice = document.getElementById("sponsorSkipNotice" + this.idSuffix);
             notice?.style.removeProperty("animation");
