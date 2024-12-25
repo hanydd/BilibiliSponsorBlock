@@ -1227,7 +1227,7 @@
         "description": "Appears when trying to submit a segment without previewing it first. After the colon, the shortcut will appear"
     },
     "hasbindedPortVideo": {
-        "message": "已绑定搬运视频："
+        "message": "已绑定视频："
     },
     "enterPortVideoURL": {
         "message": "请输入搬运视频地址"

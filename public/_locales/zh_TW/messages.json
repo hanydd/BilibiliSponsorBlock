@@ -809,7 +809,7 @@
     },
     "danmakuOffsetRegexPatternDescription": {
         "message": "時間偏移匹配類似“向右12下”“右方向34次”等格式的彈幕，並以此計算空降時間。"
-    }, 
+    },
     "muteSegments": {
         "message": "允許片段靜音而不是跳過"
     },
@@ -1227,7 +1227,7 @@
         "description": "Appears when trying to submit a segment without previewing it first. After the colon, the shortcut will appear"
     },
     "hasbindedPortVideo": {
-        "message": "已綁定搬運影片："
+        "message": "已綁定影片："
     },
     "enterPortVideoURL": {
         "message": "請輸入搬運影片網址"

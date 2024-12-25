@@ -48,6 +48,10 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
         return !!this.state.portVideo?.UUID;
     }
 
+    getVideoLink(): string {
+        return `https://www.youtube.com/watch?v=${this.state.portVideo.ytbID}`;
+    }
+
     private async submitPortVideo(): Promise<void> {
         const YtbInput = this.inputRef.current.value;
         if (!YtbInput) {
@@ -69,6 +73,7 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
     }
 
     private async vote(vote: number): Promise<void> {
+        this.setState({ loading: true });
         await this.props.sendTabMessageAsync({
             message: "votePortVideo",
             vote: vote,
@@ -86,49 +91,57 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
 
     render() {
         return (
-            <Spin indicator={<LoadingOutlined spin />} delay={100} spinning={this.state.loading}>
-                {this.state.show && (
-                    <div className="port-video-section">
-                        {this.hasPortVideo() ? (
-                            <>
-                                <span>{chrome.i18n.getMessage("hasbindedPortVideo")}</span>
-                                <span>{this.state.portVideo.ytbID}</span>
+            <div className="portVideoBox">
+                <h1 className="sbHeader">同步搬运视频</h1>
+                <Spin indicator={<LoadingOutlined spin />} delay={100} spinning={this.state.loading}>
+                    {this.state.show && (
+                        <div className="portVideoSection">
+                            {this.hasPortVideo() ? (
+                                <>
+                                    <span style={{ color: "var(--sb-grey-fg-color)" }}>
+                                        {chrome.i18n.getMessage("hasbindedPortVideo")}
+                                    </span>
+                                    <a style={{ paddingRight: "12px" }} href={this.getVideoLink()} target="blank">
+                                        {this.state.portVideo.ytbID}
+                                    </a>
 
-                                <img
-                                    className="voteButton"
-                                    title={chrome.i18n.getMessage("upvote")}
-                                    src={chrome.runtime.getURL("icons/thumbs_up.svg")}
-                                    onClick={() => this.vote(1)}
-                                ></img>
-                                <img
-                                    className="voteButton"
-                                    title={chrome.i18n.getMessage("downvote")}
-                                    src={chrome.runtime.getURL("icons/thumbs_down.svg")}
-                                    onClick={() => this.vote(0)}
-                                ></img>
-                                <div
-                                    className="voteButton"
-                                    title={chrome.i18n.getMessage("refreshPortedSegments")}
-                                    onClick={() => this.updatePortedSegments()}
-                                >
-                                    <RefreshIcon style={{ height: 18 }} />
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <input
-                                    ref={this.inputRef}
-                                    type="text"
-                                    placeholder={chrome.i18n.getMessage("enterPortVideoURL")}
-                                ></input>
-                                <button className="active" onClick={() => this.submitPortVideo()}>
-                                    {chrome.i18n.getMessage("submit")}
-                                </button>
-                            </>
-                        )}
-                    </div>
-                )}
-            </Spin>
+                                    <img
+                                        className="voteButton"
+                                        title={chrome.i18n.getMessage("upvote")}
+                                        src={chrome.runtime.getURL("icons/thumbs_up.svg")}
+                                        onClick={() => this.vote(1)}
+                                    ></img>
+                                    <img
+                                        className="voteButton"
+                                        title={chrome.i18n.getMessage("downvote")}
+                                        src={chrome.runtime.getURL("icons/thumbs_down.svg")}
+                                        onClick={() => this.vote(0)}
+                                    ></img>
+                                    <div
+                                        className="voteButton"
+                                        title={chrome.i18n.getMessage("refreshPortedSegments")}
+                                        onClick={() => this.updatePortedSegments()}
+                                    >
+                                        <RefreshIcon style={{ height: 19, width: 19 }} />
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <input
+                                        ref={this.inputRef}
+                                        type="text"
+                                        placeholder={chrome.i18n.getMessage("enterPortVideoURL")}
+                                        className="portVideoInput"
+                                    ></input>
+                                    <button className="portVideoButton" onClick={() => this.submitPortVideo()}>
+                                        {chrome.i18n.getMessage("submit")}
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </Spin>
+            </div>
         );
     }
 }

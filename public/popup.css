@@ -7,6 +7,17 @@
 	--sb-red-bg-color: #00a1d6;
 }
 
+body {
+	-webkit-font-smoothing: antialiased;
+}
+
+input,
+button,
+textarea,
+select {
+	font: inherit;
+}
+
 /*
  * Generic utilities
  */
@@ -346,11 +357,43 @@
 /*
 * Port Video Sections
 */
-.port-video-section {
+.portVideoBox {
+	margin: 16px;
+	padding: 8px 14px;
+	border-radius: 8px;
+	border: 2px solid var(--sb-grey-bg-color);
+}
+
+.portVideoSection {
+	padding: 8px 0;
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
 	align-items: center;
+}
+
+.portVideoInput {
+	padding: 4px 8px;
+	border: none;
+	border-radius: 4px;
+	width: calc(100% - 68px);
+	text-overflow: ellipsis;
+	color: var(--sb-main-fg-color);
+	background-color: var(--sb-grey-bg-color);
+	font-size: 14px;
+}
+
+.portVideoButton {
+	margin-left: 4px;
+	padding: 2px 8px;
+	transition: background 0.3s ease !important;
+	color: var(--sb-main-fg-color);
+	border: none;
+	border-radius: 4px;
+	background-color: #333;
+}
+.portVideoButton:hover {
+	background-color: #444;
 }
 
 /*
