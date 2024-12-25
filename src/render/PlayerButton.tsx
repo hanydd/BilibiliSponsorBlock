@@ -6,6 +6,7 @@ import { AnimationUtils } from "../utils/animationUtils";
 import { waitForElement } from "../utils/dom";
 import { waitFor } from "../utils/index";
 import { getControls } from "../utils/pageUtils";
+import { SponsorTime } from "../types";
 
 const containerId = "bsbPlayerButtonContainer";
 
@@ -14,6 +15,8 @@ export class PlayerButton {
     container: HTMLElement;
     playerButtons: Record<string, { button: HTMLButtonElement; image: HTMLImageElement }>;
     creatingButtons: boolean;
+
+    buttonRef: React.RefObject<{ setSetgments(segments: SponsorTime[]): void }>;
 
     startSegmentCallback: () => void;
     cancelSegmentCallback: () => void;
@@ -39,6 +42,8 @@ export class PlayerButton {
         this.infoCallback = infoCallback;
 
         this.creatingButtons = false;
+
+        this.buttonRef = React.createRef();
     }
 
     public async createButtons(): Promise<Record<string, { button: HTMLButtonElement; image: HTMLImageElement }>> {
@@ -70,6 +75,7 @@ export class PlayerButton {
             this.root = createRoot(this.container);
             this.root.render(
                 <PlayerButtonGroupComponent
+                    ref={this.buttonRef}
                     startSegmentCallback={this.startSegmentCallback}
                     cancelSegmentCallback={this.cancelSegmentCallback}
                     deleteCallback={this.deleteCallback}
@@ -80,8 +86,7 @@ export class PlayerButton {
             controlsContainer.prepend(this.container);
 
             // wait a tick for React to render the buttons
-            await waitFor(() => document.getElementById("submitButton"), 5000, 10);
-            await waitFor(() => document.getElementById("infoButton"), 5000, 10);
+            await this.waitForRender();
             this.playerButtons = {
                 submit: {
                     button: document.getElementById("submitButton") as HTMLButtonElement,
@@ -98,5 +103,16 @@ export class PlayerButton {
             this.creatingButtons = false;
         }
         return this.playerButtons;
+    }
+
+    public async updateSegmentSubmitting(segments: SponsorTime[]) {
+        await this.waitForRender();
+        this.buttonRef.current.setSetgments(segments);
+    }
+
+    private async waitForRender() {
+        await waitFor(() => document.getElementById("submitButton"), 5000, 10);
+        await waitFor(() => document.getElementById("infoButton"), 5000, 10);
+        await waitFor(() => this.buttonRef?.current, 5000, 10);
     }
 }

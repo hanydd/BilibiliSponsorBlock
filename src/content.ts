@@ -2125,7 +2125,7 @@ async function updateVisibilityOfPlayerControlsButton(): Promise<void> {
 function updateSegmentSubmitting(): void {
     // Don't try to update the buttons if we aren't on a Bilibili video page
     if (!getVideoID()) return;
-    window.dispatchEvent(new CustomEvent("sponsorTimesSubmittingChange", { detail: sponsorTimesSubmitting }));
+    playerButton.updateSegmentSubmitting(sponsorTimesSubmitting);
 }
 
 /**

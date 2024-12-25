@@ -1,6 +1,7 @@
 import { ConfigProvider, Popconfirm, theme } from "antd";
 import * as React from "react";
 import Config from "../../config";
+import { SponsorTime } from "../../types";
 import InfoButtonComponent from "./InfoButton";
 import PlayerButtonComponent from "./PlayerButtonComponent";
 
@@ -12,20 +13,27 @@ interface PlayerButtonGroupProps {
     infoCallback: () => void;
 }
 
-function PlayerButtonGroupComponent({
-    startSegmentCallback,
-    cancelSegmentCallback,
-    deleteCallback,
-    submitCallback,
-    infoCallback,
-}: PlayerButtonGroupProps) {
-    const [sponsorTimesSubmitting, setSponsorTimesSubmitting] = React.useState([]);
+const PlayerButtonGroupComponent = React.forwardRef(function (
+    {
+        startSegmentCallback,
+        cancelSegmentCallback,
+        deleteCallback,
+        submitCallback,
+        infoCallback,
+    }: PlayerButtonGroupProps,
+    ref
+) {
+    const divRef = React.useRef(null);
 
-    React.useEffect(() => {
-        const handleShowInfoButton = (e: CustomEvent) => setSponsorTimesSubmitting([...e.detail]);
-        window.addEventListener("sponsorTimesSubmittingChange", handleShowInfoButton);
-        return () => window.removeEventListener("sponsorTimesSubmittingChange", handleShowInfoButton);
-    }, []);
+    const [sponsorTimesSubmitting, setSponsorTimesSubmitting] = React.useState<SponsorTime[]>([]);
+
+    React.useImperativeHandle(ref, () => {
+        return {
+            setSetgments(segments: SponsorTime[]) {
+                setSponsorTimesSubmitting([...segments]);
+            },
+        };
+    });
 
     function isCreatingSegment(): boolean {
         const segment = sponsorTimesSubmitting.at(-1);
@@ -56,7 +64,7 @@ function PlayerButtonGroupComponent({
 
     return (
         <ConfigProvider theme={{ token: { colorPrimary: "#00aeec" }, algorithm: theme.darkAlgorithm }}>
-            <div style={{ display: Config.config.hideVideoPlayerControls ? "none" : "contents" }}>
+            <div ref={divRef} style={{ display: Config.config.hideVideoPlayerControls ? "none" : "contents" }}>
                 <InfoButtonComponent infoCallback={infoCallback}></InfoButtonComponent>
 
                 <PlayerButtonComponent
@@ -105,6 +113,7 @@ function PlayerButtonGroupComponent({
             </div>
         </ConfigProvider>
     );
-}
+});
+PlayerButtonGroupComponent.displayName = "PlayerButtonGroupComponent";
 
 export default PlayerButtonGroupComponent;
