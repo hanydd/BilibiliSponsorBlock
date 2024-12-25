@@ -192,7 +192,7 @@ function migrateOldSyncFormats(config: SBConfig) {
         config["serverAddress"] = CompileConfig.serverAddress;
     }
 
-    // "danmakuRegexPattern" 在 0.5.9 版本中被移除，
+    // "danmakuRegexPattern" 在 0.6.0 版本中被移除，
     // 取而代之的是 "danmakuTimeMatchingRegexPattern" 和 "danmakuOffsetMatchingRegexPattern"
     delete config["danmakuRegexPattern"];
 }
