@@ -769,18 +769,30 @@
     "checkTimeDanmakuSkip": {
         "message": "檢查片段附近是否已有上傳的跳過資訊，已有則不觸發此功能"
     },
-    "danmakuRegexPattern": {
-        "message": "匹配正則: "
+    "danmakuTimeMatchingRegexPattern": {
+        "message": "空降時間匹配正則: "
     },
     "danmakuRegexPatternPlaceholder": {
-        "message": "正則要求能捕獲2到3組數字"
+        "message": "能匹配2~3組數字的正則表達式"
     },
     "danmakuRegexTitle": {
-        "message": "請輸入一個匹配時間格式的正則表達式，要求能捕獲2到3組數字。如果不清楚如何寫正則表達式，請勿修改此項"
+        "message": "請輸入一個匹配時間格式的正則表達式，要求能捕獲2~3組數字。如果不清楚如何寫正則表達式，請勿修改此項"
     },
-    "danmakuRegexPatternDescription": {
-        "message": "啟用基於彈幕的跳過功能，目前處於實驗狀態"
+    "danmakuTimeMatchingRegexPatternDescription": {
+        "message": "空降時間匹配類似“01:23”“四分五十六秒”“1分2秒”等格式的彈幕。"
     },
+    "danmakuOffsetMatchingRegexPattern": {
+        "message": "時間偏移匹配正則: "
+    },
+    "danmakuOffsetRegexPatternPlaceholder": {
+        "message": "能匹配時間偏移指令的正則表達式"
+    },
+    "danmakuOffsetRegexTitle": {
+        "message": "請輸入一個匹配時間偏移指令的正則表達式。如果不清楚如何寫正則表達式，請勿修改此項"
+    },
+    "danmakuOffsetRegexPatternDescription": {
+        "message": "時間偏移匹配類似“向右12下”“右方向34次”等格式的彈幕，並以此計算空降時間。"
+    }, 
     "muteSegments": {
         "message": "允許片段靜音而不是跳過"
     },
