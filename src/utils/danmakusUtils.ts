@@ -14,22 +14,33 @@ export function parseTargetTimeFromDanmaku(text: string, currentTime: number) {
      * @param text - 包含需要解析的时间的输入字符串。
      * @returns 由时间字符串表示的总秒数，如果时间字符串无效则返回null。
      *
-     * 该函数使用在 `Config.config.danmakuTimeMatchingRegexPattern` 中定义的正则表达式模式
-     * 来匹配和提取输入字符串中的小时、分钟和秒。如果匹配成功且有效，
-     * 它通过将小时转换为秒、分钟转换为秒并将它们加到解析的秒数中来计算总秒数。
+     * 该函数使用正则表达式来匹配和提取输入字符串中的小时、分钟和秒。
+     * 如果匹配成功且有效，则返回总秒数；否则返回null。
      */
     function parseTime(text: string) {
-        const regex = new RegExp(Config.config.danmakuTimeMatchingRegexPattern, "g");
+        const danmakuTimeMatchingRegex =
+            /(?:(\d{1,2})\s*(?:(小时|h|H)|(:|：|；|;|\.|-|—))\s*)?(?:(\d{1,2})\s*(分钟|分|:|：|；|;|\.|-|—|m|M)\s*)?(?:(\d{1,2}|整)\s*(秒|s|S)?)/g;
 
         let match: RegExpExecArray | null;
-        while ((match = regex.exec(text)) !== null) {
-            const [, , minutes, seconds, secondsSuffix] = match;
+        while ((match = danmakuTimeMatchingRegex.exec(text)) !== null) {
+            const [, hours, hourSpecificSuffix, , minutes, minuteSuffix, seconds, secondSuffix] = match;
 
-            if (seconds && (secondsSuffix || minutes)) {
-                const hours = parseInt(match[1] || "0");
-                const minutes = parseInt(match[2] || "0");
-                const seconds = parseInt(match[3] || "0");
-                return hours * 3600 + minutes * 60 + seconds;
+            if (seconds !== undefined && (secondSuffix !== undefined || minutes !== undefined || hours !== undefined)) {
+                let hoursNum = hours ? parseInt(hours) : 0;
+                let minutesNum = minutes ? parseInt(minutes) : 0;
+                const secondsNum = seconds === "整" ? 0 : parseInt(seconds);
+
+                if (
+                    hours !== undefined &&
+                    hourSpecificSuffix === undefined &&
+                    minutes === undefined &&
+                    minuteSuffix === undefined
+                ) {
+                    minutesNum = hoursNum;
+                    hoursNum = 0;
+                }
+
+                return hoursNum * 3600 + minutesNum * 60 + secondsNum;
             }
         }
 
@@ -65,10 +76,13 @@ export function parseTargetTimeFromDanmaku(text: string, currentTime: number) {
     text = text.replace(/[零一二三四五六七八九两壹贰叁肆伍陆柒捌玖十百千万]+/g, (cnNum) => parseChineseNumber(cnNum));
 
     const directParsedTime = parseTime(text);
-    if (directParsedTime) return directParsedTime;
-    else {
+    if (directParsedTime) {
+        return directParsedTime;
+    } else {
         const offsetParsedTime = parseOffsetTime(text);
-        if (offsetParsedTime) return offsetParsedTime + currentTime;
+        if (offsetParsedTime) {
+            return offsetParsedTime + currentTime;
+        }
     }
     return null;
 }
@@ -77,7 +91,7 @@ export function parseTargetTimeFromDanmaku(text: string, currentTime: number) {
  * 将中文数字字符串转换为阿拉伯数字字符串。
  *
  * @param inputText - 包含中文数字的字符串。
- * @returns 转换后的阿拉伯数字字符串。如果输入包含无效字符，则返回 null。
+ * @returns 转换后的阿拉伯数字字符串。如果输入包含无效字符，则返回空字符串。
  *
  * @example
  * ```typescript
@@ -85,10 +99,10 @@ export function parseTargetTimeFromDanmaku(text: string, currentTime: number) {
  * parseChineseNumber("十二"); // 返回 "12"
  * parseChineseNumber("二十"); // 返回 "20"
  * parseChineseNumber("二十一"); // 返回 "21"
- * parseChineseNumber("一百"); // 返回 null
+ * parseChineseNumber("一百"); // 返回 ""
  * ```
  */
-export function parseChineseNumber(inputText: string) {
+export function parseChineseNumber(inputText: string): string {
     const cnChrMap: { [key: string]: number } = {
         零: 0,
         一: 1,
@@ -130,7 +144,7 @@ export function parseChineseNumber(inputText: string) {
             num = num * unit;
             unit = 1;
         } else {
-            return null;
+            return "";
         }
     }
 

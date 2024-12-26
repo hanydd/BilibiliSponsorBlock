@@ -786,18 +786,6 @@
     "checkTimeDanmakuSkip": {
         "message": "检查片段附近是否已有上传的跳过信息，已有则不触发此功能"
     },
-    "danmakuTimeMatchingRegexPattern": {
-        "message": "空降时间匹配正则: "
-    },
-    "danmakuRegexPatternPlaceholder": {
-        "message": "能匹配2~3组数字的正则表达式"
-    },
-    "danmakuRegexTitle": {
-        "message": "请输入一个匹配时间格式的正则表达式，要求能捕获2~3组数字。如果不清楚如何写正则表达式，请勿修改此项"
-    },
-    "danmakuTimeMatchingRegexPatternDescription": {
-        "message": "空降时间匹配类似“01:23”“四分五十六秒”“1分2秒”等格式的弹幕。"
-    },
     "danmakuOffsetMatchingRegexPattern": {
         "message": "时间偏移匹配正则: "
     },
