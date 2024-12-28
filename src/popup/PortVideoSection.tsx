@@ -90,56 +90,57 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
     }
 
     render() {
+        if (!this.state.show) {
+            return <></>;
+        }
         return (
             <div className="portVideoBox">
                 <h1 className="sbHeader">{chrome.i18n.getMessage("bindPortVideo")}</h1>
                 <Spin indicator={<LoadingOutlined spin />} delay={100} spinning={this.state.loading}>
-                    {this.state.show && (
-                        <div className="portVideoSection">
-                            {this.hasPortVideo() ? (
-                                <>
-                                    <span style={{ color: "var(--sb-grey-fg-color)" }}>
-                                        {chrome.i18n.getMessage("hasbindedPortVideo")}
-                                    </span>
-                                    <a style={{ paddingRight: "12px" }} href={this.getVideoLink()} target="blank">
-                                        {this.state.portVideo.ytbID}
-                                    </a>
+                    <div className="portVideoSection">
+                        {this.hasPortVideo() ? (
+                            <>
+                                <span style={{ color: "var(--sb-grey-fg-color)" }}>
+                                    {chrome.i18n.getMessage("hasbindedPortVideo")}
+                                </span>
+                                <a style={{ paddingRight: "12px" }} href={this.getVideoLink()} target="blank">
+                                    {this.state.portVideo.ytbID}
+                                </a>
 
-                                    <img
-                                        className="voteButton"
-                                        title={chrome.i18n.getMessage("upvote")}
-                                        src={chrome.runtime.getURL("icons/thumbs_up.svg")}
-                                        onClick={() => this.vote(1)}
-                                    ></img>
-                                    <img
-                                        className="voteButton"
-                                        title={chrome.i18n.getMessage("downvote")}
-                                        src={chrome.runtime.getURL("icons/thumbs_down.svg")}
-                                        onClick={() => this.vote(0)}
-                                    ></img>
-                                    <div
-                                        className="voteButton"
-                                        title={chrome.i18n.getMessage("refreshPortedSegments")}
-                                        onClick={() => this.updatePortedSegments()}
-                                    >
-                                        <RefreshIcon style={{ height: 19, width: 19 }} />
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <input
-                                        ref={this.inputRef}
-                                        type="text"
-                                        placeholder={chrome.i18n.getMessage("enterPortVideoURL")}
-                                        className="portVideoInput"
-                                    ></input>
-                                    <button className="portVideoButton" onClick={() => this.submitPortVideo()}>
-                                        {chrome.i18n.getMessage("submit")}
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    )}
+                                <img
+                                    className="voteButton"
+                                    title={chrome.i18n.getMessage("upvote")}
+                                    src={chrome.runtime.getURL("icons/thumbs_up.svg")}
+                                    onClick={() => this.vote(1)}
+                                ></img>
+                                <img
+                                    className="voteButton"
+                                    title={chrome.i18n.getMessage("downvote")}
+                                    src={chrome.runtime.getURL("icons/thumbs_down.svg")}
+                                    onClick={() => this.vote(0)}
+                                ></img>
+                                <div
+                                    className="voteButton"
+                                    title={chrome.i18n.getMessage("refreshPortedSegments")}
+                                    onClick={() => this.updatePortedSegments()}
+                                >
+                                    <RefreshIcon style={{ height: 19, width: 19 }} />
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <input
+                                    ref={this.inputRef}
+                                    type="text"
+                                    placeholder={chrome.i18n.getMessage("enterPortVideoURL")}
+                                    className="portVideoInput"
+                                ></input>
+                                <button className="portVideoButton" onClick={() => this.submitPortVideo()}>
+                                    {chrome.i18n.getMessage("submit")}
+                                </button>
+                            </>
+                        )}
+                    </div>
                 </Spin>
             </div>
         );
