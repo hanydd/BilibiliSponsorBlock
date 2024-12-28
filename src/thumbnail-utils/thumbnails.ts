@@ -1,7 +1,7 @@
 import Config from "../config";
+import { getVideoLabel } from "../requests/videoLabels";
 import { waitFor } from "../utils/";
 import { getBvIDFromURL } from "../utils/parseVideoID";
-import { getVideoLabel } from "../requests/videoLabels";
 
 export async function labelThumbnails(thumbnails: HTMLElement[]): Promise<void> {
     await Promise.all(thumbnails.map((t) => labelThumbnail(t as HTMLImageElement)));
@@ -22,6 +22,7 @@ export async function labelThumbnail(
         (await Promise.allSettled(links.filter((link) => link && link.href).map((link) => getBvIDFromURL(link.href))))
             .filter((result) => result.status === "fulfilled")
             .map((result) => result.value)
+            .filter((id) => !!id)
     );
     if (videoIDs.size !== 1) {
         // none or multiple video IDs found
@@ -29,6 +30,12 @@ export async function labelThumbnail(
         return null;
     }
     const [videoID] = videoIDs;
+
+    const category = await getVideoLabel(videoID);
+    if (!category) {
+        hideThumbnailLabel(thumbnail);
+        return null;
+    }
 
     // 获取或创建缩略图标签
     const { overlay, text } = await createOrGetThumbnail(thumbnail);
@@ -38,12 +45,6 @@ export async function labelThumbnail(
         if (oldVideoID && oldVideoID == videoID) {
             return overlay;
         }
-    }
-
-    const category = await getVideoLabel(videoID);
-    if (!category) {
-        hideThumbnailLabel(thumbnail);
-        return null;
     }
 
     overlay.style.setProperty(
@@ -96,7 +97,10 @@ async function createOrGetThumbnail(thumbnail: HTMLImageElement): Promise<{ over
     // wait unitl there is an anchor point, or the label might get inserted elsewhere and break the header
     const labelAnchor =
         (await waitFor(
-            () => thumbnail.querySelector("div:not(.b-img--face) > picture img:not(.bili-avatar-img)"),
+            () =>
+                thumbnail.querySelector(
+                    "div:not(.b-img--face) > picture img:not(.bili-avatar-img), div.bili-cover-card__thumbnail > img"
+                ),
             10000,
             1000
         )) ?? thumbnail.lastChild;

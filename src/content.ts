@@ -133,7 +133,14 @@ let headerLoaded = false;
 setupPageLoadingListener();
 
 setupVideoModule({ videoIDChange, channelIDChange, resetValues, videoElementChange });
-setupThumbnailListener();
+
+// 首页等待页面加载完毕后再检测封面，避免干扰hydration
+if (getPageType() === PageType.Main) {
+    waitFor(() => getPageLoaded()).then(setupThumbnailListener);
+} else {
+    setupThumbnailListener();
+}
+
 setMessageNotice(false, getPageLoaded);
 
 const playerButton = new PlayerButton(
@@ -149,7 +156,7 @@ const playerButton = new PlayerButton(
  */
 async function setupPageLoadingListener() {
     // header栏会加载组件，登录后触发5次mutation，未登录触发4次mutation
-    const header = await waitFor(() => document.querySelector("#biliMainHeader"), 10000, 100);
+    const header = await waitFor(() => document.querySelector("#biliMainHeader, .bili-header"), 10000, 100);
     let mutationCounter = 0;
     const headerObserver = new MutationObserver(async () => {
         mutationCounter += 1;

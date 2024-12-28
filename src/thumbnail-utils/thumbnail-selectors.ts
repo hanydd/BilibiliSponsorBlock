@@ -46,15 +46,25 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         containerSelector: "#playlist-video-action-list-body",
         thumbnailSelector: ".action-list-item",
     },
-    "spaceMain": {
-        // 用户空间主页
+    "oldSpaceMain": {
+        // 旧用户空间主页
         containerSelector: ".s-space .i-pin-v",
         thumbnailSelector: ".i-pin-part",
     },
-    "spaceUpload": {
-        // 用户空间投稿+首页投稿
+    "spaceMain": {
+        // 新用户空间主页 2412更新
+        containerSelector: ".space-home",
+        thumbnailSelector: ".bili-video-card",
+    },
+    "oldSpaceUpload": {
+        // 旧用户空间投稿+首页投稿
         containerSelector: ".s-space",
         thumbnailSelector: ".small-item",
+    },
+    "spaceUpload": {
+        // 新用户空间投稿+首页投稿 2412更新
+        containerSelector: ".space-main",
+        thumbnailSelector: ".bili-video-card",
     },
     "dynamic": {
         // 动态首页页面
@@ -81,7 +91,7 @@ const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
     [PageType.List]: ["listPlayerSideRecommendation", "listPlayerListCard"],
     [PageType.Search]: ["search"],
     [PageType.Dynamic]: ["dynamic"],
-    [PageType.Channel]: ["spaceMain", "spaceUpload", "channelDynamic"],
+    [PageType.Channel]: ["oldSpaceMain", "spaceMain", "oldSpaceUpload", "spaceUpload", "channelDynamic"],
     [PageType.Message]: [],
     [PageType.Manga]: [],
     [PageType.Anime]: [],
