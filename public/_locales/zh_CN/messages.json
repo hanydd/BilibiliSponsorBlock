@@ -1234,5 +1234,8 @@
     },
     "refreshFailed": {
         "message": "更新失败！"
+    },
+    "bindPortVideo": {
+        "message": "同步搬运视频"
     }
 }

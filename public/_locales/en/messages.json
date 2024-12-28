@@ -1192,7 +1192,7 @@
         "description": "This is used on the popup to show how much time left. It will look like \"5s\". The word {seconds} will be replaced, so keep it here. Translations should only change the \"s\""
     },
     "FillerWarning": {
-        "message": "Warning: This is an incredibly aggressive category. You most likely will have to unskip stuff, or disable it sometimes. Be warned that many videos have over 50% or more of the video skipped! However, remember that there are still specific guidelines to follow when submitting.",
+        "message": "警告：这是一个非常激进的分类。 您很可能会需要取消跳过某些内容，或者有时候需要禁用它。 请注意，许多视频的跳过率超过50%甚至更多！ 但是请记住，在提交时仍需遵守特定的指导原则。",
         "description": "Warning that appears when enabling the filler tangent category"
     },
     "cleanPopup": {
@@ -1234,5 +1234,8 @@
     },
     "refreshFailed": {
         "message": "更新失败！"
+    },
+    "bindPortVideo": {
+        "message": "同步搬运视频"
     }
 }

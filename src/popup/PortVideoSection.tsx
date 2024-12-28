@@ -92,7 +92,7 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
     render() {
         return (
             <div className="portVideoBox">
-                <h1 className="sbHeader">同步搬运视频</h1>
+                <h1 className="sbHeader">{chrome.i18n.getMessage("bindPortVideo")}</h1>
                 <Spin indicator={<LoadingOutlined spin />} delay={100} spinning={this.state.loading}>
                     {this.state.show && (
                         <div className="portVideoSection">
