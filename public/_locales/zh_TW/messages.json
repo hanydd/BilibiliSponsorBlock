@@ -174,7 +174,7 @@
         "message": "設定使用者名稱"
     },
     "copyPublicID": {
-        "message": "複製公開的用戶ID"
+        "message": "複製公開的使用者ID"
     },
     "copySegmentID": {
         "message": "複製片段 ID"
@@ -219,7 +219,7 @@
         "message": "啟用跳過次數統計跟蹤"
     },
     "whatViewTracking": {
-        "message": "此功能追蹤您跳過了哪些片段，讓用戶知道他們提交的片段幫助了多少人。同時按讚會作為依據，確保垃圾資訊不會汙染資料庫。在您每次跳過片段時，我們都會向伺服器發送一條消息。希望大家開啟此項設定，以便得到更準確的統計資料。:)"
+        "message": "此功能追蹤您跳過了哪些片段，讓使用者知道他們提交的片段幫助了多少人。同時按讚會作為依據，確保垃圾資訊不會汙染資料庫。在您每次跳過片段時，我們都會向伺服器發送一條消息。希望大家開啟此項設定，以便得到更準確的統計資料。:)"
     },
     "enableViewTrackingInPrivate": {
         "message": "在無痕模式中啟用跳過計數跟蹤"
@@ -231,7 +231,7 @@
         "message": "儲存被您倒讚的片段，即使在重整後也會保持隱藏"
     },
     "trackDownvotesWarning": {
-        "message": "警告：禁用此功能將刪除所有先前儲存的倒讚"
+        "message": "警告：停用此功能將刪除所有先前儲存的倒讚"
     },
     "enableTrackDownvotesInPrivate": {
         "message": "儲存在無痕模式中的倒讚"
@@ -388,7 +388,7 @@
         "description": "Used for skipping to things (Skipped to Highlight)"
     },
     "disableAutoSkip": {
-        "message": "禁用自動跳過"
+        "message": "停用自動跳過"
     },
     "enableAutoSkip": {
         "message": "啟用自動跳過"
@@ -397,7 +397,7 @@
         "message": "跳過時音訊通知"
     },
     "audioNotificationDescription": {
-        "message": "在跳過片段時播放聲音。如果禁用（或禁用自動跳過），則不會播放聲音。"
+        "message": "在跳過片段時播放聲音。如果停用（或停用自動跳過），則不會播放聲音。"
     },
     "showTimeWithSkips": {
         "message": "顯示減去可跳片段後的影片時長"
@@ -438,16 +438,16 @@
         "message": "在 status.bsbsb.top 檢查伺服器狀態。"
     },
     "changeUserID": {
-        "message": "匯入/匯出您的私人用戶ID"
+        "message": "匯入/匯出您的私人使用者ID"
     },
     "whatChangeUserID": {
-        "message": "私人ID應該被保密。如果他人獲得了您的私人ID，他就可以冒充您。如果您想找公開用戶ID，請點擊彈出視窗中的剪貼簿圖示。"
+        "message": "私人ID應該被保密。如果他人獲得了您的私人ID，他就可以冒充您。如果您想找公開使用者ID，請點擊彈出視窗中的剪貼簿圖示。"
     },
     "setUserID": {
-        "message": "設定私人用戶ID"
+        "message": "設定私人使用者ID"
     },
     "userIDChangeWarning": {
-        "message": "警告：更改私人用戶ID是永久性的。您確定要這麼做嗎？請務必備份您的舊私人ID以防萬一。"
+        "message": "警告：更改私人使用者ID是永久性的。您確定要這麼做嗎？請務必備份您的舊私人ID以防萬一。"
     },
     "createdBy": {
         "message": "建立者"
@@ -471,16 +471,16 @@
         "message": "播放器和按鈕"
     },
     "showNewIcon": {
-        "message": "使用新圖標"
+        "message": "使用新圖示"
     },
     "optionSectionPortVideo": {
         "message": "搬運影片綁定"
     },
     "optionSectionExtensionRelated": {
-        "message": "插件相關選項"
+        "message": "外掛程式相關選項"
     },
     "advanceSkipNotice": {
-        "message": "提前顯示跳過提醒視窗（仅启用＂自动跳过＂的片段）"
+        "message": "提前顯示跳過提醒視窗（僅啟用＂自動跳過＂的片段）"
     },
     "skipNoticeDurationBefore": {
         "message": "跳過提醒提前跳出視窗時間（秒）："
@@ -489,7 +489,7 @@
         "message": "跳過提醒提前跳出視窗的提前時常。"
     },
     "skipNoticeDuration": {
-        "message": "跳過后或跳過提醒顯示時間（秒）："
+        "message": "跳過後或跳過提醒顯示時間（秒）："
     },
     "skipNoticeDurationDescription": {
         "message": "您跳過片段或者跳過提醒跳出視窗的顯示時常。用於您對片段進行投票或者跳過/取消跳過。\n手動跳過的提醒可能會顯示更久。"
@@ -531,7 +531,7 @@
         "message": "從文件載入"
     },
     "whatExportOptions": {
-        "message": "這是您所有設置的 JSON 格式。它包含了您的私人用戶 ID ，所以您一定要謹慎的保管它。"
+        "message": "這是您所有設置的 JSON 格式。它包含了您的私人使用者 ID ，所以您一定要謹慎的保管它。"
     },
     "setOptions": {
         "message": "設定選項"
@@ -573,7 +573,7 @@
         "message": "複製到剪貼簿失敗"
     },
     "copyDebugInformationOptions": {
-        "message": "複製資訊到剪貼簿，在提交錯誤時提供給開發者。 敏感資訊如：您的用戶ID、頻道白名單和自訂伺服器地址等已被刪除。然而，它仍然包含諸如您的UserAgent ，瀏覽器，作業系統和外掛程式版本號等資訊。 "
+        "message": "複製資訊到剪貼簿，在提交錯誤時提供給開發者。 敏感資訊如：您的使用者ID、頻道白名單和自訂伺服器地址等已被刪除。然而，它仍然包含諸如您的UserAgent ，瀏覽器，作業系統和外掛程式版本號等資訊。 "
     },
     "copyDebugInformationComplete": {
         "message": "除錯資訊已複製到剪貼簿中。 您可以隨意移除任何您不想分享的資訊。請將其另存為 .txt 文件或貼到錯誤報告中。"
@@ -757,7 +757,7 @@
         "message": "在進度條中顯示"
     },
     "disable": {
-        "message": "禁用"
+        "message": "停用"
     },
     "autoSkip_POI": {
         "message": "自動跳至位置"
@@ -781,7 +781,7 @@
         "message": "匹配成功後自動跳過"
     },
     "menuDanmakuSkip": {
-        "message": "匹配成功後打開提交窗口"
+        "message": "匹配成功後打開提交視窗"
     },
     "checkTimeDanmakuSkip": {
         "message": "檢查片段附近是否已有上傳的跳過資訊，已有則不觸發此功能"
@@ -790,10 +790,10 @@
         "message": "時間偏移匹配正則: "
     },
     "danmakuOffsetRegexPatternPlaceholder": {
-        "message": "能匹配時間偏移指令的正則表達式"
+        "message": "能匹配時間偏移指令的正規表示式"
     },
     "danmakuOffsetRegexTitle": {
-        "message": "請輸入一個匹配時間偏移指令的正則表達式。如果不清楚如何寫正則表達式，請勿修改此項"
+        "message": "請輸入一個匹配時間偏移指令的正規表示式。如果不清楚如何寫正規表示式，請勿修改此項"
     },
     "danmakuOffsetRegexPatternDescription": {
         "message": "時間偏移匹配類似“向右12下”“右方向34次”等格式的彈幕，並以此計算空降時間。"
@@ -830,7 +830,7 @@
         "message": "您的提交和投票將不會計入主伺服器。它只被用於測試。"
     },
     "testingServerWarning": {
-        "message": "當連接到測試伺服器時，所有的提交和投票將不會計入主伺服器。當您想要進行真實提交時，請確保禁用了此選項。"
+        "message": "當連接到測試伺服器時，所有的提交和投票將不會計入主伺服器。當您想要進行真實提交時，請確保停用了此選項。"
     },
     "bracketNow": {
         "message": "[設為目前]"
@@ -1192,14 +1192,14 @@
         "description": "This is used on the popup to show how much time left. It will look like \"5s\". The word {seconds} will be replaced, so keep it here. Translations should only change the \"s\""
     },
     "FillerWarning": {
-        "message": "警告：這是一個非常激進的分類。您很可能會需要取消跳過某些內容，或者有時候需要禁用它。請注意，許多影片的跳過率超過50%或更多！然而，請記住，在提交時仍需遵守特定的指導原則。",
+        "message": "警告：這是一個非常激進的分類。您很可能會需要取消跳過某些內容，或者有時候需要停用它。請注意，許多影片的跳過率超過50%或更多！然而，請記住，在提交時仍需遵守特定的指導原則。",
         "description": "Warning that appears when enabling the filler tangent category"
     },
     "cleanPopup": {
         "message": "簡化彈出視窗內容"
     },
     "syncDisabledWarning": {
-        "message": "警告：您的瀏覽器已禁用擴充功能儲存功能。如果您嘗試儲存設定，這些設定將無法被儲存。"
+        "message": "警告：您的瀏覽器已停用擴充功能儲存功能。如果您嘗試儲存設定，這些設定將無法被儲存。"
     },
     "syncDisabledWarningDeArrow": {
         "message": "DeArrow 在沒有儲存功能的情況下將無法運作。"
