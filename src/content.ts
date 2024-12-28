@@ -4,13 +4,13 @@ import { Keybind, keybindEquals, keybindToString, StorageChangesObject } from ".
 import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";
 import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
+import advanceSkipNotice from "./render/advanceSkipNotice";
 import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";
 import { DescriptionPortPill } from "./render/DesciptionPortPill";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
-import advanceSkipNotice from "./render/advanceSkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
 import { FetchResponse } from "./requests/background-request-proxy";
 import { getPortVideoByHash, postPortVideo, postPortVideoVote, updatePortedSegments } from "./requests/portVideo";
@@ -488,7 +488,7 @@ function resetValues() {
         skipNotices.pop()?.close();
     }
 
-    if(advanceSkipNotices){
+    if (advanceSkipNotices) {
         advanceSkipNotices.close();
         advanceSkipNotices = null;
     }
@@ -689,9 +689,7 @@ async function startSponsorSchedule(
             shouldSkip(currentSkip) ||
             sponsorTimesSubmitting?.some((segment) => segment.segment === currentSkip.segment)
         ) {
-            if (
-                forceVideoTime >= skipTime[0] - skipBuffer && forceVideoTime < skipTime[1]
-            ) {
+            if (forceVideoTime >= skipTime[0] - skipBuffer && forceVideoTime < skipTime[1]) {
                 skipToTime({
                     v: getVideo(),
                     skipTime,
@@ -795,18 +793,20 @@ async function startSponsorSchedule(
         } else {
             logDebug(`Starting timeout to skip ${getVideo().currentTime} to skip at ${skipTime[0]}`);
 
-            const offset = (isFirefoxOrSafari() && !isSafari() ? 600 : 150);
+            const offset = isFirefoxOrSafari() && !isSafari() ? 600 : 150;
             // Schedule for right before to be more precise than normal timeout
             const offsetDelayTime = Math.max(0, delayTime - offset);
             currentSkipSchedule = setTimeout(skippingFunction, offsetDelayTime);
 
-            if (Config.config.advanceSkipNotice
-                && Config.config.skipNoticeDurationBefore > 0
-                && getVideo().currentTime < skippingSegments[0].segment[0]
-                && !sponsorTimesSubmitting?.some((segment) => segment.segment === currentSkip.segment)
-                && [ActionType.Skip, ActionType.Mute].includes(skippingSegments[0].actionType)
-                && shouldAutoSkip(skippingSegments[0])
-                && !getVideo()?.paused) {
+            if (
+                Config.config.advanceSkipNotice &&
+                Config.config.skipNoticeDurationBefore > 0 &&
+                getVideo().currentTime < skippingSegments[0].segment[0] &&
+                !sponsorTimesSubmitting?.some((segment) => segment.segment === currentSkip.segment) &&
+                [ActionType.Skip, ActionType.Mute].includes(skippingSegments[0].actionType) &&
+                shouldAutoSkip(skippingSegments[0]) &&
+                !getVideo()?.paused
+            ) {
                 const maxPopupTime = Config.config.skipNoticeDurationBefore * 1000;
                 const timeUntilPopup = Math.max(0, offsetDelayTime - maxPopupTime);
                 const autoSkip = shouldAutoSkip(skippingSegments[0]);
@@ -814,7 +814,7 @@ async function startSponsorSchedule(
                 if (currentadvanceSkipSchedule) clearTimeout(currentadvanceSkipSchedule);
                 currentadvanceSkipSchedule = setTimeout(() => {
                     createAdvanceSkipNotice([skippingSegments[0]], skipTime[0], autoSkip, false);
-                    sessionStorage.setItem('SKIPPING', 'true');
+                    sessionStorage.setItem("SKIPPING", "true");
                 }, timeUntilPopup);
             }
         }
@@ -1938,9 +1938,8 @@ function sendTelemetryAndCount(skippingSegments: SponsorTime[], secondsSkipped: 
 
 //skip from the start time to the end time for a certain index sponsor time
 function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, unskipTime }: SkipToTimeParams): void {
-    if (Config.config.disableSkipping
-        || sessionStorage.getItem('SKIPPING') === 'false'
-    ) return sessionStorage.setItem('SKIPPING', 'null');
+    if (Config.config.disableSkipping || sessionStorage.getItem("SKIPPING") === "false")
+        return sessionStorage.setItem("SKIPPING", "null");
 
     // There will only be one submission if it is manual skip
     const autoSkip: boolean = forceAutoSkip || shouldAutoSkip(skippingSegments[0]);
@@ -2056,13 +2055,15 @@ function createSkipNotice(
     const newSkipNotice = new SkipNotice(
         skippingSegments,
         autoSkip,
-        skipNoticeContentContainer, () => {
+        skipNoticeContentContainer,
+        () => {
             advanceSkipNotices?.close();
             advanceSkipNotices = null;
         },
         unskipTime,
         startReskip,
-        advanceSkipNoticeShow);
+        advanceSkipNoticeShow
+    );
     if (Config.config.skipKeybind == null) newSkipNotice.setShowKeybindHint(false);
     skipNotices.push(newSkipNotice);
 
@@ -2074,11 +2075,9 @@ function createAdvanceSkipNotice(
     skippingSegments: SponsorTime[],
     unskipTime: number,
     autoSkip: boolean,
-    startReskip: boolean,
+    startReskip: boolean
 ) {
-    if (advanceSkipNotices
-        && !advanceSkipNotices.closed
-        && advanceSkipNotices.sameNotice(skippingSegments)) {
+    if (advanceSkipNotices && !advanceSkipNotices.closed && advanceSkipNotices.sameNotice(skippingSegments)) {
         return;
     }
 
