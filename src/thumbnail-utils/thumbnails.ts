@@ -31,12 +31,6 @@ export async function labelThumbnail(
     }
     const [videoID] = videoIDs;
 
-    const category = await getVideoLabel(videoID);
-    if (!category) {
-        hideThumbnailLabel(thumbnail);
-        return null;
-    }
-
     // 获取或创建缩略图标签
     const { overlay, text } = await createOrGetThumbnail(thumbnail);
 
@@ -45,6 +39,12 @@ export async function labelThumbnail(
         if (oldVideoID && oldVideoID == videoID) {
             return overlay;
         }
+    }
+
+    const category = await getVideoLabel(videoID);
+    if (!category) {
+        hideThumbnailLabel(thumbnail);
+        return null;
     }
 
     overlay.style.setProperty(
