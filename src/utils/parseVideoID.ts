@@ -35,7 +35,7 @@ export async function getBvIDFromURL(url: string): Promise<VideoID | null> {
     //Attempt to parse url
     let urlObject: URL | null = null;
     try {
-        urlObject = new URL(url);
+        urlObject = new URL(url, window.location.origin);
     } catch (e) {
         console.error("[BSB] Unable to parse URL: " + url);
         return null;
