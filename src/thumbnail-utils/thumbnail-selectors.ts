@@ -15,8 +15,8 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
     },
     "historyPopup": {
         // 历史视频弹出框
-        containerSelector: ".bili-header .right-entry .v-popover-wrap:nth-of-type(5)",
-        thumbnailSelector: "a[data-mod=top_right_bar_window_history]",
+        containerSelector: ".bili-header .right-entry .v-popover-wrap:nth-of-type(5) div.v-popover-content",
+        thumbnailSelector: "a.header-history-card",
         customLinkSelector: "",
     },
     "mainPageRecommendation": {
@@ -26,7 +26,7 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
     },
     "playerSideRecommendation": {
         // 播放页推荐
-        containerSelector: "#reco_list",
+        containerSelector: ".right-container",
         thumbnailSelector: ".video-page-card-small",
     },
     "listPlayerSideRecommendation": {

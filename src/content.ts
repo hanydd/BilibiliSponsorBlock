@@ -135,11 +135,10 @@ setupPageLoadingListener();
 setupVideoModule({ videoIDChange, channelIDChange, resetValues, videoElementChange });
 
 // 首页等待页面加载完毕后再检测封面，避免干扰hydration
-if (getPageType() === PageType.Main) {
-    waitFor(() => getPageLoaded()).then(setupThumbnailListener);
-} else {
+if (getPageType() !== PageType.Main) {
     setupThumbnailListener();
 }
+waitFor(() => getPageLoaded()).then(setupThumbnailListener);
 
 setMessageNotice(false, getPageLoaded);
 

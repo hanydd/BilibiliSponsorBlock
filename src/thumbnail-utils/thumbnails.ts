@@ -47,16 +47,20 @@ export async function labelThumbnail(
         return null;
     }
 
-    overlay.style.setProperty(
-        "--category-color",
-        `var(--sb-category-preview-${category}, var(--sb-category-${category}))`
-    );
-    overlay.style.setProperty(
-        "--category-text-color",
-        `var(--sb-category-text-preview-${category}, var(--sb-category-text-${category}))`
-    );
-    text.innerText = chrome.i18n.getMessage(`category_${category}`);
-    overlay.classList.add("sponsorThumbnailLabelVisible");
+    if (overlay.getAttribute("data-category") !== category) {
+        overlay.setAttribute("data-category", category);
+
+        overlay.style.setProperty(
+            "--category-color",
+            `var(--sb-category-preview-${category}, var(--sb-category-${category}))`
+        );
+        overlay.style.setProperty(
+            "--category-text-color",
+            `var(--sb-category-text-preview-${category}, var(--sb-category-text-${category}))`
+        );
+        text.innerText = chrome.i18n.getMessage(`category_${category}`);
+        overlay.classList.add("sponsorThumbnailLabelVisible");
+    }
 
     return overlay;
 }
@@ -69,6 +73,7 @@ function hideThumbnailLabel(thumbnail: HTMLImageElement): void {
     const oldLabel = getOldThumbnailLabel(thumbnail);
     if (oldLabel) {
         oldLabel.classList.remove("sponsorThumbnailLabelVisible");
+        oldLabel.removeAttribute("data-category");
     }
 }
 

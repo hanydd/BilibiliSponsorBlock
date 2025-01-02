@@ -1,6 +1,6 @@
 import * as documentScript from "../../dist/js/document.js";
 import Config from "../config";
-import { newThumbnails } from "../thumbnail-utils/thumbnailManagement";
+import { checkPageForNewThumbnails } from "../thumbnail-utils/thumbnailManagement";
 import { PageType } from "../types";
 import { waitFor } from "./";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
@@ -332,7 +332,7 @@ function windowListenerHandler(event: MessageEvent): void {
     if (data.source !== "sponsorblock") return;
 
     if (dataType === "navigation") {
-        newThumbnails();
+        checkPageForNewThumbnails();
     }
 
     if (dataType === "navigation" && data.videoID) {
@@ -353,7 +353,7 @@ function windowListenerHandler(event: MessageEvent): void {
     } else if (dataType === "data" && data.videoID) {
         void videoIDChange(data.videoID);
     } else if (dataType === "newElement") {
-        newThumbnails();
+        checkPageForNewThumbnails();
     }
 }
 
