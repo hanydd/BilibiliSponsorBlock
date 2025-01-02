@@ -66,6 +66,7 @@ import {
     updateFrameRate,
 } from "./utils/video";
 import { openWarningDialog } from "./utils/warnings";
+import { DynamicListener } from "./render/DynamicSponsorBlock"
 
 cleanPage();
 
@@ -73,6 +74,11 @@ const utils = new Utils();
 
 waitFor(() => Config.isReady(), 5000, 10).then(() => {
     setCategoryColorCSSVariables();
+
+    if ((window.location.href.includes("t.bilibili.com") ||
+        window.location.href.includes("space.bilibili.com")) &&
+        Config.config.dynamicSponsorBlocker
+    ) DynamicListener();
 });
 
 detectPageType();
@@ -2884,7 +2890,7 @@ function setCategoryColorCSSVariables() {
     }
 
     let css = ":root {";
-    for (const [category, config] of Object.entries(Config.config.barTypes)) {
+    for (const [category, config] of Object.entries(Config.config.barTypes).concat(Object.entries(Config.config.dynamicSponsorTypes))) {
         css += `--sb-category-${category}: ${config.color};`;
         css += `--darkreader-bg--sb-category-${category}: ${config.color};`;
 

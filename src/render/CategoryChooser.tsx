@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 
-import CategoryChooserComponent from "../components/options/CategoryChooserComponent";
+import { CategoryChooserComponent, DynamicSponsorChooserComponent } from "../components/options/CategoryChooserComponent";
 
 class CategoryChooser {
     ref: React.RefObject<CategoryChooserComponent>;
@@ -18,4 +18,19 @@ class CategoryChooser {
     }
 }
 
-export default CategoryChooser;
+class DynamicSponsorChooser {
+    ref: React.RefObject<DynamicSponsorChooserComponent>;
+
+    constructor(element: Element) {
+        this.ref = React.createRef();
+
+        const root = createRoot(element);
+        root.render(<DynamicSponsorChooserComponent ref={this.ref} />);
+    }
+
+    update(): void {
+        this.ref.current?.forceUpdate();
+    }
+}
+
+export {CategoryChooser, DynamicSponsorChooser};
