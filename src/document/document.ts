@@ -2,6 +2,7 @@ import { BilibiliResponse, BiliPlayInfo, BiliVideoDetail } from "../requests/typ
 import { InjectedScriptMessageSend, sourceId } from "../utils/injectedScriptMessageUtils";
 import { getBvid, saveAidFromDetail } from "./aidMap";
 import { getFrameRate, playUrlResponseToPlayInfo, savePlayInfo } from "./frameRateUtils";
+import { waitFor } from "../utils/";
 
 const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): void => {
     window.postMessage(
@@ -88,3 +89,42 @@ function init(): void {
 }
 
 init();
+
+async function addMid() {
+    const pageObserver = new MutationObserver((mutationList) => {
+        for (const mutation of mutationList) {
+            const el = (mutation.addedNodes[0] as HTMLElement).querySelector(".bili-dyn-item");
+            const vueInstance = (el as unknown as { __vue__?: { author?: { mid: number; type: string } } }).__vue__;
+            if (vueInstance?.author?.mid && vueInstance.author.type === "AUTHOR_TYPE_NORMAL") {
+                const mid = vueInstance.author.mid;
+                el.querySelector(".bili-dyn-item__avatar")?.setAttribute("bilisponsor-userid", mid.toString());
+            }
+        }
+    });
+
+    pageObserver.observe(await getElementWaitFor(".bili-dyn-list__items"), {
+        attributeFilter: ['class'],
+        childList: true,
+    });
+
+    (await getElementWaitFor(".bili-dyn-up-list__content, .nav-bar__main-left")).addEventListener("click", async () => {
+        pageObserver.disconnect();
+
+        pageObserver.observe(await getElementWaitFor(".bili-dyn-list__items"), {
+            attributeFilter: ['class'],
+            childList: true,
+        });
+    });
+
+    async function getElementWaitFor(element: string) {
+        return await waitFor(
+            () => document.querySelector(element) as HTMLElement,
+            5000,
+            50
+        );
+    }
+}
+
+if (window.location.href.includes('t.bilibili.com')
+    || window.location.href.includes('space.bilibili.com')
+) addMid();

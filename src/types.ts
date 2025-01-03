@@ -57,6 +57,17 @@ export interface CategorySelection {
     option: CategorySkipOption;
 }
 
+export enum DynamicSponsorOption {
+    Disabled,
+    ShowOverlay,
+    Hide,
+}
+
+export interface DynamicSponsorSelection {
+    name: Category;
+    option: DynamicSponsorOption;
+}
+
 export enum SponsorHideType {
     Visible = undefined,
     Downvoted = 1,

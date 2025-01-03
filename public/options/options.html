@@ -49,6 +49,62 @@
 			<div id="behavior" class="option-group hidden">
 				<div id="category-type" data-type="react-CategoryChooserComponent"></div>
 
+				<div data-type="toggle" data-sync="dynamicSponsorBlocker">
+					<div class="switch-container">
+						<label class="switch">
+							<input id="dynamicSponsorBlocker" type="checkbox" checked>
+							<span class="slider round"></span>
+						</label>
+						<label class="switch-label" for="dynamicSponsorBlocker">
+							__MSG_dynamicSponsorBlocker__
+						</label>
+					</div>
+					<div class="small-description">__MSG_dynamicSponsorBlockerDescription__</div>
+
+					<div data-type="toggle" data-dependent-on="dynamicSponsorBlocker">
+						<br />
+						<div id="DynamicSponsor" data-type="react-DynamicSponsorChooserComponent"></div>
+
+						<div data-type="text-change" data-sync="dynamicSponsorRegexPattern">
+							<div class="input-container">
+								<label for="dynamicSponsorRegexPattern">__MSG_dynamicSponsorRegexPattern__</label>
+								<input id="dynamicSponsorRegexPattern" class="option-text-box" type="text" />
+								<button class="text-change-set">__MSG_save__</button>
+								<button class="text-change-reset">__MSG_reset__</button>
+							</div>
+								<div class="small-description">__MSG_dynamicSponsorRegexPatternDescription__</div>
+						</div>
+
+						<div data-type="toggle" data-sync="dynamicSpaceSponsorBlocker">
+							<br />
+							<div class="switch-container">
+								<label class="switch">
+									<input id="dynamicSpaceSponsorBlocker" type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+								<label class="switch-label" for="dynamicSpaceSponsorBlocker">
+									__MSG_dynamicSpaceSponsorBlocker__
+								</label>
+							</div>
+							<div class="small-description">__MSG_dynamicSpaceSponsorBlockerDescription__</div>
+						</div>
+
+						<div data-type="toggle" data-sync="dynamicSponsorWhitelistedChannels">
+							<br />
+							<div class="switch-container">
+								<label class="switch">
+									<input id="dynamicSponsorWhitelistedChannels" type="checkbox" checked>
+									<span class="slider round"></span>
+								</label>
+								<label class="switch-label" for="dynamicSponsorWhitelistedChannels">
+									__MSG_dynamicSponsorWhitelistedChannels__
+								</label>
+							</div>
+							<div class="small-description">__MSG_dynamicSponsorWhitelistedChannelsDescription__</div>
+						</div>
+					</div>
+				</div>
+
 				<div data-type="toggle" data-sync="muteSegments">
 					<div class="switch-container">
 						<label class="switch">

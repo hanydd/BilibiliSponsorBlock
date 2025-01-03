@@ -931,3 +931,41 @@ input::-webkit-inner-spin-button {
 .youtube-logo-triangle.expanded {
 	transform: rotate(90deg);
 }
+
+/*bilibili Dynamic sponsor label */
+#dynamicSponsorLabel {
+	display: flex;
+	background-color: var(--category-color, #fff);
+	border-radius: 2em;
+	padding: 0.4em;
+	margin: 0.4em;
+    align-items: center;
+	transition: border-radius 0.4s 0.05s;
+}
+
+#dynamicSponsorLabel svg {
+	width: 1.5em;
+	height: 1.5em;
+	fill: var(--category-text-color, #fff);
+}
+
+#dynamicSponsorLabel span {
+	display: none;
+	padding-left: 0.25em;
+    font-size: 1.2em;
+    color: var(--category-text-color, #fff);
+}
+
+#showDynamicSponsor {
+    color: var(--text2);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+}
+
+#showDynamicSponsor svg {
+	height: 1.2em;
+	width: 1.2em;
+    fill: var(--text2);
+}

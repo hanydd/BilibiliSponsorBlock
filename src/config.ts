@@ -8,6 +8,8 @@ import {
     SponsorTime,
     VideoID,
     SponsorHideType,
+    DynamicSponsorSelection,
+    DynamicSponsorOption,
 } from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
 import { HashedValue } from "./utils/hash";
@@ -90,6 +92,11 @@ interface SBConfig {
     showPortVideoButton: boolean;
     cleanPopup: boolean;
 
+    dynamicSponsorWhitelistedChannels: boolean;
+    dynamicSponsorBlocker: boolean;
+    dynamicSpaceSponsorBlocker: boolean;
+    dynamicSponsorRegexPattern: string;
+
     showNewIcon: boolean;
 
     // Used to cache calculated text color info
@@ -143,6 +150,15 @@ interface SBConfig {
         "preview-poi_highlight": PreviewBarOption;
         "filler": PreviewBarOption;
         "preview-filler": PreviewBarOption;
+    };
+
+    
+    //动态主页UP主贴片广告
+    dynamicSponsorSelections: DynamicSponsorSelection[];
+    dynamicSponsorTypes: {
+        "dynamicSponsor_sponsor": PreviewBarOption;
+        "dynamicSponsor_forward_sponsor": PreviewBarOption;
+        "dynamicSponsor_suspicion_sponsor": PreviewBarOption;
     };
 }
 
@@ -279,6 +295,11 @@ const syncDefaults = {
     showPortVideoButton: true,
     cleanPopup: false,
 
+    dynamicSponsorWhitelistedChannels: false,
+    dynamicSponsorBlocker: false,
+    dynamicSpaceSponsorBlocker: false,
+    dynamicSponsorRegexPattern: "(618|11(?!1).11|双(11|十一|12|十二))|恰(?:个|了|到)?饭|((领(?:取)?|抢|有)(?:神|优惠)?券|券后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品",
+    
     showNewIcon: true,
 
     categoryPillColors: {},
@@ -436,6 +457,36 @@ const syncDefaults = {
             opacity: "0.7",
         },
     },
+
+    //动态主页UP主贴片广告
+    dynamicSponsorSelections: [
+        {
+            name: "dynamicSponsor_sponsor" as Category,
+            option: DynamicSponsorOption.Hide,
+        },
+        {
+            name: "dynamicSponsor_forward_sponsor" as Category,
+            option: DynamicSponsorOption.Hide,
+        },
+        {
+            name: "dynamicSponsor_suspicion_sponsor" as Category,
+            option: DynamicSponsorOption.Disabled,
+        },
+    ],
+    dynamicSponsorTypes: {
+        dynamicSponsor_sponsor: {
+            color: "#007800",
+            opacity: "0.7",
+        },
+        dynamicSponsor_forward_sponsor: {
+            color: "#bfbf35",
+            opacity: "0.7",
+        },
+        dynamicSponsor_suspicion_sponsor: {
+            color: "#a6634a",
+            opacity: "0.7",
+        },
+    }
 };
 
 const localDefaults = {

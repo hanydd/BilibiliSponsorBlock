@@ -1237,5 +1237,65 @@
     },
     "bindPortVideo": {
         "message": "同步搬運影片"
+    },
+    "dynamicSponsorBlocker": {
+        "message": "隱藏動態主頁的UP主貼片廣告 (不包含視頻)"
+    },
+    "dynamicSponsorBlockerDescription": {
+        "message": "貼片廣告即動態內容包含推廣內容的UP主動態"
+    },
+    "dynamicSpaceSponsorBlocker": {
+        "message": "隱藏UP主主頁動態的廣告"
+    },
+    "dynamicSpaceSponsorBlockerDescription": {
+        "message": "UP主主頁動態的廣告也會隱藏，不推薦開啟，以方便查看UP主的完整動態"
+    },
+    "dynamicSponsorWhitelistedChannels": {
+        "message": "無視您的白名單"
+    },
+    "dynamicSponsorWhitelistedChannelsDescription": {
+        "message": "隱藏全部貼片廣告，即使是您白名單中的UP主"
+    },
+    "dynamicSponsorShow": {
+        "message": "顯示廣告內容"
+    },
+    "dynamicSponsorHide": {
+        "message": "隱藏廣告內容"
+    },
+    "dynamicSponsorRegexPattern": {
+        "message": "屏蔽匹配正則: "
+    },
+    "dynamicSponsorRegexPatternDescription": {
+        "message": "默認正則表達式偏保守，建議根據您關注的UP主動態內容自行修改(如果您會編寫正則表達式)\n例如您關注的UP主們經常發某一個產品的廣告，您可以將該產品的名稱添加到正則表達式中"
+    },
+    "category_dynamicSponsor_sponsor": {
+        "message": "廣告"
+    },
+    "category_dynamicSponsor_sponsor_description": {
+        "message": "即包含商品鏈接的UP主動態，目前階段無法完全屏蔽，因為部分軟廣可能不附帶鏈接或鏈接在評論區"
+    },
+    "category_dynamicSponsor_forward_sponsor": {
+        "message": "轉發廣告"
+    },
+    "category_dynamicSponsor_forward_sponsor_description": {
+        "message": "當轉發動態是包含商品鏈接的UP主動態時，該動態會被視為轉發廣告"
+    },
+    "category_dynamicSponsor_suspicion_sponsor": {
+        "message": "疑似廣告"
+    },
+    "category_dynamicSponsor_suspicion_sponsor_description": {
+        "message": "使用正則表達式對動態內容進行匹配來額外屏蔽軟廣動態，是對“ 廣告 ”的補充，可能會誤屏蔽或漏屏蔽部分動態"
+    },
+    "showOverlay_DynamicSponsor": {
+        "message": "僅顯示標籤"
+    },
+    "Hide_DynamicSponsor": {
+        "message": "隱藏內容"
+    },
+    "skipOptionDynamicSponsor": {
+        "message": "選項"
+    },
+    "colorDynamicSponsor": {
+        "message": "標籤顏色"
     }
 }
