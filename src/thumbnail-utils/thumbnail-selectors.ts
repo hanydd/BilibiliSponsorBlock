@@ -13,6 +13,11 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         containerSelector: ".bili-header .right-entry .v-popover-wrap:nth-of-type(3)",
         thumbnailSelector: "a[data-mod=top_right_bar_window_dynamic]",
     },
+    "favPopup": {
+        // 收藏弹出框
+        containerSelector: ".bili-header .right-entry .v-popover-wrap:nth-of-type(4)",
+        thumbnailSelector: "a[data-mod=top_right_bar_window_default_collection]",
+    },
     "historyPopup": {
         // 历史视频弹出框
         containerSelector: ".bili-header .right-entry .v-popover-wrap:nth-of-type(5) div.v-popover-content",
@@ -88,7 +93,7 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
     },
 };
 
-const commonSelector = ["dynamicPopup", "historyPopup"];
+const commonSelector = ["dynamicPopup", "favPopup", "historyPopup"];
 const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
     [PageType.Main]: ["mainPageRecommendation"],
     [PageType.History]: [],
