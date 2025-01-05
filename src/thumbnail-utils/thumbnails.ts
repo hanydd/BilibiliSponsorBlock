@@ -4,20 +4,18 @@ import { waitFor } from "../utils/";
 import { getBvIDFromURL } from "../utils/parseVideoID";
 
 export async function labelThumbnails(thumbnails: HTMLElement[]): Promise<void> {
-    await Promise.all(thumbnails.map((t) => labelThumbnail(t as HTMLImageElement)));
+    await Promise.all(thumbnails.map((t) => labelThumbnail(t as HTMLElement)));
 }
 
-export async function labelThumbnail(
-    thumbnail: HTMLImageElement,
-    thumbnailOldHref?: string
-): Promise<HTMLElement | null> {
+export async function labelThumbnail(thumbnail: HTMLElement, thumbnailOldHref?: string): Promise<HTMLElement | null> {
     if (!Config.config?.fullVideoSegments || !Config.config?.fullVideoLabelsOnThumbnails) {
         hideThumbnailLabel(thumbnail);
         return null;
     }
 
     // find all links in the thumbnail, reduce to only one video ID
-    const links = Array.from(thumbnail.querySelectorAll("a[href]")) as Array<HTMLAnchorElement>;
+    const links: HTMLAnchorElement[] = thumbnail.matches("a[href]") ? [thumbnail as HTMLAnchorElement] : [];
+    links.push(...Array.from(thumbnail.querySelectorAll("a[href]") as NodeListOf<HTMLAnchorElement>));
     const videoIDs = new Set(
         (await Promise.allSettled(links.filter((link) => link && link.href).map((link) => getBvIDFromURL(link.href))))
             .filter((result) => result.status === "fulfilled")
@@ -65,11 +63,11 @@ export async function labelThumbnail(
     return overlay;
 }
 
-function getOldThumbnailLabel(thumbnail: HTMLImageElement): HTMLElement | null {
+function getOldThumbnailLabel(thumbnail: HTMLElement): HTMLElement | null {
     return thumbnail.querySelector("#sponsorThumbnailLabel") as HTMLElement | null;
 }
 
-function hideThumbnailLabel(thumbnail: HTMLImageElement): void {
+function hideThumbnailLabel(thumbnail: HTMLElement): void {
     const oldLabel = getOldThumbnailLabel(thumbnail);
     if (oldLabel) {
         oldLabel.classList.remove("sponsorThumbnailLabelVisible");
@@ -77,7 +75,7 @@ function hideThumbnailLabel(thumbnail: HTMLImageElement): void {
     }
 }
 
-async function createOrGetThumbnail(thumbnail: HTMLImageElement): Promise<{ overlay: HTMLElement; text: HTMLElement }> {
+async function createOrGetThumbnail(thumbnail: HTMLElement): Promise<{ overlay: HTMLElement; text: HTMLElement }> {
     const oldLabelElement = getOldThumbnailLabel(thumbnail);
     if (oldLabelElement) {
         return {
