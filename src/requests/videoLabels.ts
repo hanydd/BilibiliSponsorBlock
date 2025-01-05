@@ -55,7 +55,6 @@ async function getLabelHashBlock(hashPrefix: string, refreshCache: boolean = fal
 }
 
 export async function getVideoLabel(videoID: VideoID, refreshCache: boolean = false): Promise<Category | null> {
-    return "sponsor" as Category;
     const prefix = (await getVideoIDHash(videoID)).slice(0, 3);
     const result = await getLabelHashBlock(prefix, refreshCache);
 

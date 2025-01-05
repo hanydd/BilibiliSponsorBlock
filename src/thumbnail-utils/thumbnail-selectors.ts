@@ -81,6 +81,11 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         containerSelector: ".search-page-wrapper",
         thumbnailSelector: ".bili-video-card",
     },
+    "history": {
+        // 历史页
+        containerSelector: ".main-content",
+        thumbnailSelector: ".history-card",
+    },
 };
 
 const commonSelector = ["dynamicPopup", "historyPopup"];
