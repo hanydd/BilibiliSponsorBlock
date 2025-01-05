@@ -91,6 +91,29 @@
 	display: none !important;
 }
 
+/* Tooltip 编码灵感源于：the1812/Bilibili-Evolved
+ * https://github.com/the1812/Bilibili-Evolved
+ */
+.playerButtonTooltip {
+	pointer-events: none;
+	font-size: 12px;
+	padding: 6px 8px;
+	line-height: 1.5; 
+	white-space: nowrap; 
+	color: var(--bpx-tooltip-color, #fff);
+	background-color: var(--bpx-tooltip-bgcolor, #000);
+	border-radius: 4px;
+	position: absolute;
+	transform: translateX(calc(-50% + 20px)) translateY(calc(-100% - 36px));
+	opacity: 0;
+}
+
+.playerButton:hover .playerButtonTooltip {
+	transition: all 0.2s ease-out 0.1s;
+	opacity: 1;
+	transform: translateX(calc(-50% + 20px)) translateY(calc(-100% - 41px));
+}
+
 /* Removes auto width from being a ytp-player-button */
 .sbPlayerDownvote {
 	width: auto !important;

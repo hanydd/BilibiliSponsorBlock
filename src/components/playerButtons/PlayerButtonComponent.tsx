@@ -21,7 +21,6 @@ const PlayerButtonComponent = forwardRef<HTMLButtonElement, PlayerButtonProps>(f
             id={baseID + "Button"}
             className="playerButton bpx-player-ctrl-btn"
             style={{ maxWidth: "40px", display: show ? "unset" : "none" }}
-            title={chrome.i18n.getMessage(title)}
             draggable={isDraggable}
             onClick={onClick}
         >
@@ -31,6 +30,7 @@ const PlayerButtonComponent = forwardRef<HTMLButtonElement, PlayerButtonProps>(f
                 src={chrome.runtime.getURL("icons/" + getIconLink(imageName))}
                 draggable={isDraggable}
             ></img>
+            <div className="playerButtonTooltip">{chrome.i18n.getMessage(title)}</div>
         </button>
     );
 });
