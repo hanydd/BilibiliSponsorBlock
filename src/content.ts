@@ -17,7 +17,7 @@ import { getPortVideoByHash, postPortVideo, postPortVideoVote, updatePortedSegme
 import { asyncRequestToServer } from "./requests/requests";
 import { getSegmentsByHash } from "./requests/segments";
 import { getVideoLabel } from "./requests/videoLabels";
-import { setupThumbnailListener, updateAll } from "./thumbnail-utils/thumbnailManagement";
+import { checkPageForNewThumbnails, setupThumbnailListener } from "./thumbnail-utils/thumbnailManagement";
 import {
     ActionType,
     Category,
@@ -436,7 +436,7 @@ function contentConfigUpdateListener(changes: StorageChangesObject) {
                 break;
             case "fullVideoSegments":
             case "fullVideoLabelsOnThumbnails":
-                updateAll();
+                checkPageForNewThumbnails();
                 break;
         }
     }

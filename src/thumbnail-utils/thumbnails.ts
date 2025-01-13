@@ -2,22 +2,31 @@ import Config from "../config";
 import { getVideoLabel } from "../requests/videoLabels";
 import { waitFor } from "../utils/";
 import { getBvIDFromURL } from "../utils/parseVideoID";
+import { getLinkAttribute, getLinkSelectors } from "./thumbnail-selectors";
 
-export async function labelThumbnails(thumbnails: HTMLElement[]): Promise<void> {
-    await Promise.all(thumbnails.map((t) => labelThumbnail(t as HTMLElement)));
+export async function labelThumbnails(thumbnails: HTMLElement[], containerType: string): Promise<void> {
+    await Promise.all(thumbnails.map((t) => labelThumbnail(t as HTMLElement, containerType)));
 }
 
-export async function labelThumbnail(thumbnail: HTMLElement, thumbnailOldHref?: string): Promise<HTMLElement | null> {
+export async function labelThumbnail(thumbnail: HTMLElement, containerType: string): Promise<HTMLElement | null> {
     if (!Config.config?.fullVideoSegments || !Config.config?.fullVideoLabelsOnThumbnails) {
         hideThumbnailLabel(thumbnail);
         return null;
     }
 
     // find all links in the thumbnail, reduce to only one video ID
-    const links: HTMLAnchorElement[] = thumbnail.matches("a[href]") ? [thumbnail as HTMLAnchorElement] : [];
-    links.push(...Array.from(thumbnail.querySelectorAll("a[href]") as NodeListOf<HTMLAnchorElement>));
+    const links: HTMLAnchorElement[] = thumbnail.matches(getLinkSelectors(containerType))
+        ? [thumbnail as HTMLAnchorElement]
+        : [];
+    links.push(
+        ...Array.from(thumbnail.querySelectorAll(getLinkSelectors(containerType)) as NodeListOf<HTMLAnchorElement>)
+    );
     const videoIDs = new Set(
-        (await Promise.allSettled(links.filter((link) => link && link.href).map((link) => getBvIDFromURL(link.href))))
+        (
+            await Promise.allSettled(
+                links.map((link) => getBvIDFromURL(link.getAttribute(getLinkAttribute(containerType))))
+            )
+        )
             .filter((result) => result.status === "fulfilled")
             .map((result) => result.value)
             .filter((id) => !!id)
@@ -31,13 +40,6 @@ export async function labelThumbnail(thumbnail: HTMLElement, thumbnailOldHref?: 
 
     // 获取或创建缩略图标签
     const { overlay, text } = await createOrGetThumbnail(thumbnail);
-
-    if (thumbnailOldHref) {
-        const oldVideoID = await getBvIDFromURL(thumbnailOldHref);
-        if (oldVideoID && oldVideoID == videoID) {
-            return overlay;
-        }
-    }
 
     const category = await getVideoLabel(videoID);
     if (!category) {

@@ -4,6 +4,7 @@ interface ThumbnailSelector {
     containerSelector: string;
     thumbnailSelector: string;
     customLinkSelector?: string;
+    customLinkAttribute?: string;
 }
 
 // TODO: support customLinkSelector
@@ -22,7 +23,6 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         // 历史视频弹出框
         containerSelector: ".bili-header .right-entry .v-popover-wrap:nth-of-type(5) div.v-popover-content",
         thumbnailSelector: "a.header-history-card",
-        customLinkSelector: "",
     },
     "mainPageRecommendation": {
         // 主页
@@ -110,6 +110,14 @@ const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
     [PageType.Embed]: [],
 };
 
+const combinedPageTypeSelectors = {};
+for (const pageType in pageTypeSepecialSelector) {
+    combinedPageTypeSelectors[pageType as PageType] = [
+        ...commonSelector,
+        ...pageTypeSepecialSelector[pageType as PageType],
+    ];
+}
+
 const pageTypeSelector: { [key in PageType]?: ThumbnailSelector } = {};
 const thumbnailElementSelectors: { [key in PageType]?: string[] } = {};
 const thumbnailContainerSelectors: { [key in PageType]?: string[] } = {};
@@ -122,14 +130,25 @@ for (const [key, value] of Object.entries(pageTypeSepecialSelector)) {
     thumbnailContainerSelectors[key] = combinedSelector.map((s) => thumbnailSelectors[s].containerSelector);
 }
 
-export function getThumbnailContainerElements(pageType: PageType) {
-    return thumbnailContainerSelectors[pageType];
+export function getThumbnailContainerElements(pageType: PageType): { containerType: string; selector: string }[] {
+    return combinedPageTypeSelectors[pageType].map((type: string) => ({
+        containerType: type,
+        selector: thumbnailSelectors[type].containerSelector,
+    }));
 }
 
 export function getThumbnailLink(thumbnail: HTMLElement): HTMLElement | null {
     return thumbnail.querySelector("a");
 }
 
-export function getThumbnailSelectors(pageType: PageType) {
-    return thumbnailElementSelectors[pageType].join(", ");
+export function getThumbnailSelectors(containerType: string) {
+    return thumbnailSelectors[containerType].thumbnailSelector;
+}
+
+export function getLinkSelectors(containerType: string) {
+    return thumbnailSelectors[containerType].customLinkSelector ?? "a[href]";
+}
+
+export function getLinkAttribute(containerType: string) {
+    return thumbnailSelectors[containerType].customLinkAttribute ?? "href";
 }

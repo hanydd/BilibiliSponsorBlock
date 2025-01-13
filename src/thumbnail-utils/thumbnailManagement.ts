@@ -3,7 +3,7 @@ import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
 import { getPageType } from "../utils/video";
 import { getThumbnailContainerElements, getThumbnailSelectors } from "./thumbnail-selectors";
-import { insertSBIconDefinition, labelThumbnail, labelThumbnails } from "./thumbnails";
+import { insertSBIconDefinition, labelThumbnail } from "./thumbnails";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 
@@ -15,10 +15,11 @@ export function setupThumbnailListener(): void {
         onInitialLoad();
 
         // listen to container child changes
-        getThumbnailContainerElements(getPageType()).forEach((selector) => {
+        getThumbnailContainerElements(getPageType()).forEach(({ containerType, selector }) => {
+            console.log(containerType, selector);
             void waitFor(() => document.querySelector(selector), 10000)
                 .then((thumbnailContainer) => {
-                    labelNewThumbnails(thumbnailContainer); // fire thumbnail check once when the container is loaded
+                    labelNewThumbnails(thumbnailContainer, containerType); // fire thumbnail check once when the container is loaded
                     if (!thumbnailContainer) return;
                     thumbnailContainerObserver ??= new MutationObserver(() => checkPageForNewThumbnails());
                     thumbnailContainerObserver?.observe(thumbnailContainer, { childList: true, subtree: true });
@@ -70,19 +71,16 @@ export function checkPageForNewThumbnails() {
     }
     lastThumbnailCheck = performance.now();
 
-    for (const selector of getThumbnailContainerElements(getPageType())) {
+    for (const { containerType, selector } of getThumbnailContainerElements(getPageType())) {
         waitFor(() => document.querySelector(selector), 10000)
-            .then((thumbnailContainer) => labelNewThumbnails(thumbnailContainer))
+            .then((thumbnailContainer) => labelNewThumbnails(thumbnailContainer, containerType))
             .catch((err) => console.log(err));
     }
 }
 
-async function labelNewThumbnails(container: Element) {
+async function labelNewThumbnails(container: Element, containerType: string) {
     if (!container || !document.body.contains(container)) return;
-    const thumbnails = container.querySelectorAll(getThumbnailSelectors(getPageType())) as NodeListOf<HTMLElement>;
-    thumbnails.forEach((t) => labelThumbnail(t as HTMLImageElement));
-}
-
-export function updateAll(): void {
-    labelThumbnails([...handledThumbnailsObserverMap.keys()]);
+    const thumbnails = container.querySelectorAll(getThumbnailSelectors(containerType)) as NodeListOf<HTMLElement>;
+    console.log(thumbnails);
+    thumbnails.forEach((t) => labelThumbnail(t as HTMLImageElement, containerType));
 }

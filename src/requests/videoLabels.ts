@@ -15,10 +15,14 @@ const labelCache: Record<string, LabelCacheEntry> = {};
 const cacheLimit = 1000;
 
 async function getLabelHashBlock(hashPrefix: string, refreshCache: boolean = false): Promise<LabelCacheEntry | null> {
-    // Check cache
-    const cachedEntry = labelCache[hashPrefix];
-    if (cachedEntry && !refreshCache) {
-        return cachedEntry;
+    if (refreshCache) {
+        delete labelCache[hashPrefix];
+    } else {
+        // Check cache
+        const cachedEntry = labelCache[hashPrefix];
+        if (cachedEntry) {
+            return cachedEntry;
+        }
     }
 
     const response = await asyncRequestToServer("GET", `/api/videoLabels/${hashPrefix}`, {}, refreshCache);
