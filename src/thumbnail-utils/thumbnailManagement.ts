@@ -16,7 +16,6 @@ export function setupThumbnailListener(): void {
 
         // listen to container child changes
         getThumbnailContainerElements(getPageType()).forEach(({ containerType, selector }) => {
-            console.log(containerType, selector);
             void waitFor(() => document.querySelector(selector), 10000)
                 .then((thumbnailContainer) => {
                     labelNewThumbnails(thumbnailContainer, containerType); // fire thumbnail check once when the container is loaded
@@ -81,6 +80,5 @@ export function checkPageForNewThumbnails() {
 async function labelNewThumbnails(container: Element, containerType: string) {
     if (!container || !document.body.contains(container)) return;
     const thumbnails = container.querySelectorAll(getThumbnailSelectors(containerType)) as NodeListOf<HTMLElement>;
-    console.log(thumbnails);
     thumbnails.forEach((t) => labelThumbnail(t as HTMLImageElement, containerType));
 }
