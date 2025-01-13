@@ -2,7 +2,7 @@ import Config from "../config";
 import { getVideoLabel } from "../requests/videoLabels";
 import { waitFor } from "../utils/";
 import { getBvIDFromURL } from "../utils/parseVideoID";
-import { getLinkAttribute, getLinkSelectors } from "./thumbnail-selectors";
+import { getLabelAnchorSelector, getLinkAttribute, getLinkSelectors } from "./thumbnail-selectors";
 
 export async function labelThumbnails(thumbnails: HTMLElement[], containerType: string): Promise<void> {
     await Promise.all(thumbnails.map((t) => labelThumbnail(t as HTMLElement, containerType)));
@@ -39,7 +39,7 @@ export async function labelThumbnail(thumbnail: HTMLElement, containerType: stri
     const [videoID] = videoIDs;
 
     // 获取或创建缩略图标签
-    const { overlay, text } = await createOrGetThumbnail(thumbnail);
+    const { overlay, text } = await createOrGetThumbnail(thumbnail, containerType);
 
     const category = await getVideoLabel(videoID);
     if (!category) {
@@ -77,7 +77,10 @@ function hideThumbnailLabel(thumbnail: HTMLElement): void {
     }
 }
 
-async function createOrGetThumbnail(thumbnail: HTMLElement): Promise<{ overlay: HTMLElement; text: HTMLElement }> {
+async function createOrGetThumbnail(
+    thumbnail: HTMLElement,
+    containerType: string
+): Promise<{ overlay: HTMLElement; text: HTMLElement }> {
     const oldLabelElement = getOldThumbnailLabel(thumbnail);
     if (oldLabelElement) {
         return {
@@ -98,21 +101,16 @@ async function createOrGetThumbnail(thumbnail: HTMLElement): Promise<{ overlay: 
         thumbnail.dispatchEvent(new PointerEvent("pointerenter", { bubbles: true }));
     });
 
-    // try append after image element, exclude avatar in feed popup
-    // wait unitl there is an anchor point, or the label might get inserted elsewhere and break the header
-    const labelAnchor =
-        (await waitFor(
-            () =>
-                thumbnail.querySelector(
-                    "div:not(.b-img--face) > picture img:not(.bili-avatar-img), div.bili-cover-card__thumbnail > img"
-                ),
-            10000,
-            1000
-        )) ?? thumbnail.lastChild;
     const icon = createSBIconElement();
     const text = document.createElement("span");
     overlay.appendChild(icon);
     overlay.appendChild(text);
+
+    // try append after image element, exclude avatar in feed popup
+    // wait unitl there is an anchor point, or the label might get inserted elsewhere and break the header
+    const labelAnchor =
+        (await waitFor(() => thumbnail.querySelector(getLabelAnchorSelector(containerType)), 10000, 1000)) ??
+        thumbnail.lastChild;
     labelAnchor.after(overlay);
 
     return {

@@ -5,6 +5,7 @@ interface ThumbnailSelector {
     thumbnailSelector: string;
     customLinkSelector?: string;
     customLinkAttribute?: string;
+    labelAnchorSelector?: string;
 }
 
 // TODO: support customLinkSelector
@@ -118,18 +119,6 @@ for (const pageType in pageTypeSepecialSelector) {
     ];
 }
 
-const pageTypeSelector: { [key in PageType]?: ThumbnailSelector } = {};
-const thumbnailElementSelectors: { [key in PageType]?: string[] } = {};
-const thumbnailContainerSelectors: { [key in PageType]?: string[] } = {};
-for (const [key, value] of Object.entries(pageTypeSepecialSelector)) {
-    const combinedSelector = [...commonSelector, ...value];
-    pageTypeSelector[key] = combinedSelector.map((s) => thumbnailSelectors[s]);
-    thumbnailElementSelectors[key] = combinedSelector.map(
-        (s) => `${thumbnailSelectors[s].containerSelector} ${thumbnailSelectors[s].thumbnailSelector}`
-    );
-    thumbnailContainerSelectors[key] = combinedSelector.map((s) => thumbnailSelectors[s].containerSelector);
-}
-
 export function getThumbnailContainerElements(pageType: PageType): { containerType: string; selector: string }[] {
     return combinedPageTypeSelectors[pageType].map((type: string) => ({
         containerType: type,
@@ -151,4 +140,11 @@ export function getLinkSelectors(containerType: string) {
 
 export function getLinkAttribute(containerType: string) {
     return thumbnailSelectors[containerType].customLinkAttribute ?? "href";
+}
+
+export function getLabelAnchorSelector(containerType: string) {
+    return (
+        thumbnailSelectors[containerType].labelAnchorSelector ??
+        "div:not(.b-img--face) > picture img:not(.bili-avatar-img), div.bili-cover-card__thumbnail > img"
+    );
 }
