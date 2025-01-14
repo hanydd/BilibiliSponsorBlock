@@ -5,13 +5,14 @@ import GenericNotice from "../render/GenericNotice";
 import { Category, ContentContainer } from "../types";
 
 import { ConfigProvider, Popover, theme } from "antd";
+import { keybindToString } from "../config/config";
+import { showMessage } from "../render/MessageNotice";
 import { getGuidelineInfo } from "../utils/constants";
 import { exportTimes } from "../utils/exporter";
 import { getVideo } from "../utils/video";
 import NoticeComponent from "./NoticeComponent";
 import NoticeTextSelectionComponent from "./NoticeTextSectionComponent";
 import SponsorTimeEditComponent from "./SponsorTimeEditComponent";
-import { showMessage } from "../render/MessageNotice";
 
 export interface SubmissionNoticeProps {
     // Contains functions and variables from the content script needed by the skip notice
@@ -180,6 +181,11 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                                 {/* Submit Button */}
                                 <button
                                     className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
+                                    {...(Config.config.actuallySubmitKeybind && {
+                                        title: `${chrome.i18n.getMessage("submit")} (${keybindToString(
+                                            Config.config.actuallySubmitKeybind
+                                        )})`,
+                                    })}
                                     onClick={this.submit.bind(this)}
                                 >
                                     {chrome.i18n.getMessage("submit")}
