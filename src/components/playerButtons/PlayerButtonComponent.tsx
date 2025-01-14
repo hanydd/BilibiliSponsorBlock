@@ -1,18 +1,20 @@
 import * as React from "react";
 import { forwardRef } from "react";
+import { Keybind, keybindToString } from "../../config/config";
 import { getIconLink } from "../../config/configUtils";
 
 interface PlayerButtonProps {
     baseID: string;
     title: string;
     imageName: string;
+    keybind?: Keybind;
     isDraggable?: boolean;
     show?: boolean;
     onClick?: () => void;
 }
 
 const PlayerButtonComponent = forwardRef<HTMLButtonElement, PlayerButtonProps>(function (
-    { baseID, title, imageName, isDraggable = false, show = true, onClick },
+    { baseID, title, imageName, keybind, isDraggable = false, show = true, onClick },
     ref
 ) {
     return (
@@ -30,7 +32,10 @@ const PlayerButtonComponent = forwardRef<HTMLButtonElement, PlayerButtonProps>(f
                 src={chrome.runtime.getURL("icons/" + getIconLink(imageName))}
                 draggable={isDraggable}
             ></img>
-            <div className="playerButtonTooltip">{chrome.i18n.getMessage(title)}</div>
+            <div className="playerButtonTooltip">
+                {chrome.i18n.getMessage(title)}
+                {keybind ? ` (${keybindToString(keybind)})` : ""}
+            </div>
         </button>
     );
 });
