@@ -98,8 +98,8 @@
 	pointer-events: none;
 	font-size: 12px;
 	padding: 6px 8px;
-	line-height: 1.5; 
-	white-space: nowrap; 
+	line-height: 1.5;
+	white-space: nowrap;
 	color: var(--bpx-tooltip-color, #fff);
 	background-color: var(--bpx-tooltip-bgcolor, #000);
 	border-radius: 4px;
@@ -814,6 +814,12 @@ input::-webkit-inner-spin-button {
 
 #sponsorThumbnailLabel:hover span {
 	display: inline;
+}
+
+.pod-item #sponsorThumbnailLabel {
+	position: relative;
+	margin: 0 0 0 0.5em;
+	box-shadow: none;
 }
 
 .sponsorblock-chapter-visible {

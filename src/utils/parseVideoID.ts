@@ -28,10 +28,17 @@ export function getBvIDFromWindow(timeout = 200): Promise<VideoID | null> {
 }
 
 const BILIBILI_VIDEO_URL_REGEX = /^\/video\/((BV1[a-zA-Z0-9]{9})|(av\d+))\/?/;
+const BVID_REGEX = /^(BV1[a-zA-Z0-9]{9})$/;
 /**
  * Parse without side effects
  */
 export async function getBvIDFromURL(url: string): Promise<VideoID | null> {
+    url = url.trim();
+    // check if is bvid already
+    if (BVID_REGEX.test(url)) {
+        return url as VideoID;
+    }
+
     //Attempt to parse url
     let urlObject: URL | null = null;
     try {

@@ -6,6 +6,7 @@ interface ThumbnailSelector {
     customLinkSelector?: string;
     customLinkAttribute?: string;
     labelAnchorSelector?: string;
+    waitForPageLoad?: boolean;
 }
 
 // TODO: support customLinkSelector
@@ -42,9 +43,17 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
     },
     "playerListCard": {
         // 播放页播放列表
-        // TODO: 无法获取视频链接
         containerSelector: "video-sections-v1",
         thumbnailSelector: ".video-episode-card",
+    },
+    "playerListPod": {
+        // 播放页播放列表，文字形式
+        containerSelector: "div.video-pod",
+        thumbnailSelector: "div.pod-item",
+        customLinkSelector: "div.pod-item",
+        customLinkAttribute: "data-key",
+        labelAnchorSelector: "div.single-p .stats",
+        waitForPageLoad: true,
     },
     "listPlayerListCard": {
         // 列表播放页播放列表
@@ -106,7 +115,7 @@ const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
     [PageType.Main]: ["mainPageRecommendation"],
     [PageType.History]: ["history"],
     [PageType.OldHistory]: ["oldHistory"],
-    [PageType.Video]: ["playerSideRecommendation", "playerListCard"],
+    [PageType.Video]: ["playerSideRecommendation", "playerListCard", "playerListPod"],
     [PageType.List]: ["listPlayerSideRecommendation", "listPlayerListCard"],
     [PageType.Search]: ["search"],
     [PageType.Dynamic]: ["dynamic"],
@@ -155,4 +164,8 @@ export function getLabelAnchorSelector(containerType: string) {
         thumbnailSelectors[containerType].labelAnchorSelector ??
         "div:not(.b-img--face) > picture img:not(.bili-avatar-img), div.bili-cover-card__thumbnail > img"
     );
+}
+
+export function shouldWaitForPageLoad(containerType: string): boolean {
+    return thumbnailSelectors[containerType].waitForPageLoad ?? false;
 }

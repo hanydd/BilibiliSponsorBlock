@@ -1,8 +1,9 @@
 import Config from "../config";
+import { getPageLoaded } from "../content";
 import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
 import { getPageType } from "../utils/video";
-import { getThumbnailContainerElements, getThumbnailSelectors } from "./thumbnail-selectors";
+import { getThumbnailContainerElements, getThumbnailSelectors, shouldWaitForPageLoad } from "./thumbnail-selectors";
 import { insertSBIconDefinition, labelThumbnail } from "./thumbnails";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
@@ -10,15 +11,16 @@ export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
 const handledThumbnailsObserverMap = new Map<HTMLElement, MutationObserver>();
 let thumbnailContainerObserver: MutationObserver | null = null;
 
+let lastThumbnailCheck = 0;
+
 export function setupThumbnailListener(): void {
     const onLoad = () => {
         onInitialLoad();
 
         // listen to container child changes
-        getThumbnailContainerElements(getPageType()).forEach(({ containerType, selector }) => {
+        getThumbnailContainerElements(getPageType()).forEach(({ selector }) => {
             void waitFor(() => document.querySelector(selector), 10000)
                 .then((thumbnailContainer) => {
-                    labelNewThumbnails(thumbnailContainer, containerType); // fire thumbnail check once when the container is loaded
                     if (!thumbnailContainer) return;
                     thumbnailContainerObserver ??= new MutationObserver(() => checkPageForNewThumbnails());
                     thumbnailContainerObserver?.observe(thumbnailContainer, { childList: true, subtree: true });
@@ -53,20 +55,16 @@ function onInitialLoad() {
     insertSBIconDefinition();
 }
 
-let lastThumbnailCheck = 0;
 let thumbnailCheckTimeout: NodeJS.Timer | null = null;
-
 export function checkPageForNewThumbnails() {
-    if (performance.now() - lastThumbnailCheck < 50 || thumbnailCheckTimeout) {
-        if (thumbnailCheckTimeout) {
-            return;
-        } else {
+    if (performance.now() - lastThumbnailCheck < 500 || thumbnailCheckTimeout) {
+        if (!thumbnailCheckTimeout) {
             thumbnailCheckTimeout = setTimeout(() => {
                 thumbnailCheckTimeout = null;
                 checkPageForNewThumbnails();
             }, 1000);
-            return;
         }
+        return;
     }
     lastThumbnailCheck = performance.now();
 
@@ -78,6 +76,9 @@ export function checkPageForNewThumbnails() {
 }
 
 async function labelNewThumbnails(container: Element, containerType: string) {
+    if (shouldWaitForPageLoad(containerType)) {
+        await waitFor(getPageLoaded, 30000, 1000);
+    }
     if (!container || !document.body.contains(container)) return;
     const thumbnails = container.querySelectorAll(getThumbnailSelectors(containerType)) as NodeListOf<HTMLElement>;
     thumbnails.forEach((t) => labelThumbnail(t as HTMLImageElement, containerType));
