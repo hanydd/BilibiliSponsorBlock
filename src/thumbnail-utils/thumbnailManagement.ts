@@ -57,7 +57,7 @@ function onInitialLoad() {
 
 let thumbnailCheckTimeout: NodeJS.Timer | null = null;
 export function checkPageForNewThumbnails() {
-    if (performance.now() - lastThumbnailCheck < 500 || thumbnailCheckTimeout) {
+    if (performance.now() - lastThumbnailCheck < 100 || thumbnailCheckTimeout) {
         if (!thumbnailCheckTimeout) {
             thumbnailCheckTimeout = setTimeout(() => {
                 thumbnailCheckTimeout = null;
@@ -77,7 +77,7 @@ export function checkPageForNewThumbnails() {
 
 async function labelNewThumbnails(container: Element, containerType: string) {
     if (shouldWaitForPageLoad(containerType)) {
-        await waitFor(getPageLoaded, 30000, 1000);
+        await waitFor(getPageLoaded, 30000, 10);
     }
     if (!container || !document.body.contains(container)) return;
     const thumbnails = container.querySelectorAll(getThumbnailSelectors(containerType)) as NodeListOf<HTMLElement>;

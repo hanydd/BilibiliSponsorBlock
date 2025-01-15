@@ -8,7 +8,20 @@ export async function labelThumbnails(thumbnails: HTMLElement[], containerType: 
     await Promise.all(thumbnails.map((t) => labelThumbnail(t as HTMLElement, containerType)));
 }
 
+const labelingThumbnails = new Set<HTMLElement>();
 export async function labelThumbnail(thumbnail: HTMLElement, containerType: string): Promise<HTMLElement | null> {
+    if (labelingThumbnails.has(thumbnail)) return null;
+    labelingThumbnails.add(thumbnail);
+
+    const label = await labelThumbnailProcess(thumbnail, containerType);
+    labelingThumbnails.delete(thumbnail);
+    return label;
+}
+
+export async function labelThumbnailProcess(
+    thumbnail: HTMLElement,
+    containerType: string
+): Promise<HTMLElement | null> {
     if (!Config.config?.fullVideoSegments || !Config.config?.fullVideoLabelsOnThumbnails) {
         hideThumbnailLabel(thumbnail);
         return null;
@@ -109,7 +122,7 @@ async function createOrGetThumbnail(
     // try append after image element, exclude avatar in feed popup
     // wait unitl there is an anchor point, or the label might get inserted elsewhere and break the header
     const labelAnchor =
-        (await waitFor(() => thumbnail.querySelector(getLabelAnchorSelector(containerType)), 10000, 1000)) ??
+        (await waitFor(() => thumbnail.querySelector(getLabelAnchorSelector(containerType)), 10000, 100)) ??
         thumbnail.lastChild;
     labelAnchor.after(overlay);
 

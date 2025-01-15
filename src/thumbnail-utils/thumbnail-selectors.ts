@@ -41,11 +41,11 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         containerSelector: ".recommend-list-container",
         thumbnailSelector: ".video-card",
     },
-    "playerListCard": {
-        // 播放页播放列表
-        containerSelector: "video-sections-v1",
-        thumbnailSelector: ".video-episode-card",
-    },
+    // "playerListCard": {
+    //     // 播放页播放列表
+    //     containerSelector: "video-sections-v1",
+    //     thumbnailSelector: ".video-episode-card",
+    // },
     "playerListPod": {
         // 播放页播放列表，文字形式
         containerSelector: "div.video-pod",
@@ -115,7 +115,7 @@ const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
     [PageType.Main]: ["mainPageRecommendation"],
     [PageType.History]: ["history"],
     [PageType.OldHistory]: ["oldHistory"],
-    [PageType.Video]: ["playerSideRecommendation", "playerListCard", "playerListPod"],
+    [PageType.Video]: ["playerSideRecommendation", "playerListPod"],
     [PageType.List]: ["listPlayerSideRecommendation", "listPlayerListCard"],
     [PageType.Search]: ["search"],
     [PageType.Dynamic]: ["dynamic"],
