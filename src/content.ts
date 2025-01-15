@@ -507,6 +507,7 @@ async function videoIDChange(): Promise<void> {
     });
 
     sponsorsLookup();
+    checkPageForNewThumbnails();
 
     // Clear unsubmitted segments from the previous video
     sponsorTimesSubmitting = [];
