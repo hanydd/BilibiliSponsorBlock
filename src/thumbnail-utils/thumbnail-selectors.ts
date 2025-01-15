@@ -22,7 +22,7 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
     },
     "historyPopup": {
         // 历史视频弹出框
-        containerSelector: ".bili-header .right-entry .v-popover-wrap:nth-of-type(5) div.v-popover-content",
+        containerSelector: ".bili-header .right-entry .v-popover-wrap:nth-of-type(5)",
         thumbnailSelector: "a.header-history-card",
     },
     "mainPageRecommendation": {
@@ -87,17 +87,25 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         containerSelector: ".search-page-wrapper",
         thumbnailSelector: ".bili-video-card",
     },
+    "oldHistory": {
+        // 旧历史页
+        containerSelector: ".list-contain",
+        thumbnailSelector: "li.history-record",
+        labelAnchorSelector: "a.preview img",
+    },
     "history": {
         // 历史页
         containerSelector: ".main-content",
         thumbnailSelector: ".history-card",
+        labelAnchorSelector: ".bili-cover-card__thumbnail > img",
     },
 };
 
 const commonSelector = ["dynamicPopup", "favPopup", "historyPopup"];
 const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
     [PageType.Main]: ["mainPageRecommendation"],
-    [PageType.History]: [],
+    [PageType.History]: ["history"],
+    [PageType.OldHistory]: ["oldHistory"],
     [PageType.Video]: ["playerSideRecommendation", "playerListCard"],
     [PageType.List]: ["listPlayerSideRecommendation", "listPlayerListCard"],
     [PageType.Search]: ["search"],

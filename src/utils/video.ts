@@ -219,8 +219,10 @@ export function detectPageType(): void {
             pageType = PageType.Video;
         } else if (urlObject.pathname.startsWith("/list/")) {
             pageType = PageType.List;
-        } else if (urlObject.pathname.startsWith("/account/history")) {
+        } else if (urlObject.pathname.startsWith("/history")) {
             pageType = PageType.History;
+        } else if (urlObject.pathname.startsWith("/account/history")) {
+            pageType = PageType.OldHistory;
         } else if (urlObject.pathname.startsWith("/bangumi/")) {
             pageType = PageType.Anime;
         } else {

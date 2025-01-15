@@ -73,7 +73,7 @@ export function checkPageForNewThumbnails() {
     for (const { containerType, selector } of getThumbnailContainerElements(getPageType())) {
         waitFor(() => document.querySelector(selector), 10000)
             .then((thumbnailContainer) => labelNewThumbnails(thumbnailContainer, containerType))
-            .catch((err) => console.log(err));
+            .catch((err) => console.log("Fail to get ", selector, err));
     }
 }
 

@@ -7,6 +7,7 @@ export enum PageType {
     Unknown = "unknown",
     Main = "main",
     History = "history",
+    OldHistory = "oldHistory",
     Video = "video",
     List = "list",
     Search = "search",
