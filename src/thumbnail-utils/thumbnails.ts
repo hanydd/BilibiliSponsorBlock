@@ -33,7 +33,7 @@ export async function labelThumbnail(thumbnail: HTMLElement, containerType: stri
     );
     if (videoIDs.size !== 1) {
         // none or multiple video IDs found
-        hideThumbnailLabel(thumbnail);
+        await hideThumbnailLabel(thumbnail);
         return null;
     }
     const [videoID] = videoIDs;
@@ -43,7 +43,7 @@ export async function labelThumbnail(thumbnail: HTMLElement, containerType: stri
 
     const category = await getVideoLabel(videoID);
     if (!category) {
-        hideThumbnailLabel(thumbnail);
+        await hideThumbnailLabel(thumbnail);
         return null;
     }
 
@@ -65,12 +65,12 @@ export async function labelThumbnail(thumbnail: HTMLElement, containerType: stri
     return overlay;
 }
 
-function getOldThumbnailLabel(thumbnail: HTMLElement): HTMLElement | null {
-    return thumbnail.querySelector("#sponsorThumbnailLabel") as HTMLElement | null;
+async function getOldThumbnailLabel(thumbnail: HTMLElement): Promise<HTMLElement> {
+    return waitFor(() => thumbnail.querySelector("#sponsorThumbnailLabel"), 50, 5).catch(() => null);
 }
 
-function hideThumbnailLabel(thumbnail: HTMLElement): void {
-    const oldLabel = getOldThumbnailLabel(thumbnail);
+async function hideThumbnailLabel(thumbnail: HTMLElement): Promise<void> {
+    const oldLabel = await getOldThumbnailLabel(thumbnail);
     if (oldLabel) {
         oldLabel.classList.remove("sponsorThumbnailLabelVisible");
         oldLabel.removeAttribute("data-category");
@@ -81,7 +81,7 @@ async function createOrGetThumbnail(
     thumbnail: HTMLElement,
     containerType: string
 ): Promise<{ overlay: HTMLElement; text: HTMLElement }> {
-    const oldLabelElement = getOldThumbnailLabel(thumbnail);
+    const oldLabelElement = await getOldThumbnailLabel(thumbnail);
     if (oldLabelElement) {
         return {
             overlay: oldLabelElement as HTMLElement,
