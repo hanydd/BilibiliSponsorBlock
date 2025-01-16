@@ -81,7 +81,7 @@ export async function labelThumbnailProcess(
 }
 
 async function getOldThumbnailLabel(thumbnail: HTMLElement): Promise<HTMLElement> {
-    return waitFor(() => thumbnail.querySelector("#sponsorThumbnailLabel"), 50, 5).catch(() => null);
+    return waitFor(() => thumbnail.querySelector(".sponsorThumbnailLabel"), 50, 5).catch(() => null);
 }
 
 async function hideThumbnailLabel(thumbnail: HTMLElement): Promise<void> {
@@ -118,7 +118,7 @@ async function createOrGetThumbnail(
     }
 
     const overlay = document.createElement("div") as HTMLElement;
-    overlay.id = "sponsorThumbnailLabel";
+    overlay.classList.add("sponsorThumbnailLabel");
     // Disable hover autoplay
     overlay.addEventListener("pointerenter", (e) => {
         e.stopPropagation();

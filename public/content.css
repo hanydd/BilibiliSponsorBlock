@@ -776,7 +776,7 @@ input::-webkit-inner-spin-button {
 }
 
 /* full video labels on thumbnails */
-#sponsorThumbnailLabel {
+.sponsorThumbnailLabel {
 	display: none;
 	position: absolute;
 	top: 0;
@@ -791,32 +791,32 @@ input::-webkit-inner-spin-button {
 	font-size: 10px;
 }
 
-#sponsorThumbnailLabel.sponsorThumbnailLabelVisible {
+.sponsorThumbnailLabel.sponsorThumbnailLabelVisible {
 	display: flex;
 }
 
-#sponsorThumbnailLabel svg {
+.sponsorThumbnailLabel svg {
 	height: 2em;
 	fill: var(--category-text-color, #fff);
 }
 
-#sponsorThumbnailLabel span {
+.sponsorThumbnailLabel span {
 	display: none;
 	padding-left: 0.25em;
 	font-size: 1.5em;
 	color: var(--category-text-color, #fff);
 }
 
-#sponsorThumbnailLabel:hover {
+.sponsorThumbnailLabel:hover {
 	border-radius: 0.25em;
 	opacity: 1;
 }
 
-#sponsorThumbnailLabel:hover span {
+.sponsorThumbnailLabel:hover span {
 	display: inline;
 }
 
-.pod-item #sponsorThumbnailLabel {
+.pod-item .sponsorThumbnailLabel {
 	position: relative;
 	margin: 0 0 0 0.5em;
 	box-shadow: none;
