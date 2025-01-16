@@ -71,6 +71,7 @@ const PlayerButtonGroupComponent = React.forwardRef(function (
                     baseID="submit"
                     title="OpenSubmissionMenu"
                     imageName="PlayerUploadIconSponsorBlocker.svg"
+                    keybind={Config.config.submitKeybind}
                     isDraggable={false}
                     show={showSubmitButton()}
                     onClick={submitCallback}
@@ -107,6 +108,7 @@ const PlayerButtonGroupComponent = React.forwardRef(function (
                     imageName={
                         isCreatingSegment() ? "PlayerStopIconSponsorBlocker.svg" : "PlayerStartIconSponsorBlocker.svg"
                     }
+                    keybind={Config.config.startSponsorKeybind}
                     onClick={startSegmentCallback}
                     isDraggable={false}
                 ></PlayerButtonComponent>

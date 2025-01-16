@@ -26,7 +26,9 @@ function overwriteFetch() {
             .clone()
             .text()
             .then((res) => processURLRequest(new URL(urlStr, window.location.href), res))
-            .catch(() => {});
+            .catch((e) => {
+                console.error("[BSB] Error processing URL Request: ", e);
+            });
         return response;
     };
 }
@@ -34,14 +36,16 @@ function overwriteFetch() {
 function overwriteXHR() {
     const originalSend = XMLHttpRequest.prototype.send;
 
-    XMLHttpRequest.prototype.send = function (body?: Document | BodyInit | null) {
+    XMLHttpRequest.prototype.send = function (this: XMLHttpRequest, body?: Document | BodyInit | null) {
         this.addEventListener("loadend", function () {
-            if (this.readyState === 4 && this.status >= 200 && this.status < 300) {
+            if (this.readyState === this.DONE && this.status >= 200 && this.status < 300) {
                 try {
-                    const url = new URL(this.responseURL);
-                    processURLRequest(url, this.responseText);
+                    if (this.responseType === "" || this.responseType === "text") {
+                        const url = new URL(this.responseURL);
+                        processURLRequest(url, this.responseText);
+                    }
                 } catch (e) {
-                    console.debug("Failed to process request");
+                    console.error("[BSB] Error processing URL Request: ", e);
                 }
             }
         });
@@ -50,13 +54,13 @@ function overwriteXHR() {
 }
 
 function processURLRequest(url: URL, responseText: string): void {
-    if (url.pathname.includes("/player/wbi/playurl")) {
+    if (url.pathname.startsWith("/player/wbi/playurl")) {
         const response = JSON.parse(responseText) as BilibiliResponse<BiliPlayInfo>;
         const cid = url.searchParams.get("cid");
         if (cid && response?.data?.dash?.video) {
             savePlayInfo(cid, playUrlResponseToPlayInfo(response.data));
         }
-    } else if (url.pathname.includes("/x/player/wbi/v2")) {
+    } else if (url.pathname.startsWith("/x/player/wbi/v2")) {
         const response = JSON.parse(responseText) as BilibiliResponse<BiliVideoDetail>;
         saveAidFromDetail(response.data);
     }

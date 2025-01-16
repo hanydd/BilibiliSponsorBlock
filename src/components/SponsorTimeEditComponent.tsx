@@ -3,6 +3,7 @@ import { CheckboxChangeEvent } from "antd/es/checkbox";
 import * as React from "react";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
+import { keybindToString } from "../config/config";
 import { showMessage } from "../render/MessageNotice";
 import { RectangleTooltip } from "../render/RectangleTooltip";
 import { asyncRequestToServer } from "../requests/requests";
@@ -286,6 +287,11 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                         <span
                             id={"sponsorTimePreviewButton" + this.idSuffix}
                             className="sponsorTimeEditButton"
+                            {...(Config.config.previewKeybind && {
+                                title: `${chrome.i18n.getMessage("preview")} (${keybindToString(
+                                    Config.config.previewKeybind
+                                )})`,
+                            })}
                             onClick={(e) => this.previewTime(e.ctrlKey, e.shiftKey)}
                         >
                             {chrome.i18n.getMessage("preview")}
