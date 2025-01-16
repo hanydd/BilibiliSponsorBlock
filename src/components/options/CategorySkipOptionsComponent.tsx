@@ -2,7 +2,7 @@ import * as React from "react";
 
 import Config from "../../config";
 import * as CompileConfig from "../../../config.json";
-import { Category, CategorySkipOption } from "../../types";
+import { Category, CategorySkipOption, DynamicSponsorOption } from "../../types";
 
 import { getCategorySuffix } from "../../utils/categoryUtils";
 import ToggleOptionComponent from "./ToggleOptionComponent";
@@ -16,7 +16,7 @@ export interface CategorySkipOptionsProps {
 
 export interface CategorySkipOptionsState {
     color: string;
-    previewColor: string;
+    previewColor?: string;
 }
 
 export interface ToggleOption {
@@ -234,4 +234,140 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
     }
 }
 
-export default CategorySkipOptionsComponent;
+class DynamicSponsorHideOptionsComponent extends React.Component<CategorySkipOptionsProps, CategorySkipOptionsState> {
+    setBarColorTimeout: NodeJS.Timeout;
+
+    constructor(props: CategorySkipOptionsProps) {
+        super(props);
+
+        // Setup state
+        this.state = {
+            color: props.defaultColor || Config.config.dynamicSponsorTypes[this.props.category]?.color
+        };
+    }
+
+    render(): React.ReactElement {
+        let defaultOption = "disable";
+        // Set the default opton properly
+        for (const categorySelection of Config.config.dynamicSponsorSelections) {
+            if (categorySelection.name === this.props.category) {
+                switch (categorySelection.option) {
+                    case DynamicSponsorOption.ShowOverlay:
+                        defaultOption = "showOverlay_DynamicSponsor";
+                        break;
+                    case DynamicSponsorOption.Hide:
+                        defaultOption = "Hide_DynamicSponsor";
+                        break;
+                }
+
+                break;
+            }
+        }
+
+        return (
+            <>
+                <tr id={this.props.category + "OptionsRow"} className={`categoryTableElement`}>
+                    <td id={this.props.category + "OptionName"} className="categoryTableLabel">
+                        {chrome.i18n.getMessage("category_" + this.props.category)}
+                    </td>
+
+                    <td id={this.props.category + "SkipOption"} className="skipOption">
+                        <select
+                            className="optionsSelector"
+                            defaultValue={defaultOption}
+                            onChange={this.skipOptionSelected.bind(this)}
+                        >
+                            {this.getCategorySkipOptions()}
+                        </select>
+                    </td>
+
+                    <td id={this.props.category + "ColorOption"} className="colorOption">
+                        <input
+                            className="categoryColorTextBox option-text-box"
+                            type="color"
+                            onChange={(event) => this.setColorState(event)}
+                            value={this.state.color}
+                        />
+                    </td>
+                </tr>
+
+                <tr
+                    id={this.props.category + "DescriptionRow"}
+                    className={`small-description categoryTableDescription`}
+                >
+                    <td colSpan={2}>
+                        {chrome.i18n.getMessage("category_" + this.props.category + "_description")}
+                    </td>
+                </tr>
+            </>
+        );
+    }
+
+    skipOptionSelected(event: React.ChangeEvent<HTMLSelectElement>): void {
+        let option: DynamicSponsorOption;
+
+        switch (event.target.value) {
+            case "disable":
+                Config.config.dynamicSponsorSelections = Config.config.dynamicSponsorSelections.filter(
+                    (dynamicSponsorSelections) => dynamicSponsorSelections.name !== this.props.category
+                );
+                return;
+            case "showOverlay_DynamicSponsor":
+                option = DynamicSponsorOption.ShowOverlay;
+
+                break;
+            case "Hide_DynamicSponsor":
+                option = DynamicSponsorOption.Hide;
+
+                break;
+        }
+
+        const existingSelection = Config.config.dynamicSponsorSelections.find(
+            (selection) => selection.name === this.props.category
+        );
+        if (existingSelection) {
+            existingSelection.option = option;
+        } else {
+            Config.config.dynamicSponsorSelections.push({
+                name: this.props.category,
+                option: option,
+            });
+        }
+
+        Config.forceSyncUpdate("dynamicSponsorSelections");
+    }
+
+    getCategorySkipOptions(): JSX.Element[] {
+        const elements: JSX.Element[] = [];
+
+        const optionNames = ["disable", "showOverlay_DynamicSponsor", "Hide_DynamicSponsor"];
+
+        for (const optionName of optionNames) {
+            elements.push(
+                <option key={optionName} value={optionName}>
+                    {chrome.i18n.getMessage(optionName)}
+                </option>
+            );
+        }
+
+        return elements;
+    }
+
+    setColorState(event: React.FormEvent<HTMLInputElement>): void {
+        clearTimeout(this.setBarColorTimeout);
+
+        this.setState({
+            color: event.currentTarget.value,
+        });
+
+        Config.config.dynamicSponsorTypes[this.props.category].color = event.currentTarget.value;
+
+
+        // Make listener get called
+        this.setBarColorTimeout = setTimeout(() => {
+            Config.config.dynamicSponsorTypes = Config.config.dynamicSponsorTypes;
+        }, 50);
+    }
+}
+
+export {CategorySkipOptionsComponent, DynamicSponsorHideOptionsComponent}

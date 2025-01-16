@@ -10,7 +10,7 @@ window.SB = Config;
 import KeybindComponent from "./components/options/KeybindComponent";
 import { StorageChangesObject } from "./config/config";
 import { showDonationLink } from "./config/configUtils";
-import CategoryChooser from "./render/CategoryChooser";
+import { CategoryChooser, DynamicSponsorChooser} from "./render/CategoryChooser";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import UnsubmittedVideos from "./render/UnsubmittedVideos";
 import { asyncRequestToServer } from "./requests/requests";
@@ -309,6 +309,9 @@ async function init() {
                 break;
             case "react-UnsubmittedVideosComponent":
                 unsubmittedVideos.push(new UnsubmittedVideos(optionsElements[i]));
+                break;
+            case "react-DynamicSponsorChooserComponent":
+                categoryChoosers.push(new DynamicSponsorChooser(optionsElements[i]));
                 break;
         }
     }

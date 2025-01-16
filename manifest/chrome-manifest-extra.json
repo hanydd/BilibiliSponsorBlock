@@ -22,7 +22,7 @@
       "matches": [
         "https://*.bilibili.com/*"
       ],
-      "all_frames": false,
+      "all_frames": true,
       "js": [
         "./js/content.js"
       ],
@@ -37,7 +37,7 @@
       "matches": [
         "https://*.bilibili.com/*"
       ],
-      "all_frames": false,
+      "all_frames": true,
       "js": [
         "./js/document.js"
       ]
