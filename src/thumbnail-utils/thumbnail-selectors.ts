@@ -41,19 +41,22 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         containerSelector: ".recommend-list-container",
         thumbnailSelector: ".video-card",
     },
-    // "playerListCard": {
-    //     // 播放页播放列表
-    //     containerSelector: "video-sections-v1",
-    //     thumbnailSelector: ".video-episode-card",
-    // },
     "playerListPod": {
         // 播放页播放列表，文字形式
         containerSelector: "div.video-pod",
         thumbnailSelector: "div.pod-item",
-        customLinkSelector: "div.pod-item",
+        customLinkSelector: ".pod-item.simple",
         customLinkAttribute: "data-key",
         labelAnchorSelector: "div.single-p .stats",
         waitForPageLoad: true,
+    },
+    "playerListPodVideo": {
+        // 播放页播放列表，视频图形式
+        containerSelector: "div.video-pod",
+        thumbnailSelector: "div.pod-item",
+        customLinkSelector: ".pod-item.normal",
+        customLinkAttribute: "data-key",
+        labelAnchorSelector: "div.single-p img",
     },
     "listPlayerListCard": {
         // 列表播放页播放列表
@@ -115,7 +118,7 @@ const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
     [PageType.Main]: ["mainPageRecommendation"],
     [PageType.History]: ["history"],
     [PageType.OldHistory]: ["oldHistory"],
-    [PageType.Video]: ["playerSideRecommendation", "playerListPod"],
+    [PageType.Video]: ["playerSideRecommendation", "playerListPod", "playerListPodVideo"],
     [PageType.List]: ["listPlayerSideRecommendation", "listPlayerListCard"],
     [PageType.Search]: ["search"],
     [PageType.Dynamic]: ["dynamic"],

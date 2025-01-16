@@ -69,16 +69,14 @@ export function checkPageForNewThumbnails() {
     lastThumbnailCheck = performance.now();
 
     for (const { containerType, selector } of getThumbnailContainerElements(getPageType())) {
-        waitFor(() => document.querySelector(selector), 10000)
-            .then((thumbnailContainer) => labelNewThumbnails(thumbnailContainer, containerType))
+        waitFor(() => (shouldWaitForPageLoad(containerType) ? getPageLoaded() : true), 30000, 10)
+            .then(() => waitFor(() => document.querySelector(selector), 10000))
+            .finally(() => labelNewThumbnails(document.querySelector(selector), containerType))
             .catch((err) => console.log("Fail to get ", selector, err));
     }
 }
 
-async function labelNewThumbnails(container: Element, containerType: string) {
-    if (shouldWaitForPageLoad(containerType)) {
-        await waitFor(getPageLoaded, 30000, 10);
-    }
+function labelNewThumbnails(container: Element, containerType: string) {
     if (!container || !document.body.contains(container)) return;
     const thumbnails = container.querySelectorAll(getThumbnailSelectors(containerType)) as NodeListOf<HTMLElement>;
     thumbnails.forEach((t) => labelThumbnail(t as HTMLImageElement, containerType));

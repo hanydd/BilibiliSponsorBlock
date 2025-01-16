@@ -25,7 +25,7 @@ export async function labelThumbnailProcess(
     containerType: string
 ): Promise<HTMLElement | null> {
     if (!Config.config?.fullVideoSegments || !Config.config?.fullVideoLabelsOnThumbnails) {
-        hideThumbnailLabel(thumbnail);
+        await hideThumbnailLabel(thumbnail);
         return null;
     }
 
