@@ -50,6 +50,7 @@ export async function getSegmentsByVideoID(
 
     const responseSegments: SegmentResponse = { segments: null, status: response.status };
     if (!response?.ok) {
+        segmentCache.set(videoID, responseSegments);
         return responseSegments;
     }
     const allSegments: SponsorTimeHashedID[] = JSON.parse(response?.responseText);
