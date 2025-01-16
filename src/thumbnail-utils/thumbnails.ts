@@ -1,5 +1,7 @@
 import Config from "../config";
+import { getSegmentsByVideoID } from "../requests/segments";
 import { getVideoLabel } from "../requests/videoLabels";
+import { VideoID } from "../types";
 import { waitFor } from "../utils/";
 import { getBvIDFromURL } from "../utils/parseVideoID";
 import { getLabelAnchorSelector, getLinkAttribute, getLinkSelectors } from "./thumbnail-selectors";
@@ -52,7 +54,7 @@ export async function labelThumbnailProcess(
     const [videoID] = videoIDs;
 
     // 获取或创建缩略图标签
-    const { overlay, text } = await createOrGetThumbnail(thumbnail, containerType);
+    const { overlay, text } = await createOrGetThumbnail(thumbnail, containerType, videoID);
 
     const category = await getVideoLabel(videoID);
     if (!category) {
@@ -90,10 +92,23 @@ async function hideThumbnailLabel(thumbnail: HTMLElement): Promise<void> {
     }
 }
 
+const preloadSegments = (e: MouseEvent) => {
+    const videoID = (e.target as HTMLElement).getAttribute("data-bsb-bvid");
+    getSegmentsByVideoID(videoID);
+};
+
 async function createOrGetThumbnail(
     thumbnail: HTMLElement,
-    containerType: string
+    containerType: string,
+    videoID: VideoID
 ): Promise<{ overlay: HTMLElement; text: HTMLElement }> {
+    // only add evnet listener once, add preloadSegments to thumbnail when pointerenter
+    if (thumbnail.getAttribute("data-bsb-bvid") != videoID) {
+        thumbnail.setAttribute("data-bsb-bvid", videoID);
+        thumbnail.removeEventListener("mouseenter", preloadSegments);
+        thumbnail.addEventListener("mouseenter", preloadSegments);
+    }
+
     const oldLabelElement = await getOldThumbnailLabel(thumbnail);
     if (oldLabelElement) {
         return {

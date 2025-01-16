@@ -15,7 +15,7 @@ import SubmissionNotice from "./render/SubmissionNotice";
 import { FetchResponse } from "./requests/background-request-proxy";
 import { getPortVideoByHash, postPortVideo, postPortVideoVote, updatePortedSegments } from "./requests/portVideo";
 import { asyncRequestToServer } from "./requests/requests";
-import { getSegmentsByHash } from "./requests/segments";
+import { getSegmentsByVideoID } from "./requests/segments";
 import { getVideoLabel } from "./requests/videoLabels";
 import { checkPageForNewThumbnails, setupThumbnailListener } from "./thumbnail-utils/thumbnailManagement";
 import {
@@ -33,7 +33,6 @@ import {
     SponsorHideType,
     SponsorSourceType,
     SponsorTime,
-    SponsorTimeHashedID,
     ToggleSkippable,
     VideoID,
     VideoInfo,
@@ -1342,31 +1341,19 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
         return;
     }
 
-    const categories: string[] = Config.config.categorySelections.map((category) => category.name);
-
     const extraRequestData: Record<string, unknown> = {};
     const hashParams = getHashParams();
     if (hashParams.requiredSegment) extraRequestData.requiredSegment = hashParams.requiredSegment;
 
     const hashPrefix = (await getVideoIDHash(getVideoID())).slice(0, 4) as VideoID & HashedValue;
-    const response = await getSegmentsByHash(hashPrefix, extraRequestData, ignoreServerCache);
+    const segmentResponse = await getSegmentsByVideoID(getVideoID(), extraRequestData, ignoreServerCache);
 
     // store last response status
-    lastResponseStatus = response?.status;
+    lastResponseStatus = segmentResponse?.status;
 
-    if (response?.ok) {
-        const receivedSegments: SponsorTime[] = JSON.parse(response.responseText)
-            ?.filter((video: SponsorTimeHashedID) => video.videoID === getVideoID())
-            ?.map((video: SponsorTimeHashedID) => video.segments)?.[0]
-            ?.filter(
-                (segment: SponsorTime) =>
-                    getEnabledActionTypes().includes(segment.actionType) && categories.includes(segment.category)
-            )
-            ?.map((segment: SponsorTime) => ({
-                ...segment,
-                source: SponsorSourceType.Server,
-            }))
-            ?.sort((a: SponsorTime, b: SponsorTime) => a.segment[0] - b.segment[0]);
+    if (segmentResponse.status === 200) {
+        const receivedSegments: SponsorTime[] = segmentResponse.segments;
+
         if (receivedSegments && receivedSegments.length) {
             sponsorDataFound = true;
 
@@ -1449,18 +1436,6 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
     if (Config.config.isVip) {
         lockedCategoriesLookup();
     }
-}
-
-function getEnabledActionTypes(forceFullVideo = false): ActionType[] {
-    const actionTypes = [ActionType.Skip, ActionType.Poi];
-    if (Config.config.muteSegments) {
-        actionTypes.push(ActionType.Mute);
-    }
-    if (Config.config.fullVideoSegments || forceFullVideo) {
-        actionTypes.push(ActionType.Full);
-    }
-
-    return actionTypes;
 }
 
 async function lockedCategoriesLookup(): Promise<void> {

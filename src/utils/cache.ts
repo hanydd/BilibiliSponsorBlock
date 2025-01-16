@@ -14,6 +14,7 @@ export class DataCache<T extends string, V> {
     }
 
     public getFromCache(key: T): (V & CacheRecord) | undefined {
+        this.cacheUsed(key);
         return this.cache[key];
     }
 
@@ -23,6 +24,10 @@ export class DataCache<T extends string, V> {
             lastUsed: Date.now(),
         };
         this.gc();
+    }
+
+    public delete(key: T): void {
+        delete this.cache[key];
     }
 
     public setupCache(key: T): V & CacheRecord {
