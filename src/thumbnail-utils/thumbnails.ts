@@ -105,8 +105,8 @@ async function createOrGetThumbnail(
     // only add evnet listener once, add preloadSegments to thumbnail when pointerenter
     if (thumbnail.getAttribute("data-bsb-bvid") != videoID) {
         thumbnail.setAttribute("data-bsb-bvid", videoID);
-        thumbnail.removeEventListener("mouseenter", preloadSegments);
-        thumbnail.addEventListener("mouseenter", preloadSegments);
+        thumbnail.removeEventListener("click", preloadSegments);
+        thumbnail.addEventListener("click", preloadSegments);
     }
 
     const oldLabelElement = await getOldThumbnailLabel(thumbnail);
