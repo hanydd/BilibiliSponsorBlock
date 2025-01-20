@@ -6,6 +6,7 @@ import { Message } from "../messageTypes";
 import { PortVideo } from "../types";
 import { parseYoutubeID } from "../utils/parseVideoID";
 import { RefreshIcon } from "../components/icon/refresh";
+import Config from "../config";
 
 interface PortVideoProps {
     messageApi: MessageInstance;
@@ -90,7 +91,7 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
     }
 
     render() {
-        if (!this.state.show) {
+        if (!this.state.show || !Config.config.showPortVideoButton) {
             return <></>;
         }
         return (
