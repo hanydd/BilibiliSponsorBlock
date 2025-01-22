@@ -1,6 +1,7 @@
 import { getBvIDfromAvIDBiliApi } from "../requests/bilibiliApi";
 import { BiliVideoDetail } from "../requests/type/BilibiliRequestType";
 import { VideoID } from "../types";
+import { CalculateAvidToBvid } from "../utils/bvidAvidUtils";
 import { DataCache } from "../utils/cache";
 
 const cache = new DataCache<string, VideoID>();
@@ -24,7 +25,13 @@ export async function getBvid(aid: number | string): Promise<VideoID> {
         saveAid(window.__INITIAL_STATE__.aid, window.__INITIAL_STATE__.bvid);
     }
     if (!cache.contains(aid.toString())) {
-        const bvid = await getBvIDfromAvIDBiliApi(aid.toString());
+        let bvid: string;
+        try {
+            bvid = CalculateAvidToBvid(aid);
+        } catch (e) {
+            bvid = await getBvIDfromAvIDBiliApi(aid.toString());
+        }
+
         if (bvid) {
             cache.set(aid.toString(), bvid);
         }
