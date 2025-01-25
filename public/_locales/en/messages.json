@@ -617,10 +617,10 @@
         "message": "不是公司设计的产品和周边"
     },
     "category_exclusive_access": {
-        "message": "柔性推广/品牌合作"
+        "message": "独家限定"
     },
     "category_exclusive_access_description": {
-        "message": "仅用于对整个视频进行标记。适用于展示UP主免费或获得补贴后使用的产品、服务或场地的视频。"
+        "message": "仅用于标记整部视频。用于视频展示创作者体验的产品、服务或地点。包括抢先体验、独家拥有等。"
     },
     "category_exclusive_access_pill": {
         "message": "此视频展示了UP主免费或获得后补贴使用的产品或者服务，包括软广、产品推广或者品牌推广",

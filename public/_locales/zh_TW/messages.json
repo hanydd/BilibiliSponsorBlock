@@ -617,10 +617,10 @@
         "message": "不是公司設計的產品和周邊"
     },
     "category_exclusive_access": {
-        "message": "柔性推廣/品牌合作"
+        "message": "獨家限定"
     },
     "category_exclusive_access_description": {
-        "message": "僅用於標記整個影片。適用於影片展示創作者免費或獲得補助使用的產品或者服務，包括軟廣、產品推廣或者品牌推廣。"
+        "message": "僅用於標記整部影片。用於影片展示創作者體驗的產品、服務或地點。包括搶先體驗、獨家擁有等。"
     },
     "category_exclusive_access_pill": {
         "message": "此影片展示了創作者免費或獲得補助使用的產品、服務或場地",
