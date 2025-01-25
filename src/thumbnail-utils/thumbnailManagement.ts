@@ -25,9 +25,7 @@ export function setupThumbnailListener(): void {
                     thumbnailContainerObserver ??= new MutationObserver(() => checkPageForNewThumbnails());
                     thumbnailContainerObserver?.observe(thumbnailContainer, { childList: true, subtree: true });
                 })
-                .catch((err) => {
-                    console.log(err);
-                });
+                .catch();
         });
     };
 
@@ -72,7 +70,7 @@ export function checkPageForNewThumbnails() {
         waitFor(() => (shouldWaitForPageLoad(containerType) ? getPageLoaded() : true), 30000, 10)
             .then(() => waitFor(() => document.querySelector(selector), 10000))
             .finally(() => labelNewThumbnails(document.querySelector(selector), containerType))
-            .catch((err) => console.log("Fail to get ", selector, err));
+            .catch();
     }
 }
 
