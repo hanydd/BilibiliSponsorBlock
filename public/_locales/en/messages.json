@@ -623,11 +623,11 @@
         "message": "仅用于标记整部视频。用于视频展示创作者体验的产品、服务或地点。包括抢先体验、独家拥有等。"
     },
     "category_exclusive_access_pill": {
-        "message": "此视频展示了UP主免费或获得后补贴使用的产品或者服务，包括软广、产品推广或者品牌推广",
+        "message": "此视频展示了创作者独家拥有的产品、服务或地点",
         "description": "此类别的简短描述"
     },
     "category_exclusive_access_guideline1": {
-        "message": "整个视频都在展示免费或获得补贴后使用的内容"
+        "message": "整个视频都在展示抢先体验、独家拥有的内容"
     },
     "category_interaction": {
         "message": "三连/订阅提醒"

@@ -623,11 +623,11 @@
         "message": "僅用於標記整部影片。用於影片展示創作者體驗的產品、服務或地點。包括搶先體驗、獨家擁有等。"
     },
     "category_exclusive_access_pill": {
-        "message": "此影片展示了創作者免費或獲得補助使用的產品、服務或場地",
+        "message": "此影片展示了創作者獨家擁有的產品、服務或地點",
         "description": "此類別的簡短描述"
     },
     "category_exclusive_access_guideline1": {
-        "message": "整個影片都在展示免費或獲得補助使用的內容"
+        "message": "整個影片都在展示搶先體驗、獨家擁有的內容"
     },
     "category_interaction": {
         "message": "三連/訂閱提醒"
