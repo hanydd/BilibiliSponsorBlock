@@ -9,7 +9,7 @@
     "webNavigation"
   ],
   "host_permissions": [
-    "https://*.bilibili.com/*",
+    "https://www.bilibili.com/*",
     "http://*.bsbsb.top/*"
   ],
   "optional_host_permissions": [
@@ -20,7 +20,7 @@
       "world": "ISOLATED",
       "run_at": "document_start",
       "matches": [
-        "https://*.bilibili.com/*"
+        "https://www.bilibili.com/*"
       ],
       "all_frames": true,
       "js": [
@@ -35,7 +35,7 @@
       "world": "MAIN",
       "run_at": "document_start",
       "matches": [
-        "https://*.bilibili.com/*"
+        "https://www.bilibili.com/*"
       ],
       "all_frames": true,
       "js": [

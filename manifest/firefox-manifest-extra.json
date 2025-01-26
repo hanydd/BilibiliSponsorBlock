@@ -3,7 +3,7 @@
   "permissions": [
     "storage",
     "scripting",
-    "https://*.bilibili.com/*",
+    "https://www.bilibili.com/*",
     "http://*.bsbsb.top/*"
   ],
   "optional_permissions": [
@@ -13,7 +13,7 @@
     {
       "run_at": "document_start",
       "matches": [
-        "https://*.bilibili.com/*"
+        "https://www.bilibili.com/*"
       ],
       "all_frames": true,
       "js": [
