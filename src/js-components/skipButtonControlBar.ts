@@ -73,7 +73,7 @@ export class SkipButtonControlBar {
 
     async attachToPage(): Promise<void> {
         await waitFor(getPageLoaded, 10000, 10);
-        const mountingContainer = this.getMountingContainer();
+        const mountingContainer = await this.getMountingContainer();
         // this.chapterText = document.querySelector(".ytp-chapter-container");
 
         if (mountingContainer && !mountingContainer.contains(this.container)) {
@@ -82,8 +82,8 @@ export class SkipButtonControlBar {
         }
     }
 
-    private getMountingContainer(): HTMLElement {
-        return document.querySelector(".bpx-player-control-bottom-left");
+    private async getMountingContainer(): Promise<HTMLElement> {
+        return waitFor(() => document.querySelector(".bpx-player-control-bottom-left"));
     }
 
     enable(segment: SponsorTime, duration?: number): void {
