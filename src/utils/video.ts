@@ -212,7 +212,7 @@ export async function whitelistCheck() {
     contentMethod.channelIDChange(channelIDInfo);
 }
 
-export function detectPageType(): void {
+export function detectPageType(): PageType {
     pageType = PageType.Unknown;
 
     const urlObject = new URL(document.URL);
@@ -243,6 +243,7 @@ export function detectPageType(): void {
     } else if (urlObject.hostname === "live.bilibili.com") {
         pageType = PageType.Live;
     }
+    return pageType;
 }
 
 let lastMutationListenerCheck = 0;

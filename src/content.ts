@@ -70,6 +70,8 @@ import { openWarningDialog } from "./utils/warnings";
 
 cleanPage();
 
+detectPageType();
+
 const utils = new Utils();
 
 waitFor(() => Config.isReady(), 5000, 10).then(() => {
@@ -80,8 +82,6 @@ waitFor(() => Config.isReady(), 5000, 10).then(() => {
         Config.config.dynamicSponsorBlocker
     ) DynamicListener();
 });
-
-detectPageType();
 
 if ((document.hidden && getPageType() == PageType.Video) || getPageType() == PageType.List) {
     document.addEventListener("visibilitychange", () => videoElementChange(true, getVideo()), { once: true });

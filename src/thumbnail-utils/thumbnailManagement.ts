@@ -1,5 +1,6 @@
 import Config from "../config";
 import { getPageLoaded } from "../content";
+import { PageType } from "../types";
 import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
 import { getPageType } from "../utils/video";
@@ -55,6 +56,9 @@ function onInitialLoad() {
 
 let thumbnailCheckTimeout: NodeJS.Timer | null = null;
 export function checkPageForNewThumbnails() {
+    // disable on live pages to prevent memory leaks
+    if (getPageType() === PageType.Live) return;
+
     if (performance.now() - lastThumbnailCheck < 100 || thumbnailCheckTimeout) {
         if (!thumbnailCheckTimeout) {
             thumbnailCheckTimeout = setTimeout(() => {
