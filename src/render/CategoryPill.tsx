@@ -32,8 +32,7 @@ export class CategoryPill {
         // bilibili will set the textContent of the title after loading for some reason.
         // If the node is inserted before this reset of title, it will be removed
         const mutationCounter = () => (this.mutationCount += 1);
-        mutationCounter.bind(this);
-        this.mutationObserver = new MutationObserver(mutationCounter);
+        this.mutationObserver = new MutationObserver(mutationCounter.bind(this));
 
         addCleanupListener(() => {
             if (this.mutationObserver) {
@@ -117,8 +116,6 @@ export class CategoryPill {
     }
 
     async setSegment(segment: SponsorTime): Promise<void> {
-        await waitFor(() => this.ref.current);
-
         if (this.ref.current?.state?.segment !== segment) {
             const newState = {
                 segment,
