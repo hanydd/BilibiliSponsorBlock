@@ -2694,6 +2694,21 @@ function hotkeyListener(e: KeyboardEvent): void {
     if (keybindEquals(key, skipKey)) {
         if (activeSkipKeybindElement) {
             activeSkipKeybindElement.toggleSkip.call(activeSkipKeybindElement);
+
+            /*
+             * b站视频播放器全屏或网页全屏时，快捷键`Enter`会聚焦到弹幕输入框
+             * 这里阻止了使用`Enter`跳过赞助片段时播放器的默认行为
+             */
+            if (key.key === 'Enter') {
+                const currentTime: number | null = document.querySelector<HTMLVideoElement>(".bpx-player-video-wrap video")?.currentTime ?? null;
+                if (currentTime) {
+                    const inSponsorRange = sponsorTimes.some(({segment: [start, end]}) => start <= currentTime && end >= currentTime);
+                    if (inSponsorRange) {
+                        utils.biliBiliPlayerDanmakuInputBlur();
+                    }
+                }
+
+            }
         }
 
         return;
