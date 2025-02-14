@@ -278,4 +278,8 @@ export default class Utils {
 
         Config.forceLocalUpdate("downvotedSegments");
     }
+
+    biliBiliPlayerDanmakuInputBlur() {
+        setTimeout(() => document.querySelector<HTMLInputElement>("input.bpx-player-dm-input")?.blur(), 0);
+    }
 }
