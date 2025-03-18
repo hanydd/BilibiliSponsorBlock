@@ -3,7 +3,7 @@
  * 算法来源：@catlair (https://github.com/SocialSisterYi/bilibili-API-collect/)
  */
 
-import { VideoID } from "../types";
+import { BVID } from "../types";
 
 const XOR_CODE = BigInt("23442827791579");
 const MASK_CODE = BigInt("2251799813685247");
@@ -12,7 +12,7 @@ const BASE = BigInt(58);
 
 const ALPHABET = "FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf";
 
-export function CalculateBvidToAvid(bvid: VideoID): number {
+export function CalculateBvidToAvid(bvid: BVID): number {
     const bvidArr = Array.from<string>(bvid);
     [bvidArr[3], bvidArr[9]] = [bvidArr[9], bvidArr[3]];
     [bvidArr[4], bvidArr[7]] = [bvidArr[7], bvidArr[4]];
@@ -21,7 +21,7 @@ export function CalculateBvidToAvid(bvid: VideoID): number {
     return Number((avidVal & MASK_CODE) ^ XOR_CODE);
 }
 
-export function CalculateAvidToBvid(avid: number | string): `BV1${string}` {
+export function CalculateAvidToBvid(avid: number | string): BVID {
     if (typeof avid === "string") {
         if (avid.startsWith("av")) avid = avid.replace("av", "");
         avid = parseInt(avid);
@@ -37,5 +37,5 @@ export function CalculateAvidToBvid(avid: number | string): `BV1${string}` {
     }
     [bvidArr[3], bvidArr[9]] = [bvidArr[9], bvidArr[3]];
     [bvidArr[4], bvidArr[7]] = [bvidArr[7], bvidArr[4]];
-    return bvidArr.join("") as `BV1${string}`;
+    return bvidArr.join("") as BVID;
 }

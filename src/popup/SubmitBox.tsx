@@ -1,7 +1,7 @@
 import * as React from "react";
 import Config from "../config";
 import { Message } from "../messageTypes";
-import { SponsorTime, VideoID } from "../types";
+import { NewVideoID, SponsorTime } from "../types";
 
 interface SubmitBoxProps {
     sendTabMessage: (data: Message, callback?) => void;
@@ -9,8 +9,8 @@ interface SubmitBoxProps {
 }
 
 interface SubmitBoxState {
-    unsubmittedSegments: Record<VideoID, SponsorTime[]>;
-    currentVideoID: VideoID;
+    unsubmittedSegments: Record<NewVideoID, SponsorTime[]>;
+    currentVideoID: NewVideoID;
 
     showSubmitBox: boolean;
 }

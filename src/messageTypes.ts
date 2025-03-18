@@ -2,7 +2,7 @@
 // Message and Response Types
 //
 
-import { PortVideo, SegmentUUID, SponsorHideType, SponsorTime, VideoID } from "./types";
+import { BVID, NewVideoID, PortVideo, SegmentUUID, SponsorHideType, SponsorTime, YTID } from "./types";
 
 interface BaseMessage {
     from?: string;
@@ -10,14 +10,14 @@ interface BaseMessage {
 
 interface DefaultMessage {
     message:
-        | "update"
-        | "sponsorStart"
-        | "getVideoID"
-        | "getChannelID"
-        | "isChannelWhitelisted"
-        | "submitTimes"
-        | "refreshSegments"
-        | "closePopup";
+    | "update"
+    | "sponsorStart"
+    | "getVideoID"
+    | "getChannelID"
+    | "isChannelWhitelisted"
+    | "submitTimes"
+    | "refreshSegments"
+    | "closePopup";
 }
 
 interface BoolValueMessage {
@@ -71,7 +71,7 @@ interface KeyDownMessage {
 
 interface SubmitPortVideoMessage {
     message: "submitPortVideo";
-    ytbID: string;
+    ytbID: YTID;
 }
 
 interface GetPortVideoMessage {
@@ -82,7 +82,7 @@ interface votePortVideoMessage {
     message: "votePortVideo";
     vote: number;
     UUID: string;
-    bvid: VideoID;
+    bvid: BVID;
 }
 
 interface updatePortVideoMessage {
@@ -168,7 +168,7 @@ export type InfoUpdatedMessage = IsInfoFoundMessageResponse & {
 
 export interface VideoChangedPopupMessage {
     message: "videoChanged";
-    videoID: string;
+    videoID: NewVideoID;
     whitelisted: boolean;
 }
 

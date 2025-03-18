@@ -1,10 +1,11 @@
 import Config from "../config";
-import { ActionType, SponsorSourceType, SponsorTime, SponsorTimeHashedID, VideoID } from "../types";
+import { ActionType, SponsorSourceType, SponsorTime, SponsorTimeHashedID, BVID, NewVideoID } from "../types";
 import { DataCache } from "../utils/cache";
 import { getVideoIDHash, HashedValue } from "../utils/hash";
+import { parseBvidAndCidFromVideoId } from "../utils/videoIdUtils";
 import { asyncRequestToServer } from "./requests";
 
-const segmentCache = new DataCache<VideoID, SegmentResponse>(() => {
+const segmentCache = new DataCache<BVID, SegmentResponse>(() => {
     return {
         segments: null,
         status: 200,
@@ -32,25 +33,26 @@ export async function getSegmentsByHash(
 }
 
 export async function getSegmentsByVideoID(
-    videoID: string,
+    videoID: NewVideoID,
     extraRequestData: Record<string, unknown> = {},
     ignoreCache: boolean = false
 ): Promise<SegmentResponse> {
+    const { bvId } = parseBvidAndCidFromVideoId(videoID);
     if (ignoreCache) {
-        segmentCache.delete(videoID);
+        segmentCache.delete(bvId);
     }
-    const cachedData = segmentCache.getFromCache(videoID);
+    const cachedData = segmentCache.getFromCache(bvId);
     if (cachedData) {
         return cachedData;
     }
 
     const categories: string[] = Config.config.categorySelections.map((category) => category.name);
-    const hashPrefix = (await getVideoIDHash(videoID)).slice(0, 4) as VideoID & HashedValue;
+    const hashPrefix = (await getVideoIDHash(bvId)).slice(0, 4) as BVID & HashedValue;
     const response = await getSegmentsByHash(hashPrefix, extraRequestData, ignoreCache);
 
     const responseSegments: SegmentResponse = { segments: null, status: response.status };
     if (!response?.ok) {
-        segmentCache.set(videoID, responseSegments);
+        segmentCache.set(bvId, responseSegments);
         return responseSegments;
     }
     const allSegments: SponsorTimeHashedID[] = JSON.parse(response?.responseText);
@@ -67,11 +69,11 @@ export async function getSegmentsByVideoID(
             }))
             ?.sort((a: SponsorTime, b: SponsorTime) => a.segment[0] - b.segment[0]);
         segmentCache.set(segmentResponse.videoID, { segments: segment, status: response.status });
-        if (videoID == segmentResponse.videoID) {
+        if (bvId == segmentResponse.videoID) {
             responseSegments.segments = segment;
         }
     }
-    segmentCache.set(videoID, responseSegments);
+    segmentCache.set(bvId, responseSegments);
     return responseSegments;
 }
 

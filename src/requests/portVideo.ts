@@ -1,6 +1,7 @@
 import Config from "../config";
-import { PortVideo, VideoID } from "../types";
+import { NewVideoID, PortVideo, YTID } from "../types";
 import { getHash } from "../utils/hash";
+import { parseBvidAndCidFromVideoId } from "../utils/videoIdUtils";
 import { FetchResponse } from "./background-request-proxy";
 import { asyncRequestToServer } from "./requests";
 
@@ -8,37 +9,15 @@ interface RequestOptions {
     bypassCache?: boolean;
 }
 
-export interface PortVideoRecord {
-    bvID: VideoID;
-    ytbID: VideoID;
-    UUID: string;
-    votes: number;
-    locked: boolean;
-}
-
-export async function getPortVideo(bvID: VideoID, options: RequestOptions = {}): Promise<PortVideoRecord> {
-    const response = await asyncRequestToServer("GET", "/api/portVideo", { videoID: bvID }, options?.bypassCache).catch(
-        (e) => e
-    );
-    if (response && response?.ok) {
-        const responseData = JSON.parse(response?.responseText) as PortVideoRecord;
-        if (responseData?.bvID == bvID) {
-            return responseData;
-        }
-    } else if (response?.status == 404) {
-        return null;
-    }
-    throw response;
-}
-
-export async function getPortVideoByHash(bvID: VideoID, options: RequestOptions = {}): Promise<PortVideoRecord> {
-    const hashedPrefix = (await getHash(bvID, 1)).slice(0, 3);
+export async function getPortVideoByHash(videoId: NewVideoID, options: RequestOptions = {}): Promise<PortVideo> {
+    const { bvId, cid } = parseBvidAndCidFromVideoId(videoId);
+    const hashedPrefix = (await getHash(bvId, 1)).slice(0, 3);
     const response = await asyncRequestToServer("GET", `/api/portVideo/${hashedPrefix}`, options?.bypassCache).catch(
         (e) => e
     );
     if (response && response?.ok) {
-        const responseData = JSON.parse(response?.responseText) as PortVideoRecord[];
-        const portVideo = responseData.filter((portVideo) => portVideo.bvID == bvID);
+        const responseData = JSON.parse(response?.responseText) as PortVideo[];
+        const portVideo = responseData.filter((portVideo) => portVideo.bvID == bvId && portVideo.cid == cid);
         if (portVideo.length > 0) {
             return portVideo[0];
         } else {
@@ -50,9 +29,11 @@ export async function getPortVideoByHash(bvID: VideoID, options: RequestOptions 
     throw response;
 }
 
-export async function postPortVideo(bvID: VideoID, ytbID: VideoID, duration: number): Promise<PortVideoRecord> {
+export async function postPortVideo(videoId: NewVideoID, ytbID: YTID, duration: number): Promise<PortVideo> {
+    const { bvId, cid } = parseBvidAndCidFromVideoId(videoId);
     const response = await asyncRequestToServer("POST", "/api/portVideo", {
-        bvID: bvID,
+        bvID: bvId,
+        cid: cid,
         ytbID,
         biliDuration: duration,
         userID: Config.config.userID,
@@ -65,7 +46,7 @@ export async function postPortVideo(bvID: VideoID, ytbID: VideoID, duration: num
     }
 }
 
-export async function postPortVideoVote(UUID: string, bvID: VideoID, voteType: number) {
+export async function postPortVideoVote(UUID: string, bvID: NewVideoID, voteType: number) {
     const response = await asyncRequestToServer("POST", "/api/votePort", {
         UUID: UUID,
         bvID: bvID,
@@ -77,6 +58,6 @@ export async function postPortVideoVote(UUID: string, bvID: VideoID, voteType: n
     }
 }
 
-export async function updatePortedSegments(bvID: VideoID, UUID: string): Promise<FetchResponse> {
+export async function updatePortedSegments(bvID: NewVideoID, UUID: string): Promise<FetchResponse> {
     return asyncRequestToServer("POST", "/api/updatePortedSegments", { videoID: bvID, UUID: UUID });
 }

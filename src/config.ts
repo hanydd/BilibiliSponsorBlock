@@ -6,7 +6,7 @@ import {
     NoticeVisbilityMode,
     PreviewBarOption,
     SponsorTime,
-    VideoID,
+    BVID,
     SponsorHideType,
     DynamicSponsorSelection,
     DynamicSponsorOption,
@@ -165,7 +165,7 @@ export type VideoDownvotes = { segments: { uuid: HashedValue; hidden: SponsorHid
 
 interface SBStorage {
     /* VideoID prefixes to UUID prefixes */
-    downvotedSegments: Record<VideoID & HashedValue, VideoDownvotes>;
+    downvotedSegments: Record<BVID & HashedValue, VideoDownvotes>;
     navigationApiAvailable: boolean;
 
     // Used when sync storage disabled

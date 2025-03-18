@@ -1,13 +1,13 @@
+import { BVID, NewVideoID, YTID } from "../types";
 import { BILI_DOMAINS } from "./constants";
 import { getBvidFromAidFromWindow, getPropertyFromWindow } from "./injectedScriptMessageUtils";
-import { VideoID } from "./video";
 
-export async function getBilibiliVideoID(url?: string): Promise<VideoID | null> {
+export async function getBilibiliVideoID(url?: string): Promise<NewVideoID | null> {
     url ||= document?.URL;
 
     if (url.includes("bilibili.com/video") || url.includes("bilibili.com/list/")) {
         // video or list page
-        const id = (await getBvIDFromWindow()) ?? getBvIDFromURL(url);
+        const id = (await getVideoIDFromWindow()) ?? (getBvIDFromURL(url) + "+") as NewVideoID;
         return id;
     }
     return null;
@@ -15,10 +15,10 @@ export async function getBilibiliVideoID(url?: string): Promise<VideoID | null> 
 
 /**
  * communicate with the injected script via messages
- * get video info from `window.__INITIAL_STATE__` object
+ * get video info from `window.__INITIAL_SXTATE__` object
  */
-export function getBvIDFromWindow(timeout = 200): Promise<VideoID | null> {
-    return getPropertyFromWindow<VideoID>(
+export function getVideoIDFromWindow(timeout = 200): Promise<NewVideoID | null> {
+    return getPropertyFromWindow<NewVideoID>(
         {
             sendType: "getBvID",
             responseType: "returnBvID",
@@ -32,11 +32,12 @@ const BVID_REGEX = /^(BV1[a-zA-Z0-9]{9})$/;
 /**
  * Parse without side effects
  */
-export async function getBvIDFromURL(url: string): Promise<VideoID | null> {
+// TODO get cid from cache
+export async function getBvIDFromURL(url: string): Promise<BVID | null> {
     url = url.trim();
     // check if is bvid already
     if (BVID_REGEX.test(url)) {
-        return url as VideoID;
+        return url as BVID;
     }
 
     //Attempt to parse url
@@ -59,14 +60,14 @@ export async function getBvIDFromURL(url: string): Promise<VideoID | null> {
         const idMatch = urlObject.pathname.match(BILIBILI_VIDEO_URL_REGEX);
         if (idMatch && idMatch[2]) {
             // BV id
-            return idMatch[2] as VideoID;
+            return idMatch[2] as BVID;
         } else if (idMatch && idMatch[3]) {
             // av id
             return await getBvidFromAidFromWindow(idMatch[3]);
         }
     } else if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/list/")) {
         const id = urlObject.searchParams.get("bvid");
-        return id as VideoID;
+        return id as BVID;
     }
 
     return null;
@@ -85,7 +86,7 @@ export function validateYoutubeID(id: string): boolean {
     return exclusiveIdegex.test(id);
 }
 
-export function parseYoutubeID(rawId: string): VideoID | null {
+export function parseYoutubeID(rawId: string): YTID | null {
     // first decode URI
     rawId = decodeURIComponent(rawId);
     // strict matching
@@ -93,17 +94,17 @@ export function parseYoutubeID(rawId: string): VideoID | null {
     const urlMatch = rawId.match(urlRegex)?.[1];
 
     const regexMatch = strictMatch
-        ? (strictMatch as VideoID)
+        ? (strictMatch as YTID)
         : negativeRegex.test(rawId)
-        ? null
-        : urlMatch
-        ? (urlMatch as VideoID)
-        : null;
+            ? null
+            : urlMatch
+                ? (urlMatch as YTID)
+                : null;
 
     return regexMatch ? regexMatch : parseYouTubeVideoIDFromURL(rawId);
 }
 
-export function parseYouTubeVideoIDFromURL(url: string): VideoID | null {
+export function parseYouTubeVideoIDFromURL(url: string): YTID | null {
     if (url.startsWith("https://www.youtube.com/tv#/")) url = url.replace("#", "");
     if (url.startsWith("https://www.youtube.com/tv?")) url = url.replace(/\?[^#]+#/, "");
 
@@ -121,12 +122,12 @@ export function parseYouTubeVideoIDFromURL(url: string): VideoID | null {
         urlObject.pathname.startsWith("/tv/watch")
     ) {
         const id = urlObject.searchParams.get("v");
-        return id?.length == 11 ? (id as VideoID) : null;
+        return id?.length == 11 ? (id as YTID) : null;
     } else if (urlObject.pathname.startsWith("/embed/") || urlObject.pathname.startsWith("/shorts/")) {
         try {
             const id = urlObject.pathname.split("/")[2];
             if (id?.length >= 11) {
-                return id.slice(0, 11) as VideoID;
+                return id.slice(0, 11) as YTID;
             }
         } catch (e) {
             console.error("[SB] Video ID not valid for " + url);

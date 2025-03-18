@@ -2,17 +2,17 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { ConfigProvider, Spin } from "antd";
 import * as React from "react";
 import { showMessage } from "../render/MessageNotice";
-import { PortVideo, VideoID } from "../types";
+import { PortVideo, BVID } from "../types";
 import { AnimationUtils } from "../utils/animationUtils";
 import { parseYoutubeID } from "../utils/parseVideoID";
 import { RefreshIcon } from "./icon/refresh";
 
 export interface DescriptionPortPillProps {
-    bvID: VideoID;
-    ytbID: VideoID;
+    bvID: BVID;
+    ytbID: BVID;
     showYtbVideoButton: boolean;
 
-    onSubmitPortVideo: (ytbID: VideoID) => Promise<PortVideo>;
+    onSubmitPortVideo: (ytbID: BVID) => Promise<PortVideo>;
     onVote(type: number): Promise<void>;
     onRefresh(): Promise<void>;
 }
@@ -21,8 +21,8 @@ export interface DescriptionPortPillState {
     show: boolean;
     showPreviewYtbVideo: boolean;
     loading: boolean;
-    ytbVideoID: VideoID;
-    previewYtbID: VideoID;
+    ytbVideoID: BVID;
+    previewYtbID: BVID;
 }
 
 export class DescriptionPortPillComponent extends React.Component<DescriptionPortPillProps, DescriptionPortPillState> {
