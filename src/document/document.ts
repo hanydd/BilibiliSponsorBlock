@@ -73,7 +73,7 @@ async function windowMessageListener(message: MessageEvent) {
     }
     if (data?.source === sourceId && data?.responseType) {
         if (data.type === "getBvID") {
-            sendMessageToContent(data, window?.__INITIAL_STATE__?.bvid);
+            sendMessageToContent(data, window?.__INITIAL_STATE__?.bvid + "+" + window?.__INITIAL_STATE__?.cid);
         } else if (data.type === "getFrameRate") {
             sendMessageToContent(data, getFrameRate());
         } else if (data.type === "getChannelID") {

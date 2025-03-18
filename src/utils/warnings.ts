@@ -2,7 +2,7 @@ import { objectToURI } from ".";
 import Config from "../config";
 import GenericNotice, { NoticeOptions } from "../render/GenericNotice";
 import { asyncRequestToServer } from "../requests/requests";
-import { ContentContainer } from "../types";
+import { ContentContainer } from "../ContentContainerTypes";;
 import { getHash } from "../utils/hash";
 
 export interface ChatConfig {

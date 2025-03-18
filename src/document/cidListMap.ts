@@ -4,8 +4,7 @@ import { AID, BVID } from "../types";
 import { CalculateAvidToBvid } from "../utils/bvidAvidUtils";
 import { DataCache } from "../utils/cache";
 
-const cache = new DataCache<string, BVID>();
-
+const cache = new DataCache<AID, BVID>();
 
 export function saveAidFromDetail(detail: BiliVideoDetail): void {
     saveAid(detail.aid, detail.bvid);

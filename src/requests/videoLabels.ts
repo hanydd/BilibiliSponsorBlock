@@ -1,4 +1,4 @@
-import { Category, CategorySkipOption, VideoID } from "../types";
+import { Category, CategorySkipOption, BVID } from "../types";
 import Utils from "../utils";
 import { getVideoIDHash } from "../utils/hash";
 import { logWarn } from "../utils/logger";
@@ -8,7 +8,7 @@ const utils = new Utils();
 
 export interface LabelCacheEntry {
     timestamp: number;
-    videos: Record<VideoID, Category>;
+    videos: Record<BVID, Category>;
 }
 
 const labelCache: Record<string, LabelCacheEntry> = {};
@@ -58,7 +58,7 @@ async function getLabelHashBlock(hashPrefix: string, refreshCache: boolean = fal
     }
 }
 
-export async function getVideoLabel(videoID: VideoID, refreshCache: boolean = false): Promise<Category | null> {
+export async function getVideoLabel(videoID: BVID, refreshCache: boolean = false): Promise<Category | null> {
     const prefix = (await getVideoIDHash(videoID)).slice(0, 3);
     const result = await getLabelHashBlock(prefix, refreshCache);
 

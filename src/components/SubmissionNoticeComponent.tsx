@@ -2,10 +2,11 @@ import * as React from "react";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
 import GenericNotice from "../render/GenericNotice";
-import { Category, ContentContainer } from "../types";
+import { Category } from "../types";
 
 import { ConfigProvider, Popover, theme } from "antd";
 import { keybindToString } from "../config/config";
+import { ContentContainer } from "../ContentContainerTypes";
 import { showMessage } from "../render/MessageNotice";
 import { getGuidelineInfo } from "../utils/constants";
 import { exportTimes } from "../utils/exporter";

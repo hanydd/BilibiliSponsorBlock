@@ -1,15 +1,15 @@
 import * as documentScript from "../../dist/js/document.js";
 import Config from "../config";
 import { checkPageForNewThumbnails } from "../thumbnail-utils/thumbnailManagement";
-import { PageType } from "../types";
+import { BVID, CID, NewVideoID, PageType } from "../types";
 import { waitFor } from "./";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
 import { getElement, isVisible, waitForElement } from "./dom";
 import { getPropertyFromWindow } from "./injectedScriptMessageUtils";
 import { getBilibiliVideoID } from "./parseVideoID";
 import { injectScript } from "./scriptInjector";
+import { parseBvidAndCidFromVideoId } from "./videoIdUtils";
 
-export type VideoID = string & { __videoID: never };
 export type ChannelID = string & { __channelID: never };
 export enum ChannelIDStatus {
     Fetching,
@@ -30,7 +30,7 @@ let videoMutationListenerElement: HTMLElement | null = null;
 const videosSetup: HTMLVideoElement[] = [];
 let waitingForNewVideo = false;
 
-let videoID: VideoID | null = null;
+let videoID: NewVideoID | null = null;
 let pageType: PageType = PageType.Unknown;
 let channelIDInfo: ChannelIDInfo;
 let waitingForChannelID = false;
@@ -56,14 +56,6 @@ export function setupVideoModule(method: contentMethodType) {
         .then((id) => videoIDChange(id));
 
     // TODO: Add support for embed iframe videos
-    // Can't use onInvidious at this point, the configuration might not be ready.
-    // if (BILI_DOMAINS.includes(location.host)) {
-    //     waitForElement(embedTitleSelector)
-    //         .then((e) => waitFor(() => e.getAttribute("href")))
-    //         .then(async () => videoIDChange(await getBilibiliVideoID()))
-    //         // Ignore if not an embed
-    //         .catch(() => {}); // eslint-disable-line @typescript-eslint/no-empty-function
-    // }
 
     addPageListeners();
 
@@ -115,7 +107,7 @@ export async function checkVideoIDChange(): Promise<boolean> {
     return await videoIDChange(id);
 }
 
-async function videoIDChange(id: VideoID | null): Promise<boolean> {
+async function videoIDChange(id: NewVideoID | null): Promise<boolean> {
     detectPageType();
 
     // don't switch to invalid value
@@ -412,7 +404,15 @@ export function getVideo(): HTMLVideoElement | null {
     return video;
 }
 
-export function getVideoID(): VideoID | null {
+export function getBvID(): BVID | null {
+    return parseBvidAndCidFromVideoId(videoID).bvId;
+}
+
+export function getCid(): CID | null {
+    return parseBvidAndCidFromVideoId(videoID).cid;
+}
+
+export function getVideoID(): NewVideoID | null {
     return videoID;
 }
 

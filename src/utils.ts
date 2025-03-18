@@ -6,7 +6,7 @@ import {
     Registration,
     SponsorHideType,
     SponsorTime,
-    VideoID,
+    BVID,
 } from "./types";
 import { isSafari } from "./utils/index";
 
@@ -230,14 +230,14 @@ export default class Utils {
         return referenceNode;
     }
 
-    async addHiddenSegment(videoID: VideoID, segmentUUID: string, hidden: SponsorHideType) {
+    async addHiddenSegment(videoID: BVID, segmentUUID: string, hidden: SponsorHideType) {
         if (
             (chrome.extension.inIncognitoContext && !Config.config.trackDownvotesInPrivate) ||
             !Config.config.trackDownvotes
         )
             return;
 
-        const hashedVideoID = (await getVideoIDHash(videoID)).slice(0, 4) as VideoID & HashedValue;
+        const hashedVideoID = (await getVideoIDHash(videoID)).slice(0, 4) as BVID & HashedValue;
         const UUIDHash = await getHash(segmentUUID, 1);
 
         const allDownvotes = Config.local.downvotedSegments;

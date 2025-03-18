@@ -5,7 +5,7 @@ import Utils from "../utils";
 const utils = new Utils();
 
 import SubmissionNoticeComponent from "../components/SubmissionNoticeComponent";
-import { ContentContainer } from "../types";
+import { ContentContainer } from "../ContentContainerTypes";;
 import { seekFrameByKeyPressListener } from "../content";
 
 class SubmissionNotice {

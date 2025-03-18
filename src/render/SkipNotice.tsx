@@ -5,8 +5,9 @@ import Utils from "../utils";
 const utils = new Utils();
 
 import SkipNoticeComponent from "../components/SkipNoticeComponent";
-import { SponsorTime, ContentContainer, NoticeVisbilityMode } from "../types";
 import Config from "../config";
+import { ContentContainer } from "../ContentContainerTypes";
+import { NoticeVisbilityMode, SponsorTime } from "../types";
 import { SkipNoticeAction } from "../utils/noticeUtils";
 
 class SkipNotice {
@@ -67,7 +68,7 @@ class SkipNotice {
                 fadeIn={!advanceSkipNoticeShow}
                 fadeOut={true}
                 unskipTime={unskipTime}
-                componentDidMount={componentDidMount} 
+                componentDidMount={componentDidMount}
                 advanceSkipNoticeShow={false}
             />
         );

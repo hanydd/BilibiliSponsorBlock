@@ -1,10 +1,11 @@
 import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
-import { ContentContainer, SponsorTime, NoticeVisbilityMode } from "../types";
+import { NoticeVisbilityMode, SponsorTime } from "../types";
 
-import Config from "../config";
-import Utils from "../utils";
 import SkipNoticeComponent from "../components/SkipNoticeComponent";
+import Config from "../config";
+import { ContentContainer } from "../ContentContainerTypes";
+import Utils from "../utils";
 import { SkipNoticeAction } from "../utils/noticeUtils";
 const utils = new Utils();
 
@@ -57,10 +58,10 @@ class advanceSkipNotices {
                 fadeOut={false}
                 unskipTime={unskipTime}
                 advanceSkipNoticeShow={true}
-                 />
+            />
         );
     }
-    
+
     setShowKeybindHint(value: boolean): void {
         this.advanceSkipNoticeRef?.current?.setState({
             showKeybindHint: value,

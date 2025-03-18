@@ -1,3 +1,5 @@
+import { AID, BVID, CID } from "../../types";
+
 export interface BilibiliResponse<T> {
     code: number;
     message: string;
@@ -6,9 +8,9 @@ export interface BilibiliResponse<T> {
 }
 
 export interface BiliVideoDetail {
-    bvid: string;
-    aid: number;
-    cid: number;
+    bvid: BVID;
+    aid: AID;
+    cid: CID;
     owner: {
         mid: number;
         name: string;
@@ -36,7 +38,7 @@ export interface BiliVideoDetail {
 }
 
 export interface BilibiliPagelistDetail {
-    cid: number;
+    cid: CID;
     page: number;
     from: string;
     part: string;

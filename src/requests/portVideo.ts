@@ -1,5 +1,5 @@
 import Config from "../config";
-import { PortVideo, VideoID } from "../types";
+import { PortVideo, BVID, YTID, NewVideoID } from "../types";
 import { getHash } from "../utils/hash";
 import { FetchResponse } from "./background-request-proxy";
 import { asyncRequestToServer } from "./requests";
@@ -9,14 +9,13 @@ interface RequestOptions {
 }
 
 export interface PortVideoRecord {
-    bvID: VideoID;
-    ytbID: VideoID;
+    bvID: BVID;
+    ytbID: BVID;
     UUID: string;
     votes: number;
     locked: boolean;
 }
-
-export async function getPortVideo(bvID: VideoID, options: RequestOptions = {}): Promise<PortVideoRecord> {
+export async function getPortVideo(bvID: BVID, options: RequestOptions = {}): Promise<PortVideoRecord> {
     const response = await asyncRequestToServer("GET", "/api/portVideo", { videoID: bvID }, options?.bypassCache).catch(
         (e) => e
     );
@@ -31,7 +30,7 @@ export async function getPortVideo(bvID: VideoID, options: RequestOptions = {}):
     throw response;
 }
 
-export async function getPortVideoByHash(bvID: VideoID, options: RequestOptions = {}): Promise<PortVideoRecord> {
+export async function getPortVideoByHash(bvID: BVID, options: RequestOptions = {}): Promise<PortVideoRecord> {
     const hashedPrefix = (await getHash(bvID, 1)).slice(0, 3);
     const response = await asyncRequestToServer("GET", `/api/portVideo/${hashedPrefix}`, options?.bypassCache).catch(
         (e) => e
@@ -50,7 +49,7 @@ export async function getPortVideoByHash(bvID: VideoID, options: RequestOptions 
     throw response;
 }
 
-export async function postPortVideo(bvID: VideoID, ytbID: VideoID, duration: number): Promise<PortVideoRecord> {
+export async function postPortVideo(bvID: NewVideoID, ytbID: YTID, duration: number): Promise<PortVideoRecord> {
     const response = await asyncRequestToServer("POST", "/api/portVideo", {
         bvID: bvID,
         ytbID,
@@ -65,7 +64,7 @@ export async function postPortVideo(bvID: VideoID, ytbID: VideoID, duration: num
     }
 }
 
-export async function postPortVideoVote(UUID: string, bvID: VideoID, voteType: number) {
+export async function postPortVideoVote(UUID: string, bvID: NewVideoID, voteType: number) {
     const response = await asyncRequestToServer("POST", "/api/votePort", {
         UUID: UUID,
         bvID: bvID,
@@ -77,6 +76,6 @@ export async function postPortVideoVote(UUID: string, bvID: VideoID, voteType: n
     }
 }
 
-export async function updatePortedSegments(bvID: VideoID, UUID: string): Promise<FetchResponse> {
+export async function updatePortedSegments(bvID: NewVideoID, UUID: string): Promise<FetchResponse> {
     return asyncRequestToServer("POST", "/api/updatePortedSegments", { videoID: bvID, UUID: UUID });
 }
