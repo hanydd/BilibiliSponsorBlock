@@ -3,7 +3,7 @@ import * as React from "react";
 import Config from "../config";
 import { StorageChangesObject } from "../config/config";
 import { IsChannelWhitelistedResponse, IsInfoFoundMessageResponse, Message, PopupMessage } from "../messageTypes";
-import { PortVideo, SponsorTime, BVID, NewVideoID } from "../types";
+import { NewVideoID, PortVideo, SponsorTime } from "../types";
 import { waitFor } from "../utils/index";
 import ControlMenu from "./ControlMenu";
 import PopupFooter from "./PopupFooter";

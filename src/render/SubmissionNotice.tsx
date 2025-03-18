@@ -5,8 +5,8 @@ import Utils from "../utils";
 const utils = new Utils();
 
 import SubmissionNoticeComponent from "../components/SubmissionNoticeComponent";
-import { ContentContainer } from "../ContentContainerTypes";;
 import { seekFrameByKeyPressListener } from "../content";
+import { ContentContainer } from "../ContentContainerTypes";
 
 class SubmissionNotice {
     // Contains functions and variables from the content script needed by the skip notice
