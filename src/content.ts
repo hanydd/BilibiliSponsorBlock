@@ -60,6 +60,7 @@ import {
     checkIfNewVideoID,
     checkVideoIDChange,
     detectPageType,
+    getBvID,
     getChannelIDInfo,
     getCid,
     getPageType,
@@ -2558,7 +2559,8 @@ async function sendSubmitMessage(): Promise<boolean> {
     }
 
     const response = await asyncRequestToServer("POST", "/api/skipSegments", {
-        videoID: getVideoID(),
+        videoID: getBvID(),
+        cid: getCid(),
         userID: Config.config.userID,
         segments: sponsorTimesSubmitting,
         videoDuration: getVideo()?.duration,
