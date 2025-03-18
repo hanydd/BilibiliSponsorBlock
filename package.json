@@ -4,8 +4,8 @@
   "description": "",
   "main": "background.js",
   "dependencies": {
-    "@ant-design/icons": "^5.5.1",
-    "antd": "^5.22.6",
+    "@ant-design/icons": "^5.6.1",
+    "antd": "^5.24.4",
     "content-scripts-register-polyfill": "^4.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
@@ -16,7 +16,7 @@
     }
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.287",
+    "@types/chrome": "^0.0.309",
     "@types/firefox-webext-browser": "^120.0.4",
     "@types/jest": "^29.5.13",
     "@types/react": "^18.3.18",
@@ -37,8 +37,8 @@
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "typescript": "5.6.3",
-    "web-ext": "^8.3.0",
-    "webpack": "^5.95.0",
+    "web-ext": "^8.4.0",
+    "webpack": "^5.98.0",
     "webpack-cli": "^5.1.4",
     "webpack-merge": "^5.8.0"
   },
