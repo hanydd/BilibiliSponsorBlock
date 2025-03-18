@@ -110,6 +110,7 @@ export interface BackgroundScriptContainer {
 
 export interface PortVideo {
     bvID: BVID;
+    cid: CID;
     ytbID: BVID;
     UUID: string;
     votes: number;
