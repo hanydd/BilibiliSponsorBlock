@@ -105,10 +105,11 @@ export class CategoryPill {
         this.container.remove();
     }
 
-    setVisibility(show: boolean): void {
+    resetSegment(): void {
         const newState = {
-            show,
-            open: show ? this.ref.current?.state.open : false,
+            segment: null,
+            show: false,
+            open: false,
         };
 
         this.ref.current?.setState(newState);

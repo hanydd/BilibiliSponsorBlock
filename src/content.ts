@@ -489,7 +489,7 @@ function resetValues() {
     }
 
     skipButtonControlBar?.disable();
-    categoryPill?.setVisibility(false);
+    categoryPill?.resetSegment();
 
     for (let i = 0; i < skipNotices.length; i++) {
         skipNotices.pop()?.close();
