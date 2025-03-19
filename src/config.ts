@@ -220,6 +220,14 @@ function migrateOldSyncFormats(config: SBConfig) {
     if (oldDanmakuOffsetMatchingRegexPatterns.includes(config["danmakuOffsetMatchingRegexPattern"])) {
         config["danmakuOffsetMatchingRegexPattern"] = syncDefaults.danmakuOffsetMatchingRegexPattern;
     }
+
+    //更新默认动态贴片广告正则表达式
+    const oldDynamicSponsorRegexPattern = [
+        "(618|11(?!1).11|双(11|十一|12|十二))|恰(?:个|了|到)?饭|((领(?:取)?|抢|有)(?:神|优惠)?券|券后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品", // 0.7.4
+    ];
+    if (oldDynamicSponsorRegexPattern.includes(config["dynamicSponsorRegexPattern"])) {
+        config["dynamicSponsorRegexPattern"] = syncDefaults.dynamicSponsorRegexPattern;
+    }
 }
 
 const syncDefaults = {
@@ -296,7 +304,7 @@ const syncDefaults = {
     dynamicSponsorWhitelistedChannels: false,
     dynamicSponsorBlocker: false,
     dynamicSpaceSponsorBlocker: false,
-    dynamicSponsorRegexPattern: "(618|11(?!1).11|双(11|十一|12|十二))|恰(?:个|了|到)?饭|((领(?:取)?|抢|有)(?:神|优惠)?券|券后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品",
+    dynamicSponsorRegexPattern: "(618|11(?!1).11|双(11|十一|12|十二))|(恰|接)(?:个|了|到)?(饭|广)|((?:领(?:取|张)?|抢|有)(?:神|优惠)?(券|卷)|券后|卷后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品|同款",
 
     showNewIcon: true,
 
