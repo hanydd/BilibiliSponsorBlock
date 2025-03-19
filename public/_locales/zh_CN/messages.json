@@ -1248,7 +1248,7 @@
         "message": "无视您的白名单"
     },
     "dynamicSponsorWhitelistedChannelsDescription": {
-        "message": "隐藏全部贴片广告，即使是您白名单中的UP主"
+        "message": "即使是您白名单中的UP主，也会执行操作"
     },
     "dynamicSponsorShow": {
         "message": "显示广告内容"
@@ -1281,7 +1281,7 @@
         "message": "使用正则表达式对动态内容进行匹配来额外屏蔽软广动态，是对“ 广告 ”的补充，可能会误屏蔽或漏屏蔽部分动态"
     },
     "showOverlay_DynamicSponsor":{
-        "message": "仅显示标签"
+        "message": "仅添加标签"
     },
     "Hide_DynamicSponsor":{
         "message": "隐藏内容"
