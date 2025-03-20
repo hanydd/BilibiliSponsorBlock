@@ -93,6 +93,7 @@ interface SBConfig {
 
     dynamicSponsorWhitelistedChannels: boolean;
     dynamicSponsorBlocker: boolean;
+    dynamicSponsorBlockerDebug: boolean;
     dynamicSpaceSponsorBlocker: boolean;
     dynamicSponsorRegexPattern: string;
 
@@ -303,6 +304,7 @@ const syncDefaults = {
 
     dynamicSponsorWhitelistedChannels: false,
     dynamicSponsorBlocker: false,
+    dynamicSponsorBlockerDebug: false,
     dynamicSpaceSponsorBlocker: false,
     dynamicSponsorRegexPattern: "(618|11(?!1).11|双(11|十一|12|十二))|(恰|接)(?:个|了|到)?(饭|广)|((?:领(?:取|张)?|抢|有)(?:神|优惠)?(券|卷)|券后|卷后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品|同款",
 

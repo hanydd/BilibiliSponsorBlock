@@ -1291,5 +1291,15 @@
     },
     "colorDynamicSponsor": {
         "message": "標籤顏色"
+    },
+    "DynamicSponsorMatch":{
+        "message": " 關鍵字: ",
+        "tip": "空格是用來間隔的"
+    },
+    "dynamicSponsorBlockerDebug": {
+        "message": "顯示疑似廣告匹配到的文字 / 正規表示式調試模式"
+    },
+    "dynamicSponsorBlockerDebugDescription": {
+        "message": "把鼠標懸浮到標籤時顯示匹配到的文字"
     }
 }
