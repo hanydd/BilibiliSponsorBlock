@@ -5,14 +5,26 @@ import { DynamicSponsorOption, DynamicSponsorSelection } from "../types";
 export { DynamicListener };
 
 async function DynamicListener() {
+    const pattern = new RegExp(Config.config.dynamicSponsorRegexPattern);
+
     const observer = new MutationObserver(async (mutationList) => {
         await sleep(100);
 
         for (const mutation of mutationList) {
             const element = mutation.addedNodes[0] as HTMLElement;
-            const category = isSponsor(element);
-            const action = getCategorySelection(category)?.option
+            if (element.querySelector("#dynamicSponsorLabel")) break;
+
+            let category = isSponsor(element);
+            const action = getCategorySelection(category)?.option;
+            let dynamicSponsorMatch = [];
+            if (category === "dynamicSponsor_suspicion_sponsor") {
+                const dynamicSponsorContext = isDynamicSponsorSuspicionSponsor(element);
+                //不知道为什么有时会匹配到一个字的重复关键字(比如领券和领), 外部单独测试又没问题
+                dynamicSponsorMatch = Array.from(new Set(dynamicSponsorContext.match(pattern))).filter(Boolean).filter(match => match.length > 1);
+                category = dynamicSponsorMatch.length > 0 ? "dynamicSponsor_suspicion_sponsor" : null;
+            }
             if (category === null || action === DynamicSponsorOption.Disabled) continue;
+            const debugMode = category === "dynamicSponsor_suspicion_sponsor" && Config.config.dynamicSponsorBlockerDebug;
 
             const upId = element.querySelector('.bili-dyn-item__avatar').getAttribute('bilisponsor-userid');
             const upIdOrigin = element?.querySelector('.dyn-orig-author__face')?.getAttribute('bilisponsor-userid');
@@ -68,7 +80,9 @@ async function DynamicListener() {
             dynamicSponsor.appendChild(getIcon());
 
             const dynamicSponsorText = document.createElement('span');
-            dynamicSponsorText.textContent = chrome.i18n.getMessage(`category_${category}`);
+            dynamicSponsorText.textContent = debugMode
+                ? chrome.i18n.getMessage(`category_${category}`) + chrome.i18n.getMessage("DynamicSponsorMatch") + dynamicSponsorMatch
+                : chrome.i18n.getMessage(`category_${category}`);
             dynamicSponsor.style.setProperty(
                 "--category-color",
                 `var(--sb-category-${category})`
@@ -103,7 +117,7 @@ async function DynamicListener() {
 
         observer.observe(await getElementWaitFor(".bili-dyn-list__items"), {
             attributeFilter: ['class'],
-            childList: true,
+            childList: true
         });
     });
 }
@@ -126,16 +140,18 @@ function getCategorySelection(category: string): DynamicSponsorSelection {
 }
 
 function isSponsor(element: HTMLElement) {
-    const pattern = new RegExp(Config.config.dynamicSponsorRegexPattern);
     const goodsElement = element?.querySelector('.bili-dyn-card-goods');
     const goodsElementOrigin = element?.querySelector('.bili-dyn-card-goods.hide-border');
     if (goodsElementOrigin) {
         return "dynamicSponsor_forward_sponsor";
     } else if (goodsElement) {
         return "dynamicSponsor_sponsor";
+    } else {
+        return "dynamicSponsor_suspicion_sponsor";
     }
+}
 
-    let goodsOnText = false
+function isDynamicSponsorSuspicionSponsor(element: HTMLElement) {
     const contentDiv = element?.querySelectorAll('.bili-rich-text__content span:not(.bili-dyn-item__interaction *)');
     if (!contentDiv) return null;
 
@@ -143,8 +159,7 @@ function isSponsor(element: HTMLElement) {
     contentDiv.forEach(span => {
         combinedText += span.textContent;
     });
-    goodsOnText = pattern.test(combinedText);
-    return goodsOnText ? "dynamicSponsor_suspicion_sponsor" : null;
+    return combinedText;
 }
 
 function getIcon() {
