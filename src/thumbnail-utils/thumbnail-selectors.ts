@@ -7,6 +7,8 @@ interface ThumbnailSelector {
     customLinkAttribute?: string;
     labelAnchorSelector?: string;
     waitForPageLoad?: boolean;
+    inShadowRoot?: boolean;
+    parentElement?: string;
 }
 
 // TODO: support customLinkSelector
@@ -111,11 +113,17 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         thumbnailSelector: ".history-card",
         labelAnchorSelector: ".bili-cover-card__thumbnail > img",
     },
+    "bilibiliGateMainPage": {
+        //bilibili Gate脚本主页
+        containerSelector: ".bilibili-gate-video-grid",
+        thumbnailSelector: ".bili-video-card",
+        labelAnchorSelector: ".bili-video-card__cover > img",
+    }
 };
 
 const commonSelector = ["dynamicPopup", "favPopup", "historyPopup"];
 const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
-    [PageType.Main]: ["mainPageRecommendation"],
+    [PageType.Main]: ["mainPageRecommendation", "bilibiliGateMainPage"],
     [PageType.History]: ["history"],
     [PageType.OldHistory]: ["oldHistory"],
     [PageType.Video]: ["playerSideRecommendation", "playerListPod", "playerListPodVideo"],
