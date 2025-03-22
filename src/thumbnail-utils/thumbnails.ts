@@ -157,7 +157,7 @@ function createSBIconElement(): SVGSVGElement {
 }
 
 // Inserts the icon svg definition, so it can be used elsewhere
-export function insertSBIconDefinition() {
+export function insertSBIconDefinition(element: HTMLElement = document.body) {
     const container = document.createElement("span");
 
     // svg from /public/icons/PlayerStartIconSponsorBlocker.svg, with useless stuff removed
@@ -170,5 +170,5 @@ export function insertSBIconDefinition() {
     </g>
   </defs>
 </svg>`;
-    document.body.appendChild(container);
+    element.appendChild(container);
 }
