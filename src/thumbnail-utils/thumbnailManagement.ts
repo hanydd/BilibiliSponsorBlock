@@ -4,7 +4,7 @@ import { PageType } from "../types";
 import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
 import { getPageType } from "../utils/video";
-import { getThumbnailContainerElements, getThumbnailSelectors, shouldWaitForPageLoad } from "./thumbnail-selectors";
+import { getThumbnailContainerElements, getThumbnailSelectors, shouldWaitForPageLoad, isShadowRoot, getParentElement } from "./thumbnail-selectors";
 import { insertSBIconDefinition, labelThumbnail } from "./thumbnails";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
@@ -19,14 +19,36 @@ export function setupThumbnailListener(): void {
         onInitialLoad();
 
         // listen to container child changes
-        getThumbnailContainerElements(getPageType()).forEach(({ selector }) => {
-            void waitFor(() => document.querySelector(selector), 10000)
+        getThumbnailContainerElements(getPageType()).forEach(({ containerType, selector }) => {
+            void waitFor(() => (shouldWaitForPageLoad(containerType) ? getPageLoaded() : true), 30000, 10)
+                .then(() => {
+                    if (isShadowRoot(containerType)) {
+                        return waitFor(() => {
+                            const parent = document.querySelector(getParentElement(containerType));
+                            return parent?.shadowRoot?.querySelector(selector) ?? null;
+                        }, 10000);
+                    } else {
+                        return waitFor(() => document.querySelector(selector), 10000);
+                    }
+                })
                 .then((thumbnailContainer) => {
                     if (!thumbnailContainer) return;
                     thumbnailContainerObserver ??= new MutationObserver(() => checkPageForNewThumbnails());
                     thumbnailContainerObserver?.observe(thumbnailContainer, { childList: true, subtree: true });
                 })
                 .catch();
+            if (isShadowRoot(containerType)) {
+                const parent = document.querySelector(getParentElement(containerType));
+                const shadowRoot = parent?.shadowRoot;
+
+                shadowRoot.appendChild(
+                    Object.assign(document.createElement('link'), {
+                        rel: 'stylesheet',
+                        href: chrome.runtime.getURL('content.css'),
+                    })
+                );
+                insertSBIconDefinition(shadowRoot as unknown as HTMLElement);
+            }
         });
     };
 
@@ -71,15 +93,26 @@ export function checkPageForNewThumbnails() {
     lastThumbnailCheck = performance.now();
 
     for (const { containerType, selector } of getThumbnailContainerElements(getPageType())) {
-        waitFor(() => (shouldWaitForPageLoad(containerType) ? getPageLoaded() : true), 30000, 10)
-            .then(() => waitFor(() => document.querySelector(selector), 10000))
-            .finally(() => labelNewThumbnails(document.querySelector(selector), containerType))
-            .catch();
+        if (isShadowRoot(containerType)) {
+            waitFor(() => (shouldWaitForPageLoad(containerType) ? getPageLoaded() : true), 30000, 10)
+                .then(() => waitFor(() => document.querySelector(getParentElement(containerType))?.shadowRoot?.querySelector(selector), 10000))
+                .finally(() => labelNewThumbnails(document.querySelector(getParentElement(containerType))?.shadowRoot?.querySelector(selector), containerType))
+                .catch();
+        } else {
+            waitFor(() => (shouldWaitForPageLoad(containerType) ? getPageLoaded() : true), 30000, 10)
+                .then(() => waitFor(() => document.querySelector(selector), 10000))
+                .finally(() => labelNewThumbnails(document.querySelector(selector), containerType))
+                .catch();
+        }
     }
 }
 
 function labelNewThumbnails(container: Element, containerType: string) {
-    if (!container || !document.body.contains(container)) return;
+    if (isShadowRoot(containerType)) {
+        if (!container || !document.querySelector(getParentElement(containerType)).shadowRoot.contains(container)) return;
+    } else {
+        if (!container || !document.body.contains(container)) return;
+    }
     const thumbnails = container.querySelectorAll(getThumbnailSelectors(containerType)) as NodeListOf<HTMLElement>;
     thumbnails.forEach((t) => labelThumbnail(t as HTMLImageElement, containerType));
 }

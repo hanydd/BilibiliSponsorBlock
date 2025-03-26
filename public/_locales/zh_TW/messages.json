@@ -1248,7 +1248,7 @@
         "message": "無視您的白名單"
     },
     "dynamicSponsorWhitelistedChannelsDescription": {
-        "message": "隱藏全部貼片廣告，即使是您白名單中的UP主"
+        "message": "即使是您白名單中的UP主，也會進行操作"
     },
     "dynamicSponsorShow": {
         "message": "顯示廣告內容"
@@ -1281,7 +1281,7 @@
         "message": "使用正規表示式對動態內容進行匹配來額外封鎖軟廣動態，是對「廣告」的補充，可能會誤封鎖或漏封鎖部分動態"
     },
     "showOverlay_DynamicSponsor": {
-        "message": "僅顯示標籤"
+        "message": "僅添加標籤"
     },
     "Hide_DynamicSponsor": {
         "message": "隱藏內容"
@@ -1291,5 +1291,15 @@
     },
     "colorDynamicSponsor": {
         "message": "標籤顏色"
+    },
+    "DynamicSponsorMatch":{
+        "message": " 關鍵字: ",
+        "tip": "空格是用來間隔的"
+    },
+    "dynamicSponsorBlockerDebug": {
+        "message": "顯示疑似廣告匹配到的文字 / 正規表示式調試模式"
+    },
+    "dynamicSponsorBlockerDebugDescription": {
+        "message": "把鼠標懸浮到標籤時顯示匹配到的文字"
     }
 }
