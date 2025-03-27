@@ -25,7 +25,6 @@ export class DataCache<T extends string, V> {
     private loadFromStorage(): void {
         try {
             const storedData = localStorage.getItem(this.storageKey);
-            console.log(`[BSB] Loaded cache from localStorage: ${storedData}`); // Debugging line
             if (storedData) {
                 this.cache = JSON.parse(storedData);
             }

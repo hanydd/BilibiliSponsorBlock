@@ -12,7 +12,6 @@ export async function getBilibiliVideoID(url?: string): Promise<NewVideoID | nul
     if (url.includes("bilibili.com/video") || url.includes("bilibili.com/list/")) {
         // video or list page
         const id = (await getVideoIDFromWindow()) ?? ((getBvIDFromURL(url) + "+") as NewVideoID);
-        console.log("get video id from url", id);
         return id;
     }
     return null;

@@ -59,9 +59,7 @@ export class CategoryPill {
             // await waitFor(() => this.mutationCount > 0);
             await waitFor(getPageLoaded, 10000, 10);
             // if setSegment is called after node attachment, it won't render sometimes
-            await waitFor(() => this.isSegmentSet, 10000, 100).catch(() => {
-                console.log("No segment found");
-            });
+            await waitFor(() => this.isSegmentSet, 10000, 100).catch(() => {});
             this.attachToPageInternal();
         } catch (error) {
             if (error !== "TIMEOUT") console.log("Category Pill attachment error ", error);
