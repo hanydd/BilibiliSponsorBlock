@@ -13,7 +13,7 @@ export class DataCache<T extends string, V> {
         this.cache = {};
         this.init = init;
         this.cacheLimit = cacheLimit;
-        this.storageKey = storageKey || 'bsb_cache_default';
+        this.storageKey = storageKey || "bsb_cache_default";
         this.persistEnabled = !!storageKey;
 
         // Load from localStorage if persistence is enabled
@@ -33,13 +33,25 @@ export class DataCache<T extends string, V> {
         }
     }
 
+    // Debounced save to reduce excessive localStorage writes
+    private saveTimeout: number | null = null;
     private saveToStorage(): void {
         if (!this.persistEnabled) return;
-        try {
-            localStorage.setItem(this.storageKey, JSON.stringify(this.cache));
-        } catch (e) {
-            console.error(`[BSB] Failed to save cache to localStorage: ${e}`);
+
+        // Clear any existing timeout
+        if (this.saveTimeout !== null) {
+            window.clearTimeout(this.saveTimeout);
         }
+
+        // Set a new timeout to save after a brief delay
+        this.saveTimeout = window.setTimeout(() => {
+            try {
+                localStorage.setItem(this.storageKey, JSON.stringify(this.cache));
+                this.saveTimeout = null;
+            } catch (e) {
+                console.error(`[BSB] Failed to save cache to localStorage: ${e}`);
+            }
+        }, 200); // 200ms debounce
     }
 
     public getFromCache(key: T): (V & CacheRecord) | undefined {
