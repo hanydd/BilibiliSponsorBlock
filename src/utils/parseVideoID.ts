@@ -10,8 +10,7 @@ export async function getBilibiliVideoID(url?: string): Promise<NewVideoID | nul
     url ||= document?.URL;
 
     if (url.includes("bilibili.com/video") || url.includes("bilibili.com/list/")) {
-        // video or list page
-        const id = (await getVideoIDFromWindow()) ?? ((getBvIDFromURL(url) + "+") as NewVideoID);
+        const id = (await getVideoIDFromWindow()) ?? (await getVideoIDFromURL(url));
         return id;
     }
     return null;
@@ -95,27 +94,36 @@ export async function getVideoIDFromURL(url: string): Promise<NewVideoID | null>
     }
 
     // Get ID from url
-    // video page
-    if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/video/")) {
-        const idMatch = urlObject.pathname.match(BILIBILI_VIDEO_URL_REGEX);
-        const page = urlObject.searchParams.get("p") ?? 1;
-        let bvid: BVID;
-        if (idMatch && idMatch[2]) {
-            // BV id
-            bvid = idMatch[2] as BVID;
-        } else if (idMatch && idMatch[3]) {
-            // av id
-            bvid = await getBvidFromAidFromWindow(idMatch[3]);
-        } else {
-            return null;
+    if (urlObject.host == "www.bilibili.com") {
+        // Extract common parameters
+        const page = Number(urlObject.searchParams.get("p") ?? 1);
+        let bvid: BVID | null = null;
+
+        // Video page
+        if (urlObject.pathname.startsWith("/video/")) {
+            const idMatch = urlObject.pathname.match(BILIBILI_VIDEO_URL_REGEX);
+            if (idMatch && idMatch[2]) {
+                // BV id
+                bvid = idMatch[2] as BVID;
+            } else if (idMatch && idMatch[3]) {
+                // av id
+                bvid = await getBvidFromAidFromWindow(idMatch[3]);
+                if (!bvid) {
+                    console.error("[BSB] Unable to convert av id to bv id: " + idMatch[3]);
+                    return null;
+                }
+            }
         }
-        const cid = (await getCidFromBvidAndPageFromWindow(bvid, Number(page))) ?? "";
-        return (bvid + "+" + cid) as NewVideoID;
-    }
-    // list video page
-    else if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/list/")) {
-        const id = urlObject.searchParams.get("bvid");
-        return id as BVID;
+        // List video page
+        else if (urlObject.pathname.startsWith("/list/")) {
+            bvid = urlObject.searchParams.get("bvid") as BVID;
+        }
+
+        // Return combined ID if bvid was found
+        if (bvid) {
+            const cid = (await getCidFromBvidAndPageFromWindow(bvid, page)) ?? "";
+            return (bvid + "+" + cid) as NewVideoID;
+        }
     }
 
     return null;
