@@ -1290,7 +1290,7 @@ function setupDescriptionPill() {
             sponsorsLookup
         );
     }
-    descriptionPill.setupDecription(getVideoID());
+    descriptionPill.setupDescription(getVideoID());
 }
 
 async function updatePortVideoElements(newPortVideo: PortVideo) {

@@ -46,7 +46,7 @@ export class DescriptionPortPill {
         this.setPortVideoData = this.setPortVideoData.bind(this);
     }
 
-    async setupDecription(videoId: BVID) {
+    async setupDescription(videoId: BVID) {
         if (!Config.config.showPortVideoButton) {
             return;
         }
