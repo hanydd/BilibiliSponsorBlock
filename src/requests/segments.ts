@@ -5,7 +5,7 @@ import { getVideoIDHash, HashedValue } from "../utils/hash";
 import { parseBvidAndCidFromVideoId } from "../utils/videoIdUtils";
 import { asyncRequestToServer } from "./requests";
 
-const segmentCache = new DataCache<BVID, SegmentResponse>(() => {
+const segmentCache = new DataCache<BVID, SegmentResponse>(null, () => {
     return {
         segments: null,
         status: 200,

@@ -3,6 +3,8 @@ import { InjectedScriptMessageSend, sourceId } from "../utils/injectedScriptMess
 import { getBvid, saveAidFromDetail } from "./aidMap";
 import { getFrameRate, playUrlResponseToPlayInfo, savePlayInfo } from "./frameRateUtils";
 import { waitFor } from "../utils/";
+import { getCidFromBvIdPage } from "./cidListMap";
+import { BVID } from "../types";
 
 const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): void => {
     window.postMessage(
@@ -82,6 +84,9 @@ async function windowMessageListener(message: MessageEvent) {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.videoData?.desc);
         } else if (data.type === "convertAidToBvid") {
             sendMessageToContent(data, await getBvid(data.payload as string));
+        } else if (data.type === "getCidFromBvid") {
+            const payload = data.payload as { bvid: BVID; page: number };
+            sendMessageToContent(data, await getCidFromBvIdPage(payload.bvid, payload.page));
         }
     }
 }

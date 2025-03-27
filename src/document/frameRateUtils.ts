@@ -6,7 +6,7 @@ export interface PlayInfo {
     frameRate: number;
 }
 
-const playInfoCache = new DataCache<string, PlayInfo[]>(() => []);
+const playInfoCache = new DataCache<string, PlayInfo[]>("play_info", () => []);
 
 export function playUrlResponseToPlayInfo(playUrlInfo: BiliPlayInfo): PlayInfo[] {
     if (!playUrlInfo) {

@@ -1374,7 +1374,7 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
 
     if (segmentResponse.status === 200) {
         // filter cid
-        const receivedSegments: SponsorTime[] = segmentResponse.segments.filter(segment => segment.cid === cid);
+        const receivedSegments: SponsorTime[] = segmentResponse.segments?.filter(segment => segment.cid === cid);
 
         if (receivedSegments && receivedSegments.length) {
             sponsorDataFound = true;

@@ -1,41 +1,24 @@
-import { getBvIDfromAvIDBiliApi } from "../requests/bilibiliApi";
-import { BiliVideoDetail } from "../requests/type/BilibiliRequestType";
-import { AID, BVID } from "../types";
-import { CalculateAvidToBvid } from "../utils/bvidAvidUtils";
+import { BilibiliPagelistDetail } from "../requests/type/BilibiliRequestType";
+import { BVID, CID } from "../types";
 import { DataCache } from "../utils/cache";
 
-const cache = new DataCache<AID, BVID>();
+const cache = new DataCache<BVID, Record<number, CID>>("cid_map", () => ({}));
 
-export function saveAidFromDetail(detail: BiliVideoDetail): void {
-    saveAid(detail.aid, detail.bvid);
+export function saveCidMap(bvid: BVID, pageList: BilibiliPagelistDetail[]): void {
+    const map = cache.computeIfNotExists(bvid, () => ({}));
+    for (const page of pageList) {
+        map[page.page] = page.cid;
+    }
 }
 
-export function saveAid(aid: number | string, bvid: BVID): void {
-    if (typeof aid === "string" && aid.startsWith("av")) {
-        aid = aid.replace("av", "");
-    }
-    cache.set(aid as AID, bvid);
-}
+export async function getCidFromBvIdPage(bvid: BVID, page?: number): Promise<CID> {
 
-export async function getBvid(aid: number | string): Promise<BVID> {
-    if (typeof aid === "string" && aid.startsWith("av")) {
-        aid = aid.replace("av", "");
-    }
-    if (window?.__INITIAL_STATE__?.aid && window.__INITIAL_STATE__.bvid) {
-        saveAid(window.__INITIAL_STATE__.aid, window.__INITIAL_STATE__.bvid);
-    }
-    if (!cache.contains(aid as AID)) {
-        let bvid: BVID;
-        try {
-            bvid = CalculateAvidToBvid(aid);
-        } catch (e) {
-            bvid = await getBvIDfromAvIDBiliApi(aid as AID);
-        }
-
-        if (bvid) {
-            cache.set(aid as AID, bvid);
-        }
+    if (window?.__INITIAL_STATE__?.videoData?.pages && window?.__INITIAL_STATE__?.bvid) {
+        saveCidMap(window.__INITIAL_STATE__.bvid, window.__INITIAL_STATE__.videoData.pages);
     }
 
-    return cache.getFromCache(aid as AID);
+    if (!page) {
+        page = 1;
+    }
+    return cache.getFromCache(bvid)?.[page];
 }

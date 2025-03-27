@@ -1,4 +1,4 @@
-import { BVID } from "../types";
+import { BVID, CID } from "../types";
 
 export const sourceId = "biliSponsorBlock";
 
@@ -74,5 +74,15 @@ export async function getBvidFromAidFromWindow(aid: string): Promise<BVID | null
             responseType: "returnAidToBvid",
         },
         aid
+    );
+}
+
+export async function getCidFromBvidAndPageFromWindow(bvid: BVID, page?: number): Promise<CID | null> {
+    return getPropertyFromWindow<CID>(
+        {
+            sendType: "getCidFromBvid",
+            responseType: "returnCidFromBvid",
+        },
+        { bvid, page },
     );
 }

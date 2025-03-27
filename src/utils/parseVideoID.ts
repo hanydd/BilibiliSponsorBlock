@@ -1,13 +1,18 @@
 import { BVID, NewVideoID, YTID } from "../types";
 import { BILI_DOMAINS } from "./constants";
-import { getBvidFromAidFromWindow, getPropertyFromWindow } from "./injectedScriptMessageUtils";
+import {
+    getBvidFromAidFromWindow,
+    getCidFromBvidAndPageFromWindow,
+    getPropertyFromWindow,
+} from "./injectedScriptMessageUtils";
 
 export async function getBilibiliVideoID(url?: string): Promise<NewVideoID | null> {
     url ||= document?.URL;
 
     if (url.includes("bilibili.com/video") || url.includes("bilibili.com/list/")) {
         // video or list page
-        const id = (await getVideoIDFromWindow()) ?? (getBvIDFromURL(url) + "+") as NewVideoID;
+        const id = (await getVideoIDFromWindow()) ?? ((getBvIDFromURL(url) + "+") as NewVideoID);
+        console.log("get video id from url", id);
         return id;
     }
     return null;
@@ -73,6 +78,50 @@ export async function getBvIDFromURL(url: string): Promise<BVID | null> {
     return null;
 }
 
+export async function getVideoIDFromURL(url: string): Promise<NewVideoID | null> {
+    url = url.trim();
+
+    //Attempt to parse url
+    let urlObject: URL | null = null;
+    try {
+        urlObject = new URL(url, window.location.origin);
+    } catch (e) {
+        console.error("[BSB] Unable to parse URL: " + url);
+        return null;
+    }
+
+    // Check if valid hostname
+    if (!BILI_DOMAINS.includes(urlObject.host)) {
+        return null;
+    }
+
+    // Get ID from url
+    // video page
+    if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/video/")) {
+        const idMatch = urlObject.pathname.match(BILIBILI_VIDEO_URL_REGEX);
+        const page = urlObject.searchParams.get("p") ?? 1;
+        let bvid: BVID;
+        if (idMatch && idMatch[2]) {
+            // BV id
+            bvid = idMatch[2] as BVID;
+        } else if (idMatch && idMatch[3]) {
+            // av id
+            bvid = await getBvidFromAidFromWindow(idMatch[3]);
+        } else {
+            return null;
+        }
+        const cid = (await getCidFromBvidAndPageFromWindow(bvid, Number(page))) ?? "";
+        return (bvid + "+" + cid) as NewVideoID;
+    }
+    // list video page
+    else if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/list/")) {
+        const id = urlObject.searchParams.get("bvid");
+        return id as BVID;
+    }
+
+    return null;
+}
+
 /**
  * Validates and sanitizes a YouTube video ID.
  */
@@ -96,10 +145,10 @@ export function parseYoutubeID(rawId: string): YTID | null {
     const regexMatch = strictMatch
         ? (strictMatch as YTID)
         : negativeRegex.test(rawId)
-            ? null
-            : urlMatch
-                ? (urlMatch as YTID)
-                : null;
+        ? null
+        : urlMatch
+        ? (urlMatch as YTID)
+        : null;
 
     return regexMatch ? regexMatch : parseYouTubeVideoIDFromURL(rawId);
 }

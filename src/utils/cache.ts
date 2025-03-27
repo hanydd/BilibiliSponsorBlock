@@ -9,13 +9,13 @@ export class DataCache<T extends string, V> {
     private storageKey: string;
     private persistEnabled: boolean;
 
-    constructor(init?: () => V, cacheLimit = 2000, storageKey?: string) {
+    constructor(storageKey?: string, init?: () => V, cacheLimit = 2000) {
         this.cache = {};
         this.init = init;
         this.cacheLimit = cacheLimit;
         this.storageKey = storageKey || 'bsb_cache_default';
         this.persistEnabled = !!storageKey;
-        
+
         // Load from localStorage if persistence is enabled
         if (this.persistEnabled) {
             this.loadFromStorage();
@@ -25,6 +25,7 @@ export class DataCache<T extends string, V> {
     private loadFromStorage(): void {
         try {
             const storedData = localStorage.getItem(this.storageKey);
+            console.log(`[BSB] Loaded cache from localStorage: ${storedData}`); // Debugging line
             if (storedData) {
                 this.cache = JSON.parse(storedData);
             }
@@ -35,7 +36,6 @@ export class DataCache<T extends string, V> {
 
     private saveToStorage(): void {
         if (!this.persistEnabled) return;
-        
         try {
             localStorage.setItem(this.storageKey, JSON.stringify(this.cache));
         } catch (e) {
@@ -55,6 +55,13 @@ export class DataCache<T extends string, V> {
         };
         this.gc();
         this.saveToStorage();
+    }
+
+    public computeIfNotExists(key: T, generate = this.init): V {
+        if (!this.cache[key]) {
+            this.set(key, generate());
+        }
+        return this.cache[key];
     }
 
     public delete(key: T): void {
@@ -90,7 +97,7 @@ export class DataCache<T extends string, V> {
             this.saveToStorage();
         }
     }
-    
+
     // Clear the entire cache
     public clear(): void {
         this.cache = {};
