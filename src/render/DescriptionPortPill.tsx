@@ -6,7 +6,7 @@ import Config from "../config";
 import { getPageLoaded } from "../content";
 import { FetchResponse } from "../requests/background-request-proxy";
 import { PortVideo, BVID } from "../types";
-import { waitFor } from "../utils/";
+import { waitFor } from "../utils/index";
 import { waitForElement } from "../utils/dom";
 import { getVideoDescriptionFromWindow } from "../utils/injectedScriptMessageUtils";
 import { showMessage } from "./MessageNotice";

@@ -8,7 +8,7 @@ import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import advanceSkipNotice from "./render/advanceSkipNotice";
 import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";
-import { DescriptionPortPill } from "./render/DesciptionPortPill";
+import { DescriptionPortPill } from "./render/DescriptionPortPill";
 import { DynamicListener } from "./render/DynamicSponsorBlock";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
