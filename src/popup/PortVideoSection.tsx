@@ -63,7 +63,6 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
             this.props.messageApi.warning("YouTube视频ID有误");
             return;
         }
-        console.log("portvideo submitPortVideo", ytbID, this.state);
         this.setState({ loading: true });
 
         try {

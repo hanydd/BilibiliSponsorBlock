@@ -1,7 +1,7 @@
 import Config from "../config";
 import { getSegmentsByVideoID } from "../requests/segments";
 import { getVideoLabel } from "../requests/videoLabels";
-import { VideoID } from "../types";
+import { BVID, NewVideoID } from "../types";
 import { waitFor } from "../utils/";
 import { getBvIDFromURL } from "../utils/parseVideoID";
 import { getLabelAnchorSelector, getLinkAttribute, getLinkSelectors } from "./thumbnail-selectors";
@@ -93,14 +93,14 @@ async function hideThumbnailLabel(thumbnail: HTMLElement): Promise<void> {
 }
 
 const preloadSegments = (e: MouseEvent) => {
-    const videoID = (e.target as HTMLElement).getAttribute("data-bsb-bvid");
-    getSegmentsByVideoID(videoID);
+    const bvID = (e.target as HTMLElement).getAttribute("data-bsb-bvid") as BVID;
+    getSegmentsByVideoID(bvID + "+" as NewVideoID);
 };
 
 async function createOrGetThumbnail(
     thumbnail: HTMLElement,
     containerType: string,
-    videoID: VideoID
+    videoID: BVID
 ): Promise<{ overlay: HTMLElement; text: HTMLElement }> {
     // only add evnet listener once, add preloadSegments to thumbnail when pointerenter
     if (thumbnail.getAttribute("data-bsb-bvid") != videoID) {

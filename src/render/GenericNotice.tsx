@@ -5,7 +5,7 @@ import NoticeComponent from "../components/NoticeComponent";
 import Utils from "../utils";
 const utils = new Utils();
 
-import { ContentContainer } from "../types";
+import { ContentContainer } from "../ContentContainerTypes";
 import NoticeTextSelectionComponent from "../components/NoticeTextSectionComponent";
 import { ButtonListener } from "../components/component-types";
 import { getVideo } from "../utils/video";

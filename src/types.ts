@@ -1,8 +1,3 @@
-import SubmissionNotice from "./render/SubmissionNotice";
-import SkipNoticeComponent from "./components/SkipNoticeComponent";
-import SkipNotice from "./render/SkipNotice";
-import advanceSkipNotice from "./render/advanceSkipNotice";
-
 export enum PageType {
     Unknown = "unknown",
     Main = "main",
@@ -19,29 +14,6 @@ export enum PageType {
     Live = "live",
     Embed = "embed",
 }
-export interface ContentContainer {
-    (): {
-        vote: (type: number, UUID: SegmentUUID, category?: Category, skipNotice?: SkipNoticeComponent) => void;
-        dontShowNoticeAgain: () => void;
-        unskipSponsorTime: (segment: SponsorTime, unskipTime: number, forceSeek?: boolean) => void;
-        sponsorTimes: SponsorTime[];
-        sponsorTimesSubmitting: SponsorTime[];
-        skipNotices: SkipNotice[];
-        advanceSkipNotices: advanceSkipNotice;
-        sponsorVideoID;
-        reskipSponsorTime: (segment: SponsorTime, forceSeek?: boolean) => void;
-        updatePreviewBar: () => void;
-        sponsorSubmissionNotice: SubmissionNotice;
-        resetSponsorSubmissionNotice: (callRef?: boolean) => void;
-        updateEditButtonsOnPlayer: () => void;
-        previewTime: (time: number, unpause?: boolean) => void;
-        videoInfo: VideoInfo;
-        getRealCurrentTime: () => number;
-        lockedCategories: string[];
-        channelIDInfo: ChannelIDInfo;
-    };
-}
-
 export interface VideoDurationResponse {
     duration: number;
 }
@@ -96,6 +68,7 @@ export enum SponsorSourceType {
 }
 export interface SponsorTime {
     segment: [number] | [number, number];
+    cid: CID;
     UUID: SegmentUUID;
     locked?: number;
 
@@ -108,7 +81,7 @@ export interface SponsorTime {
 }
 
 export interface SponsorTimeHashedID {
-    videoID: VideoID;
+    videoID: BVID;
     segments: SponsorTime[];
 }
 
@@ -136,8 +109,9 @@ export interface BackgroundScriptContainer {
 }
 
 export interface PortVideo {
-    bvID: VideoID;
-    ytbID: VideoID;
+    bvID: BVID;
+    cid: CID;
+    ytbID: BVID;
     UUID: string;
     votes: number;
     locked: boolean;
@@ -219,7 +193,12 @@ export interface VideoInfo {
     messages: unknown;
 }
 
-export type VideoID = string;
+export type BVID = string & { __videoID: never };
+export type CID = string & { __videoID: never };
+export type AID = string & { __videoID: never };
+export type YTID = string & { __videoID: never };
+
+export type NewVideoID = string & { __videoID: never };
 
 export type UnEncodedSegmentTimes = [string, SponsorTime[]][];
 

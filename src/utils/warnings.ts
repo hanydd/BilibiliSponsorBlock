@@ -1,8 +1,8 @@
 import { objectToURI } from ".";
 import Config from "../config";
+import { ContentContainer } from "../ContentContainerTypes";
 import GenericNotice, { NoticeOptions } from "../render/GenericNotice";
 import { asyncRequestToServer } from "../requests/requests";
-import { ContentContainer } from "../types";
 import { getHash } from "../utils/hash";
 
 export interface ChatConfig {
@@ -41,9 +41,8 @@ export async function openWarningDialog(contentContainer: ContentContainer): Pro
                     name: chrome.i18n.getMessage("questionButton"),
                     listener: () =>
                         openChat({
-                            displayName: `${userName ? userName : ``}${
-                                userName !== publicUserID ? ` | ${publicUserID}` : ``
-                            }`,
+                            displayName: `${userName ? userName : ``}${userName !== publicUserID ? ` | ${publicUserID}` : ``
+                                }`,
                         }),
                 },
                 {

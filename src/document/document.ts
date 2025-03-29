@@ -3,6 +3,8 @@ import { InjectedScriptMessageSend, sourceId } from "../utils/injectedScriptMess
 import { getBvid, saveAidFromDetail } from "./aidMap";
 import { getFrameRate, playUrlResponseToPlayInfo, savePlayInfo } from "./frameRateUtils";
 import { waitFor } from "../utils/";
+import { getCidFromBvIdPage } from "./cidListMap";
+import { BVID } from "../types";
 
 const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): void => {
     window.postMessage(
@@ -73,7 +75,11 @@ async function windowMessageListener(message: MessageEvent) {
     }
     if (data?.source === sourceId && data?.responseType) {
         if (data.type === "getBvID") {
-            sendMessageToContent(data, window?.__INITIAL_STATE__?.bvid);
+            if (window?.__INITIAL_STATE__?.bvid && window?.__INITIAL_STATE__?.cid) {
+                sendMessageToContent(data, `${window?.__INITIAL_STATE__?.bvid}+${window?.__INITIAL_STATE__?.cid}`);
+            } else {
+                sendMessageToContent(data, null);
+            }
         } else if (data.type === "getFrameRate") {
             sendMessageToContent(data, getFrameRate());
         } else if (data.type === "getChannelID") {
@@ -82,6 +88,9 @@ async function windowMessageListener(message: MessageEvent) {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.videoData?.desc);
         } else if (data.type === "convertAidToBvid") {
             sendMessageToContent(data, await getBvid(data.payload as string));
+        } else if (data.type === "getCidFromBvid") {
+            const payload = data.payload as { bvid: BVID; page: number };
+            sendMessageToContent(data, await getCidFromBvIdPage(payload.bvid, payload.page));
         }
     }
 }
@@ -107,7 +116,7 @@ async function addMid() {
     });
 
     pageObserver.observe(await getElementWaitFor(".bili-dyn-list__items"), {
-        attributeFilter: ['class'],
+        attributeFilter: ["class"],
         childList: true,
     });
 
@@ -115,20 +124,14 @@ async function addMid() {
         pageObserver.disconnect();
 
         pageObserver.observe(await getElementWaitFor(".bili-dyn-list__items"), {
-            attributeFilter: ['class'],
+            attributeFilter: ["class"],
             childList: true,
         });
     });
 
     async function getElementWaitFor(element: string) {
-        return await waitFor(
-            () => document.querySelector(element) as HTMLElement,
-            5000,
-            50
-        );
+        return await waitFor(() => document.querySelector(element) as HTMLElement, 5000, 50);
     }
 }
 
-if (window.location.href.includes('t.bilibili.com')
-    || window.location.href.includes('space.bilibili.com')
-) addMid();
+if (window.location.href.includes("t.bilibili.com") || window.location.href.includes("space.bilibili.com")) addMid();

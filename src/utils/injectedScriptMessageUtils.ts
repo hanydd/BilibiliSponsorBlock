@@ -1,4 +1,4 @@
-import { VideoID } from "./video";
+import { BVID, CID } from "../types";
 
 export const sourceId = "biliSponsorBlock";
 
@@ -67,12 +67,22 @@ export async function getVideoDescriptionFromWindow(): Promise<string | null> {
     });
 }
 
-export async function getBvidFromAidFromWindow(aid: string): Promise<VideoID | null> {
-    return getPropertyFromWindow<VideoID>(
+export async function getBvidFromAidFromWindow(aid: string): Promise<BVID | null> {
+    return getPropertyFromWindow<BVID>(
         {
             sendType: "convertAidToBvid",
             responseType: "returnAidToBvid",
         },
         aid
+    );
+}
+
+export async function getCidFromBvidAndPageFromWindow(bvid: BVID, page?: number): Promise<CID | null> {
+    return getPropertyFromWindow<CID>(
+        {
+            sendType: "getCidFromBvid",
+            responseType: "returnCidFromBvid",
+        },
+        { bvid, page },
     );
 }

@@ -1,13 +1,14 @@
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import Config from "./config";
 import { Keybind, keybindEquals, keybindToString, StorageChangesObject } from "./config/config";
+import { ContentContainer } from "./ContentContainerTypes";
 import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";
 import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import advanceSkipNotice from "./render/advanceSkipNotice";
 import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";
-import { DescriptionPortPill } from "./render/DesciptionPortPill";
+import { DescriptionPortPill } from "./render/DescriptionPortPill";
 import { DynamicListener } from "./render/DynamicSponsorBlock";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
@@ -21,11 +22,12 @@ import { getVideoLabel } from "./requests/videoLabels";
 import { checkPageForNewThumbnails, setupThumbnailListener } from "./thumbnail-utils/thumbnailManagement";
 import {
     ActionType,
+    BVID,
     Category,
     CategorySkipOption,
     ChannelIDInfo,
     ChannelIDStatus,
-    ContentContainer,
+    NewVideoID,
     PageType,
     PortVideo,
     ScheduledTime,
@@ -35,8 +37,8 @@ import {
     SponsorSourceType,
     SponsorTime,
     ToggleSkippable,
-    VideoID,
     VideoInfo,
+    YTID,
 } from "./types";
 import Utils from "./utils";
 import { isFirefox, isFirefoxOrSafari, isSafari, sleep, waitFor } from "./utils/";
@@ -58,7 +60,9 @@ import {
     checkIfNewVideoID,
     checkVideoIDChange,
     detectPageType,
+    getBvID,
     getChannelIDInfo,
+    getCid,
     getPageType,
     getVideo,
     getVideoID,
@@ -66,6 +70,7 @@ import {
     updateFrameRate,
     waitForVideo,
 } from "./utils/video";
+import { parseBvidAndCidFromVideoId } from "./utils/videoIdUtils";
 import { openWarningDialog } from "./utils/warnings";
 
 cleanPage();
@@ -179,7 +184,7 @@ export function getPageLoaded() {
 }
 
 //the video id of the last preview bar update
-let lastPreviewBarUpdate: VideoID;
+let lastPreviewBarUpdate: BVID;
 
 // Is the video currently being switched
 let switchingVideos = null;
@@ -484,7 +489,7 @@ function resetValues() {
     }
 
     skipButtonControlBar?.disable();
-    categoryPill?.setVisibility(false);
+    categoryPill?.resetSegment();
 
     for (let i = 0; i < skipNotices.length; i++) {
         skipNotices.pop()?.close();
@@ -841,6 +846,7 @@ function checkDanmaku(text: string, offset: number) {
 
     const skippingSegments: SponsorTime[] = [
         {
+            cid: getCid(),
             actionType: ActionType.Skip,
             segment: [startTime, targetTime],
             source: SponsorSourceType.Danmaku,
@@ -1284,7 +1290,7 @@ function setupDescriptionPill() {
             sponsorsLookup
         );
     }
-    descriptionPill.setupDecription(getVideoID());
+    descriptionPill.setupDescription(getVideoID());
 }
 
 async function updatePortVideoElements(newPortVideo: PortVideo) {
@@ -1303,7 +1309,7 @@ async function updatePortVideoElements(newPortVideo: PortVideo) {
     });
 }
 
-async function getPortVideo(videoId: VideoID, bypassCache = false) {
+async function getPortVideo(videoId: NewVideoID, bypassCache = false) {
     const newPortVideo = await getPortVideoByHash(videoId, { bypassCache });
     if (newPortVideo?.UUID === portVideo?.UUID) return;
     portVideo = newPortVideo;
@@ -1311,7 +1317,7 @@ async function getPortVideo(videoId: VideoID, bypassCache = false) {
     updatePortVideoElements(portVideo);
 }
 
-async function submitPortVideo(ytbID: VideoID): Promise<PortVideo> {
+async function submitPortVideo(ytbID: YTID): Promise<PortVideo> {
     const newPortVideo = await postPortVideo(getVideoID(), ytbID, getVideo()?.duration);
     portVideo = newPortVideo;
     updatePortVideoElements(portVideo);
@@ -1334,6 +1340,7 @@ async function updateSegments(UUID: string): Promise<FetchResponse> {
 
 async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false, forceUpdatePreviewBar = false) {
     const videoID = getVideoID();
+    const { cid } = parseBvidAndCidFromVideoId(videoID);
     if (!videoID) {
         console.error("[SponsorBlock] Attempted to fetch segments with a null/undefined videoID.");
         return;
@@ -1356,7 +1363,7 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
     const hashParams = getHashParams();
     if (hashParams.requiredSegment) extraRequestData.requiredSegment = hashParams.requiredSegment;
 
-    const hashPrefix = (await getVideoIDHash(videoID)).slice(0, 4) as VideoID & HashedValue;
+    const hashPrefix = (await getVideoIDHash(videoID)).slice(0, 4) as BVID & HashedValue;
     const segmentResponse = await getSegmentsByVideoID(videoID, extraRequestData, ignoreServerCache);
 
     // Make sure an old pending request doesn't get used.
@@ -1366,7 +1373,8 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
     lastResponseStatus = segmentResponse?.status;
 
     if (segmentResponse.status === 200) {
-        const receivedSegments: SponsorTime[] = segmentResponse.segments;
+        // filter cid
+        const receivedSegments: SponsorTime[] = segmentResponse.segments?.filter(segment => segment.cid === cid);
 
         if (receivedSegments && receivedSegments.length) {
             sponsorDataFound = true;
@@ -2172,6 +2180,7 @@ function startOrEndTimingNewSegment() {
     const roundedTime = Math.round((getRealCurrentTime() + Number.EPSILON) * 1000) / 1000;
     if (!isSegmentCreationInProgress()) {
         sponsorTimesSubmitting.push({
+            cid: getCid(),
             segment: [roundedTime],
             UUID: generateUserID() as SegmentUUID,
             category: Config.config.defaultCategory,
@@ -2248,6 +2257,7 @@ function updateSponsorTimesSubmitting(getFromConfig = true) {
 
         for (const segmentTime of segmentTimes) {
             sponsorTimesSubmitting.push({
+                cid: getCid(),
                 segment: segmentTime.segment,
                 UUID: segmentTime.UUID,
                 category: segmentTime.category,
@@ -2549,7 +2559,8 @@ async function sendSubmitMessage(): Promise<boolean> {
     }
 
     const response = await asyncRequestToServer("POST", "/api/skipSegments", {
-        videoID: getVideoID(),
+        videoID: getBvID(),
+        cid: getCid(),
         userID: Config.config.userID,
         segments: sponsorTimesSubmitting,
         videoDuration: getVideo()?.duration,
@@ -2702,7 +2713,7 @@ function hotkeyListener(e: KeyboardEvent): void {
             if (key.key === 'Enter') {
                 const currentTime: number | null = document.querySelector<HTMLVideoElement>(".bpx-player-video-wrap video")?.currentTime ?? null;
                 if (currentTime) {
-                    const inSponsorRange = sponsorTimes.some(({segment: [start, end]}) => start <= currentTime && end >= currentTime);
+                    const inSponsorRange = sponsorTimes.some(({ segment: [start, end] }) => start <= currentTime && end >= currentTime);
                     if (inSponsorRange) {
                         utils.biliBiliPlayerDanmakuInputBlur();
                     }
@@ -2820,6 +2831,7 @@ function checkForPreloadedSegment() {
                     )
                 ) {
                     sponsorTimesSubmitting.push({
+                        cid: getCid(),
                         segment: segment.segment,
                         UUID: generateUserID() as SegmentUUID,
                         category: segment.category ? segment.category : Config.config.defaultCategory,

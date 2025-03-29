@@ -5,8 +5,8 @@ import YouTubeLogoButton from "../components/YouTubeLogoButton";
 import Config from "../config";
 import { getPageLoaded } from "../content";
 import { FetchResponse } from "../requests/background-request-proxy";
-import { PortVideo, VideoID } from "../types";
-import { waitFor } from "../utils/";
+import { PortVideo, BVID } from "../types";
+import { waitFor } from "../utils/index";
 import { waitForElement } from "../utils/dom";
 import { getVideoDescriptionFromWindow } from "../utils/injectedScriptMessageUtils";
 import { showMessage } from "./MessageNotice";
@@ -14,12 +14,12 @@ import { showMessage } from "./MessageNotice";
 const id = "bsbDescriptionContainer";
 
 export class DescriptionPortPill {
-    bvID: VideoID;
-    ytbID: VideoID;
+    bvID: BVID;
+    ytbID: BVID;
     portUUID: string;
     hasDescription: boolean;
-    getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void;
-    submitPortVideo: (ytbID: VideoID) => Promise<PortVideo>;
+    getPortVideo: (videoId: BVID, bypassCache?: boolean) => void;
+    submitPortVideo: (ytbID: BVID) => Promise<PortVideo>;
     portVideoVote: (UUID: string, voteType: number) => void;
     updateSegments: (UUID: string) => Promise<FetchResponse>;
     sponsorsLookup: (keepOldSubmissions: boolean, ignoreServerCache: boolean, forceUpdatePreviewBar: boolean) => void;
@@ -31,8 +31,8 @@ export class DescriptionPortPill {
     root: Root;
 
     constructor(
-        getPortVideo: (videoId: VideoID, bypassCache?: boolean) => void,
-        submitPortVideo: (ytbID: VideoID) => Promise<PortVideo>,
+        getPortVideo: (videoId: BVID, bypassCache?: boolean) => void,
+        submitPortVideo: (ytbID: BVID) => Promise<PortVideo>,
         portVideoVote: (UUID: string, voteType: number) => void,
         updateSegments: (UUID: string) => Promise<FetchResponse>,
         sponsorsLookup: () => void
@@ -46,7 +46,7 @@ export class DescriptionPortPill {
         this.setPortVideoData = this.setPortVideoData.bind(this);
     }
 
-    async setupDecription(videoId: VideoID) {
+    async setupDescription(videoId: BVID) {
         if (!Config.config.showPortVideoButton) {
             return;
         }
