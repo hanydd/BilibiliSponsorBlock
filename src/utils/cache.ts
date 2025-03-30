@@ -1,9 +1,10 @@
-interface CacheRecord {
+interface CacheRecord<V> {
+    value: V;
     lastUsed: number;
 }
 
 export class DataCache<T extends string, V> {
-    private cache: Record<string, V & CacheRecord>;
+    private cache: Record<string, CacheRecord<V>>;
     private init: () => V;
     private cacheLimit: number;
     private storageKey: string;
@@ -15,18 +16,19 @@ export class DataCache<T extends string, V> {
         this.cacheLimit = cacheLimit;
         this.storageKey = storageKey || "bsb_cache_default";
         this.persistEnabled = !!storageKey;
-
-        // Load from localStorage if persistence is enabled
-        if (this.persistEnabled) {
-            this.loadFromStorage();
-        }
     }
 
     private loadFromStorage(): void {
         try {
             const storedData = localStorage.getItem(this.storageKey);
+            console.log(`[BSB] Loaded cache from localStorage: ${storedData}`);
             if (storedData) {
-                this.cache = JSON.parse(storedData);
+                const loadedCache = JSON.parse(storedData);
+                if (loadedCache satisfies Record<string, CacheRecord<V>>) {
+                    this.cache = loadedCache;
+                } else {
+                    throw new Error("Invalid cache format in localStorage");
+                }
             }
         } catch (e) {
             console.error(`[BSB] Failed to load cache from localStorage: ${e}`);
@@ -36,6 +38,7 @@ export class DataCache<T extends string, V> {
     // Debounced save to reduce excessive localStorage writes
     private saveTimeout: number | null = null;
     private saveToStorage(): void {
+        return;
         if (!this.persistEnabled) return;
 
         // Clear any existing timeout
@@ -54,16 +57,13 @@ export class DataCache<T extends string, V> {
         }, 200); // 200ms debounce
     }
 
-    public getFromCache(key: T): (V & CacheRecord) | undefined {
+    public getFromCache(key: T): V | undefined {
         this.cacheUsed(key);
-        return this.cache[key];
+        return this.cache[key]?.value;
     }
 
     public set(key: T, value: V): void {
-        this.cache[key] = {
-            ...value,
-            lastUsed: Date.now(),
-        };
+        this.cache[key] = { value: value, lastUsed: Date.now() };
         this.gc();
         this.saveToStorage();
     }
@@ -72,20 +72,12 @@ export class DataCache<T extends string, V> {
         if (!this.cache[key]) {
             this.set(key, generate());
         }
-        return this.cache[key];
+        return this.getFromCache(key);
     }
 
     public delete(key: T): void {
         delete this.cache[key];
         this.saveToStorage();
-    }
-
-    public setupCache(key: T): V & CacheRecord {
-        if (!this.cache[key] && this.init) {
-            this.set(key, this.init());
-        }
-
-        return this.cache[key];
     }
 
     public cacheUsed(key: T): boolean {

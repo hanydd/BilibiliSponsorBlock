@@ -83,6 +83,16 @@ export async function getCidFromBvidAndPageFromWindow(bvid: BVID, page?: number)
             sendType: "getCidFromBvid",
             responseType: "returnCidFromBvid",
         },
-        { bvid, page },
+        { bvid, page }
+    );
+}
+
+export async function getCidMapFromWindow(bvid: BVID): Promise<Map<number, CID> | null> {
+    return getPropertyFromWindow<Map<number, CID>>(
+        {
+            sendType: "getCidMap",
+            responseType: "returnCidMap",
+        },
+        bvid
     );
 }
