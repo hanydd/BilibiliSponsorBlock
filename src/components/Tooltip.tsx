@@ -65,6 +65,7 @@ export class GenericTooltip {
 
         this.container = document.createElement("div");
         this.container.id = "sponsorTooltip" + props.text;
+        this.container.classList.add("sponsorBlockTooltipContainer");
         if (props.positionRealtive) this.container.style.position = "relative";
         if (props.containerAbsolute) this.container.style.position = "absolute";
         if (props.center) {
@@ -99,13 +100,15 @@ export class GenericTooltip {
                     backgroundColor,
                     margin: props.center ? "auto" : undefined,
                 }}
-                className={
-                    "sponsorBlockTooltip" +
-                    (props.displayTriangle || props.topTriangle ? " sbTriangle" : "") +
-                    (props.topTriangle ? " sbTopTriangle" : "") +
-                    (props.opacity === 1 ? " sbSolid" : "") +
-                    ` ${props.extraClass}`
-                }
+                className={[
+                    "sponsorBlockTooltip",
+                    props.displayTriangle || props.topTriangle ? "sbTriangle" : "",
+                    props.topTriangle ? "sbTopTriangle" : "",
+                    props.opacity === 1 ? "sbSolid" : "",
+                    props.extraClass,
+                ]
+                    .filter(Boolean)
+                    .join(" ")}
             >
                 <div
                     style={{

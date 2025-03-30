@@ -3,13 +3,14 @@ import Config from "../config";
 import { Category, SegmentUUID, SponsorTime } from "../types";
 
 import { VoteResponse } from "../messageTypes";
-import { Tooltip } from "../render/Tooltip";
+import { showMessage } from "../render/MessageNotice";
+import PersistedTooltip from "../render/PersistedTooltip";
 import ThumbsDownSvg from "../svg-icons/thumbs_down_svg";
 import ThumbsUpSvg from "../svg-icons/thumbs_up_svg";
+import { waitFor } from "../utils/";
 import { AnimationUtils } from "../utils/animationUtils";
 import { getErrorMessage } from "../utils/formating";
 import { downvoteButtonColor, SkipNoticeAction } from "../utils/noticeUtils";
-import { showMessage } from "../render/MessageNotice";
 
 export interface CategoryPillProps {
     vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>;
@@ -24,7 +25,7 @@ export interface CategoryPillState {
 }
 
 class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryPillState> {
-    tooltip?: Tooltip;
+    tooltip?: PersistedTooltip;
 
     constructor(props: CategoryPillProps) {
         super(props);
@@ -34,6 +35,24 @@ class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryP
             show: false,
             open: false,
         };
+
+        waitFor(() => document.querySelector("#viewbox_report").childNodes[1], 10000).then(() => {
+            const tooltipMount = document.querySelector("#viewbox_report") as HTMLElement;
+            this.tooltip = new PersistedTooltip({
+                text: this.getTitleText(),
+                referenceNode: tooltipMount,
+                bottomOffset: "unset",
+                topOffset: "4px",
+                opacity: 0.95,
+                displayTriangle: false,
+                showLogo: false,
+                showGotIt: false,
+                prependElement: tooltipMount.childNodes[1] as HTMLElement,
+            });
+            })
+            .catch(() => {
+                console.warn("等待查找category tooltip 挂载点时超时");
+            });
     }
 
     render(): React.ReactElement {
@@ -136,7 +155,7 @@ class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryP
 
                 this.closeTooltip();
             } else if (response.statusCode !== 403) {
-                showMessage(getErrorMessage(response.statusCode, response.responseText), 'warning');
+                showMessage(getErrorMessage(response.statusCode, response.responseText), "warning");
             }
         }
     }
@@ -156,29 +175,11 @@ class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryP
     }
 
     private openTooltip(): void {
-        if (this.tooltip) {
-            this.tooltip.close();
-        }
-
-        const tooltipMount = document.querySelector("#viewbox_report") as HTMLElement;
-        if (tooltipMount) {
-            this.tooltip = new Tooltip({
-                text: this.getTitleText(),
-                referenceNode: tooltipMount,
-                bottomOffset: "unset",
-                topOffset: "4px",
-                opacity: 0.95,
-                displayTriangle: false,
-                showLogo: false,
-                showGotIt: false,
-                prependElement: tooltipMount.childNodes[1] as HTMLElement,
-            });
-        }
+        this.tooltip?.open();
     }
 
     private closeTooltip(): void {
-        this.tooltip?.close?.();
-        this.tooltip = null;
+        this.tooltip?.close();
     }
 
     getTitleText(): string {

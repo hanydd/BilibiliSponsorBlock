@@ -686,6 +686,10 @@ input::-webkit-inner-spin-button {
 	display: none !important;
 }
 
+.sponsorBlockTooltipContainer {
+	z-index: 10;
+}
+
 .sponsorBlockTooltip {
 	position: absolute;
 	background-color: rgba(28, 28, 28, 0.7);
