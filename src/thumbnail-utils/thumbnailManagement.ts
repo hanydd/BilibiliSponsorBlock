@@ -4,7 +4,13 @@ import { PageType } from "../types";
 import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
 import { getPageType } from "../utils/video";
-import { getThumbnailContainerElements, getThumbnailSelectors, shouldWaitForPageLoad, isShadowRoot, getParentElement } from "./thumbnail-selectors";
+import {
+    getThumbnailContainerElements,
+    getThumbnailSelectors,
+    shouldWaitForPageLoad,
+    isShadowRoot,
+    getParentElement,
+} from "./thumbnail-selectors";
 import { insertSBIconDefinition, labelThumbnail } from "./thumbnails";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
@@ -42,9 +48,9 @@ export function setupThumbnailListener(): void {
                 const shadowRoot = parent?.shadowRoot;
 
                 shadowRoot.appendChild(
-                    Object.assign(document.createElement('link'), {
-                        rel: 'stylesheet',
-                        href: chrome.runtime.getURL('content.css'),
+                    Object.assign(document.createElement("link"), {
+                        rel: "stylesheet",
+                        href: chrome.runtime.getURL("content.css"),
                     })
                 );
                 insertSBIconDefinition(shadowRoot as unknown as HTMLElement);
@@ -109,7 +115,8 @@ export function checkPageForNewThumbnails() {
 
 function labelNewThumbnails(container: Element, containerType: string) {
     if (isShadowRoot(containerType)) {
-        if (!container || !document.querySelector(getParentElement(containerType)).shadowRoot.contains(container)) return;
+        if (!container || !document.querySelector(getParentElement(containerType)).shadowRoot.contains(container))
+            return;
     } else {
         if (!container || !document.body.contains(container)) return;
     }
