@@ -1301,5 +1301,8 @@
     },
     "dynamicSponsorBlockerDebugDescription": {
         "message": "把鼠標懸浮到標籤時顯示匹配到的文字"
+    },
+    "requestVote": {
+        "message": "片段標記準確嗎？"
     }
 }

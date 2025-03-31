@@ -36,19 +36,43 @@ class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryP
             open: false,
         };
 
-        waitFor(() => document.querySelector("#viewbox_report").childNodes[1], 10000).then(() => {
-            const tooltipMount = document.querySelector("#viewbox_report") as HTMLElement;
-            this.tooltip = new PersistedTooltip({
-                text: this.getTitleText(),
-                referenceNode: tooltipMount,
-                bottomOffset: "unset",
-                topOffset: "4px",
-                opacity: 0.95,
-                displayTriangle: false,
-                showLogo: false,
-                showGotIt: false,
-                prependElement: tooltipMount.childNodes[1] as HTMLElement,
-            });
+        waitFor(() => document.querySelector("#viewbox_report").childNodes[1], 10000)
+            .then(() => {
+                const tooltipMount = document.querySelector("#viewbox_report") as HTMLElement;
+                this.tooltip = new PersistedTooltip({
+                    text: this.getTitleText(),
+                    referenceNode: tooltipMount,
+                    bottomOffset: "unset",
+                    topOffset: "4px",
+                    opacity: 0.95,
+                    displayTriangle: false,
+                    showLogo: false,
+                    showGotIt: false,
+                    prependElement: tooltipMount.childNodes[1] as HTMLElement,
+                    elements: [
+                        <>
+                            <div className="voteRequestContainer sponsorSkipObject">
+                                <span>{chrome.i18n.getMessage("requestVote")}</span>
+                                <div
+                                    className="voteButton"
+                                    title={chrome.i18n.getMessage("upvote")}
+                                    onClick={(e) => this.vote(e, 1)}
+                                >
+                                    <ThumbsUpSvg fill={Config.config.colorPalette.white} />
+                                    <span>{chrome.i18n.getMessage("upvote")}</span>
+                                </div>
+                                <div
+                                    className="voteButton"
+                                    title={chrome.i18n.getMessage("reportButtonInfo")}
+                                    onClick={(e) => this.vote(e, 0)}
+                                >
+                                    <ThumbsDownSvg fill={downvoteButtonColor(null, null, SkipNoticeAction.Downvote)} />
+                                    <span>{chrome.i18n.getMessage("downvote")}</span>
+                                </div>
+                            </div>
+                        </>,
+                    ],
+                });
             })
             .catch(() => {
                 console.warn("等待查找category tooltip 挂载点时超时");

@@ -114,7 +114,6 @@ export class GenericTooltip {
                     style={{
                         marginBottom: props.innerBottomMargin,
                         maxHeight: props.textBoxMaxHeight,
-                        overflowY: "auto",
                     }}
                 >
                     {props.showLogo ? (
