@@ -7,19 +7,19 @@ import { Tooltip } from "./Tooltip";
  */
 interface PersistedTooltipProps extends TooltipProps {
     /**
-     * 可选属性，指定用户交互结束后工具提示保持可见的持续时间（以毫秒为单位），默认为500毫秒。
+     * 可选属性，指定用户交互结束后 Tooltip 保持可见的持续时间（以毫秒为单位），默认为500毫秒。
      */
     persistTime?: number;
 }
 
 /**
- * `PersistedTooltip` 类用于管理一个持久化的工具提示（Tooltip），
- * 提供了显示和隐藏工具提示的功能，并支持在鼠标悬停时拦截隐藏操作。
+ * `PersistedTooltip` 类用于管理一个持久化的 Tooltip，
+ * 提供了显示和隐藏 Tooltip 的功能，并支持在鼠标悬停时拦截隐藏操作。
  *
  * ### 功能描述
- * - 工具提示可以在延迟指定的持续时间后再隐藏。
- * - 鼠标悬停在工具提示上时，可以阻止其隐藏。
- * - 提供手动打开和关闭工具提示的方法。
+ * - Tooltip 可以在延迟指定的持续时间后再隐藏。
+ * - 鼠标悬停在 Tooltip 上时，可以阻止其隐藏。
+ * - 提供手动打开和关闭 Tooltip 的方法。
  */
 class PersistedTooltip {
     /**
@@ -30,7 +30,7 @@ class PersistedTooltip {
     /**
      * 延迟时间结束计时器
      */
-    persistEndTimer: NodeJS.Timeout;
+    persistEndTimer: NodeJS.Timeout | null = null;
 
     /**
      * 延迟时间：由props传入，单位毫秒，默认为500毫秒
@@ -39,16 +39,12 @@ class PersistedTooltip {
 
     constructor(props: PersistedTooltipProps) {
         this.tooltip = new Tooltip(props);
+        this.persistEndTimer = null;
         this.persistTime = props.persistTime ?? 500;
         this.tooltipHideNow();
 
-        /**
-         * 事件监听：
-         * 鼠标进入工具提示时，中断隐藏操作。
-         * 鼠标离开工具提示时，触发隐藏操作。
-         */
         this.tooltip.container.addEventListener("mouseenter", () => {
-            this.tooltipInterruptHiding();
+            this.tooltipToVisible();
         });
 
         this.tooltip.container.addEventListener("mouseleave", () => {
@@ -57,24 +53,30 @@ class PersistedTooltip {
     }
 
     /**
-     * 将工具提示设置为可见状态，立即显示。
+     * 将 Tooltip 设置为可见状态，立即显示。
      */
     private tooltipToVisible() {
+        // 如果正在进行隐藏操作，取消隐藏操作并立即显示
+        if (this.persistEndTimer) {
+            clearTimeout(this.persistEndTimer);
+            this.persistEndTimer = null;
+        }
         this.tooltip.container.style.transition = "";
         this.tooltip.container.style.display = "";
         this.tooltip.container.style.opacity = "1";
     }
 
     /**
-     * 将工具提示设置为隐藏状态，触发渐隐效果，并在延迟时间后完全隐藏。
+     * 将 Tooltip 设置为隐藏状态，触发渐隐效果，并在延迟时间后完全隐藏。
      */
     private tooltipToHidden() {
-        this.tooltipInterruptHiding();
-        this.tooltip.container.style.transition = `opacity ${this.persistTime}ms`;
-        this.tooltip.container.style.opacity = "0";
-        this.persistEndTimer = setTimeout(() => {
-            this.tooltipHideNow();
-        }, this.persistTime);
+        if (!this.persistEndTimer) {
+            this.tooltip.container.style.transition = `opacity ${this.persistTime}ms`;
+            this.tooltip.container.style.opacity = "0";
+            this.persistEndTimer = setTimeout(() => {
+                this.tooltipHideNow();
+            }, this.persistTime);
+        }
     }
 
     /**
@@ -86,27 +88,14 @@ class PersistedTooltip {
     }
 
     /**
-     * 中断隐藏操作，取消任何正在进行的隐藏计时器，并将 Tooltip 设置为可见状态。
-     */
-    private tooltipInterruptHiding() {
-        if (this.persistEndTimer) {
-            clearTimeout(this.persistEndTimer);
-            this.tooltipToVisible();
-        }
-    }
-
-    /**
-     * 手动打开工具提示。如果工具提示正在隐藏的过程中，会取消隐藏操作并立即显示。
+     * 手动打开 Tooltip。如果 Tooltip 正在隐藏的过程中，会取消隐藏操作并立即显示。
      */
     open() {
-        if (this.persistEndTimer) {
-            clearTimeout(this.persistEndTimer);
-        }
         this.tooltipToVisible();
     }
 
     /**
-     * 手动关闭工具提示。工具提示会以指定的持续时间渐隐后隐藏。如果工具提示正在隐藏的过程中，会重新计时。
+     * 手动关闭 Tooltip。Tooltip 会以指定的持续时间渐隐后隐藏。如果 Tooltip 正在隐藏的过程中，将不会进行任何额外动作。
      */
     close() {
         this.tooltipToHidden();
