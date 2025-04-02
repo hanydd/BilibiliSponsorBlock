@@ -474,7 +474,7 @@
         "message": "外掛程式相關選項"
     },
     "advanceSkipNotice": {
-        "message": "提前顯示跳過提醒視窗（僅啟用＂自動跳過＂的片段）"
+        "message": "提前顯示跳過提醒視窗（僅啟用「自動跳過」的片段）"
     },
     "skipNoticeDurationBefore": {
         "message": "跳過提醒提前跳出視窗時間（秒）："
@@ -605,7 +605,7 @@
         "message": "無償/自我推廣"
     },
     "category_selfpromo_description": {
-        "message": "類似於「贊助廣告」 ，但無報酬或是自我推廣。包括有關商品、捐贈的部分或合作者的資訊。"
+        "message": "類似於「贊助廣告」，但無報酬或是自我推廣。包括有關商品、捐贈的部分或合作者的資訊。"
     },
     "category_selfpromo_guideline1": {
         "message": "捐贈、會員和自製周邊"
@@ -1300,7 +1300,7 @@
         "message": "顯示疑似廣告匹配到的文字 / 正規表示式調試模式"
     },
     "dynamicSponsorBlockerDebugDescription": {
-        "message": "把鼠標懸浮到標籤時顯示匹配到的文字"
+        "message": "把滑鼠懸浮到標籤時顯示匹配到的文字"
     },
     "requestVote": {
         "message": "片段標記準確嗎？"
