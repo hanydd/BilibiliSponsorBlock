@@ -686,6 +686,10 @@ input::-webkit-inner-spin-button {
 	display: none !important;
 }
 
+.sponsorBlockTooltipContainer {
+	z-index: 10;
+}
+
 .sponsorBlockTooltip {
 	position: absolute;
 	background-color: rgba(28, 28, 28, 0.7);
@@ -1006,4 +1010,19 @@ input::-webkit-inner-spin-button {
 	height: 1.2em;
 	width: 1.2em;
     fill: var(--text2);
+}
+.voteRequestContainer {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 4px;
+	opacity: 0.8;
+}
+
+.voteRequestContainer .voteButton {
+	border: white 1px solid;
+	border-radius: 32px;
+	padding: 4px 6px;
+	display: flex;
+	gap: 4px;
 }
