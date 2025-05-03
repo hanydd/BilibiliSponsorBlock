@@ -1,10 +1,10 @@
 import { BilibiliResponse, BiliPlayInfo, BiliVideoDetail } from "../requests/type/BilibiliRequestType";
+import { BVID } from "../types";
+import { waitFor } from "../utils/";
 import { InjectedScriptMessageSend, sourceId } from "../utils/injectedScriptMessageUtils";
 import { getBvid, saveAidFromDetail } from "./aidMap";
+import { getCidFromBvIdPage, getCidMap } from "./cidListMap";
 import { getFrameRate, playUrlResponseToPlayInfo, savePlayInfo } from "./frameRateUtils";
-import { waitFor } from "../utils/";
-import { getCidFromBvIdPage } from "./cidListMap";
-import { BVID } from "../types";
 
 const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): void => {
     window.postMessage(
@@ -91,6 +91,8 @@ async function windowMessageListener(message: MessageEvent) {
         } else if (data.type === "getCidFromBvid") {
             const payload = data.payload as { bvid: BVID; page: number };
             sendMessageToContent(data, await getCidFromBvIdPage(payload.bvid, payload.page));
+        } else if (data.type === "getCidMap") {
+            sendMessageToContent(data, await getCidMap(data.payload as BVID));
         }
     }
 }

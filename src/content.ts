@@ -47,10 +47,12 @@ import { addCleanupListener, cleanPage } from "./utils/cleanup";
 import { defaultPreviewTime } from "./utils/constants";
 import { parseTargetTimeFromDanmaku } from "./utils/danmakusUtils";
 import { findValidElement } from "./utils/dom";
+import { durationEquals } from "./utils/duraionUtils";
 import { importTimes } from "./utils/exporter";
 import { getErrorMessage, getFormattedTime } from "./utils/formating";
 import { GenericUtils } from "./utils/genericUtils";
 import { getHash, getVideoIDHash, HashedValue } from "./utils/hash";
+import { getCidMapFromWindow } from "./utils/injectedScriptMessageUtils";
 import { logDebug } from "./utils/logger";
 import { getControls, getHashParams, getProgressBar, isPlayingPlaylist } from "./utils/pageUtils";
 import { getBilibiliVideoID } from "./utils/parseVideoID";
@@ -1343,7 +1345,7 @@ async function updateSegments(UUID: string): Promise<FetchResponse> {
 
 async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false, forceUpdatePreviewBar = false) {
     const videoID = getVideoID();
-    const { cid } = parseBvidAndCidFromVideoId(videoID);
+    const { bvId, cid } = parseBvidAndCidFromVideoId(videoID);
     if (!videoID) {
         console.error("[SponsorBlock] Attempted to fetch segments with a null/undefined videoID.");
         return;
@@ -1376,8 +1378,19 @@ async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = fal
     lastResponseStatus = segmentResponse?.status;
 
     if (segmentResponse.status === 200) {
-        // filter cid
-        const receivedSegments: SponsorTime[] = segmentResponse.segments?.filter(segment => segment.cid === cid);
+        // filter and refresh cid
+        let receivedSegments: SponsorTime[] = segmentResponse.segments?.filter(segment => segment.cid === cid);
+
+        const uniqueCids = new Set(segmentResponse?.segments?.filter((segment) => durationEquals(segment.videoDuration, getVideo()?.duration, 5)).map(s => s.cid));
+        console.log("unique cids from segments", uniqueCids)
+        if (uniqueCids.size > 1) {
+            const cidMap = await getCidMapFromWindow(bvId);
+            console.log("[BSB] Multiple CIDs found, using the one from the window object", cidMap);
+            if (cidMap.size == 1) {
+                receivedSegments = segmentResponse.segments?.filter(segment => uniqueCids.has(segment.cid));
+                // TOOO: inform server about cid change
+            }
+        }
 
         if (receivedSegments && receivedSegments.length) {
             sponsorDataFound = true;

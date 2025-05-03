@@ -686,6 +686,10 @@ input::-webkit-inner-spin-button {
 	display: none !important;
 }
 
+.sponsorBlockTooltipContainer {
+	z-index: 10;
+}
+
 .sponsorBlockTooltip {
 	position: absolute;
 	background-color: rgba(28, 28, 28, 0.7);
@@ -1023,17 +1027,6 @@ input::-webkit-inner-spin-button {
 	height: 1.2em;
 	width: 1.2em;
     fill: var(--text2);
-}
-
-/*bilibili Comment sponsor label */
-#commentSponsorLabel {
-	display: flex;
-	background-color: var(--category-color, #fff);
-	border-radius: 1.5em;
-	padding: 0.3em;
-	margin: 0.3em;
-    align-items: center;
-	transition: border-radius 0.4s 0.05s;
 }
 
 /*bilibili Comment sponsor label */
