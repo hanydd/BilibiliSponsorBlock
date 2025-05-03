@@ -12,6 +12,7 @@ export enum PageType {
     Manga = "manga", // 漫画
     Anime = "bangumi", // 番剧
     Live = "live",
+    Opus = "opus",//专栏
     Embed = "embed",
 }
 export interface VideoDurationResponse {

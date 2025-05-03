@@ -219,6 +219,8 @@ export function detectPageType(): PageType {
             pageType = PageType.OldHistory;
         } else if (urlObject.pathname.startsWith("/bangumi/")) {
             pageType = PageType.Anime;
+        } else if (urlObject.pathname.startsWith("/opus/")) {
+            pageType = PageType.Opus;
         } else {
             pageType = PageType.Main;
         }

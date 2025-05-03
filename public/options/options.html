@@ -49,72 +49,103 @@
 			<div id="behavior" class="option-group hidden">
 				<div id="category-type" data-type="react-CategoryChooserComponent"></div>
 
-				<div data-type="toggle" data-sync="dynamicSponsorBlocker">
+				<div data-type="toggle" data-sync="dynamicAndCommentSponsorBlocker">
 					<div class="switch-container">
 						<label class="switch">
-							<input id="dynamicSponsorBlocker" type="checkbox" checked>
+							<input id="dynamicAndCommentSponsorBlocker" type="checkbox" checked>
 							<span class="slider round"></span>
 						</label>
-						<label class="switch-label" for="dynamicSponsorBlocker">
-							__MSG_dynamicSponsorBlocker__
+						<label class="switch-label" for="dynamicAndCommentSponsorBlocker">
+							__MSG_dynamicAndCommentSponsorBlocker__
 						</label>
 					</div>
-					<div class="small-description">__MSG_dynamicSponsorBlockerDescription__</div>
+					<div class="small-description">__MSG_dynamicAndCommentSponsorBlockerDescription__</div>
 
-					<div data-type="toggle" data-dependent-on="dynamicSponsorBlocker">
-						<br />
+					<div data-type="toggle" data-dependent-on="dynamicAndCommentSponsorBlocker">
+						<div data-type="toggle" data-sync="dynamicSponsorBlock">
+							<br />
+							<div class="switch-container">
+								<label class="switch">
+									<input id="dynamicSponsorBlock" type="checkbox" checked />
+									<span class="slider round"></span>
+								</label>
+								<label class="switch-label" for="dynamicSponsorBlock"> 
+									__MSG_dynamicSponsorBlock__ 
+								</label>
+							</div>
+
+							<div class="small-description">__MSG_dynamicSponsorBlockDescription__</div>
+						</div>
+
+						<div data-type="toggle" data-sync="commentSponsorBlock">
+							<br />
+							<div class="switch-container">
+								<label class="switch">
+									<input id="commentSponsorBlock" type="checkbox" checked />
+									<span class="slider round"></span>
+								</label>
+								<label class="switch-label" for="commentSponsorBlock"> 
+									__MSG_commentSponsorBlock__ 
+								</label>
+							</div>
+
+							<div class="small-description">__MSG_commentSponsorBlockDescription__</div>
+						</div>
+
 						<div id="DynamicSponsor" data-type="react-DynamicSponsorChooserComponent"></div>
 
-						<div data-type="text-change" data-sync="dynamicSponsorRegexPattern">
+						<div data-type="text-change" data-sync="dynamicAndCommentSponsorRegexPattern">
 							<div class="input-container">
-								<label for="dynamicSponsorRegexPattern">__MSG_dynamicSponsorRegexPattern__</label>
-								<input id="dynamicSponsorRegexPattern" class="option-text-box" type="text" />
+								<label for="dynamicAndCommentSponsorRegexPattern">__MSG_dynamicAndCommentSponsorRegexPattern__</label>
+								<input id="dynamicAndCommentSponsorRegexPattern" class="option-text-box" type="text" />
 								<button class="text-change-set">__MSG_save__</button>
 								<button class="text-change-reset">__MSG_reset__</button>
 							</div>
-								<div class="small-description">__MSG_dynamicSponsorRegexPatternDescription__</div>
+								<div class="small-description">__MSG_dynamicAndCommentSponsorRegexPatternDescription__</div>
 						</div>
 
-						<div data-type="toggle" data-sync="dynamicSpaceSponsorBlocker">
+						<div data-type="toggle" data-sync="dynamicAndCommentSponsorWhitelistedChannels">
 							<br />
 							<div class="switch-container">
 								<label class="switch">
-									<input id="dynamicSpaceSponsorBlocker" type="checkbox" checked>
+									<input id="dynamicAndCommentSponsorWhitelistedChannels" type="checkbox" checked>
 									<span class="slider round"></span>
 								</label>
-								<label class="switch-label" for="dynamicSpaceSponsorBlocker">
-									__MSG_dynamicSpaceSponsorBlocker__
+								<label class="switch-label" for="dynamicAndCommentSponsorWhitelistedChannels">
+									__MSG_dynamicAndCommentSponsorWhitelistedChannels__
 								</label>
 							</div>
-							<div class="small-description">__MSG_dynamicSpaceSponsorBlockerDescription__</div>
+							<div class="small-description">__MSG_dynamicAndCommentSponsorWhitelistedChannelsDescription__</div>
 						</div>
 
-						<div data-type="toggle" data-sync="dynamicSponsorWhitelistedChannels">
-							<br />
-							<div class="switch-container">
-								<label class="switch">
-									<input id="dynamicSponsorWhitelistedChannels" type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-								<label class="switch-label" for="dynamicSponsorWhitelistedChannels">
-									__MSG_dynamicSponsorWhitelistedChannels__
-								</label>
+						<div data-type="toggle" data-dependent-on="dynamicSponsorBlock">
+							<div data-type="toggle" data-sync="dynamicSpaceSponsorBlocker">
+								<br />
+								<div class="switch-container">
+									<label class="switch">
+										<input id="dynamicSpaceSponsorBlocker" type="checkbox" checked>
+										<span class="slider round"></span>
+									</label>
+									<label class="switch-label" for="dynamicSpaceSponsorBlocker">
+										__MSG_dynamicSpaceSponsorBlocker__
+									</label>
+								</div>
+								<div class="small-description">__MSG_dynamicSpaceSponsorBlockerDescription__</div>
 							</div>
-							<div class="small-description">__MSG_dynamicSponsorWhitelistedChannelsDescription__</div>
-						</div>
 
-						<div data-type="toggle" data-sync="dynamicSponsorBlockerDebug">
-							<br />
-							<div class="switch-container">
-								<label class="switch">
-									<input id="dynamicSponsorBlockerDebug" type="checkbox" checked>
-									<span class="slider round"></span>
-								</label>
-								<label class="switch-label" for="dynamicSponsorBlockerDebug">
-									__MSG_dynamicSponsorBlockerDebug__
-								</label>
+							<div data-type="toggle" data-sync="dynamicSponsorBlockerDebug">
+								<br />
+								<div class="switch-container">
+									<label class="switch">
+										<input id="dynamicSponsorBlockerDebug" type="checkbox" checked>
+										<span class="slider round"></span>
+									</label>
+									<label class="switch-label" for="dynamicSponsorBlockerDebug">
+										__MSG_dynamicSponsorBlockerDebug__
+									</label>
+								</div>
+								<div class="small-description">__MSG_dynamicSponsorBlockerDebugDescription__</div>
 							</div>
-							<div class="small-description">__MSG_dynamicSponsorBlockerDebugDescription__</div>
 						</div>
 					</div>
 				</div>
