@@ -123,7 +123,7 @@ function getCategorySelection(category: string): DynamicSponsorSelection {
 }
 
 function hideSponsorContent(content: HTMLElement, button: HTMLElement, inShadeRoot?: boolean) {
-    if (inShadeRoot) shaodwRootStyle(button)
+    if (inShadeRoot) shadowRootStyle(button)
     
     content.style.display = 'none';
 
@@ -167,7 +167,7 @@ function hideSponsorContent(content: HTMLElement, button: HTMLElement, inShadeRo
 }
 
 function labelSponsorStyle(labelName: string, element: HTMLElement, category: string, debugMode: boolean = false, SponsorMatch?:string[], inShadeRoot?: boolean) {
-    if (inShadeRoot) shaodwRootStyle(element)
+    if (inShadeRoot) shadowRootStyle(element)
 
     const Sponsor = document.createElement('div');
     Sponsor.id = labelName;
@@ -221,7 +221,7 @@ function isDynamicSponsorSuspicionSponsor(element: HTMLElement) {
     return combinedText;
 }
 
-function shaodwRootStyle(element: HTMLElement) {
+function shadowRootStyle(element: HTMLElement) {
     const style = document.createElement('style');
     style.textContent = `
             /*bilibili Dynamic sponsor label */
