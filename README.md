@@ -19,7 +19,7 @@
 
 | Chrome | Edge | FireFox | 从文件安装 | 讨论群 |
 |----------|----------|----------|----------|----------|
-| [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd?label=Chrome插件商店)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Edge Web Store](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fkhkeolgobhdoloioehjgfpobjnmagfha&query=version&prefix=v&label=Edge插件商店&color=green)](https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha) | [![Firefox](https://img.shields.io/amo/v/bilisponsorblock?label=Mozilla插件商店)](https://addons.mozilla.org/zh-TW/firefox/addon/bilisponsorblock/) | [![GitHub Release](https://img.shields.io/github/v/release/hanydd/BilibiliSponsorBlock)](https://github.com/hanydd/BilibiliSponsorBlock/releases/latest/) | [![Group](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-squeare&logo=telegram&logoColor=white)](https://t.me/bsbsb_top) [![QQ](https://img.shields.io/badge/371384235-EB1923?logo=tencent-qq&logoColor=white)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=Zp6HSzPkZy0xIU75Ljtc80CxY8PoyZ4Z&authKey=WlINewkGvx8rQhpBxYVj%2B9xMKgqAaVixxfgRgBgSXMdwmmst7BeWk7XflpvZrhOb&noverify=0&group_code=371384235) |
+| [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd?label=Chrome插件商店)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Edge Web Store](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fkhkeolgobhdoloioehjgfpobjnmagfha&query=version&prefix=v&label=Edge插件商店&color=green)](https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha) | [![Firefox](https://img.shields.io/amo/v/bilisponsorblock?label=Mozilla插件商店)](https://addons.mozilla.org/zh-TW/firefox/addon/bilisponsorblock/) | [![文件安装](https://www.crxsoso.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd)](https://www.crxsoso.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Group](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-squeare&logo=telegram&logoColor=white)](https://t.me/bsbsb_top) [![QQ](https://img.shields.io/badge/371384235-EB1923?logo=tencent-qq&logoColor=white)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=Zp6HSzPkZy0xIU75Ljtc80CxY8PoyZ4Z&authKey=WlINewkGvx8rQhpBxYVj%2B9xMKgqAaVixxfgRgBgSXMdwmmst7BeWk7XflpvZrhOb&noverify=0&group_code=371384235) |
 
 
 </div>
@@ -37,11 +37,11 @@
 
 # 安装
 
--   目前上架了[Chrome 应用商店](https://chromewebstore.google.com/detail/eaoelafamejbnggahofapllmfhlhajdd)，[Edge 应用商店](https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha)， [火狐应用商店](https://addons.mozilla.org/en-US/firefox/addon/bilisponsorblock/)。如果你知道更多流行的浏览器插件商店，欢迎留言~
+- 目前上架了[Chrome 应用商店](https://chromewebstore.google.com/detail/eaoelafamejbnggahofapllmfhlhajdd)，[Edge 应用商店](https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha)， [火狐应用商店](https://addons.mozilla.org/en-US/firefox/addon/bilisponsorblock/)。如果你知道更多流行的浏览器插件商店，欢迎留言~
 
 - 如果你无法打开上面的商店，可以尝试从这里下载crx文件安装：https://www.crxsoso.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd
 
--   或者可以从 [Github Release](https://github.com/hanydd/BilibiliSponsorBlock/releases/latest) 页面获取未打包的插件。
+- 或者可以从 [Github Release](https://github.com/hanydd/BilibiliSponsorBlock/releases/latest) 页面获取未打包的插件。
 
     1. 根据您浏览器的类型下载适合的版本，Chrome、Edge、360 和基于 Chromium 的国产浏览器下载 `ChromiumExtension.zip`；火狐浏览器下载`FirefoxExtension.zip`。并解压缩。
 
@@ -59,15 +59,15 @@
 
 ## 相比[原插件](https://github.com/ajayyy/SponsorBlock)变化
 
--   放弃了多语言支持，只支持简体和繁体中文。
+- 放弃了多语言支持，只支持简体和繁体中文。
 
--   放弃了移动端H5网页支持。
+- 放弃了移动端H5网页支持。
 
--   放弃了第三方镜像站支持。如果有使用人数多的镜像站，欢迎讨论添加支持。
+- 放弃了第三方镜像站支持。如果有使用人数多的镜像站，欢迎讨论添加支持。
 
--   加入了绑定搬运视频的功能。绑定的油管视频可以自动从 SponsorBlock 数据库中获取片段信息。
+- 加入了绑定搬运视频的功能。绑定的油管视频可以自动从 SponsorBlock 数据库中获取片段信息。
 
--   更新 UI。
+- 更新 UI。
 
 ## 功能更新计划
 
