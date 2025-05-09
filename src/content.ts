@@ -9,7 +9,7 @@ import advanceSkipNotice from "./render/advanceSkipNotice";
 import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";
 import { DescriptionPortPill } from "./render/DescriptionPortPill";
-import { DynamicListener } from "./render/DynamicSponsorBlock";
+import { DynamicListener, CommentListener } from "./render/DynamicAndCommentSponsorBlock";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
@@ -84,10 +84,13 @@ const utils = new Utils();
 waitFor(() => Config.isReady(), 5000, 10).then(() => {
     setCategoryColorCSSVariables();
 
-    if ((window.location.href.includes("t.bilibili.com") ||
-        window.location.href.includes("space.bilibili.com")) &&
-        Config.config.dynamicSponsorBlocker
+    if ([PageType.Dynamic,PageType.Channel].includes(detectPageType()) &&
+        (Config.config.dynamicAndCommentSponsorBlocker &&
+        Config.config.dynamicSponsorBlock)
     ) DynamicListener();
+
+    if ([PageType.Video,PageType.List,PageType.Dynamic,PageType.Channel,PageType.Opus].includes(detectPageType())
+    ) CommentListener();
 });
 
 if ((document.hidden && getPageType() == PageType.Video) || getPageType() == PageType.List) {

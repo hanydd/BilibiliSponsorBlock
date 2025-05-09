@@ -143,6 +143,7 @@ const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
     [PageType.Manga]: [],
     [PageType.Anime]: [],
     [PageType.Live]: [],
+    [PageType.Opus]: [],
     [PageType.Unknown]: [],
     [PageType.Embed]: [],
 };
