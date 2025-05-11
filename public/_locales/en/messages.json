@@ -1232,11 +1232,11 @@
     "bindPortVideo": {
         "message": "同步搬运视频"
     },
-    "dynamicSponsorBlocker": {
-        "message": "隐藏动态主页的UP主贴片广告 (不包含视频)"
+    "dynamicAndCommentSponsorBlocker": {
+        "message": "隐藏 动态主页/评论区 的贴片广告"
     },
-    "dynamicSponsorBlockerDescription": {
-        "message": "贴片广告即动态内容包含推广内容的UP主动态"
+    "dynamicAndCommentSponsorBlockerDescription": {
+        "message": "贴片广告即 动态主页/评论区 包含推广内容的动态/评论"
     },
     "dynamicSpaceSponsorBlocker": {
         "message": "隐藏UP主主页动态的广告"
@@ -1244,10 +1244,10 @@
     "dynamicSpaceSponsorBlockerDescription": {
         "message": "UP主主页动态的广告也会隐藏，不推荐开启，以方便查看UP主的完整动态"
     },
-    "dynamicSponsorWhitelistedChannels": {
+    "dynamicAndCommentSponsorWhitelistedChannels": {
         "message": "无视您的白名单"
     },
-    "dynamicSponsorWhitelistedChannelsDescription": {
+    "dynamicAndCommentSponsorWhitelistedChannelsDescription": {
         "message": "即使是您白名单中的UP主，也会执行操作"
     },
     "dynamicSponsorShow": {
@@ -1256,17 +1256,17 @@
     "dynamicSponsorHide": {
         "message": "隐藏广告内容"
     },
-    "dynamicSponsorRegexPattern": {
+    "dynamicAndCommentSponsorRegexPattern": {
         "message": "屏蔽匹配正则: "
     },
-    "dynamicSponsorRegexPatternDescription": {
+    "dynamicAndCommentSponsorRegexPatternDescription": {
         "message": "默认正则表达式偏保守，建议根据您关注的UP主动态内容自行修改(如果您会编写正则表达式)\n例如您关注的UP主们经常发某一个产品的广告，您可以将该产品的名称添加到正则表达式中"
     },
     "category_dynamicSponsor_sponsor": {
         "message": "广告"
     },
     "category_dynamicSponsor_sponsor_description": {
-        "message": "即包含商品链接的UP主动态，目前阶段无法完全屏蔽，因为部分软广可能不附带链接或链接在评论区"
+        "message": "即包含商品链接，目前阶段无法完全屏蔽，因为部分软广可能不附带链接"
     },
     "category_dynamicSponsor_forward_sponsor": {
         "message": "转发广告"
@@ -1278,7 +1278,7 @@
         "message": "疑似广告"
     },
     "category_dynamicSponsor_suspicion_sponsor_description": {
-        "message": "使用正则表达式对动态内容进行匹配来额外屏蔽软广动态，是对“ 广告 ”的补充，可能会误屏蔽或漏屏蔽部分动态"
+        "message": "使用正则表达式对内容进行匹配来额外屏蔽软广，是对“ 广告 ”的补充，可能会误屏蔽或漏屏蔽部分内容"
     },
     "showOverlay_DynamicSponsor":{
         "message": "仅添加标签"
@@ -1301,5 +1301,23 @@
     },
     "dynamicSponsorBlockerDebugDescription":{
         "message": "把鼠标悬浮到标签时显示匹配到的文字"
+    },
+    "commentSponsorBlock":{
+        "message": "启用评论区隐藏"
+    },
+    "commentSponsorBlockDescription":{
+        "message": "评论区目前仅支持 \" 广告 \" 类别"
+    },
+    "dynamicSponsorBlock":{
+        "message": "启用动态主页隐藏"
+    },
+    "dynamicSponsorBlockDescription":{
+        "message": "动态主页支持全部类别 (不包含视频)"
+    },
+    "commentSponsorBlockDuplicate":{
+        "message": "对评论区全部评论进行匹配"
+    },
+    "commentSponsorBlockDuplicateDescription":{
+        "message": "一般来说, 评论区赞助链接只会有一个, 但是不排除有多个的情况"
     }
 }

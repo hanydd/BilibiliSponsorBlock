@@ -974,43 +974,6 @@ input::-webkit-inner-spin-button {
 	transform: rotate(90deg);
 }
 
-/*bilibili Dynamic sponsor label */
-#dynamicSponsorLabel {
-	display: flex;
-	background-color: var(--category-color, #fff);
-	border-radius: 2em;
-	padding: 0.4em;
-	margin: 0.4em;
-    align-items: center;
-	transition: border-radius 0.4s 0.05s;
-}
-
-#dynamicSponsorLabel svg {
-	width: 1.5em;
-	height: 1.5em;
-	fill: var(--category-text-color, #fff);
-}
-
-#dynamicSponsorLabel span {
-	display: none;
-	padding-left: 0.25em;
-    font-size: 1.2em;
-    color: var(--category-text-color, #fff);
-}
-
-#showDynamicSponsor {
-    color: var(--text2);
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    padding: 0;
-}
-
-#showDynamicSponsor svg {
-	height: 1.2em;
-	width: 1.2em;
-    fill: var(--text2);
-}
 .voteRequestContainer {
 	display: flex;
 	align-items: center;
@@ -1025,4 +988,67 @@ input::-webkit-inner-spin-button {
 	padding: 4px 6px;
 	display: flex;
 	gap: 4px;
+}
+
+/*以下css更新时请同步更新DynamicAndCommentSponsorBlock中的shaodwRootStyle函数内的css*/
+/*bilibili Dynamic sponsor label */
+#dynamicSponsorLabel {
+	display: flex;
+	background-color: var(--category-color, #fff);
+	border-radius: 2em;
+	padding: 0.4em;
+	margin: 0.4em;
+    align-items: center;
+	transition: border-radius 0.4s 0.05s;
+}
+
+#dynamicSponsorLabel img {
+	width: 1.5em;
+	height: 1.5em;
+	fill: var(--category-text-color, #fff);
+}
+
+#dynamicSponsorLabel span {
+	display: none;
+	padding-left: 0.25em;
+    font-size: 1.2em;
+    color: var(--category-text-color, #fff);
+}
+
+#showDynamicSponsor {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+}
+
+#showDynamicSponsor img {
+	margin-right: 4px;
+	height: 1.2em;
+	width: 1.2em;
+    fill: var(--text2);
+}
+
+/*bilibili Comment sponsor label */
+#commentSponsorLabel {
+	display: flex;
+	background-color: var(--category-color, #fff);
+	border-radius: 1.5em;
+	padding: 0.3em;
+	margin: 0.3em;
+    align-items: center;
+	transition: border-radius 0.4s 0.05s;
+}
+
+#commentSponsorLabel img {
+	width: 1.1em;
+	height: 1.1em;
+	fill: var(--category-text-color, #fff);
+}
+
+#commentSponsorLabel span {
+	display: none;
+	padding-left: 0.25em;
+    font-size: 0.8em;
+    color: var(--category-text-color, #fff);
 }
