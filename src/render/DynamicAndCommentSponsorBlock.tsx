@@ -7,7 +7,7 @@ import { PageType } from "../types";
 export { DynamicListener, CommentListener };
 
 async function DynamicListener() {
-    const pattern = new RegExp(Config.config.dynamicAndCommentSponsorRegexPattern);
+    const pattern = regexFromString(Config.config.dynamicAndCommentSponsorRegexPattern);
 
     const observer = new MutationObserver(async (mutationList) => {
         for (const mutation of mutationList) {
@@ -19,8 +19,8 @@ async function DynamicListener() {
             let dynamicSponsorMatch = [];
             if (category === "dynamicSponsor_suspicion_sponsor") {
                 const dynamicSponsorContext = isDynamicSponsorSuspicionSponsor(element);
-                //不知道为什么有时会匹配到一个字的重复关键字(比如领券和领), 外部单独测试又没问题
-                dynamicSponsorMatch = Array.from(new Set(dynamicSponsorContext.match(pattern))).filter(Boolean).filter(match => match.length > 1);
+                //去除一个字的匹配降低误判率
+                dynamicSponsorMatch = Array.from(new Set(dynamicSponsorContext.match(pattern) || [])).filter(Boolean).filter((match) => match.length > 1);
                 category = dynamicSponsorMatch.length > 0 ? "dynamicSponsor_suspicion_sponsor" : null;
             }
             if (category === null || action === DynamicSponsorOption.Disabled) continue;
@@ -299,6 +299,18 @@ function getButton() {
     toggleButton.id = 'showDynamicSponsor';
     toggleButton.className = 'bili-dyn-action';
     return toggleButton;
+}
+
+function regexFromString(string: string) {
+    const match = string.match(/^\/(.*)\/([gimsuy]*)$/);
+
+    if (match) {
+        const pattern = match[1];
+        const flags = match[2];
+        return new RegExp(pattern, flags);
+    }
+
+    return new RegExp(string);
 }
 
 async function SponsorComment(root: HTMLElement) {
