@@ -998,8 +998,9 @@ input::-webkit-inner-spin-button {
 	border-radius: 2em;
 	padding: 0.4em;
 	margin: 0.4em;
-    align-items: center;
+	align-items: center;
 	transition: border-radius 0.4s 0.05s;
+	z-index: 100;
 }
 
 #dynamicSponsorLabel img {
@@ -1008,11 +1009,20 @@ input::-webkit-inner-spin-button {
 	fill: var(--category-text-color, #fff);
 }
 
-#dynamicSponsorLabel span {
+#dynamicSponsorLabel .Text-Group {
 	display: none;
+	flex-direction: column;
 	padding-left: 0.25em;
     font-size: 1.2em;
     color: var(--category-text-color, #fff);
+}
+
+#dynamicSponsorLabel .Label {
+	display: inline-block;
+}
+
+#dynamicSponsorLabel .Match {
+	margin-top: 5px;
 }
 
 #showDynamicSponsor {
@@ -1038,6 +1048,7 @@ input::-webkit-inner-spin-button {
 	margin: 0.3em;
     align-items: center;
 	transition: border-radius 0.4s 0.05s;
+	z-index: 100;
 }
 
 #commentSponsorLabel img {
@@ -1046,9 +1057,18 @@ input::-webkit-inner-spin-button {
 	fill: var(--category-text-color, #fff);
 }
 
-#commentSponsorLabel span {
+#commentSponsorLabel .Text-Group {
 	display: none;
+	flex-direction: column;
 	padding-left: 0.25em;
     font-size: 0.8em;
     color: var(--category-text-color, #fff);
+}
+
+#commentSponsorLabel .Label {
+	display: inline-block;
+}
+
+#commentSponsorLabel .Match {
+	margin-top: 5px;
 }

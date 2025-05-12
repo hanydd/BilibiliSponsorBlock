@@ -172,11 +172,19 @@ function labelSponsorStyle(labelName: string, element: HTMLElement, category: st
     const Sponsor = document.createElement('div');
     Sponsor.id = labelName;
     Sponsor.appendChild(getIcon());
+    const Group = document.createElement('div');
+    Group.className = 'Text-Group';
 
     const SponsorText = document.createElement('span');
-    SponsorText.textContent = debugMode
-        ? chrome.i18n.getMessage(`category_${category}`) + chrome.i18n.getMessage("DynamicSponsorMatch") + SponsorMatch
-        : chrome.i18n.getMessage(`category_${category}`);
+    SponsorText.className = "Label";
+    SponsorText.textContent = chrome.i18n.getMessage(`category_${category}`);
+    Group.appendChild(SponsorText);
+    if (debugMode) {
+        const SponsorTextMatch = document.createElement('span');
+        SponsorTextMatch.className = "Match";
+        SponsorTextMatch.textContent =  chrome.i18n.getMessage("DynamicSponsorMatch") + SponsorMatch;
+        Group.appendChild(SponsorTextMatch);
+    }
     Sponsor.style.setProperty(
         "--category-color",
         `var(--sb-category-${category})`
@@ -185,14 +193,14 @@ function labelSponsorStyle(labelName: string, element: HTMLElement, category: st
         "--category-text-color",
         `var(--sb-category-text-${category})`
     );
-    Sponsor.appendChild(SponsorText);
+    Sponsor.appendChild(Group);
     Sponsor.addEventListener('mouseenter', () => {
-        SponsorText.style.display = 'block';
+        Group.style.display = 'flex';
         Sponsor.style.borderRadius = '0.5em';
     });
     Sponsor.addEventListener('mouseleave', () => {
-        SponsorText.style.display = 'none';
-        Sponsor.style.borderRadius = '2em';
+        Group.style.display = null;
+        Sponsor.style.borderRadius = null;
     });
 
     element.parentNode!.insertBefore(Sponsor, element.nextSibling);
@@ -233,6 +241,7 @@ function shadowRootStyle(element: HTMLElement) {
                 margin: 0.4em;
                 align-items: center;
                 transition: border-radius 0.4s 0.05s;
+	            z-index: 100;
             }
 
             #dynamicSponsorLabel img {
@@ -241,11 +250,20 @@ function shadowRootStyle(element: HTMLElement) {
                 fill: var(--category-text-color, #fff);
             }
 
-            #dynamicSponsorLabel span {
+            #dynamicSponsorLabel .Text-Group {
                 display: none;
+                flex-direction: column;
                 padding-left: 0.25em;
                 font-size: 1.2em;
                 color: var(--category-text-color, #fff);
+            }
+
+            #dynamicSponsorLabel .Label {
+                display: inline-block;
+            }
+
+            #dynamicSponsorLabel .Match {
+                margin-top: 5px;
             }
 
             #showDynamicSponsor {
@@ -271,6 +289,7 @@ function shadowRootStyle(element: HTMLElement) {
                 margin: 0.3em;
                 align-items: center;
                 transition: border-radius 0.4s 0.05s;
+	            z-index: 100;
             }
 
             #commentSponsorLabel img {
@@ -279,11 +298,20 @@ function shadowRootStyle(element: HTMLElement) {
                 fill: var(--category-text-color, #fff);
             }
 
-            #commentSponsorLabel span {
+            #commentSponsorLabel .Text-Group {
                 display: none;
+                flex-direction: column;
                 padding-left: 0.25em;
                 font-size: 0.8em;
                 color: var(--category-text-color, #fff);
+            }
+
+            #commentSponsorLabel .Label {
+                display: inline-block;
+            }
+
+            #commentSponsorLabel .Match {
+                margin-top: 5px;
             }`;
     element.parentNode!.insertBefore(style, element.nextSibling);
 }
