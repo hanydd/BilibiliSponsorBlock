@@ -209,8 +209,8 @@ function migrateOldSyncFormats(config: SBConfig) {
         config["serverAddress"] = CompileConfig.serverAddress;
     }
 
-    // move to new server endpoint temporarily v0.8.1
-    if (config["serverAddress"].includes("bsbsb.top")) {
+    // move back to the server endpoint v0.8.2
+    if (config["serverAddress"].includes("115.190.32.254")) {
         config["serverAddress"] = CompileConfig.serverAddress;
     }
 
