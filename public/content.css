@@ -990,7 +990,7 @@ input::-webkit-inner-spin-button {
 	gap: 4px;
 }
 
-/*以下css更新时请同步更新DynamicAndCommentSponsorBlock中的shaodwRootStyle函数内的css*/
+/*以下css更新时请同步更新DynamicAndCommentSponsorBlock中的shadowRootStyle函数内的css*/
 /*bilibili Dynamic sponsor label */
 #dynamicSponsorLabel {
 	display: flex;
