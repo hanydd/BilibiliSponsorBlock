@@ -89,7 +89,9 @@ waitFor(() => Config.isReady(), 5000, 10).then(() => {
         Config.config.dynamicSponsorBlock)
     ) DynamicListener();
 
-    if ([PageType.Video,PageType.List,PageType.Dynamic,PageType.Channel,PageType.Opus].includes(detectPageType())
+    if ([PageType.Video,PageType.List,PageType.Dynamic,PageType.Channel,PageType.Opus].includes(detectPageType()) &&
+        (Config.config.dynamicAndCommentSponsorBlocker &&
+        Config.config.commentSponsorBlock)
     ) CommentListener();
 });
 

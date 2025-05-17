@@ -3,11 +3,12 @@ import { waitFor } from "../utils/";
 import { DynamicSponsorOption, DynamicSponsorSelection } from "../types";
 import { detectPageType } from "../utils/video";
 import { PageType } from "../types";
+import { insertSBIconDefinition } from "../thumbnail-utils/thumbnails";
 
 export { DynamicListener, CommentListener };
 
 async function DynamicListener() {
-    const pattern = new RegExp(Config.config.dynamicAndCommentSponsorRegexPattern);
+    const pattern = regexFromString(Config.config.dynamicAndCommentSponsorRegexPattern);
 
     const observer = new MutationObserver(async (mutationList) => {
         for (const mutation of mutationList) {
@@ -19,8 +20,8 @@ async function DynamicListener() {
             let dynamicSponsorMatch = [];
             if (category === "dynamicSponsor_suspicion_sponsor") {
                 const dynamicSponsorContext = isDynamicSponsorSuspicionSponsor(element);
-                //不知道为什么有时会匹配到一个字的重复关键字(比如领券和领), 外部单独测试又没问题
-                dynamicSponsorMatch = Array.from(new Set(dynamicSponsorContext.match(pattern))).filter(Boolean).filter(match => match.length > 1);
+                //去除一个字的匹配降低误判率
+                dynamicSponsorMatch = Array.from(new Set(dynamicSponsorContext.match(pattern) || [])).filter(Boolean).filter((match) => match.length > 1);
                 category = dynamicSponsorMatch.length > 0 ? "dynamicSponsor_suspicion_sponsor" : null;
             }
             if (category === null || action === DynamicSponsorOption.Disabled) continue;
@@ -32,13 +33,13 @@ async function DynamicListener() {
                 Config.config.whitelistedChannels?.includes(upIdOrigin)) ||
                 Config.config.dynamicAndCommentSponsorWhitelistedChannels) &&
                 !(!Config.config.dynamicSpaceSponsorBlocker &&
-                window.location.href.includes("space.bilibili.com")) &&
-                action === DynamicSponsorOption.Hide
+                window.location.href.includes("space.bilibili.com"))
             ) {
-                const bodyElement = element.querySelector('.bili-dyn-content') as HTMLElement;
-
-                hideSponsorContent(bodyElement, element.querySelectorAll('.bili-dyn-item__action')[2] as HTMLElement);
                 labelSponsorStyle("dynamicSponsorLabel", element.querySelector('.bili-dyn-title__text'), category, debugMode, dynamicSponsorMatch);
+                if (action == DynamicSponsorOption.Hide) {
+                    const bodyElement = element.querySelector('.bili-dyn-content') as HTMLElement;
+                    hideSponsorContent(bodyElement, element.querySelectorAll('.bili-dyn-item__action')[2] as HTMLElement);
+                } 
             }
         }
     });
@@ -123,7 +124,10 @@ function getCategorySelection(category: string): DynamicSponsorSelection {
 }
 
 function hideSponsorContent(content: HTMLElement, button: HTMLElement, inShadeRoot?: boolean) {
-    if (inShadeRoot) shadowRootStyle(button)
+    if (inShadeRoot) {
+        shadowRootStyle(button);
+        insertSBIconDefinition(button);
+    }
     
     content.style.display = 'none';
 
@@ -167,16 +171,27 @@ function hideSponsorContent(content: HTMLElement, button: HTMLElement, inShadeRo
 }
 
 function labelSponsorStyle(labelName: string, element: HTMLElement, category: string, debugMode: boolean = false, SponsorMatch?:string[], inShadeRoot?: boolean) {
-    if (inShadeRoot) shadowRootStyle(element)
+    if (inShadeRoot) {
+        shadowRootStyle(element);
+        insertSBIconDefinition(element);
+    }
 
     const Sponsor = document.createElement('div');
     Sponsor.id = labelName;
     Sponsor.appendChild(getIcon());
+    const Group = document.createElement('div');
+    Group.className = 'Text-Group';
 
     const SponsorText = document.createElement('span');
-    SponsorText.textContent = debugMode
-        ? chrome.i18n.getMessage(`category_${category}`) + chrome.i18n.getMessage("DynamicSponsorMatch") + SponsorMatch
-        : chrome.i18n.getMessage(`category_${category}`);
+    SponsorText.className = "Label";
+    SponsorText.textContent = chrome.i18n.getMessage(`category_${category}`);
+    Group.appendChild(SponsorText);
+    if (debugMode) {
+        const SponsorTextMatch = document.createElement('span');
+        SponsorTextMatch.className = "Match";
+        SponsorTextMatch.textContent =  chrome.i18n.getMessage("DynamicSponsorMatch") + SponsorMatch;
+        Group.appendChild(SponsorTextMatch);
+    }
     Sponsor.style.setProperty(
         "--category-color",
         `var(--sb-category-${category})`
@@ -185,14 +200,14 @@ function labelSponsorStyle(labelName: string, element: HTMLElement, category: st
         "--category-text-color",
         `var(--sb-category-text-${category})`
     );
-    Sponsor.appendChild(SponsorText);
+    Sponsor.appendChild(Group);
     Sponsor.addEventListener('mouseenter', () => {
-        SponsorText.style.display = 'block';
+        Group.style.display = 'flex';
         Sponsor.style.borderRadius = '0.5em';
     });
     Sponsor.addEventListener('mouseleave', () => {
-        SponsorText.style.display = 'none';
-        Sponsor.style.borderRadius = '2em';
+        Group.style.display = null;
+        Sponsor.style.borderRadius = null;
     });
 
     element.parentNode!.insertBefore(Sponsor, element.nextSibling);
@@ -233,19 +248,29 @@ function shadowRootStyle(element: HTMLElement) {
                 margin: 0.4em;
                 align-items: center;
                 transition: border-radius 0.4s 0.05s;
+	            z-index: 100;
             }
 
-            #dynamicSponsorLabel img {
+            #dynamicSponsorLabel svg {
                 width: 1.5em;
                 height: 1.5em;
                 fill: var(--category-text-color, #fff);
             }
 
-            #dynamicSponsorLabel span {
+            #dynamicSponsorLabel .Text-Group {
                 display: none;
+                flex-direction: column;
                 padding-left: 0.25em;
                 font-size: 1.2em;
                 color: var(--category-text-color, #fff);
+            }
+
+            #dynamicSponsorLabel .Label {
+                display: inline-block;
+            }
+
+            #dynamicSponsorLabel .Match {
+                margin-top: 5px;
             }
 
             #showDynamicSponsor {
@@ -255,7 +280,7 @@ function shadowRootStyle(element: HTMLElement) {
                 padding: 0;
             }
 
-            #showDynamicSponsor img {
+            #showDynamicSponsor svg {
                 margin-right: 4px;
                 height: 1.2em;
                 width: 1.2em;
@@ -271,27 +296,40 @@ function shadowRootStyle(element: HTMLElement) {
                 margin: 0.3em;
                 align-items: center;
                 transition: border-radius 0.4s 0.05s;
+	            z-index: 100;
             }
 
-            #commentSponsorLabel img {
+            #commentSponsorLabel svg {
                 width: 1.1em;
                 height: 1.1em;
                 fill: var(--category-text-color, #fff);
             }
 
-            #commentSponsorLabel span {
+            #commentSponsorLabel .Text-Group {
                 display: none;
+                flex-direction: column;
                 padding-left: 0.25em;
                 font-size: 0.8em;
                 color: var(--category-text-color, #fff);
+            }
+
+            #commentSponsorLabel .Label {
+                display: inline-block;
+            }
+
+            #commentSponsorLabel .Match {
+                margin-top: 5px;
             }`;
     element.parentNode!.insertBefore(style, element.nextSibling);
 }
 
 function getIcon() {
-    const img = document.createElement("img");
-    img.src = chrome.runtime.getURL("icons/oldIcon/PlayerStartIconSponsorBlocker.svg");
-    return img;
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 565.15 568");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", "#SponsorBlockIcon");
+    svg.appendChild(use);
+    return svg;
 }
 
 function getButton() {
@@ -299,6 +337,18 @@ function getButton() {
     toggleButton.id = 'showDynamicSponsor';
     toggleButton.className = 'bili-dyn-action';
     return toggleButton;
+}
+
+function regexFromString(string: string) {
+    const match = string.match(/^\/(.*)\/([gimsuy]*)$/);
+
+    if (match) {
+        const pattern = match[1];
+        const flags = match[2];
+        return new RegExp(pattern, flags);
+    }
+
+    return new RegExp(string);
 }
 
 async function SponsorComment(root: HTMLElement) {
@@ -317,14 +367,10 @@ async function SponsorComment(root: HTMLElement) {
         const isSponsor = Array.from(comment?.shadowRoot.querySelector("bili-rich-text")?.shadowRoot.querySelectorAll("a")).some(link =>
             link.getAttribute("data-type") === "goods"
         );
+        const action = getCategorySelection("dynamicSponsor_sponsor")?.option;
         const inWhitelist = Config.config.whitelistedChannels.includes(comment?.shadowRoot.querySelector("#user-avatar")?.getAttribute("data-user-profile-id")) && !Config.config.dynamicAndCommentSponsorWhitelistedChannels;
 
-        if (isSponsor && !inWhitelist) {//这里借用动态屏蔽的那套方式
-            hideSponsorContent(
-                comment.shadowRoot.querySelector("#content")
-                , comment.shadowRoot.querySelector('#main').querySelector("bili-comment-action-buttons-renderer").shadowRoot.querySelector("#reply")
-                , true
-            );
+        if (isSponsor && !inWhitelist && action !== DynamicSponsorOption.Disabled) {//这里借用动态屏蔽的那套方式
             labelSponsorStyle(
                 "commentSponsorLabel"
                 , comment.shadowRoot.querySelector("bili-comment-user-info").shadowRoot.querySelector("#user-up")
@@ -334,6 +380,13 @@ async function SponsorComment(root: HTMLElement) {
                 , null
                 , true
             );
+            if (action === DynamicSponsorOption.Hide) {
+                hideSponsorContent(
+                    comment.shadowRoot.querySelector("#content")
+                    , comment.shadowRoot.querySelector('#main').querySelector("bili-comment-action-buttons-renderer").shadowRoot.querySelector("#reply")
+                    , true
+                );
+            }
 
             //一般来说 评论赞助链接只会有一个而且是置顶的(不排除某些UP主忘置顶了) 所以就处理一次
             break;
