@@ -1003,7 +1003,7 @@ input::-webkit-inner-spin-button {
 	z-index: 100;
 }
 
-#dynamicSponsorLabel img {
+#dynamicSponsorLabel svg {
 	width: 1.5em;
 	height: 1.5em;
 	fill: var(--category-text-color, #fff);
@@ -1032,7 +1032,7 @@ input::-webkit-inner-spin-button {
     padding: 0;
 }
 
-#showDynamicSponsor img {
+#showDynamicSponsor svg {
 	margin-right: 4px;
 	height: 1.2em;
 	width: 1.2em;
@@ -1051,7 +1051,7 @@ input::-webkit-inner-spin-button {
 	z-index: 100;
 }
 
-#commentSponsorLabel img {
+#commentSponsorLabel svg {
 	width: 1.1em;
 	height: 1.1em;
 	fill: var(--category-text-color, #fff);

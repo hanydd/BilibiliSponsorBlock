@@ -3,6 +3,7 @@ import { waitFor } from "../utils/";
 import { DynamicSponsorOption, DynamicSponsorSelection } from "../types";
 import { detectPageType } from "../utils/video";
 import { PageType } from "../types";
+import { insertSBIconDefinition } from "../thumbnail-utils/thumbnails";
 
 export { DynamicListener, CommentListener };
 
@@ -123,7 +124,10 @@ function getCategorySelection(category: string): DynamicSponsorSelection {
 }
 
 function hideSponsorContent(content: HTMLElement, button: HTMLElement, inShadeRoot?: boolean) {
-    if (inShadeRoot) shadowRootStyle(button);
+    if (inShadeRoot) {
+        shadowRootStyle(button);
+        insertSBIconDefinition(button);
+    }
     
     content.style.display = 'none';
 
@@ -167,7 +171,10 @@ function hideSponsorContent(content: HTMLElement, button: HTMLElement, inShadeRo
 }
 
 function labelSponsorStyle(labelName: string, element: HTMLElement, category: string, debugMode: boolean = false, SponsorMatch?:string[], inShadeRoot?: boolean) {
-    if (inShadeRoot) shadowRootStyle(element);
+    if (inShadeRoot) {
+        shadowRootStyle(element);
+        insertSBIconDefinition(element);
+    }
 
     const Sponsor = document.createElement('div');
     Sponsor.id = labelName;
@@ -244,7 +251,7 @@ function shadowRootStyle(element: HTMLElement) {
 	            z-index: 100;
             }
 
-            #dynamicSponsorLabel img {
+            #dynamicSponsorLabel svg {
                 width: 1.5em;
                 height: 1.5em;
                 fill: var(--category-text-color, #fff);
@@ -273,7 +280,7 @@ function shadowRootStyle(element: HTMLElement) {
                 padding: 0;
             }
 
-            #showDynamicSponsor img {
+            #showDynamicSponsor svg {
                 margin-right: 4px;
                 height: 1.2em;
                 width: 1.2em;
@@ -292,7 +299,7 @@ function shadowRootStyle(element: HTMLElement) {
 	            z-index: 100;
             }
 
-            #commentSponsorLabel img {
+            #commentSponsorLabel svg {
                 width: 1.1em;
                 height: 1.1em;
                 fill: var(--category-text-color, #fff);
@@ -317,9 +324,12 @@ function shadowRootStyle(element: HTMLElement) {
 }
 
 function getIcon() {
-    const img = document.createElement("img");
-    img.src = chrome.runtime.getURL("icons/oldIcon/PlayerStartIconSponsorBlocker.svg");
-    return img;
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 565.15 568");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", "#SponsorBlockIcon");
+    svg.appendChild(use);
+    return svg;
 }
 
 function getButton() {
