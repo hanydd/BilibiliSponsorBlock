@@ -33,13 +33,13 @@ async function DynamicListener() {
                 Config.config.whitelistedChannels?.includes(upIdOrigin)) ||
                 Config.config.dynamicAndCommentSponsorWhitelistedChannels) &&
                 !(!Config.config.dynamicSpaceSponsorBlocker &&
-                window.location.href.includes("space.bilibili.com")) &&
-                action === DynamicSponsorOption.Hide
+                window.location.href.includes("space.bilibili.com"))
             ) {
-                const bodyElement = element.querySelector('.bili-dyn-content') as HTMLElement;
-
-                hideSponsorContent(bodyElement, element.querySelectorAll('.bili-dyn-item__action')[2] as HTMLElement);
                 labelSponsorStyle("dynamicSponsorLabel", element.querySelector('.bili-dyn-title__text'), category, debugMode, dynamicSponsorMatch);
+                if (action == DynamicSponsorOption.Hide) {
+                    const bodyElement = element.querySelector('.bili-dyn-content') as HTMLElement;
+                    hideSponsorContent(bodyElement, element.querySelectorAll('.bili-dyn-item__action')[2] as HTMLElement);
+                } 
             }
         }
     });
@@ -367,14 +367,10 @@ async function SponsorComment(root: HTMLElement) {
         const isSponsor = Array.from(comment?.shadowRoot.querySelector("bili-rich-text")?.shadowRoot.querySelectorAll("a")).some(link =>
             link.getAttribute("data-type") === "goods"
         );
+        const action = getCategorySelection("dynamicSponsor_sponsor")?.option;
         const inWhitelist = Config.config.whitelistedChannels.includes(comment?.shadowRoot.querySelector("#user-avatar")?.getAttribute("data-user-profile-id")) && !Config.config.dynamicAndCommentSponsorWhitelistedChannels;
 
-        if (isSponsor && !inWhitelist) {//这里借用动态屏蔽的那套方式
-            hideSponsorContent(
-                comment.shadowRoot.querySelector("#content")
-                , comment.shadowRoot.querySelector('#main').querySelector("bili-comment-action-buttons-renderer").shadowRoot.querySelector("#reply")
-                , true
-            );
+        if (isSponsor && !inWhitelist && action !== DynamicSponsorOption.Disabled) {//这里借用动态屏蔽的那套方式
             labelSponsorStyle(
                 "commentSponsorLabel"
                 , comment.shadowRoot.querySelector("bili-comment-user-info").shadowRoot.querySelector("#user-up")
@@ -384,6 +380,13 @@ async function SponsorComment(root: HTMLElement) {
                 , null
                 , true
             );
+            if (action === DynamicSponsorOption.Hide) {
+                hideSponsorContent(
+                    comment.shadowRoot.querySelector("#content")
+                    , comment.shadowRoot.querySelector('#main').querySelector("bili-comment-action-buttons-renderer").shadowRoot.querySelector("#reply")
+                    , true
+                );
+            }
 
             //一般来说 评论赞助链接只会有一个而且是置顶的(不排除某些UP主忘置顶了) 所以就处理一次
             break;
