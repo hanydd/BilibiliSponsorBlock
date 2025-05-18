@@ -58,6 +58,7 @@ export async function postPortVideoVote(UUID: string, bvID: NewVideoID, voteType
     }
 }
 
-export async function updatePortedSegments(bvID: NewVideoID, UUID: string): Promise<FetchResponse> {
-    return asyncRequestToServer("POST", "/api/updatePortedSegments", { videoID: bvID, UUID: UUID });
+export async function updatePortedSegments(videoID: NewVideoID, UUID: string): Promise<FetchResponse> {
+    const { bvId, cid } = parseBvidAndCidFromVideoId(videoID);
+    return asyncRequestToServer("POST", "/api/updatePortedSegments", { videoID: bvId, UUID: UUID, cid: cid });
 }
