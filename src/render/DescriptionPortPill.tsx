@@ -42,11 +42,9 @@ export class DescriptionPortPill {
         this.portVideoVote = portVideoVote;
         this.updateSegments = updateSegments;
         this.sponsorsLookup = sponsorsLookup;
-
-        this.setPortVideoData = this.setPortVideoData.bind(this);
     }
 
-    async setupDescription(videoId: BVID) {
+    setupDescription = async (videoId: BVID) => {
         if (!Config.config.showPortVideoButton) {
             return;
         }
@@ -56,9 +54,6 @@ export class DescriptionPortPill {
         this.bvID = videoId;
 
         this.cleanup();
-
-        // make request to get the port video first, while waiting for the page to load
-        this.getPortVideo(videoId);
 
         this.hasDescription = true;
         const referenceNode = (await waitForElement(".basic-desc-info")) as HTMLElement;
@@ -87,17 +82,24 @@ export class DescriptionPortPill {
         }
 
         this.attachToPage(referenceNode);
-    }
 
-    setPortVideoData(portVideo: PortVideo) {
+        // wait for the element to be attached to the DOM and then get the port video data, to avoid racing conditions
+        this.getPortVideo(videoId);
+    };
+
+    setPortVideoData = (portVideo: PortVideo) => {
         if (portVideo) {
             this.bvID = portVideo.bvID;
             this.ytbID = portVideo.ytbID;
             this.portUUID = portVideo.UUID;
+        } else {
+            this.bvID = null;
+            this.ytbID = null;
+            this.portUUID = null;
         }
         waitFor(() => this.ref?.current).then(() => this.ref?.current?.setPortVideoData(portVideo));
         waitFor(() => this.buttonRef?.current).then(() => this.buttonRef?.current?.setPortVideo(portVideo));
-    }
+    };
 
     private attachToPage(referenceNode: HTMLElement) {
         this.attachInputToPage(referenceNode);
@@ -164,7 +166,7 @@ export class DescriptionPortPill {
         this.buttonContainer = buttonContainer;
     }
 
-    cleanup() {
+    private cleanup = () => {
         this.root?.unmount();
         this.inputContainer?.remove();
         this.buttonContainer?.remove();
@@ -174,18 +176,25 @@ export class DescriptionPortPill {
         this.buttonContainer = null;
         this.ytbID = null;
         this.portUUID = null;
-    }
+    };
 
-    private async vote(voteType: number) {
+    private vote = async (voteType: number) => {
         if (!this.portUUID) {
             console.error("No port video to vote on");
+            showMessage("无法获取绑定的视频信息", "error");
             return;
         }
 
         this.portVideoVote(this.portUUID, voteType);
-    }
+    };
 
-    private async updateSegmentHandler() {
+    private updateSegmentHandler = async () => {
+        if (!this.portUUID) {
+            console.error("No port video to update segments on");
+            showMessage("无法获取绑定的视频信息", "error");
+            return;
+        }
+
         const response = await this.updateSegments(this.portUUID);
         if (!response?.ok) {
             if (response.status === 429) {
@@ -197,5 +206,5 @@ export class DescriptionPortPill {
         } else {
             showMessage(chrome.i18n.getMessage("refreshSuccess"), "success");
         }
-    }
+    };
 }
