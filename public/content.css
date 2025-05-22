@@ -990,7 +990,7 @@ input::-webkit-inner-spin-button {
 	gap: 4px;
 }
 
-/*以下css更新时请同步更新DynamicAndCommentSponsorBlock中的shaodwRootStyle函数内的css*/
+/*以下css更新时请同步更新DynamicAndCommentSponsorBlock中的shadowRootStyle函数内的css*/
 /*bilibili Dynamic sponsor label */
 #dynamicSponsorLabel {
 	display: flex;
@@ -998,21 +998,31 @@ input::-webkit-inner-spin-button {
 	border-radius: 2em;
 	padding: 0.4em;
 	margin: 0.4em;
-    align-items: center;
+	align-items: center;
 	transition: border-radius 0.4s 0.05s;
+	z-index: 100;
 }
 
-#dynamicSponsorLabel img {
+#dynamicSponsorLabel svg {
 	width: 1.5em;
 	height: 1.5em;
 	fill: var(--category-text-color, #fff);
 }
 
-#dynamicSponsorLabel span {
+#dynamicSponsorLabel .Text-Group {
 	display: none;
+	flex-direction: column;
 	padding-left: 0.25em;
     font-size: 1.2em;
     color: var(--category-text-color, #fff);
+}
+
+#dynamicSponsorLabel .Label {
+	display: inline-block;
+}
+
+#dynamicSponsorLabel .Match {
+	margin-top: 5px;
 }
 
 #showDynamicSponsor {
@@ -1022,7 +1032,7 @@ input::-webkit-inner-spin-button {
     padding: 0;
 }
 
-#showDynamicSponsor img {
+#showDynamicSponsor svg {
 	margin-right: 4px;
 	height: 1.2em;
 	width: 1.2em;
@@ -1038,17 +1048,27 @@ input::-webkit-inner-spin-button {
 	margin: 0.3em;
     align-items: center;
 	transition: border-radius 0.4s 0.05s;
+	z-index: 100;
 }
 
-#commentSponsorLabel img {
+#commentSponsorLabel svg {
 	width: 1.1em;
 	height: 1.1em;
 	fill: var(--category-text-color, #fff);
 }
 
-#commentSponsorLabel span {
+#commentSponsorLabel .Text-Group {
 	display: none;
+	flex-direction: column;
 	padding-left: 0.25em;
     font-size: 0.8em;
     color: var(--category-text-color, #fff);
+}
+
+#commentSponsorLabel .Label {
+	display: inline-block;
+}
+
+#commentSponsorLabel .Match {
+	margin-top: 5px;
 }
