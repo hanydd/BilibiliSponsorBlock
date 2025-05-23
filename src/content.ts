@@ -537,6 +537,8 @@ async function videoIDChange(): Promise<void> {
     updateVisibilityOfPlayerControlsButton();
     checkPreviewbarState();
     setupDescriptionPill();
+
+    CommentListener();
 }
 
 /**
