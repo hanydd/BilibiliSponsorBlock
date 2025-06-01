@@ -1931,11 +1931,17 @@ function sendTelemetryAndCount(skippingSegments: SponsorTime[], secondsSkipped: 
 
 //skip from the start time to the end time for a certain index sponsor time
 function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, unskipTime }: SkipToTimeParams): void {
-    if (Config.config.disableSkipping || sessionStorage.getItem("SKIPPING") === "false")
-        return sessionStorage.setItem("SKIPPING", "null");
+    if (Config.config.disableSkipping) return;
 
-    // There will only be one submission if it is manual skip
-    const autoSkip: boolean = forceAutoSkip || shouldAutoSkip(skippingSegments[0]);
+    let autoSkip: boolean;
+    if (sessionStorage.getItem("SKIPPING") === "false") {
+        sessionStorage.setItem("SKIPPING", "null");
+        autoSkip = false;
+    } else {
+        // There will only be one submission if it is manual skip
+        autoSkip = forceAutoSkip || shouldAutoSkip(skippingSegments[0]);
+    }
+
     const isSubmittingSegment = sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment);
 
     if ((autoSkip || isSubmittingSegment) && v.currentTime !== skipTime[1]) {
