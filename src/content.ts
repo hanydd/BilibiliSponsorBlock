@@ -79,19 +79,21 @@ cleanPage();
 
 detectPageType();
 
+if (getPageType() === PageType.Live) {
+    throw new Error("BSB is disabled on live pages.");
+}
+
 const utils = new Utils();
 
 waitFor(() => Config.isReady(), 5000, 10).then(() => {
     setCategoryColorCSSVariables();
 
     if ([PageType.Dynamic, PageType.Channel].includes(detectPageType()) &&
-        (Config.config.dynamicAndCommentSponsorBlocker &&
-            Config.config.dynamicSponsorBlock)
+        (Config.config.dynamicAndCommentSponsorBlocker && Config.config.dynamicSponsorBlock)
     ) DynamicListener();
 
-    if ([PageType.Video,PageType.List,PageType.Dynamic,PageType.Channel,PageType.Opus].includes(detectPageType()) &&
-        (Config.config.dynamicAndCommentSponsorBlocker &&
-        Config.config.commentSponsorBlock)
+    if ([PageType.Video, PageType.List, PageType.Dynamic, PageType.Channel, PageType.Opus].includes(detectPageType()) &&
+        (Config.config.dynamicAndCommentSponsorBlocker && Config.config.commentSponsorBlock)
     ) CommentListener();
 });
 
