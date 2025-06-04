@@ -67,14 +67,24 @@ async function CommentListener() {
         commentElementsRoot = await getElementWaitFor(() => document.querySelector('bili-comments')) as HTMLElement;
     }
     
-    const initialization = new MutationObserver(async () => {
+    const init = new MutationObserver(async () => {
         SponsorComment(commentElementsRoot);
 
         (await getElementWaitFor(() => commentElementsRoot?.shadowRoot.querySelector("bili-comments-header-renderer")?.shadowRoot.querySelector("#sort-actions"))).addEventListener("click", async () => {
+            init_1.disconnect();
+            init_1.observe(commentElementsRoot.shadowRoot.querySelector("#feed"), {
+                childList: true
+            });
             SponsorComment(commentElementsRoot);
         });
 
-        initialization.disconnect();
+        init.disconnect();
+        init_1.observe(commentElementsRoot.shadowRoot.querySelector("#feed"), {
+            childList: true
+        });
+    });
+    const init_1 = new MutationObserver(async () => {
+       SponsorComment(commentElementsRoot);
     });
 
     let dynListClickHandler: (event: Event) => void;
@@ -85,7 +95,7 @@ async function CommentListener() {
             const target = (event.target as HTMLElement).closest(".bili-dyn-item");
             if (target) {
                 commentElementsRoot = await getElementWaitFor(() => target.querySelector('bili-comments'));
-                initialization.observe(commentElementsRoot?.shadowRoot, {
+                init.observe(commentElementsRoot?.shadowRoot, {
                     childList: true
                 });
             }
@@ -94,13 +104,14 @@ async function CommentListener() {
         dynList.addEventListener("click", dynListClickHandler, true);
     
         (await getElementWaitFor(() => document.querySelector(".bili-dyn-up-list__content, .nav-bar__main-left"))).addEventListener("click", async () => {
+            init_1.disconnect();
             const newDynList = await getElementWaitFor(() => document.querySelector(".bili-dyn-list__items"));
             
             dynList.removeEventListener("click", dynListClickHandler, true);
             newDynList.addEventListener("click", dynListClickHandler, true);
         });
     } else if ([PageType.Video,PageType.List,PageType.Opus].includes(detectPageType())) {
-        initialization.observe(commentElementsRoot.shadowRoot, {
+        init.observe(commentElementsRoot.shadowRoot, {
             childList: true
         });
     }
@@ -362,7 +373,8 @@ async function SponsorComment(root: HTMLElement) {
     const comments = root?.shadowRoot?.querySelectorAll("bili-comment-thread-renderer");
     for (const element of comments) {
         const comment = element?.shadowRoot?.querySelector("bili-comment-renderer");
-        if (comment.shadowRoot.querySelector("bili-comment-user-info").shadowRoot.querySelector("#commentSponsorLabel")) break;
+        if (comment.className === "BSB-Processed") continue;
+        comment.className = "BSB-Processed";
 
         const isSponsor = Array.from(comment?.shadowRoot.querySelector("bili-rich-text")?.shadowRoot.querySelectorAll("a")).some(link =>
             link.getAttribute("data-type") === "goods"
@@ -387,9 +399,6 @@ async function SponsorComment(root: HTMLElement) {
                     , true
                 );
             }
-
-            //一般来说 评论赞助链接只会有一个而且是置顶的(不排除某些UP主忘置顶了) 所以就处理一次
-            break;
         }
     }
 }
