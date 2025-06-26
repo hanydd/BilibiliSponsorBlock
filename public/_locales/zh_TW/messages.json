@@ -1314,6 +1314,12 @@
     "dynamicSponsorBlockDescription":{
         "message": "動態主頁支持全部類別 (不包含視頻)"
     },
+    "commentSponsorReplyBlock":{
+        "message": "屏蔽廣告評論下的熱門子評論"
+    },
+    "commentSponsorReplyBlockDescription":{
+        "message": "啟用後將會屏蔽廣告評論下外顯的熱門子評論\n您仍可以使用展開全部評論的方法查看全部評論 (即使是被屏蔽的子評論)"
+    },
     "requestVote": {
         "message": "片段標記準確嗎？"
     }

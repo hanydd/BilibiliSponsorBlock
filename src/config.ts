@@ -98,6 +98,7 @@ interface SBConfig {
     dynamicSponsorBlockerDebug: boolean;
     dynamicSpaceSponsorBlocker: boolean;
     commentSponsorBlock: boolean;
+    commentSponsorReplyBlock: boolean;
 
     showNewIcon: boolean;
 
@@ -343,6 +344,7 @@ const syncDefaults = {
     dynamicSponsorBlockerDebug: false,
     dynamicSpaceSponsorBlocker: false,
     commentSponsorBlock: true,
+    commentSponsorReplyBlock: false,
 
     showNewIcon: true,
 

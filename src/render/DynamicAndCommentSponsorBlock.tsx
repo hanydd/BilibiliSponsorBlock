@@ -373,6 +373,7 @@ async function SponsorComment(root: HTMLElement) {
     const comments = root?.shadowRoot?.querySelectorAll("bili-comment-thread-renderer");
     for (const element of comments) {
         const comment = element?.shadowRoot?.querySelector("bili-comment-renderer");
+        const reply = element;
         if (comment.className === "BSB-Processed") continue;
         comment.className = "BSB-Processed";
 
@@ -398,6 +399,15 @@ async function SponsorComment(root: HTMLElement) {
                     , comment.shadowRoot.querySelector('#main').querySelector("bili-comment-action-buttons-renderer").shadowRoot.querySelector("#reply")
                     , true
                 );
+
+                if (Config.config.dynamicAndCommentSponsorBlocker === true && Config.config.commentSponsorBlock === true && Config.config.commentSponsorReplyBlock === true) {
+                    const replys = reply.shadowRoot.querySelector("bili-comment-replies-renderer").shadowRoot.querySelectorAll("bili-comment-reply-renderer");
+                    replys.forEach((e) => { (e as HTMLElement).style.display = "none" });
+
+                    reply.shadowRoot.querySelector("bili-comment-replies-renderer").shadowRoot.querySelector("bili-text-button").shadowRoot.querySelector("button").addEventListener("click", () => {
+                        replys.forEach((e) => { (e as HTMLElement).style.display = null });
+                    }, { once: true });
+                }
             }
         }
     }

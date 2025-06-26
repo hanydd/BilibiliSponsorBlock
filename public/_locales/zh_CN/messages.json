@@ -1314,6 +1314,12 @@
     "dynamicSponsorBlockDescription":{
         "message": "动态主页支持全部类别 (不包含视频)"
     },
+    "commentSponsorReplyBlock":{
+        "message": "屏蔽广告评论下的热门子评论"
+    },
+    "commentSponsorReplyBlockDescription":{
+        "message": "启用后将会屏蔽广告评论下外显的热门子评论\n您仍可以使用展开全部评论的方法查看全部评论 (即使是被屏蔽的子评论)"
+    },
     "requestVote": {
         "message": "片段标记准确吗？"
     }
