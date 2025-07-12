@@ -540,7 +540,9 @@ async function videoIDChange(): Promise<void> {
     checkPreviewbarState();
     setupDescriptionPill();
 
-    CommentListener();
+    if ([PageType.Video, PageType.List, PageType.Dynamic, PageType.Channel, PageType.Opus].includes(detectPageType()) &&
+        (Config.config.dynamicAndCommentSponsorBlocker && Config.config.commentSponsorBlock)
+    ) CommentListener();
 }
 
 /**
