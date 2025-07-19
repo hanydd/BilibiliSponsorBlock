@@ -15,6 +15,9 @@
       "matches": [
         "https://*.bilibili.com/*"
       ],
+      "exclude_matches": [
+        "https://live.bilibili.com/*"
+      ],
       "all_frames": true,
       "js": [
         "./js/content.js"
