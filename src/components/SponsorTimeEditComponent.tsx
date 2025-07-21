@@ -238,7 +238,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                     <a
                         href={
                             CompileConfig.wikiLinks[sponsorTime.category] ||
-                            "https://wiki.sponsor.ajay.app/index.php/Segment_Categories"
+                            "https://github.com/hanydd/BilibiliSponsorBlock/wiki"
                         }
                         target="_blank"
                         rel="noreferrer"

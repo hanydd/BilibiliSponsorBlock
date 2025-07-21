@@ -170,7 +170,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                                 {/* Guidelines button */}
                                 <button
                                     className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
-                                    onClick={() => window.open("https://wiki.sponsor.ajay.app/w/Guidelines")}
+                                    onClick={() => window.open("https://github.com/hanydd/BilibiliSponsorBlock/wiki/Submitting%20tips")}
                                 >
                                     {chrome.i18n.getMessage(
                                         Config.config.submissionCountSinceCategories > 3
