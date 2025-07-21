@@ -16,6 +16,9 @@ class PopupFooter extends React.Component<PopupFooterProps, PopupFooterState> {
                 <a href="https://bsbsb.top" target="_blank" rel="noopener noreferrer">
                     {chrome.i18n.getMessage("website")}
                 </a>
+                <a href="https://github.com/hanydd/BilibiliSponsorBlock/wiki" target="_blank" rel="noopener noreferrer">
+                    Wiki
+                </a>
                 <a href="https://bsbsb.top/stats" target="_blank" rel="noopener noreferrer">
                     {chrome.i18n.getMessage("viewLeaderboard")}
                 </a>
