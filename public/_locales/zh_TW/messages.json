@@ -799,9 +799,32 @@
         "message": "當整個影片都是某一類別時顯示圖示",
         "description": "Referring to the category pill that is now shown on videos that are entirely sponsor or entirely selfpromo"
     },
-    "fullVideoLabelsOnThumbnails": {
-        "message": "在影片封面上顯示標籤",
-        "description": "Referring to the category pill that is shown on videos that are entirely sponsor or entirely selfpromo on recommended videos, in searches or on the homepage."
+    "fullVideoLabelsOnThumbnailsMode": {
+        "message": "當整個影片都是某一類別時在影片卡片上? "
+    },
+    "fullVideoLabelsOnThumbnailsMode0": {
+        "message": "無動作"
+    },
+    "fullVideoLabelsOnThumbnailsMode1": {
+        "message": "顯示標籤"
+    },
+    "fullVideoLabelsOnThumbnailsMode2": {
+        "message": "隱藏此影片卡片 - 不推薦"
+    },
+    "fullVideoLabelsOnThumbnailsMode2_Warning": {
+        "message": "這將隱藏大量影片卡片，因為目前資料庫中存在大量隨意提交的污染內容，這可能會意外隱藏你想觀看的影片。這還會影響排版, 請謹慎使用此功能。\n隱藏後不會提示你有片段被隱藏，且無法手動查看。\n我們更推薦啟用「模糊此影片卡片 - 滑鼠懸停可查看內容」。"
+    },
+    "fullVideoLabelsOnThumbnailsMode3": {
+        "message": "模糊此影片卡片 - 滑鼠懸停可查看內容"
+    },
+    "fullVideoLabelsOnThumbnailsMode4": {
+        "message": "模糊此影片卡片 - 不推薦"
+    },
+    "fullVideoLabelsOnThumbnailsMode5": {
+        "message": "遮擋此影片卡片 - 不推薦"
+    },
+    "fullVideoBlock": {
+        "message": "此內容已被B站空降助手封鎖"
     },
     "previewColor": {
         "message": "未提交顏色",
