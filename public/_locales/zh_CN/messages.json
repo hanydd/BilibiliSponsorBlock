@@ -1,6 +1,6 @@
 {
     "fullName": {
-        "message": "B站空降助手",
+        "message": "小电视空降助手",
         "description": "Name of the extension."
     },
     "shortName": {
@@ -273,7 +273,7 @@
         "message": "半透明所有的空降提醒弹窗"
     },
     "longDescription": {
-        "message": "B站空降助手可帮您跳过B站视频中的赞助广告、开场结尾、三连提醒和其他烦人片段。空降助手是一个众包的浏览器扩展，任何人可以提交B站视频中的广告和其他片段的开始和结束时间。如果有一人提交了信息，其他所有使用此扩展的人都能直接跳过广告片段。您也可以跳过音乐视频中的非音乐部分。",
+        "message": "小电视空降助手可帮您跳过小电视网站视频中的赞助广告、开场结尾、三连提醒和其他烦人片段。空降助手是一个众包的浏览器扩展，任何人可以提交视频中的广告和其他片段的开始和结束时间。如果有一人提交了信息，其他所有使用此扩展的人都能直接跳过广告片段。您也可以跳过音乐视频中的非音乐部分。",
         "description": "Full description of the extension on the store pages."
     },
     "website": {
@@ -495,7 +495,7 @@
         "message": "空降助手服务器地址"
     },
     "customServerAddressDescription": {
-        "message": "B站空降助手的服务器地址。\n不建议更改，除非您有自己的服务器。"
+        "message": "小电视空降助手的服务器地址。\n不建议更改，除非您有自己的服务器。"
     },
     "save": {
         "message": "保存"
@@ -865,7 +865,7 @@
         "message": "手动隐藏"
     },
     "channelDataNotFound": {
-        "message": "未检测到UP主ID。如果您正在使用嵌入式视频播放器，请到Bilibili网站观看。也可能是B站更改了页面布局，如果您认为是此问题，请在此评论：",
+        "message": "未检测到UP主ID。如果您正在使用嵌入式视频播放器，请到Bilibili网站观看。也可能是网站更改了页面布局，如果您认为是此问题，请在此评论：",
         "description": "This error appears in an alert when they try to whitelist a channel and the extension is unable to determine what channel they are looking at."
     },
     "invidiousPermissionRefresh": {
@@ -1075,7 +1075,7 @@
         "message": "更改"
     },
     "bilibiliKeybindWarning": {
-        "message": "这是B站内置的快捷方式。您确定要使用吗？"
+        "message": "这是网站内置的快捷方式。您确定要使用吗？"
     },
     "betaServerWarning": {
         "message": "测试服务器已启用！"
@@ -1266,7 +1266,7 @@
         "message": "广告"
     },
     "category_dynamicSponsor_sponsor_description": {
-        "message": "即包含商品链接，目前阶段无法完全屏蔽，因为部分软广可能不附带链接或链接不是B站规范的"
+        "message": "即包含商品链接，目前阶段无法完全屏蔽，因为部分软广可能不附带链接或链接不是规范的"
     },
     "category_dynamicSponsor_forward_sponsor": {
         "message": "转发广告"

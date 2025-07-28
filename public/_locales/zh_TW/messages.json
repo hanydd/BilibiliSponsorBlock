@@ -1,6 +1,6 @@
 {
     "fullName": {
-        "message": "B站空降助手",
+        "message": "小电视空降助手",
         "description": "Name of the extension."
     },
     "shortName": {
@@ -119,7 +119,7 @@
         "message": "清除片段"
     },
     "openPopup": {
-        "message": "打開B站空降助手跳出視窗"
+        "message": "打開小电视空降助手跳出視窗"
     },
     "closePopup": {
         "message": "關閉跳出視窗"
@@ -273,7 +273,7 @@
         "message": "半透明所有的跳過提醒跳出視窗"
     },
     "longDescription": {
-        "message": "B站空降助手可幫您跳過影片中的贊助廣告、開場結尾、三連提醒和其他煩人片段。空降助手是一個瀏覽器擴展，任何人可以提交影片中的廣告和其他片段的開始和結束時間。如果有一人提交了資訊，其他所有使用此擴展的人都能直接跳過廣告片段。您也可以跳過音樂影片中的非音樂部分。",
+        "message": "小电视空降助手可幫您跳過影片中的贊助廣告、開場結尾、三連提醒和其他煩人片段。空降助手是一個瀏覽器擴展，任何人可以提交影片中的廣告和其他片段的開始和結束時間。如果有一人提交了資訊，其他所有使用此擴展的人都能直接跳過廣告片段。您也可以跳過音樂影片中的非音樂部分。",
         "description": "Full description of the extension on the store pages."
     },
     "website": {
@@ -495,7 +495,7 @@
         "message": "空降助手伺服器地址"
     },
     "customServerAddressDescription": {
-        "message": "B站空降助手的伺服器地址。\n不建議更改，除非您有自己的伺服器。"
+        "message": "小电视空降助手的伺服器地址。\n不建議更改，除非您有自己的伺服器。"
     },
     "save": {
         "message": "儲存"
@@ -865,7 +865,7 @@
         "message": "手動隱藏"
     },
     "channelDataNotFound": {
-        "message": "未檢測到頻道ID。如果您正在使用嵌入式影片播放器，請到Bilibili網站觀看。也可能是B站更改了頁面布局，如果您認為是此問題，請在此評論：",
+        "message": "未檢測到頻道ID。如果您正在使用嵌入式影片播放器，請到Bilibili網站觀看。也可能是网站更改了頁面布局，如果您認為是此問題，請在此評論：",
         "description": "This error appears in an alert when they try to whitelist a channel and the extension is unable to determine what channel they are looking at."
     },
     "invidiousPermissionRefresh": {
@@ -1075,7 +1075,7 @@
         "message": "更改"
     },
     "bilibiliKeybindWarning": {
-        "message": "這是B站內建的捷徑。您確定要使用嗎？"
+        "message": "這是网站內建的捷徑。您確定要使用嗎？"
     },
     "betaServerWarning": {
         "message": "測試伺服器已啟用！"
@@ -1266,7 +1266,7 @@
         "message": "廣告"
     },
     "category_dynamicSponsor_sponsor_description": {
-        "message": "即包含商品連結，目前階段無法完全封鎖，因為部分軟廣可能不附帶連結或連結不是B站的規範"
+        "message": "即包含商品連結，目前階段無法完全封鎖，因為部分軟廣可能不附帶連結或連結不是网站規範"
     },
     "category_dynamicSponsor_forward_sponsor": {
         "message": "轉發廣告"

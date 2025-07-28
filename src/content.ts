@@ -2737,7 +2737,7 @@ function hotkeyListener(e: KeyboardEvent): void {
             activeSkipKeybindElement.toggleSkip.call(activeSkipKeybindElement);
 
             /*
-             * b站视频播放器全屏或网页全屏时，快捷键`Enter`会聚焦到弹幕输入框
+             * 视频播放器全屏或网页全屏时，快捷键`Enter`会聚焦到弹幕输入框
              * 这里阻止了使用`Enter`跳过赞助片段时播放器的默认行为
              */
             if (key.key === 'Enter') {
