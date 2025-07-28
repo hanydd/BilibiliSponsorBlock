@@ -73,9 +73,7 @@
 
 参考 [Github Project](https://github.com/users/hanydd/projects/2/)
 
-# 服务端
-
-服务端代码：https://github.com/hanydd/BilibiliSponsorBlockServer
+# 服务端及数据
 
 为了方便大家二次开发，所有片段的数据现在开放下载：https://bsbsb.top/database.zip
 
