@@ -7,7 +7,7 @@
         "message": "空降助手"
     },
     "Description": {
-        "message": "恰饭？桌子都给你掀了(/= _ =)/~┴┴   带你精准空降到赞助广告结束或者高能时刻，自动跳过视频中的赞助广告、订阅提醒等片段。你也可以亲自标记视频中的广告并上传，所有人都会从您的贡献中受益。",
+        "message": "恰饭？桌子都给你掀了(/= _ =)/~┴┴  带你精准空降到赞助广告结束或者高能时刻，自动跳过视频中的赞助广告、订阅提醒等片段。你也可以亲自标记视频中的广告并上传，所有人都会从您的贡献中受益。",
         "description": "Description of the extension."
     },
     "400": {
@@ -1233,28 +1233,28 @@
         "message": "同步搬运视频"
     },
     "dynamicAndCommentSponsorBlocker": {
-        "message": "隐藏 动态主页/评论区 的贴片广告"
+        "message": "隐藏 动态主页/评论区 的商品链接"
     },
     "dynamicAndCommentSponsorBlockerDescription": {
-        "message": "贴片广告即 动态主页/评论区 包含推广内容的动态/评论"
+        "message": "商品链接即 动态主页/评论区 包含推广内容的动态/评论"
     },
     "dynamicSpaceSponsorBlocker": {
-        "message": "隐藏UP主主页动态的广告"
+        "message": "隐藏UP主主页动态的内容"
     },
     "dynamicSpaceSponsorBlockerDescription": {
-        "message": "UP主主页动态的广告也会隐藏，不推荐开启，以方便查看UP主的完整动态"
+        "message": "UP主主页动态的商品链接也会隐藏。不推荐开启，以方便查看UP主的完整动态"
     },
     "dynamicAndCommentSponsorWhitelistedChannels": {
         "message": "无视您的白名单"
     },
     "dynamicAndCommentSponsorWhitelistedChannelsDescription": {
-        "message": "即使是您白名单中的UP主，也会执行操作"
+        "message": "即使是您白名单中的UP主，也会隐藏相应的内容"
     },
     "dynamicSponsorShow": {
-        "message": "显示广告内容"
+        "message": "显示链接内容"
     },
     "dynamicSponsorHide": {
-        "message": "隐藏广告内容"
+        "message": "隐藏链接内容"
     },
     "dynamicAndCommentSponsorRegexPattern": {
         "message": "屏蔽匹配正则: "
@@ -1263,62 +1263,62 @@
         "message": "默认正则表达式偏保守，建议根据您关注的UP主动态内容自行修改(如果您会编写正则表达式)\n例如您关注的UP主们经常发某一个产品的广告，您可以将该产品的名称添加到正则表达式中"
     },
     "category_dynamicSponsor_sponsor": {
-        "message": "广告"
+        "message": "商品链接"
     },
     "category_dynamicSponsor_sponsor_description": {
         "message": "即包含商品链接，目前阶段无法完全屏蔽，因为部分软广可能不附带链接或链接不是规范的"
     },
     "category_dynamicSponsor_forward_sponsor": {
-        "message": "转发广告"
+        "message": "转发商品链接"
     },
     "category_dynamicSponsor_forward_sponsor_description": {
-        "message": "当转发动态是包含商品链接的UP主动态时，该动态会被视为转发广告"
+        "message": "当转发动态是包含商品链接的UP主动态时，该动态会被视为“转发商品链接”"
     },
-    "category_dynamicSponsor_suspicion_sponsor":{
-        "message": "疑似广告"
+    "category_dynamicSponsor_suspicion_sponsor": {
+        "message": "疑似商品链接"
     },
     "category_dynamicSponsor_suspicion_sponsor_description": {
-        "message": "使用正则表达式对内容进行匹配来额外屏蔽软广，是对“ 广告 ”的补充，可能会误屏蔽或漏屏蔽部分内容"
+        "message": "使用正则表达式对内容进行匹配来额外屏蔽柔性推广，是对“商品链接”的补充，可能会误屏蔽或漏屏蔽部分内容"
     },
-    "showOverlay_DynamicSponsor":{
+    "showOverlay_DynamicSponsor": {
         "message": "仅添加标签"
     },
-    "Hide_DynamicSponsor":{
+    "Hide_DynamicSponsor": {
         "message": "隐藏内容"
     },
-    "skipOptionDynamicSponsor":{
+    "skipOptionDynamicSponsor": {
         "message": "选项"
     },
-    "colorDynamicSponsor":{
+    "colorDynamicSponsor": {
         "message": "标签颜色"
     },
-    "DynamicSponsorMatch":{
+    "DynamicSponsorMatch": {
         "message": " 关键字: ",
         "tip": "空格是用来间隔的"
     },
-    "dynamicSponsorBlockerDebug":{
-        "message": "显示疑似广告匹配到的文字 / 正则表达式调试模式"
+    "dynamicSponsorBlockerDebug": {
+        "message": "显示疑似商品链接匹配到的文字 / 正则表达式调试模式"
     },
-    "dynamicSponsorBlockerDebugDescription":{
+    "dynamicSponsorBlockerDebugDescription": {
         "message": "把鼠标悬浮到标签时显示匹配到的文字"
     },
-    "commentSponsorBlock":{
+    "commentSponsorBlock": {
         "message": "启用评论区隐藏"
     },
-    "commentSponsorBlockDescription":{
-        "message": "评论区目前仅支持 \" 广告 \" 类别"
+    "commentSponsorBlockDescription": {
+        "message": "评论区目前仅支持“商品链接”类别"
     },
-    "dynamicSponsorBlock":{
+    "dynamicSponsorBlock": {
         "message": "启用动态主页隐藏"
     },
-    "dynamicSponsorBlockDescription":{
+    "dynamicSponsorBlockDescription": {
         "message": "动态主页支持全部类别 (不包含视频)"
     },
-    "commentSponsorReplyBlock":{
-        "message": "屏蔽广告评论下的热门子评论"
+    "commentSponsorReplyBlock": {
+        "message": "隐藏“商品链接”评论下的热门子评论"
     },
-    "commentSponsorReplyBlockDescription":{
-        "message": "启用后将会屏蔽广告评论下外显的热门子评论\n您仍可以使用展开全部评论的方法查看全部评论 (即使是被屏蔽的子评论)"
+    "commentSponsorReplyBlockDescription": {
+        "message": "启用后将会隐藏“商品链接”评论下默认显示的子评论\n您仍可以使用展开全部评论的方法查看全部评论 (即使是被隐藏的子评论)"
     },
     "requestVote": {
         "message": "片段标记准确吗？"

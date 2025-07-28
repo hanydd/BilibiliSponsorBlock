@@ -1292,7 +1292,7 @@
     "colorDynamicSponsor": {
         "message": "標籤顏色"
     },
-    "DynamicSponsorMatch":{
+    "DynamicSponsorMatch": {
         "message": " 關鍵字: ",
         "tip": "空格是用來間隔的"
     },
@@ -1302,22 +1302,22 @@
     "dynamicSponsorBlockerDebugDescription": {
         "message": "把鼠標懸浮到標籤時顯示匹配到的文字"
     },
-    "commentSponsorBlock":{
+    "commentSponsorBlock": {
         "message": "啟用評論區封鎖"
     },
-    "commentSponsorBlockDescription":{
+    "commentSponsorBlockDescription": {
         "message": "評論區目前僅支持 \"廣告\" 種類"
     },
-    "dynamicSponsorBlock":{
+    "dynamicSponsorBlock": {
         "message": "啟用動態主頁封鎖"
     },
-    "dynamicSponsorBlockDescription":{
+    "dynamicSponsorBlockDescription": {
         "message": "動態主頁支持全部類別 (不包含視頻)"
     },
-    "commentSponsorReplyBlock":{
+    "commentSponsorReplyBlock": {
         "message": "屏蔽廣告評論下的熱門子評論"
     },
-    "commentSponsorReplyBlockDescription":{
+    "commentSponsorReplyBlockDescription": {
         "message": "啟用後將會屏蔽廣告評論下外顯的熱門子評論\n您仍可以使用展開全部評論的方法查看全部評論 (即使是被屏蔽的子評論)"
     },
     "requestVote": {
