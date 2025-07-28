@@ -19,7 +19,7 @@
 
 | Chrome | Edge | FireFox | 从文件安装 | 讨论群 |
 |----------|----------|----------|----------|----------|
-| [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd?label=Chrome插件商店)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Edge Web Store](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fkhkeolgobhdoloioehjgfpobjnmagfha&query=version&prefix=v&label=Edge插件商店&color=green)](https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha) | [![Firefox](https://img.shields.io/amo/v/bilisponsorblock?label=Mozilla插件商店)](https://addons.mozilla.org/zh-TW/firefox/addon/bilisponsorblock/) | [![文件安装](https://www.crxsoso.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd)](https://www.crxsoso.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Group](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-squeare&logo=telegram&logoColor=white)](https://t.me/bsbsb_top) [![QQ](https://img.shields.io/badge/371384235-EB1923?logo=tencent-qq&logoColor=white)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=Zp6HSzPkZy0xIU75Ljtc80CxY8PoyZ4Z&authKey=WlINewkGvx8rQhpBxYVj%2B9xMKgqAaVixxfgRgBgSXMdwmmst7BeWk7XflpvZrhOb&noverify=0&group_code=371384235) |
+| [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd?label=Chrome插件商店)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Edge Web Store](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fkhkeolgobhdoloioehjgfpobjnmagfha&query=version&prefix=v&label=Edge插件商店&color=green)](https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha) | [![Firefox](https://img.shields.io/amo/v/bilisponsorblock?label=Mozilla插件商店)](https://addons.mozilla.org/zh-TW/firefox/addon/bilisponsorblock/) | [文件安装](https://www.crxsoso.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Group](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-squeare&logo=telegram&logoColor=white)](https://t.me/bsbsb_top) |
 
 
 </div>
@@ -33,7 +33,7 @@
 
 目前本项目由我个人在业余时间维护，如果你想支持我，欢迎查看[赞助](https://www.bsbsb.top/donate/)。
 
-本插件移植自油管插件[SponsorBlock](https://github.com/ajayyy/SponsorBlock)，保留了大部分的 UI 和使用方法，加入一些了小电视特色的功能。
+本插件移植自插件[SponsorBlock](https://github.com/ajayyy/SponsorBlock)，保留了大部分的 UI 和使用方法，加入一些了小电视特色的功能。
 
 # 安装
 
@@ -51,7 +51,7 @@
 
 ## 使用说明
 
-如果你使用过 YouTube 的原插件，你会发现在核心功能和交互上，本插件基本没有做出大的改动。可以先参照原插件的使用方法尝试使用。
+如果你使用过原插件，你会发现在核心功能和交互上，本插件基本没有做出大的改动。可以先参照原插件的使用方法尝试使用。
 
 可以先在这个[示例视频](https://www.bilibili.com/video/BV1bY4y1v7Mb/)上试一试精准空降的快乐！
 
@@ -65,7 +65,7 @@
 
 - 放弃了第三方镜像站支持。如果有使用人数多的镜像站，欢迎讨论添加支持。
 
-- 加入了绑定搬运视频的功能。绑定的油管视频可以自动从 SponsorBlock 数据库中获取片段信息。
+- 加入了绑定搬运视频的功能。绑定的视频可以自动从 SponsorBlock 数据库中获取片段信息。
 
 - 更新 UI。
 

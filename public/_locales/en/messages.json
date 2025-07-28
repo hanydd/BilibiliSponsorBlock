@@ -865,7 +865,7 @@
         "message": "手动隐藏"
     },
     "channelDataNotFound": {
-        "message": "未检测到UP主ID。如果您正在使用嵌入式视频播放器，请到Bilibili网站观看。也可能是网站更改了页面布局，如果您认为是此问题，请在此评论：",
+        "message": "未检测到UP主ID。如果您正在使用嵌入式视频播放器，请到网站观看。也可能是网站更改了页面布局，如果您认为是此问题，请在此评论：",
         "description": "This error appears in an alert when they try to whitelist a channel and the extension is unable to determine what channel they are looking at."
     },
     "invidiousPermissionRefresh": {

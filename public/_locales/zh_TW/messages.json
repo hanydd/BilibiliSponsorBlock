@@ -865,7 +865,7 @@
         "message": "手動隱藏"
     },
     "channelDataNotFound": {
-        "message": "未檢測到頻道ID。如果您正在使用嵌入式影片播放器，請到Bilibili網站觀看。也可能是网站更改了頁面布局，如果您認為是此問題，請在此評論：",
+        "message": "未檢測到頻道ID。如果您正在使用嵌入式影片播放器，請到網站觀看。也可能是网站更改了頁面布局，如果您認為是此問題，請在此評論：",
         "description": "This error appears in an alert when they try to whitelist a channel and the extension is unable to determine what channel they are looking at."
     },
     "invidiousPermissionRefresh": {
