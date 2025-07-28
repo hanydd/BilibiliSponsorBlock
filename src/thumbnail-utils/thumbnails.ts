@@ -77,7 +77,10 @@ export async function labelThumbnailProcess(
         text.innerText = chrome.i18n.getMessage(`category_${category}`);
         overlay.classList.add("sponsorThumbnailLabelVisible");
 
-        if ([HideFullVideoLabels.Hide, HideFullVideoLabels.BlurRevealOnHover, HideFullVideoLabels.BlurRevealOnHover, HideFullVideoLabels.SolidCover].includes(Config.config.fullVideoLabelsOnThumbnailsMode)) hideVideoCard(thumbnail, containerType);
+        if ([HideFullVideoLabels.Hide, 
+            HideFullVideoLabels.BlurAlways, 
+            HideFullVideoLabels.BlurRevealOnHover, 
+            HideFullVideoLabels.SolidCover].includes(Config.config.fullVideoLabelsOnThumbnailsMode)) hideVideoCard(thumbnail, containerType);
     }
 
     return overlay;
@@ -203,17 +206,19 @@ function hideVideoCard(thumbnail: HTMLElement, containerType: string) {
         case "playerSideRecommendation":
         case "history":
         case "bilibiliGateMainPage":
-            card = thumbnail
+            card = thumbnail;
             break;
     }
 
-    if ([HideFullVideoLabels.BlurRevealOnHover, HideFullVideoLabels.BlurRevealOnHover, HideFullVideoLabels.SolidCover].includes(Config.config.fullVideoLabelsOnThumbnailsMode)) {
+    if ([HideFullVideoLabels.BlurAlways, 
+        HideFullVideoLabels.BlurRevealOnHover, 
+        HideFullVideoLabels.SolidCover].includes(Config.config.fullVideoLabelsOnThumbnailsMode)) {
         Blur(card);
     } else {
         Hide(card);
     }
 
-    async function Blur(card: HTMLElement) {
+    function Blur(card: HTMLElement) {
         if (!card || card.querySelector('.bsb-blur-mask')) return;
 
         const mask = document.createElement('div');
@@ -232,7 +237,7 @@ function hideVideoCard(thumbnail: HTMLElement, containerType: string) {
         align-items: center;
         justify-content: center;
         text-align: center;
-        pointerEvents: none;
+        pointer-events: none;
         `;
         if (Config.config.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.SolidCover) {
            mask.style.backgroundColor = "var(--graph_bg_regular)";
