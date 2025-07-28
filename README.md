@@ -17,9 +17,9 @@
 [![节省时间](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F47.103.74.95%2Fapi%2FgetTotalStats&query=minutesSaved&suffix=%E5%88%86%E9%92%9F&label=%E5%85%B1%E8%8A%82%E7%9C%81&color=orange&cacheSeconds=3600)](https://www.bsbsb.top/stats/)
 
 
-| Chrome | Edge | FireFox | 从文件安装 | 讨论群 |
-|----------|----------|----------|----------|----------|
-| [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd?label=Chrome插件商店)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Edge Web Store](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fkhkeolgobhdoloioehjgfpobjnmagfha&query=version&prefix=v&label=Edge插件商店&color=green)](https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha) | [![Firefox](https://img.shields.io/amo/v/bilisponsorblock?label=Mozilla插件商店)](https://addons.mozilla.org/zh-TW/firefox/addon/bilisponsorblock/) | [文件安装](https://www.crxsoso.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Group](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-squeare&logo=telegram&logoColor=white)](https://t.me/bsbsb_top) |
+| Chrome | FireFox | 从文件安装 | 讨论群 |
+|---------|----------|----------|----------|
+| [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd?label=Chrome插件商店)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Firefox](https://img.shields.io/amo/v/bilisponsorblock?label=Mozilla插件商店)](https://addons.mozilla.org/zh-TW/firefox/addon/bilisponsorblock/) | [文件安装](https://www.crxsoso.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Group](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-squeare&logo=telegram&logoColor=white)](https://t.me/bsbsb_top) |
 
 
 </div>
@@ -37,7 +37,7 @@
 
 # 安装
 
-- 目前上架了[Chrome 应用商店](https://chromewebstore.google.com/detail/eaoelafamejbnggahofapllmfhlhajdd)，[Edge 应用商店](https://microsoftedge.microsoft.com/addons/detail/khkeolgobhdoloioehjgfpobjnmagfha)， [火狐应用商店](https://addons.mozilla.org/en-US/firefox/addon/bilisponsorblock/)。如果你知道更多流行的浏览器插件商店，欢迎留言~
+- 目前上架了[Chrome 应用商店](https://chromewebstore.google.com/detail/eaoelafamejbnggahofapllmfhlhajdd)，[火狐应用商店](https://addons.mozilla.org/en-US/firefox/addon/bilisponsorblock/)。如果你知道更多流行的浏览器插件商店，欢迎留言~
 
 - 如果你无法打开上面的商店，可以尝试从这里下载crx文件安装：https://www.crxsoso.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd
 
