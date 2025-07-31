@@ -1251,10 +1251,10 @@
         "message": "即使是您白名單中的UP主，也會進行操作"
     },
     "dynamicSponsorShow": {
-        "message": "顯示廣告內容"
+        "message": "顯示連結內容"
     },
     "dynamicSponsorHide": {
-        "message": "隱藏廣告內容"
+        "message": "隱藏連結內容"
     },
     "dynamicAndCommentSponsorRegexPattern": {
         "message": "封鎖匹配正則: "
@@ -1263,22 +1263,22 @@
         "message": "預設正規表示式偏保守，建議根據您關注的UP主動態內容自行修改(如果您會編寫正規表示式)\n例如您關注的UP主們經常發某一個產品的廣告，您可以將該產品的名稱添加到正規表示式中"
     },
     "category_dynamicSponsor_sponsor": {
-        "message": "廣告"
+        "message": "商品連結"
     },
     "category_dynamicSponsor_sponsor_description": {
-        "message": "即包含商品連結，目前階段無法完全封鎖，因為部分軟廣可能不附帶連結或連結不是网站規範"
+        "message": "即包含商品連結，目前階段無法完全屏蔽，因為部分軟廣可能不附帶連結或連結不是規範的"
     },
     "category_dynamicSponsor_forward_sponsor": {
-        "message": "轉發廣告"
+        "message": "轉發商品連結"
     },
     "category_dynamicSponsor_forward_sponsor_description": {
-        "message": "當轉發動態是包含商品連結的UP主動態時，該動態會被視為轉發廣告"
+        "message": "當轉發動態是包含商品連結的UP主動態時，該動態會被視為「轉發商品連結」"
     },
     "category_dynamicSponsor_suspicion_sponsor": {
-        "message": "疑似廣告"
+        "message": "疑似商品連結"
     },
     "category_dynamicSponsor_suspicion_sponsor_description": {
-        "message": "使用正規表示式對內容進行匹配來額外封鎖軟廣動態，是對「廣告」的補充，可能會誤封鎖或漏封鎖部分"
+        "message": "使用正規表示式對內容進行匹配來額外屏蔽柔性推廣，是對「商品連結」的補充，可能會誤屏蔽或漏屏蔽部分內容"
     },
     "showOverlay_DynamicSponsor": {
         "message": "僅添加標籤"
@@ -1297,28 +1297,28 @@
         "tip": "空格是用來間隔的"
     },
     "dynamicSponsorBlockerDebug": {
-        "message": "顯示疑似廣告匹配到的文字 / 正規表示式調試模式"
+        "message": "顯示疑似商品連結匹配到的文字 / 正規表示式調試模式"
     },
     "dynamicSponsorBlockerDebugDescription": {
         "message": "把鼠標懸浮到標籤時顯示匹配到的文字"
     },
     "commentSponsorBlock": {
-        "message": "啟用評論區封鎖"
+        "message": "啟用評論區隱藏"
     },
     "commentSponsorBlockDescription": {
-        "message": "評論區目前僅支持 \"廣告\" 種類"
+        "message": "評論區目前僅支持「商品連結」類別"
     },
     "dynamicSponsorBlock": {
-        "message": "啟用動態主頁封鎖"
+        "message": "啟用動態主頁隱藏"
     },
     "dynamicSponsorBlockDescription": {
         "message": "動態主頁支持全部類別 (不包含視頻)"
     },
     "commentSponsorReplyBlock": {
-        "message": "屏蔽廣告評論下的熱門子評論"
+        "message": "隱藏「商品連結」評論下的熱門子評論"
     },
     "commentSponsorReplyBlockDescription": {
-        "message": "啟用後將會屏蔽廣告評論下外顯的熱門子評論\n您仍可以使用展開全部評論的方法查看全部評論 (即使是被屏蔽的子評論)"
+        "message": "啟用後將會隱藏「商品連結」評論下預設顯示的子評論\n您仍可以使用展開全部評論的方法查看全部評論 (即使是被隱藏的子評論)"
     },
     "requestVote": {
         "message": "片段標記準確嗎？"
