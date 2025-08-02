@@ -5,6 +5,7 @@ import { BVID, NewVideoID } from "../types";
 import { waitFor } from "../utils/";
 import { getBvIDFromURL } from "../utils/parseVideoID";
 import { getLabelAnchorSelector, getLinkAttribute, getLinkSelectors } from "./thumbnail-selectors";
+import { HideFullVideoLabels } from "../types";
 
 export async function labelThumbnails(thumbnails: HTMLElement[], containerType: string): Promise<void> {
     await Promise.all(thumbnails.map((t) => labelThumbnail(t as HTMLElement, containerType)));
@@ -24,7 +25,7 @@ export async function labelThumbnailProcess(
     thumbnail: HTMLElement,
     containerType: string
 ): Promise<HTMLElement | null> {
-    if (!Config.config?.fullVideoSegments || !Config.config?.fullVideoLabelsOnThumbnails) {
+    if (!Config.config?.fullVideoSegments || Config.config?.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.Disabled) {
         await hideThumbnailLabel(thumbnail);
         return null;
     }
@@ -75,6 +76,11 @@ export async function labelThumbnailProcess(
         );
         text.innerText = chrome.i18n.getMessage(`category_${category}`);
         overlay.classList.add("sponsorThumbnailLabelVisible");
+
+        if ([HideFullVideoLabels.Hide, 
+            HideFullVideoLabels.BlurAlways, 
+            HideFullVideoLabels.BlurRevealOnHover, 
+            HideFullVideoLabels.SolidCover].includes(Config.config.fullVideoLabelsOnThumbnailsMode)) hideVideoCard(thumbnail, containerType);
     }
 
     return overlay;
@@ -171,4 +177,103 @@ export function insertSBIconDefinition(element: HTMLElement = document.body) {
   </defs>
 </svg>`;
     element.appendChild(container);
+}
+
+function hideVideoCard(thumbnail: HTMLElement, containerType: string) {
+    let card: HTMLElement;
+    switch (containerType) {
+        case "channelDynamic":
+            card = (thumbnail.parentNode.parentNode.parentNode.parentNode as HTMLElement);
+            break;
+        case "dynamic":
+        case "spaceUpload": 
+            card = (thumbnail.parentNode.parentNode.parentNode as HTMLElement);
+            break;
+        case "mainPageRecommendation":
+        case "bewlybewlyMainPage": 
+            card = (thumbnail.parentNode.parentNode as HTMLElement);
+            break;
+        case "search":
+        case "spaceMain": 
+            card = (thumbnail.parentNode as HTMLElement);
+            break;
+        case "dynamicPopup":
+        case "favPopup":
+        case "historyPopup":
+        case "playerListPod":
+        case "playerListPodVideo":
+        case "listPlayerSideRecommendation":
+        case "playerSideRecommendation":
+        case "history":
+        case "bilibiliGateMainPage":
+            card = thumbnail;
+            break;
+    }
+
+    if ([HideFullVideoLabels.BlurAlways, 
+        HideFullVideoLabels.BlurRevealOnHover, 
+        HideFullVideoLabels.SolidCover].includes(Config.config.fullVideoLabelsOnThumbnailsMode)) {
+        Blur(card);
+    } else {
+        Hide(card);
+    }
+
+    function Blur(card: HTMLElement) {
+        if (!card || card.querySelector('.bsb-blur-mask')) return;
+
+        const mask = document.createElement('div');
+        mask.innerText = chrome.i18n.getMessage("fullVideoBlock");
+        mask.className = 'bsb-blur-mask';
+        mask.style.cssText = `
+        position: absolute;
+        pointer-events: none;
+        z-index: 99;
+        opacity: 1;
+        transition: all 0.5s ease;
+        border-radius: 6px;
+        inset: -0.1em;
+        color: var(--text2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        pointer-events: none;
+        `;
+        if (Config.config.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.SolidCover) {
+           mask.style.backgroundColor = "var(--graph_bg_regular)";
+           mask.style.pointerEvents = "all";
+        } else {
+            mask.style.backdropFilter = "blur(8px)";
+        }
+
+        card.style.position = 'relative';
+        card.appendChild(mask);
+
+        const label = card.querySelector(".sponsorThumbnailLabel").cloneNode(true) as HTMLElement;
+        label.style.zIndex = "100";
+        label.style.transition = "all 0.5s ease";
+        label.style.position = "absolute";
+        if (Config.config.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.BlurRevealOnHover) {
+            label.style.pointerEvents = "none";
+        } else {
+            label.style.pointerEvents = "all";
+        }
+
+        card.appendChild(label);
+        
+        if (Config.config.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.BlurRevealOnHover) {
+            card.addEventListener('mouseenter', () => {
+                mask.style.opacity = '0';
+                label.style.opacity = "0";
+            });
+            card.addEventListener('mouseleave', () => {
+                mask.style.opacity = '1';
+                label.style.opacity = "0.7";
+            });
+        }
+    }
+
+    function Hide(card: HTMLElement) {
+        card.style.setProperty("display", "none", "important");
+    }
 }

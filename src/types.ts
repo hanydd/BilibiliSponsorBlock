@@ -236,3 +236,12 @@ export enum NoticeVisbilityMode {
     FadedForAutoSkip = 3,
     FadedForAll = 4,
 }
+
+export enum HideFullVideoLabels {
+    Disabled = 0,
+    Overlay = 1,
+    Hide = 2,
+    BlurRevealOnHover  = 3,
+    BlurAlways = 4,
+    SolidCover = 5,
+}

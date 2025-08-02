@@ -259,7 +259,7 @@ function shadowRootStyle(element: HTMLElement) {
                 margin: 0.4em;
                 align-items: center;
                 transition: border-radius 0.4s 0.05s;
-	            z-index: 100;
+	            z-index: 99;
             }
 
             #dynamicSponsorLabel svg {
@@ -307,7 +307,7 @@ function shadowRootStyle(element: HTMLElement) {
                 margin: 0.3em;
                 align-items: center;
                 transition: border-radius 0.4s 0.05s;
-	            z-index: 100;
+	            z-index: 99;
             }
 
             #commentSponsorLabel svg {

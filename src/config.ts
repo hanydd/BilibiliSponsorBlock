@@ -10,6 +10,7 @@ import {
     SponsorHideType,
     DynamicSponsorSelection,
     DynamicSponsorOption,
+    HideFullVideoLabels,
 } from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
 import { HashedValue } from "./utils/hash";
@@ -39,7 +40,7 @@ interface SBConfig {
     checkTimeDanmakuSkip: boolean;
     muteSegments: boolean;
     fullVideoSegments: boolean;
-    fullVideoLabelsOnThumbnails: boolean;
+    fullVideoLabelsOnThumbnailsMode: number;
     manualSkipOnFullVideo: boolean;
     trackViewCount: boolean;
     trackViewCountInPrivate: boolean;
@@ -244,13 +245,23 @@ function migrateOldSyncFormats(config: SBConfig) {
     }
 
     //动态贴片设置变量名迁移 // 0.8.1
-    if (config["dynamicSponsorBlockerer"]) {
-        config["dynamicAndCommentSponsorBlocker"] = config["dynamicSponsorBlockerer"];
-        delete config["dynamicSponsorBlockerer"];
+    if (config["dynamicSponsorBlocker"]) {
+        config["dynamicAndCommentSponsorBlocker"] = config["dynamicSponsorBlocker"];
+        delete config["dynamicSponsorBlocker"];
     }
     if (config["dynamicSponsorWhitelistedChannels"]) {
         config["dynamicAndCommentSponsorWhitelistedChannels"] = config["dynamicSponsorWhitelistedChannels"];
         delete config["dynamicSponsorWhitelistedChannels"];
+    }
+    //当整个视频都是某一类别时操作选项迁移
+    if (config["fullVideoLabelsOnThumbnails"]) {
+        if (config["fullVideoLabelsOnThumbnails"] === true) {
+            config["fullVideoLabelsOnThumbnailsMode"] = HideFullVideoLabels.Overlay;
+        } else {
+            config["fullVideoLabelsOnThumbnailsMode"] = HideFullVideoLabels.Disabled;
+        }
+        //fullVideoLabelsOnThumbnails被移除 0.9.2
+        delete config["fullVideoLabelsOnThumbnails"];
     }
 }
 
@@ -278,7 +289,7 @@ const syncDefaults = {
 
     muteSegments: true,
     fullVideoSegments: true,
-    fullVideoLabelsOnThumbnails: true,
+    fullVideoLabelsOnThumbnailsMode: HideFullVideoLabels.Overlay,
     manualSkipOnFullVideo: false,
     trackViewCount: true,
     trackViewCountInPrivate: true,

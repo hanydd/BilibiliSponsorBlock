@@ -300,6 +300,14 @@ async function init() {
                     let value: string | number = selectorElement.value;
                     if (!isNaN(Number(value))) value = Number(value);
 
+                    const selectedOption = selectorElement.selectedOptions[0];
+                    const confirmMessage = selectedOption.getAttribute("data-confirm-message");
+
+                    if (confirmMessage && !confirm(chrome.i18n.getMessage(confirmMessage))) {
+                        selectorElement.value = Config.config[option];
+                        return;
+                    }
+
                     Config.config[option] = value;
                 });
                 break;
