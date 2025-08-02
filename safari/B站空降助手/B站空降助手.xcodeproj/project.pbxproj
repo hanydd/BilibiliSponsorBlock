@@ -1,0 +1,1003 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		34ACF3912CD53234001AB3CD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34ACF3902CD53234001AB3CD /* AppDelegate.swift */; };
+		34ACF3932CD53234001AB3CD /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34ACF3922CD53234001AB3CD /* SceneDelegate.swift */; };
+		34ACF3962CD53234001AB3CD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3942CD53234001AB3CD /* LaunchScreen.storyboard */; };
+		34ACF3992CD53234001AB3CD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3972CD53234001AB3CD /* Main.storyboard */; };
+		34ACF3A22CD53234001AB3CD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34ACF3A12CD53234001AB3CD /* AppDelegate.swift */; };
+		34ACF3A52CD53234001AB3CD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3A32CD53234001AB3CD /* Main.storyboard */; };
+		34ACF3AD2CD53234001AB3CD /* B站空降助手 Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 34ACF3AC2CD53234001AB3CD /* B站空降助手 Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		34ACF3B72CD53234001AB3CD /* B站空降助手 Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 34ACF3B62CD53234001AB3CD /* B站空降助手 Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		34ACF3BD2CD53234001AB3CD /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3802CD53232001AB3CD /* Main.html */; };
+		34ACF3BE2CD53234001AB3CD /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3802CD53232001AB3CD /* Main.html */; };
+		34ACF3BF2CD53234001AB3CD /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3822CD53232001AB3CD /* Icon.png */; };
+		34ACF3C02CD53234001AB3CD /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3822CD53232001AB3CD /* Icon.png */; };
+		34ACF3C12CD53234001AB3CD /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3832CD53232001AB3CD /* Style.css */; };
+		34ACF3C22CD53234001AB3CD /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3832CD53232001AB3CD /* Style.css */; };
+		34ACF3C32CD53234001AB3CD /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3842CD53232001AB3CD /* Script.js */; };
+		34ACF3C42CD53234001AB3CD /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3842CD53232001AB3CD /* Script.js */; };
+		34ACF3C52CD53234001AB3CD /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34ACF3852CD53232001AB3CD /* ViewController.swift */; };
+		34ACF3C62CD53234001AB3CD /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34ACF3852CD53232001AB3CD /* ViewController.swift */; };
+		34ACF3C72CD53234001AB3CD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3862CD53234001AB3CD /* Assets.xcassets */; };
+		34ACF3C82CD53234001AB3CD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3862CD53234001AB3CD /* Assets.xcassets */; };
+		34ACF3C92CD53234001AB3CD /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34ACF3882CD53234001AB3CD /* SafariWebExtensionHandler.swift */; };
+		34ACF3CA2CD53234001AB3CD /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34ACF3882CD53234001AB3CD /* SafariWebExtensionHandler.swift */; };
+		34ACF3E92CD53234001AB3CD /* options in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3DC2CD53234001AB3CD /* options */; };
+		34ACF3EA2CD53234001AB3CD /* res in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3DD2CD53234001AB3CD /* res */; };
+		34ACF3EB2CD53234001AB3CD /* oss-attribution in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3DE2CD53234001AB3CD /* oss-attribution */; };
+		34ACF3EC2CD53234001AB3CD /* content.css in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3DF2CD53234001AB3CD /* content.css */; };
+		34ACF3ED2CD53234001AB3CD /* js in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E02CD53234001AB3CD /* js */; };
+		34ACF3EE2CD53234001AB3CD /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E12CD53234001AB3CD /* popup.html */; };
+		34ACF3EF2CD53234001AB3CD /* shared.css in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E22CD53234001AB3CD /* shared.css */; };
+		34ACF3F02CD53234001AB3CD /* permissions in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E32CD53234001AB3CD /* permissions */; };
+		34ACF3F12CD53234001AB3CD /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E42CD53234001AB3CD /* icons */; };
+		34ACF3F22CD53234001AB3CD /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E52CD53234001AB3CD /* manifest.json */; };
+		34ACF3F32CD53234001AB3CD /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E62CD53234001AB3CD /* popup.css */; };
+		34ACF3F42CD53234001AB3CD /* _locales in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E72CD53234001AB3CD /* _locales */; };
+		34ACF3F52CD53234001AB3CD /* help in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E82CD53234001AB3CD /* help */; };
+		34ACF3F62CD53234001AB3CD /* options in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3DC2CD53234001AB3CD /* options */; };
+		34ACF3F72CD53234001AB3CD /* res in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3DD2CD53234001AB3CD /* res */; };
+		34ACF3F82CD53234001AB3CD /* oss-attribution in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3DE2CD53234001AB3CD /* oss-attribution */; };
+		34ACF3F92CD53234001AB3CD /* content.css in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3DF2CD53234001AB3CD /* content.css */; };
+		34ACF3FA2CD53234001AB3CD /* js in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E02CD53234001AB3CD /* js */; };
+		34ACF3FB2CD53234001AB3CD /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E12CD53234001AB3CD /* popup.html */; };
+		34ACF3FC2CD53234001AB3CD /* shared.css in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E22CD53234001AB3CD /* shared.css */; };
+		34ACF3FD2CD53234001AB3CD /* permissions in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E32CD53234001AB3CD /* permissions */; };
+		34ACF3FE2CD53234001AB3CD /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E42CD53234001AB3CD /* icons */; };
+		34ACF3FF2CD53234001AB3CD /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E52CD53234001AB3CD /* manifest.json */; };
+		34ACF4002CD53234001AB3CD /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E62CD53234001AB3CD /* popup.css */; };
+		34ACF4012CD53234001AB3CD /* _locales in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E72CD53234001AB3CD /* _locales */; };
+		34ACF4022CD53234001AB3CD /* help in Resources */ = {isa = PBXBuildFile; fileRef = 34ACF3E82CD53234001AB3CD /* help */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		34ACF3AE2CD53234001AB3CD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 34ACF37A2CD53231001AB3CD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 34ACF3AB2CD53234001AB3CD;
+			remoteInfo = "B站空降助手 Extension (iOS)";
+		};
+		34ACF3B82CD53234001AB3CD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 34ACF37A2CD53231001AB3CD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 34ACF3B52CD53234001AB3CD;
+			remoteInfo = "B站空降助手 Extension (macOS)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		34ACF3D02CD53234001AB3CD /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				34ACF3AD2CD53234001AB3CD /* B站空降助手 Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		34ACF3D72CD53234001AB3CD /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				34ACF3B72CD53234001AB3CD /* B站空降助手 Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		34ACF3812CD53232001AB3CD /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
+		34ACF3822CD53232001AB3CD /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		34ACF3832CD53232001AB3CD /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		34ACF3842CD53232001AB3CD /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		34ACF3852CD53232001AB3CD /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		34ACF3862CD53234001AB3CD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		34ACF3882CD53234001AB3CD /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		34ACF38D2CD53234001AB3CD /* B站空降助手.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "B站空降助手.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		34ACF3902CD53234001AB3CD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		34ACF3922CD53234001AB3CD /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		34ACF3952CD53234001AB3CD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		34ACF3982CD53234001AB3CD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		34ACF39A2CD53234001AB3CD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		34ACF39F2CD53234001AB3CD /* B站空降助手.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "B站空降助手.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		34ACF3A12CD53234001AB3CD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		34ACF3A42CD53234001AB3CD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		34ACF3A62CD53234001AB3CD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		34ACF3A72CD53234001AB3CD /* B站空降助手.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "B站空降助手.entitlements"; sourceTree = "<group>"; };
+		34ACF3AC2CD53234001AB3CD /* B站空降助手 Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "B站空降助手 Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		34ACF3B12CD53234001AB3CD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		34ACF3B62CD53234001AB3CD /* B站空降助手 Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "B站空降助手 Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		34ACF3BB2CD53234001AB3CD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		34ACF3BC2CD53234001AB3CD /* B站空降助手.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "B站空降助手.entitlements"; sourceTree = "<group>"; };
+		34ACF3DC2CD53234001AB3CD /* options */ = {isa = PBXFileReference; lastKnownFileType = folder; name = options; path = ../../ChromeExtension/options; sourceTree = "<group>"; };
+		34ACF3DD2CD53234001AB3CD /* res */ = {isa = PBXFileReference; lastKnownFileType = folder; name = res; path = ../../ChromeExtension/res; sourceTree = "<group>"; };
+		34ACF3DE2CD53234001AB3CD /* oss-attribution */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "oss-attribution"; path = "../../ChromeExtension/oss-attribution"; sourceTree = "<group>"; };
+		34ACF3DF2CD53234001AB3CD /* content.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = content.css; path = ../../ChromeExtension/content.css; sourceTree = "<group>"; };
+		34ACF3E02CD53234001AB3CD /* js */ = {isa = PBXFileReference; lastKnownFileType = folder; name = js; path = ../../ChromeExtension/js; sourceTree = "<group>"; };
+		34ACF3E12CD53234001AB3CD /* popup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = popup.html; path = ../../ChromeExtension/popup.html; sourceTree = "<group>"; };
+		34ACF3E22CD53234001AB3CD /* shared.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = shared.css; path = ../../ChromeExtension/shared.css; sourceTree = "<group>"; };
+		34ACF3E32CD53234001AB3CD /* permissions */ = {isa = PBXFileReference; lastKnownFileType = folder; name = permissions; path = ../../ChromeExtension/permissions; sourceTree = "<group>"; };
+		34ACF3E42CD53234001AB3CD /* icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = icons; path = ../../ChromeExtension/icons; sourceTree = "<group>"; };
+		34ACF3E52CD53234001AB3CD /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = ../../ChromeExtension/manifest.json; sourceTree = "<group>"; };
+		34ACF3E62CD53234001AB3CD /* popup.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = popup.css; path = ../../ChromeExtension/popup.css; sourceTree = "<group>"; };
+		34ACF3E72CD53234001AB3CD /* _locales */ = {isa = PBXFileReference; lastKnownFileType = folder; name = _locales; path = ../../ChromeExtension/_locales; sourceTree = "<group>"; };
+		34ACF3E82CD53234001AB3CD /* help */ = {isa = PBXFileReference; lastKnownFileType = folder; name = help; path = ../../ChromeExtension/help; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		34ACF38A2CD53234001AB3CD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		34ACF39C2CD53234001AB3CD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		34ACF3A92CD53234001AB3CD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		34ACF3B32CD53234001AB3CD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		34ACF3792CD53231001AB3CD = {
+			isa = PBXGroup;
+			children = (
+				34ACF37E2CD53232001AB3CD /* Shared (App) */,
+				34ACF3872CD53234001AB3CD /* Shared (Extension) */,
+				34ACF38F2CD53234001AB3CD /* iOS (App) */,
+				34ACF3A02CD53234001AB3CD /* macOS (App) */,
+				34ACF3B02CD53234001AB3CD /* iOS (Extension) */,
+				34ACF3BA2CD53234001AB3CD /* macOS (Extension) */,
+				34ACF38E2CD53234001AB3CD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		34ACF37E2CD53232001AB3CD /* Shared (App) */ = {
+			isa = PBXGroup;
+			children = (
+				34ACF3852CD53232001AB3CD /* ViewController.swift */,
+				34ACF3862CD53234001AB3CD /* Assets.xcassets */,
+				34ACF37F2CD53232001AB3CD /* Resources */,
+			);
+			path = "Shared (App)";
+			sourceTree = "<group>";
+		};
+		34ACF37F2CD53232001AB3CD /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				34ACF3802CD53232001AB3CD /* Main.html */,
+				34ACF3822CD53232001AB3CD /* Icon.png */,
+				34ACF3832CD53232001AB3CD /* Style.css */,
+				34ACF3842CD53232001AB3CD /* Script.js */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		34ACF3872CD53234001AB3CD /* Shared (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				34ACF3DB2CD53234001AB3CD /* Resources */,
+				34ACF3882CD53234001AB3CD /* SafariWebExtensionHandler.swift */,
+			);
+			path = "Shared (Extension)";
+			sourceTree = "<group>";
+		};
+		34ACF38E2CD53234001AB3CD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				34ACF38D2CD53234001AB3CD /* B站空降助手.app */,
+				34ACF39F2CD53234001AB3CD /* B站空降助手.app */,
+				34ACF3AC2CD53234001AB3CD /* B站空降助手 Extension.appex */,
+				34ACF3B62CD53234001AB3CD /* B站空降助手 Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		34ACF38F2CD53234001AB3CD /* iOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				34ACF3902CD53234001AB3CD /* AppDelegate.swift */,
+				34ACF3922CD53234001AB3CD /* SceneDelegate.swift */,
+				34ACF3942CD53234001AB3CD /* LaunchScreen.storyboard */,
+				34ACF3972CD53234001AB3CD /* Main.storyboard */,
+				34ACF39A2CD53234001AB3CD /* Info.plist */,
+			);
+			path = "iOS (App)";
+			sourceTree = "<group>";
+		};
+		34ACF3A02CD53234001AB3CD /* macOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				34ACF3A12CD53234001AB3CD /* AppDelegate.swift */,
+				34ACF3A32CD53234001AB3CD /* Main.storyboard */,
+				34ACF3A62CD53234001AB3CD /* Info.plist */,
+				34ACF3A72CD53234001AB3CD /* B站空降助手.entitlements */,
+			);
+			path = "macOS (App)";
+			sourceTree = "<group>";
+		};
+		34ACF3B02CD53234001AB3CD /* iOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				34ACF3B12CD53234001AB3CD /* Info.plist */,
+			);
+			path = "iOS (Extension)";
+			sourceTree = "<group>";
+		};
+		34ACF3BA2CD53234001AB3CD /* macOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				34ACF3BB2CD53234001AB3CD /* Info.plist */,
+				34ACF3BC2CD53234001AB3CD /* B站空降助手.entitlements */,
+			);
+			path = "macOS (Extension)";
+			sourceTree = "<group>";
+		};
+		34ACF3DB2CD53234001AB3CD /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				34ACF3DC2CD53234001AB3CD /* options */,
+				34ACF3DD2CD53234001AB3CD /* res */,
+				34ACF3DE2CD53234001AB3CD /* oss-attribution */,
+				34ACF3DF2CD53234001AB3CD /* content.css */,
+				34ACF3E02CD53234001AB3CD /* js */,
+				34ACF3E12CD53234001AB3CD /* popup.html */,
+				34ACF3E22CD53234001AB3CD /* shared.css */,
+				34ACF3E32CD53234001AB3CD /* permissions */,
+				34ACF3E42CD53234001AB3CD /* icons */,
+				34ACF3E52CD53234001AB3CD /* manifest.json */,
+				34ACF3E62CD53234001AB3CD /* popup.css */,
+				34ACF3E72CD53234001AB3CD /* _locales */,
+				34ACF3E82CD53234001AB3CD /* help */,
+			);
+			name = Resources;
+			path = "Shared (Extension)";
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		34ACF38C2CD53234001AB3CD /* B站空降助手 (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 34ACF3D12CD53234001AB3CD /* Build configuration list for PBXNativeTarget "B站空降助手 (iOS)" */;
+			buildPhases = (
+				34ACF3892CD53234001AB3CD /* Sources */,
+				34ACF38A2CD53234001AB3CD /* Frameworks */,
+				34ACF38B2CD53234001AB3CD /* Resources */,
+				34ACF3D02CD53234001AB3CD /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				34ACF3AF2CD53234001AB3CD /* PBXTargetDependency */,
+			);
+			name = "B站空降助手 (iOS)";
+			packageProductDependencies = (
+			);
+			productName = "B站空降助手 (iOS)";
+			productReference = 34ACF38D2CD53234001AB3CD /* B站空降助手.app */;
+			productType = "com.apple.product-type.application";
+		};
+		34ACF39E2CD53234001AB3CD /* B站空降助手 (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 34ACF3D82CD53234001AB3CD /* Build configuration list for PBXNativeTarget "B站空降助手 (macOS)" */;
+			buildPhases = (
+				34ACF39B2CD53234001AB3CD /* Sources */,
+				34ACF39C2CD53234001AB3CD /* Frameworks */,
+				34ACF39D2CD53234001AB3CD /* Resources */,
+				34ACF3D72CD53234001AB3CD /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				34ACF3B92CD53234001AB3CD /* PBXTargetDependency */,
+			);
+			name = "B站空降助手 (macOS)";
+			packageProductDependencies = (
+			);
+			productName = "B站空降助手 (macOS)";
+			productReference = 34ACF39F2CD53234001AB3CD /* B站空降助手.app */;
+			productType = "com.apple.product-type.application";
+		};
+		34ACF3AB2CD53234001AB3CD /* B站空降助手 Extension (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 34ACF3CD2CD53234001AB3CD /* Build configuration list for PBXNativeTarget "B站空降助手 Extension (iOS)" */;
+			buildPhases = (
+				34ACF3A82CD53234001AB3CD /* Sources */,
+				34ACF3A92CD53234001AB3CD /* Frameworks */,
+				34ACF3AA2CD53234001AB3CD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "B站空降助手 Extension (iOS)";
+			packageProductDependencies = (
+			);
+			productName = "B站空降助手 Extension (iOS)";
+			productReference = 34ACF3AC2CD53234001AB3CD /* B站空降助手 Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		34ACF3B52CD53234001AB3CD /* B站空降助手 Extension (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 34ACF3D42CD53234001AB3CD /* Build configuration list for PBXNativeTarget "B站空降助手 Extension (macOS)" */;
+			buildPhases = (
+				34ACF3B22CD53234001AB3CD /* Sources */,
+				34ACF3B32CD53234001AB3CD /* Frameworks */,
+				34ACF3B42CD53234001AB3CD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "B站空降助手 Extension (macOS)";
+			packageProductDependencies = (
+			);
+			productName = "B站空降助手 Extension (macOS)";
+			productReference = 34ACF3B62CD53234001AB3CD /* B站空降助手 Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		34ACF37A2CD53231001AB3CD /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1610;
+				LastUpgradeCheck = 1610;
+				TargetAttributes = {
+					34ACF38C2CD53234001AB3CD = {
+						CreatedOnToolsVersion = 16.1;
+					};
+					34ACF39E2CD53234001AB3CD = {
+						CreatedOnToolsVersion = 16.1;
+					};
+					34ACF3AB2CD53234001AB3CD = {
+						CreatedOnToolsVersion = 16.1;
+					};
+					34ACF3B52CD53234001AB3CD = {
+						CreatedOnToolsVersion = 16.1;
+					};
+				};
+			};
+			buildConfigurationList = 34ACF37D2CD53231001AB3CD /* Build configuration list for PBXProject "B站空降助手" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 34ACF3792CD53231001AB3CD;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 34ACF38E2CD53234001AB3CD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				34ACF38C2CD53234001AB3CD /* B站空降助手 (iOS) */,
+				34ACF39E2CD53234001AB3CD /* B站空降助手 (macOS) */,
+				34ACF3AB2CD53234001AB3CD /* B站空降助手 Extension (iOS) */,
+				34ACF3B52CD53234001AB3CD /* B站空降助手 Extension (macOS) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		34ACF38B2CD53234001AB3CD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34ACF3BF2CD53234001AB3CD /* Icon.png in Resources */,
+				34ACF3962CD53234001AB3CD /* LaunchScreen.storyboard in Resources */,
+				34ACF3BD2CD53234001AB3CD /* Main.html in Resources */,
+				34ACF3C32CD53234001AB3CD /* Script.js in Resources */,
+				34ACF3C72CD53234001AB3CD /* Assets.xcassets in Resources */,
+				34ACF3992CD53234001AB3CD /* Main.storyboard in Resources */,
+				34ACF3C12CD53234001AB3CD /* Style.css in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		34ACF39D2CD53234001AB3CD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34ACF3C02CD53234001AB3CD /* Icon.png in Resources */,
+				34ACF3C22CD53234001AB3CD /* Style.css in Resources */,
+				34ACF3A52CD53234001AB3CD /* Main.storyboard in Resources */,
+				34ACF3C42CD53234001AB3CD /* Script.js in Resources */,
+				34ACF3C82CD53234001AB3CD /* Assets.xcassets in Resources */,
+				34ACF3BE2CD53234001AB3CD /* Main.html in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		34ACF3AA2CD53234001AB3CD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34ACF4002CD53234001AB3CD /* popup.css in Resources */,
+				34ACF4022CD53234001AB3CD /* help in Resources */,
+				34ACF3FA2CD53234001AB3CD /* js in Resources */,
+				34ACF3FB2CD53234001AB3CD /* popup.html in Resources */,
+				34ACF3FF2CD53234001AB3CD /* manifest.json in Resources */,
+				34ACF3F82CD53234001AB3CD /* oss-attribution in Resources */,
+				34ACF3FE2CD53234001AB3CD /* icons in Resources */,
+				34ACF4012CD53234001AB3CD /* _locales in Resources */,
+				34ACF3F92CD53234001AB3CD /* content.css in Resources */,
+				34ACF3F62CD53234001AB3CD /* options in Resources */,
+				34ACF3FC2CD53234001AB3CD /* shared.css in Resources */,
+				34ACF3F72CD53234001AB3CD /* res in Resources */,
+				34ACF3FD2CD53234001AB3CD /* permissions in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		34ACF3B42CD53234001AB3CD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34ACF3F32CD53234001AB3CD /* popup.css in Resources */,
+				34ACF3F52CD53234001AB3CD /* help in Resources */,
+				34ACF3ED2CD53234001AB3CD /* js in Resources */,
+				34ACF3EE2CD53234001AB3CD /* popup.html in Resources */,
+				34ACF3F22CD53234001AB3CD /* manifest.json in Resources */,
+				34ACF3EB2CD53234001AB3CD /* oss-attribution in Resources */,
+				34ACF3F12CD53234001AB3CD /* icons in Resources */,
+				34ACF3F42CD53234001AB3CD /* _locales in Resources */,
+				34ACF3EC2CD53234001AB3CD /* content.css in Resources */,
+				34ACF3E92CD53234001AB3CD /* options in Resources */,
+				34ACF3EF2CD53234001AB3CD /* shared.css in Resources */,
+				34ACF3EA2CD53234001AB3CD /* res in Resources */,
+				34ACF3F02CD53234001AB3CD /* permissions in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		34ACF3892CD53234001AB3CD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34ACF3C52CD53234001AB3CD /* ViewController.swift in Sources */,
+				34ACF3912CD53234001AB3CD /* AppDelegate.swift in Sources */,
+				34ACF3932CD53234001AB3CD /* SceneDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		34ACF39B2CD53234001AB3CD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34ACF3C62CD53234001AB3CD /* ViewController.swift in Sources */,
+				34ACF3A22CD53234001AB3CD /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		34ACF3A82CD53234001AB3CD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34ACF3C92CD53234001AB3CD /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		34ACF3B22CD53234001AB3CD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34ACF3CA2CD53234001AB3CD /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		34ACF3AF2CD53234001AB3CD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 34ACF3AB2CD53234001AB3CD /* B站空降助手 Extension (iOS) */;
+			targetProxy = 34ACF3AE2CD53234001AB3CD /* PBXContainerItemProxy */;
+		};
+		34ACF3B92CD53234001AB3CD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 34ACF3B52CD53234001AB3CD /* B站空降助手 Extension (macOS) */;
+			targetProxy = 34ACF3B82CD53234001AB3CD /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		34ACF3802CD53232001AB3CD /* Main.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				34ACF3812CD53232001AB3CD /* Base */,
+			);
+			name = Main.html;
+			sourceTree = "<group>";
+		};
+		34ACF3942CD53234001AB3CD /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				34ACF3952CD53234001AB3CD /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		34ACF3972CD53234001AB3CD /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				34ACF3982CD53234001AB3CD /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		34ACF3A32CD53234001AB3CD /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				34ACF3A42CD53234001AB3CD /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		34ACF3CB2CD53234001AB3CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		34ACF3CC2CD53234001AB3CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		34ACF3CE2CD53234001AB3CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "B站空降助手 Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yourCompany.B-----.Extension";
+				PRODUCT_NAME = "B站空降助手 Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		34ACF3CF2CD53234001AB3CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "B站空降助手 Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yourCompany.B-----.Extension";
+				PRODUCT_NAME = "B站空降助手 Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		34ACF3D22CD53234001AB3CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "B站空降助手";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yourCompany.B-----";
+				PRODUCT_NAME = "B站空降助手";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		34ACF3D32CD53234001AB3CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "B站空降助手";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yourCompany.B-----";
+				PRODUCT_NAME = "B站空降助手";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		34ACF3D52CD53234001AB3CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/B站空降助手.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "B站空降助手 Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yourCompany.B-----.Extension";
+				PRODUCT_NAME = "B站空降助手 Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		34ACF3D62CD53234001AB3CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/B站空降助手.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "B站空降助手 Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yourCompany.B-----.Extension";
+				PRODUCT_NAME = "B站空降助手 Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		34ACF3D92CD53234001AB3CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "macOS (App)/B站空降助手.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "B站空降助手";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yourCompany.B-----";
+				PRODUCT_NAME = "B站空降助手";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		34ACF3DA2CD53234001AB3CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "macOS (App)/B站空降助手.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "B站空降助手";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yourCompany.B-----";
+				PRODUCT_NAME = "B站空降助手";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		34ACF37D2CD53231001AB3CD /* Build configuration list for PBXProject "B站空降助手" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				34ACF3CB2CD53234001AB3CD /* Debug */,
+				34ACF3CC2CD53234001AB3CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		34ACF3CD2CD53234001AB3CD /* Build configuration list for PBXNativeTarget "B站空降助手 Extension (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				34ACF3CE2CD53234001AB3CD /* Debug */,
+				34ACF3CF2CD53234001AB3CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		34ACF3D12CD53234001AB3CD /* Build configuration list for PBXNativeTarget "B站空降助手 (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				34ACF3D22CD53234001AB3CD /* Debug */,
+				34ACF3D32CD53234001AB3CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		34ACF3D42CD53234001AB3CD /* Build configuration list for PBXNativeTarget "B站空降助手 Extension (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				34ACF3D52CD53234001AB3CD /* Debug */,
+				34ACF3D62CD53234001AB3CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		34ACF3D82CD53234001AB3CD /* Build configuration list for PBXNativeTarget "B站空降助手 (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				34ACF3D92CD53234001AB3CD /* Debug */,
+				34ACF3DA2CD53234001AB3CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 34ACF37A2CD53231001AB3CD /* Project object */;
+}
