@@ -5,7 +5,9 @@ import * as CompileConfig from "../../../config.json";
 import { Category, CategorySkipOption, DynamicSponsorOption } from "../../types";
 
 import { getCategorySuffix } from "../../utils/categoryUtils";
-import ToggleOptionComponent from "./ToggleOptionComponent";
+import { ToggleOptionComponent, NumberOptionComponent } from "./ToggleOptionComponent";
+
+import { SketchPicker } from "react-color";
 
 export interface CategorySkipOptionsProps {
     category: Category;
@@ -17,12 +19,18 @@ export interface CategorySkipOptionsProps {
 export interface CategorySkipOptionsState {
     color: string;
     previewColor?: string;
+    showColorPicker?: boolean,
+    showPreviewColorPicker?: boolean,
 }
 
 export interface ToggleOption {
     configKey: string;
     label: string;
-    dontDisable?: boolean;
+    min?: number;
+    max?: number;
+    step?: number;
+    type?: "toggle" | "number";
+    description?: string;
 }
 
 class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsProps, CategorySkipOptionsState> {
@@ -35,6 +43,8 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
         this.state = {
             color: props.defaultColor || Config.config.barTypes[this.props.category]?.color,
             previewColor: props.defaultPreviewColor || Config.config.barTypes["preview-" + this.props.category]?.color,
+            showColorPicker: false,
+            showPreviewColorPicker: false,
         };
     }
 
@@ -77,22 +87,64 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                     </td>
 
                     <td id={this.props.category + "ColorOption"} className="colorOption">
-                        <input
-                            className="categoryColorTextBox option-text-box"
-                            type="color"
-                            onChange={(event) => this.setColorState(event, false)}
-                            value={this.state.color}
+                        <div
+                            style={{
+                                width: "50px",
+                                height: "21px",
+                                backgroundColor: this.state.color,
+                                border: "1px solid #ccc",
+                                cursor: "pointer",
+                            }}
+                            onClick={() =>
+                                this.setState({ showColorPicker: !this.state.showColorPicker })
+                            }
                         />
+
+                        {this.state.showColorPicker && (
+                            <div style={{ position: "absolute", zIndex: 2 }}>
+                                <div
+                                    style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: 0 }}
+                                    onClick={() => this.setState({ showColorPicker: false })}
+                                />
+                                <SketchPicker
+                                    color={this.state.color}
+                                    onChange={(color) => this.setColorState(color, false)}
+                        />
+                            </div>
+                        )}
                     </td>
 
                     {!["exclusive_access"].includes(this.props.category) && (
                         <td id={this.props.category + "PreviewColorOption"} className="previewColorOption">
-                            <input
-                                className="categoryColorTextBox option-text-box"
-                                type="color"
-                                onChange={(event) => this.setColorState(event, true)}
-                                value={this.state.previewColor}
+                            <div
+                                style={{
+                                    width: "50px",
+                                    height: "21px",
+                                    backgroundColor: this.state.previewColor,
+                                    border: "1px solid #ccc",
+                                    cursor: "pointer",
+                                }}
+                                onClick={() =>
+                                    this.setState({
+                                        showPreviewColorPicker: !this.state.showPreviewColorPicker,
+                                    })
+                                }
                             />
+
+                            {this.state.showPreviewColorPicker && (
+                                <div style={{ position: "absolute", zIndex: 2 }}>
+                                    <div
+                                        style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: 0 }}
+                                        onClick={() =>
+                                            this.setState({ showPreviewColorPicker: false })
+                                        }
+                                    />
+                                    <SketchPicker
+                                        color={this.state.previewColor}
+                                        onChange={(color) => this.setColorState(color, true)}
+                            />
+                                </div>
+                            )}
                         </td>
                     )}
                 </tr>
@@ -177,24 +229,32 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
         return elements;
     }
 
-    setColorState(event: React.FormEvent<HTMLInputElement>, preview: boolean): void {
+    setColorState(
+        input: React.FormEvent<HTMLInputElement> | { hex: string; rgb: { a: number } },
+        preview: boolean
+    ): void {
         clearTimeout(this.setBarColorTimeout);
 
-        if (preview) {
-            this.setState({
-                previewColor: event.currentTarget.value,
-            });
+        let colorValue: string;
 
-            Config.config.barTypes["preview-" + this.props.category].color = event.currentTarget.value;
+        if ("currentTarget" in input) {
+            // <input type="color">
+            colorValue = input.currentTarget.value;
         } else {
-            this.setState({
-                color: event.currentTarget.value,
-            });
-
-            Config.config.barTypes[this.props.category].color = event.currentTarget.value;
+            // SketchPicker（react-color）
+            const rgba = input.rgb;
+            const alphaHex = Math.round(rgba.a * 255).toString(16).padStart(2, "0");
+            colorValue = input.hex + alphaHex;
         }
 
-        // Make listener get called
+        if (preview) {
+            this.setState({ previewColor: colorValue });
+            Config.config.barTypes["preview-" + this.props.category].color = colorValue;
+        } else {
+            this.setState({ color: colorValue });
+            Config.config.barTypes[this.props.category].color = colorValue;
+        }
+
         this.setBarColorTimeout = setTimeout(() => {
             Config.config.barTypes = Config.config.barTypes;
         }, 50);
@@ -206,11 +266,24 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
             result.push(
                 <tr key={option.configKey}>
                     <td id={`${category}_${option.configKey}`} className="categoryExtraOptions">
+                        {option.type === "number" ? (
+                            <NumberOptionComponent
+                                configKey={option.configKey}
+                                label={option.label}
+                                style={{ width: "inherit" }}
+                                min={option.min}
+                                max={option.max}
+                                step={option.step}
+                                description={option.description}
+                            />
+                        ) : (
                         <ToggleOptionComponent
                             configKey={option.configKey}
                             label={option.label}
                             style={{ width: "inherit" }}
+                                description={option.description}
                         />
+                        )}
                     </td>
                 </tr>
             );
@@ -224,6 +297,7 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
             case "music_offtopic":
                 return [
                     {
+                        type: "toggle",
                         configKey: "autoSkipOnMusicVideos",
                         label: chrome.i18n.getMessage("autoSkipOnMusicVideos"),
                     },
