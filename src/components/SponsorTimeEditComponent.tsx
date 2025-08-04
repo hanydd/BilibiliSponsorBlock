@@ -456,6 +456,9 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         ];
 
         for (const category of this.props.categoryList ?? CompileConfig.categoryList) {
+            //仅本地展示不可提交
+            if (category === "filtered_category") continue;
+
             // If permission not loaded, treat it like we have permission except chapter
             const permission =
                 Config.config.showCategoryWithoutPermission || Config.config.permissions[category as Category];

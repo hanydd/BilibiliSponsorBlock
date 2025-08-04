@@ -1706,12 +1706,12 @@ function getNextSkipIndex(
     };
 
     const { includedTimes: submittedArray, scheduledTimes: sponsorStartTimes } = getStartTimes(
-        sponsorTimes,
+        sponsorTimes.filter(segment => segment.category !== "filtered_category"),
         includeIntersectingSegments,
         includeNonIntersectingSegments
     );
     const { scheduledTimes: sponsorStartTimesAfterCurrentTime } = getStartTimes(
-        sponsorTimes,
+        sponsorTimes.filter(segment => segment.category !== "filtered_category"),
         includeIntersectingSegments,
         includeNonIntersectingSegments,
         currentTime,

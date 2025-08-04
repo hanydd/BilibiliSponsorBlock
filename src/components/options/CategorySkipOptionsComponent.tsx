@@ -109,12 +109,12 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                                 <SketchPicker
                                     color={this.state.color}
                                     onChange={(color) => this.setColorState(color, false)}
-                        />
+                                />
                             </div>
                         )}
                     </td>
 
-                    {!["exclusive_access"].includes(this.props.category) && (
+                    {!["exclusive_access", "filtered_category"].includes(this.props.category) && (
                         <td id={this.props.category + "PreviewColorOption"} className="previewColorOption">
                             <div
                                 style={{
@@ -142,7 +142,7 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                                     <SketchPicker
                                         color={this.state.previewColor}
                                         onChange={(color) => this.setColorState(color, true)}
-                            />
+                                    />
                                 </div>
                             )}
                         </td>
@@ -155,9 +155,11 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                 >
                     <td colSpan={2}>
                         {chrome.i18n.getMessage("category_" + this.props.category + "_description")}{" "}
-                        <a href={CompileConfig.wikiLinks[this.props.category]} target="_blank" rel="noreferrer">
-                            {`${chrome.i18n.getMessage("LearnMore")}`}
-                        </a>
+                        {!["filtered_category"].includes(this.props.category) && (
+                            <a href={CompileConfig.wikiLinks[this.props.category]} target="_blank" rel="noreferrer">
+                                {`${chrome.i18n.getMessage("LearnMore")}`}
+                            </a>
+                        )}
                     </td>
                 </tr>
 
@@ -215,6 +217,7 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
 
         let optionNames = ["disable", "showOverlay", "manualSkip", "autoSkip"];
         if (this.props.category === "exclusive_access") optionNames = ["disable", "showOverlay"];
+        if (this.props.category === "filtered_category") optionNames = ["disable", "showOverlay"];
 
         for (const optionName of optionNames) {
             elements.push(
@@ -277,12 +280,12 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                                 description={option.description}
                             />
                         ) : (
-                        <ToggleOptionComponent
-                            configKey={option.configKey}
-                            label={option.label}
-                            style={{ width: "inherit" }}
+                            <ToggleOptionComponent
+                                configKey={option.configKey}
+                                label={option.label}
+                                style={{ width: "inherit" }}
                                 description={option.description}
-                        />
+                            />
                         )}
                     </td>
                 </tr>
@@ -300,6 +303,36 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                         type: "toggle",
                         configKey: "autoSkipOnMusicVideos",
                         label: chrome.i18n.getMessage("autoSkipOnMusicVideos"),
+                    },
+                ];
+            case "filtered_category":
+                return [
+                    {
+                        type: "number",
+                        configKey: "filteredBetterCategoryTime",
+                        label: chrome.i18n.getMessage("filteredBetterCategoryTime"),
+                        description: chrome.i18n.getMessage("filteredBetterCategoryTimeDescription"),
+                        min: 0,
+                        step: 1,
+                    },
+                    {
+                        type: "toggle",
+                        configKey: "filteredBetterCategoryDifferentCategory",
+                        label: chrome.i18n.getMessage("filteredBetterCategoryDifferentCategory"),
+                        description: chrome.i18n.getMessage("filteredBetterCategoryDifferentCategoryDescription"),
+                    },
+                    {
+                        type: "toggle",
+                        configKey: "filteredBetterCategoryVote",
+                        label: chrome.i18n.getMessage("filteredBetterCategoryVote"),
+                        description: chrome.i18n.getMessage("filteredBetterCategoryVoteDescription"),
+                    },
+                    {
+                        type: "number",
+                        configKey: "filteredBetterCategoryVoteNumber",
+                        label: chrome.i18n.getMessage("filteredBetterCategoryVoteNumber"),
+                        description: chrome.i18n.getMessage("filteredBetterCategoryVoteNumberDescription"),
+                        step: 1,
                     },
                 ];
             default:

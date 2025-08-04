@@ -1346,5 +1346,35 @@
     },
     "requestVote": {
         "message": "片段标记准确吗？"
+    },
+    "filteredBetterCategoryVote": {
+        "message": "对片段低于某一个点赞数时同样进行优选剔除"
+    },
+    "filteredBetterCategoryVoteDescription": {
+        "message": "当片段的点赞数低于某一个点赞数时，片段将被优选剔除。请注意，这个值是相对于当前片段的得票数而言的。"
+    },
+    "filteredBetterCategoryVoteNumber": {
+        "message": "低于这个的得票数将会被优选剔除: "
+    },
+    "filteredBetterCategoryVoteNumberDescription": {
+        "message": "我们更推荐使用低于0的值来进行优选剔除。防止某些片段无人点赞时被优选剔除。"
+    },
+    "filteredBetterCategoryTime": {
+        "message": "片段重合多少秒视为相似？: "
+    },
+    "filteredBetterCategoryTimeDescription": {
+        "message": "当片段重合 X 秒后会被视为相似片段。\n比如片段A是00:00-00:10，片段B是00:05-00:15，且设置为重合 5 秒视为相似那么片段A与片段B将会被视为相似片段。设置为 0 则不会进行重叠相似片段的优选剔除。"
+    },
+    "category_filtered_category": {
+        "message": "被优选剔除片段"
+    },
+    "category_filtered_category_description": {
+        "message": "使用片段获得的票数对相似的片段进行优选, 当出现片段重叠时, 较低获赞的片段将会转变为此片段, 该片段不会进行任何操作仅用作提示。\n如果得票数相同则随机选择一个片段进行优选剔除。以扩大反馈面。"
+    },
+    "filteredBetterCategoryDifferentCategory": {
+        "message": "即使是不同类别的片段也会进行优选剔除"
+    },
+    "filteredBetterCategoryDifferentCategoryDescription": {
+        "message": "不建议启用此选项，因为它可能会导致部分允许进行重叠的片段类型被误优选。"
     }
 }

@@ -1345,5 +1345,35 @@
     },
     "requestVote": {
         "message": "片段標記準確嗎？"
+    },
+    "filteredBetterCategoryVote": {
+        "message": "對片段低於某一個點讚數時同樣進行優選剔除"
+    },
+    "filteredBetterCategoryVoteDescription": {
+        "message": "當片段的點讚數低於某一個點讚數時，片段將被優選剔除。請注意，這個值是相對於當前片段的得票數而言的。"
+    },
+    "filteredBetterCategoryVoteNumber": {
+        "message": "低於這個的得票數將會被優選剔除: "
+    },
+    "filteredBetterCategoryVoteNumberDescription": {
+        "message": "我們更推薦使用低於0的值來進行優選剔除。防止某些片段無人點讚時被優選剔除。"
+    },
+    "filteredBetterCategoryTime": {
+        "message": "片段重合多少秒視為相似？: "
+    },
+    "filteredBetterCategoryTimeDescription": {
+        "message": "當片段重合 X 秒後會被視為相似片段。\n比如片段A是00: 00-00: 10，片段B是00: 05-00: 15，且設置為重合 5 秒視為相似那麼片段A與片段B將會被視為相似片段。設置為 0 則不會進行重疊相似片段的優選剔除。"
+    },
+    "category_filtered_category": {
+        "message": "被優選剔除片段"
+    },
+    "category_filtered_category_description": {
+        "message": "使用片段獲得的票數對相似的片段進行優選, 當出現片段重疊時, 較低獲讚的片段將會轉變為此片段, 該片段不會進行任何操作僅用作提示。\n如果得票數相同則隨機選擇一個片段進行優選剔除。以擴大反饋面。"
+    },
+    "filteredBetterCategoryDifferentCategory": {
+        "message": "即使是不同類別的片段也會進行優選剔除"
+    },
+    "filteredBetterCategoryDifferentCategoryDescription": {
+        "message": "不建議啟用此選項，因為它可能會導致部分允許進行重疊的片段類型被誤優選。"
     }
 }
