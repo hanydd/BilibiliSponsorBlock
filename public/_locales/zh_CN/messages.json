@@ -800,7 +800,7 @@
         "description": "Referring to the category pill that is now shown on videos that are entirely sponsor or entirely selfpromo"
     },
     "fullVideoLabelsOnThumbnailsMode": {
-        "message": "当整个视频都是某一类别时在视频卡片上? ",
+        "message": "当整个视频都是某一类别时，在视频卡片上 ",
         "description": "Referring to the category pill that is shown on videos that are entirely sponsor or entirely selfpromo on recommended videos, in searches or on the homepage."
     },
     "fullVideoLabelsOnThumbnailsMode0": {
@@ -813,7 +813,7 @@
         "message": "隐藏此视频卡片 - 不推荐"
     },
     "fullVideoLabelsOnThumbnailsMode2_Warning": {
-        "message": "这会隐藏大量视频卡片，因为目前有大量随意的提交污染数据库, 这可能会隐藏你想看的内容。这还会影响排版, 请谨慎使用此选项。\n而且被隐藏后不会提示你有视频被隐藏了且无法手动查看。\n我们更推荐启用 \"模糊此视频卡片 - 鼠标悬浮可查看内容\"。"
+        "message": "这会隐藏大量视频卡片，包括你想看的内容，同时还会影响排版, 请谨慎使用此选项。\n被隐藏的视频不会有任何标记，且无法手动查看。\n更推荐启用“模糊此视频卡片 - 鼠标悬浮可查看内容”。"
     },
     "fullVideoLabelsOnThumbnailsMode3": {
         "message": "模糊此视频卡片 - 鼠标悬浮可查看内容"
@@ -825,7 +825,7 @@
         "message": "遮挡此视频卡片 - 不推荐"
     },
     "fullVideoBlock": {
-        "message": "此内容已被小电视空降助手屏蔽"
+        "message": ""
     },
     "previewColor": {
         "message": "未提交颜色",

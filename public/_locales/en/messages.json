@@ -799,9 +799,33 @@
         "message": "当整个视频都是某一类别时显示图标",
         "description": "Referring to the category pill that is now shown on videos that are entirely sponsor or entirely selfpromo"
     },
-    "fullVideoLabelsOnThumbnails": {
-        "message": "在视频封面上显示标签",
+    "fullVideoLabelsOnThumbnailsMode": {
+        "message": "当整个视频都是某一类别时，在视频卡片上 ",
         "description": "Referring to the category pill that is shown on videos that are entirely sponsor or entirely selfpromo on recommended videos, in searches or on the homepage."
+    },
+    "fullVideoLabelsOnThumbnailsMode0": {
+        "message": "无操作"
+    },
+    "fullVideoLabelsOnThumbnailsMode1": {
+        "message": "显示标签"
+    },
+    "fullVideoLabelsOnThumbnailsMode2": {
+        "message": "隐藏此视频卡片 - 不推荐"
+    },
+    "fullVideoLabelsOnThumbnailsMode2_Warning": {
+        "message": "这会隐藏大量视频卡片，包括你想看的内容，同时还会影响排版, 请谨慎使用此选项。\n被隐藏的视频不会有任何标记，且无法手动查看。\n更推荐启用“模糊此视频卡片 - 鼠标悬浮可查看内容”。"
+    },
+    "fullVideoLabelsOnThumbnailsMode3": {
+        "message": "模糊此视频卡片 - 鼠标悬浮可查看内容"
+    },
+    "fullVideoLabelsOnThumbnailsMode4": {
+        "message": "模糊此视频卡片 - 不推荐"
+    },
+    "fullVideoLabelsOnThumbnailsMode5": {
+        "message": "遮挡此视频卡片 - 不推荐"
+    },
+    "fullVideoBlock": {
+        "message": ""
     },
     "previewColor": {
         "message": "未提交颜色",
