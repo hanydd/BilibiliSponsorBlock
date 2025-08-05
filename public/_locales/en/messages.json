@@ -7,7 +7,7 @@
         "message": "空降助手"
     },
     "Description": {
-        "message": "恰饭？桌子都给你掀了(/= _ =)/~┴┴  带你精准空降到赞助广告结束或者高能时刻，自动跳过视频中的赞助广告、订阅提醒等片段。你也可以亲自标记视频中的广告并上传，所有人都会从您的贡献中受益。",
+        "message": "恰饭？桌子都给你掀了(/= _ =)/~┴┴ 带你精准空降到赞助广告结束或者高能时刻，自动跳过视频中的赞助广告、订阅提醒等片段。你也可以亲自标记视频中的广告并上传，所有人都会从您的贡献中受益。",
         "description": "Description of the extension."
     },
     "400": {
@@ -819,7 +819,7 @@
         "message": "模糊此视频卡片 - 鼠标悬浮可查看内容"
     },
     "fullVideoLabelsOnThumbnailsMode4": {
-        "message": "模糊此视频卡片 - 不推荐"
+        "message": "模糊此视频卡片"
     },
     "fullVideoLabelsOnThumbnailsMode5": {
         "message": "遮挡此视频卡片 - 不推荐"
