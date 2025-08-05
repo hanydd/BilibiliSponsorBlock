@@ -25,7 +25,10 @@ export async function labelThumbnailProcess(
     thumbnail: HTMLElement,
     containerType: string
 ): Promise<HTMLElement | null> {
-    if (!Config.config?.fullVideoSegments || Config.config?.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.Disabled) {
+    if (
+        !Config.config?.fullVideoSegments ||
+        Config.config?.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.Disabled
+    ) {
         await hideThumbnailLabel(thumbnail);
         return null;
     }
@@ -77,10 +80,15 @@ export async function labelThumbnailProcess(
         text.innerText = chrome.i18n.getMessage(`category_${category}`);
         overlay.classList.add("sponsorThumbnailLabelVisible");
 
-        if ([HideFullVideoLabels.Hide, 
-            HideFullVideoLabels.BlurAlways, 
-            HideFullVideoLabels.BlurRevealOnHover, 
-            HideFullVideoLabels.SolidCover].includes(Config.config.fullVideoLabelsOnThumbnailsMode)) hideVideoCard(thumbnail, containerType);
+        if (
+            [
+                HideFullVideoLabels.Hide,
+                HideFullVideoLabels.BlurAlways,
+                HideFullVideoLabels.BlurRevealOnHover,
+                HideFullVideoLabels.SolidCover,
+            ].includes(Config.config.fullVideoLabelsOnThumbnailsMode)
+        )
+            hideVideoCard(thumbnail, containerType);
     }
 
     return overlay;
@@ -100,7 +108,7 @@ async function hideThumbnailLabel(thumbnail: HTMLElement): Promise<void> {
 
 const preloadSegments = (e: MouseEvent) => {
     const bvID = (e.target as HTMLElement).getAttribute("data-bsb-bvid") as BVID;
-    getSegmentsByVideoID(bvID + "+" as NewVideoID);
+    getSegmentsByVideoID((bvID + "+") as NewVideoID);
 };
 
 async function createOrGetThumbnail(
@@ -183,19 +191,19 @@ function hideVideoCard(thumbnail: HTMLElement, containerType: string) {
     let card: HTMLElement;
     switch (containerType) {
         case "channelDynamic":
-            card = (thumbnail.parentNode.parentNode.parentNode.parentNode as HTMLElement);
+            card = thumbnail.parentNode.parentNode.parentNode.parentNode as HTMLElement;
             break;
         case "dynamic":
-        case "spaceUpload": 
-            card = (thumbnail.parentNode.parentNode.parentNode as HTMLElement);
+        case "spaceUpload":
+            card = thumbnail.parentNode.parentNode.parentNode as HTMLElement;
             break;
         case "mainPageRecommendation":
-        case "bewlybewlyMainPage": 
-            card = (thumbnail.parentNode.parentNode as HTMLElement);
+        case "bewlybewlyMainPage":
+            card = thumbnail.parentNode.parentNode as HTMLElement;
             break;
         case "search":
-        case "spaceMain": 
-            card = (thumbnail.parentNode as HTMLElement);
+        case "spaceMain":
+            card = thumbnail.parentNode as HTMLElement;
             break;
         case "dynamicPopup":
         case "favPopup":
@@ -210,20 +218,24 @@ function hideVideoCard(thumbnail: HTMLElement, containerType: string) {
             break;
     }
 
-    if ([HideFullVideoLabels.BlurAlways, 
-        HideFullVideoLabels.BlurRevealOnHover, 
-        HideFullVideoLabels.SolidCover].includes(Config.config.fullVideoLabelsOnThumbnailsMode)) {
+    if (
+        [
+            HideFullVideoLabels.BlurAlways,
+            HideFullVideoLabels.BlurRevealOnHover,
+            HideFullVideoLabels.SolidCover,
+        ].includes(Config.config.fullVideoLabelsOnThumbnailsMode)
+    ) {
         Blur(card);
     } else {
         Hide(card);
     }
 
     function Blur(card: HTMLElement) {
-        if (!card || card.querySelector('.bsb-blur-mask')) return;
+        if (!card || card.querySelector(".bsb-blur-mask")) return;
 
-        const mask = document.createElement('div');
+        const mask = document.createElement("div");
         mask.innerText = chrome.i18n.getMessage("fullVideoBlock");
-        mask.className = 'bsb-blur-mask';
+        mask.className = "bsb-blur-mask";
         mask.style.cssText = `
         position: absolute;
         pointer-events: none;
@@ -240,13 +252,13 @@ function hideVideoCard(thumbnail: HTMLElement, containerType: string) {
         pointer-events: none;
         `;
         if (Config.config.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.SolidCover) {
-           mask.style.backgroundColor = "var(--graph_bg_regular)";
-           mask.style.pointerEvents = "all";
+            mask.style.backgroundColor = "var(--graph_bg_regular)";
+            mask.style.pointerEvents = "all";
         } else {
             mask.style.backdropFilter = "blur(8px)";
         }
 
-        card.style.position = 'relative';
+        card.style.position = "relative";
         card.appendChild(mask);
 
         const label = card.querySelector(".sponsorThumbnailLabel").cloneNode(true) as HTMLElement;
@@ -260,14 +272,14 @@ function hideVideoCard(thumbnail: HTMLElement, containerType: string) {
         }
 
         card.appendChild(label);
-        
+
         if (Config.config.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.BlurRevealOnHover) {
-            card.addEventListener('mouseenter', () => {
-                mask.style.opacity = '0';
+            card.addEventListener("mouseenter", () => {
+                mask.style.opacity = "0";
                 label.style.opacity = "0";
             });
-            card.addEventListener('mouseleave', () => {
-                mask.style.opacity = '1';
+            card.addEventListener("mouseleave", () => {
+                mask.style.opacity = "1";
                 label.style.opacity = "0.7";
             });
         }
