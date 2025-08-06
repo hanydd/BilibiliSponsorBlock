@@ -1,11 +1,9 @@
-import { getBvIDfromAvIDBiliApi } from "../requests/bilibiliApi";
 import { BiliVideoDetail } from "../requests/type/BilibiliRequestType";
 import { AID, BVID } from "../types";
 import { CalculateAvidToBvid } from "../utils/bvidAvidUtils";
 import { DataCache } from "../utils/cache";
 
 const cache = new DataCache<string, BVID>();
-
 
 export function saveAidFromDetail(detail: BiliVideoDetail): void {
     saveAid(detail.aid, detail.bvid);
@@ -30,7 +28,7 @@ export async function getBvid(aid: number | string): Promise<BVID> {
         try {
             bvid = CalculateAvidToBvid(aid);
         } catch (e) {
-            bvid = await getBvIDfromAvIDBiliApi(aid as AID);
+            console.error("Failed to calculate bvid from aid: " + aid, e);
         }
 
         if (bvid) {
