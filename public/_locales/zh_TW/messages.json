@@ -134,7 +134,7 @@
         "message": "排序片段"
     },
     "submitCheck": {
-        "message": "您確定要提交它嗎？"
+        "message": "您確定要提交嗎？"
     },
     "whitelistChannel": {
         "message": "將頻道列入白名單"
@@ -590,7 +590,7 @@
         "message": "跳過後的影片仍然流暢，就好像跳過的片段不存在一樣"
     },
     "category_sponsor": {
-        "message": "廣告"
+        "message": "贊助/恰飯"
     },
     "category_sponsor_description": {
         "message": "付費推廣、付費推薦和直接廣告。不是自我推廣或免費提及他們喜歡的商品/創作者/網站/產品。"
@@ -617,7 +617,7 @@
         "message": "不是公司設計的產品和周邊"
     },
     "category_exclusive_access": {
-        "message": "柔性推廣/品牌合作"
+        "message": "獨家訪問/搶先體驗"
     },
     "category_exclusive_access_description": {
         "message": "僅用於標記整個影片。適用於影片展示創作者免費或獲得補助使用的產品或者服務，包括軟廣、產品推廣或者品牌推廣。"
@@ -630,7 +630,7 @@
         "message": "整個影片都在展示免費或獲得補助使用的內容"
     },
     "category_interaction": {
-        "message": "三連/訂閱提醒"
+        "message": "三連/互動提醒"
     },
     "category_interaction_description": {
         "message": "影片中間簡短提醒觀眾來一鍵三連或關注。 如果片段較長，或是有具體內容，則應分類為自我推廣。"
