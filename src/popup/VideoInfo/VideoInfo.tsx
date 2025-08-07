@@ -161,6 +161,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
             <div style={Config.config.cleanPopup ? { marginTop: 20 } : {}}>
                 {/* Loading text */}
                 <p className="u-mZ grey-text">{this.computeIndicatorText()}</p>
+                <p className="videoListDisclaimer">{chrome.i18n.getMessage("disclaimer")}</p>
                 <Button id="refreshSegmentsButton" shape="circle" type="text" onClick={this.refreshSegments.bind(this)}>
                     <RefreshIcon spin={this.state.loading} style={{ fontSize: 16, padding: 1 }} />
                 </Button>

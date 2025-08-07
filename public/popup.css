@@ -201,6 +201,12 @@ select {
 	padding: 10px;
 }
 
+.videoListDisclaimer {
+	margin: 3px 16px;
+	font-size: 12px;
+	color: var(--sb-grey-fg-color);
+}
+
 /*
  * <details> wrapper around each segment
  */

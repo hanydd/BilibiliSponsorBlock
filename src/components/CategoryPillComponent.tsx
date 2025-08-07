@@ -208,7 +208,11 @@ class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryP
 
     getTitleText(): string {
         const shortDescription = chrome.i18n.getMessage(`category_${this.state.segment?.category}_pill`);
-        return (shortDescription ? shortDescription + ". " : "") + chrome.i18n.getMessage("categoryPillTitleText");
+        return (
+            (shortDescription ? shortDescription + ". " : "") +
+            chrome.i18n.getMessage("categoryPillTitleText") +
+            chrome.i18n.getMessage("disclaimer")
+        );
     }
 }
 

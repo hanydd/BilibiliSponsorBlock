@@ -1123,20 +1123,11 @@
         "message": "导入",
         "description": "Button to initiate importing segments. Appears under the textbox where they paste in the data"
     },
-    "redeemSuccess": {
-        "message": "兑换成功！"
-    },
-    "redeemFailed": {
-        "message": "注册码无效"
+    "disclaimer": {
+        "message": "所有片段均由用户提交，由用户投票排序"
     },
     "hideNewFeatureUpdates": {
         "message": "隐藏新功能提示"
-    },
-    "redeem": {
-        "message": "兑换"
-    },
-    "enterLicenseKey": {
-        "message": "输入注册码"
     },
     "unsubmittedSegmentCounts": {
         "message": "您在 {1} 中有 {0}",

@@ -61,7 +61,7 @@ async function getLabelHashBlock(hashPrefix: string, refreshCache: boolean = fal
 
 export async function getVideoLabel(videoID: NewVideoID, refreshCache: boolean = false): Promise<Category | null> {
     const { bvId } = parseBvidAndCidFromVideoId(videoID);
-    const prefix = (await getVideoIDHash(bvId)).slice(0, 3);
+    const prefix = (await getVideoIDHash(bvId)).slice(0, 4);
     const result = await getLabelHashBlock(prefix, refreshCache);
 
     if (result) {
