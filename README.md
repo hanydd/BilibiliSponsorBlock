@@ -17,9 +17,9 @@
 [![节省时间](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fbsbsb.top%2Fapi%2FgetTotalStats&query=minutesSaved&suffix=%E5%88%86%E9%92%9F&label=%E5%85%B1%E8%8A%82%E7%9C%81&color=orange&cacheSeconds=3600)](https://www.bsbsb.top/stats/)
 
 
-| Chrome | FireFox | 从文件安装 | 讨论群 |
-|---------|----------|----------|----------|
-| [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd?label=Chrome插件商店)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Firefox](https://img.shields.io/amo/v/bilisponsorblock?label=Mozilla插件商店)](https://addons.mozilla.org/addon/bilisponsorblock/) | [![从文件安装](https://img.shields.io/badge/%E4%BB%8E%E6%96%87%E4%BB%B6%E5%AE%89%E8%A3%85-orange)](https://www.crxsoso.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Group](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-squeare&logo=telegram&logoColor=white)](https://t.me/bsbsb_top) |
+| Chrome | FireFox | 讨论群 |
+|---------|----------|----------|
+| [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eaoelafamejbnggahofapllmfhlhajdd?label=Chrome插件商店)](https://chrome.google.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd) | [![Firefox](https://img.shields.io/amo/v/bilisponsorblock?label=Mozilla插件商店)](https://addons.mozilla.org/addon/bilisponsorblock/) | [![Group](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-squeare&logo=telegram&logoColor=white)](https://t.me/bsbsb_top) |
 
 
 </div>
@@ -39,9 +39,7 @@
 
 - 目前上架了[Chrome 应用商店](https://chromewebstore.google.com/detail/eaoelafamejbnggahofapllmfhlhajdd)，[火狐应用商店](https://addons.mozilla.org/en-US/firefox/addon/bilisponsorblock/)。如果你知道更多流行的浏览器插件商店，欢迎留言~
 
-- 如果你无法打开上面的商店，可以尝试从这里下载crx文件安装：https://www.crxsoso.com/webstore/detail/eaoelafamejbnggahofapllmfhlhajdd
-
-- 或者可以从 [Github Release](https://github.com/hanydd/BilibiliSponsorBlock/releases/latest) 页面获取未打包的插件。
+- 如果你无法打开上面的商店，可以尝试从从 [Github Release](https://github.com/hanydd/BilibiliSponsorBlock/releases/latest) 页面获取未打包的插件。
 
     1. 根据您浏览器的类型下载适合的版本，Chrome、Edge、360 和基于 Chromium 的国产浏览器下载 `ChromiumExtension.zip`；火狐浏览器下载`FirefoxExtension.zip`。并解压缩。
 
