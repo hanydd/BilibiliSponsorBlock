@@ -7,6 +7,7 @@ export interface ToggleOptionProps {
     label: string;
     disabled?: boolean;
     style?: React.CSSProperties;
+    description?: string;
 }
 
 export interface ToggleOptionState {
@@ -41,6 +42,9 @@ class ToggleOptionComponent extends React.Component<ToggleOptionProps, ToggleOpt
                         {this.props.label}
                     </label>
                 </div>
+                {this.props.description && (
+                    <div className="small-description">{this.props.description}</div>
+                )}
             </div>
         );
     }
@@ -54,4 +58,60 @@ class ToggleOptionComponent extends React.Component<ToggleOptionProps, ToggleOpt
     }
 }
 
-export default ToggleOptionComponent;
+export interface NumberOptionProps {
+    configKey: string;
+    label: string;
+    disabled?: boolean;
+    style?: React.CSSProperties;
+    min?: number;
+    max?: number;
+    step?: number;
+    description?: string;
+}
+
+export interface NumberOptionState {
+    value: number;
+}
+
+class NumberOptionComponent extends React.Component<NumberOptionProps, NumberOptionState> {
+    constructor(props: NumberOptionProps) {
+        super(props);
+
+        this.state = {
+            value: Number(Config.config[props.configKey]) || 0,
+        };
+    }
+
+    render(): React.ReactElement {
+        return (
+            <div className={`sb-number-option ${this.props.disabled ? "disabled" : ""}`}>
+                <div className="number-change" style={this.props.style}>
+                    <label className="number-container">
+                        <span className="optionLabel">{this.props.label}</span>
+                        <input
+                            id={this.props.configKey}
+                            type="number"
+                            value={this.state.value}
+                            disabled={this.props.disabled}
+                            min={this.props.min}
+                            max={this.props.max}
+                            step={1}
+                            onChange={e => this.handleChange(e)}
+                        />
+                    </label>
+                    {this.props.description && (
+                        <div className="small-description">{this.props.description}</div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
+        const value = Number(event.target.value);
+        Config.config[this.props.configKey] = value;
+        this.setState({ value });
+    }
+}
+
+export { ToggleOptionComponent, NumberOptionComponent };

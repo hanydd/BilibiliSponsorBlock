@@ -4,17 +4,23 @@ function getLuminance(color: string): number {
     return Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
 }
 
-/* Converts hex color to rgb color */
-const hexChars = "0123456789abcdef";
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-    if (hex.length == 4) hex = "#" + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
-    return /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-        ? {
-              r: hexChars.indexOf(hex[1]) * 16 + hexChars.indexOf(hex[2]),
-              g: hexChars.indexOf(hex[3]) * 16 + hexChars.indexOf(hex[4]),
-              b: hexChars.indexOf(hex[5]) * 16 + hexChars.indexOf(hex[6]),
-          }
-        : null;
+    hex = hex.toLowerCase();
+
+    // Expand short format (#rgb or #rgba) to full form
+    if (hex.length === 4 || hex.length === 5) {
+        hex = "#" + hex.slice(1).split("").map(c => c + c).join("");
+    }
+
+    // Now hex should be 7 (#rrggbb) or 9 (#rrggbbaa)
+    if (hex.length === 7 || hex.length === 9) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return { r, g, b }; // Ignore alpha channel for luminance
+    }
+
+    return null;
 }
 
 /**

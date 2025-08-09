@@ -103,6 +103,11 @@ interface SBConfig {
 
     showNewIcon: boolean;
 
+    filteredBetterCategoryTime: number;
+    filteredBetterCategoryVote: boolean;
+    filteredBetterCategoryVoteNumber: number;
+    filteredBetterCategoryDifferentCategory: boolean;
+
     // Used to cache calculated text color info
     categoryPillColors: {
         [key in Category]: {
@@ -154,6 +159,7 @@ interface SBConfig {
         "preview-poi_highlight": PreviewBarOption;
         "filler": PreviewBarOption;
         "preview-filler": PreviewBarOption;
+        "filtered_category": PreviewBarOption;
     };
 
 
@@ -359,6 +365,11 @@ const syncDefaults = {
 
     showNewIcon: true,
 
+    filteredBetterCategoryTime: 10,
+    filteredBetterCategoryVote: false,
+    filteredBetterCategoryVoteNumber: -2,
+    filteredBetterCategoryDifferentCategory: false,
+
     categoryPillColors: {},
 
     /**
@@ -414,6 +425,10 @@ const syncDefaults = {
         {
             name: "exclusive_access" as Category,
             option: CategorySkipOption.ShowOverlay,
+        },
+        {
+            name: "filtered_category" as Category,
+            option: CategorySkipOption.Disabled,
         },
     ],
 
@@ -513,6 +528,10 @@ const syncDefaults = {
             color: "#2E0066",
             opacity: "0.7",
         },
+        filtered_category: {
+            color: "#00aeff38",
+            opacity: "0.9",
+        }
     },
 
     //动态主页UP主贴片广告
