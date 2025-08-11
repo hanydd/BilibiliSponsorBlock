@@ -97,14 +97,6 @@ async function windowMessageListener(message: MessageEvent) {
     }
 }
 
-function init(): void {
-    window.addEventListener("message", windowMessageListener);
-    overwriteFetch();
-    overwriteXHR();
-}
-
-init();
-
 async function addMid() {
     const pageObserver = new MutationObserver((mutationList) => {
         for (const mutation of mutationList) {
@@ -136,4 +128,13 @@ async function addMid() {
     }
 }
 
-if (window.location.href.includes("t.bilibili.com") || window.location.href.includes("space.bilibili.com")) addMid();
+function init(): void {
+    window.addEventListener("message", windowMessageListener);
+    overwriteFetch();
+    overwriteXHR();
+    if (window.location.href.includes("t.bilibili.com") || window.location.href.includes("space.bilibili.com")) {
+        addMid();
+    }
+}
+
+init();
