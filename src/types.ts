@@ -79,6 +79,8 @@ export interface SponsorTime {
     hidden?: SponsorHideType;
     source: SponsorSourceType;
     videoDuration?: number;
+
+    votes?: number;
 }
 
 export interface SponsorTimeHashedID {
