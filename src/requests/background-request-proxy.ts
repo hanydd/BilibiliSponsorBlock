@@ -149,7 +149,7 @@ async function getVideoLabelBackground(videoID: NewVideoID, refreshCache: boolea
     const { bvId } = parseBvidAndCidFromVideoId(videoID);
     if (!bvId) return null;
 
-    const prefix = (await getVideoIDHash(bvId)).slice(0, 3);
+    const prefix = (await getVideoIDHash(bvId)).slice(0, 4);
     const block = await getOrFetchLabelBlock(prefix, refreshCache);
     const category = block?.[bvId];
     if (!category) return null;
@@ -162,7 +162,7 @@ async function clearVideoLabelCacheBackground(videoID?: BVID): Promise<void> {
         await videoLabelCache.clear();
         return;
     }
-    const prefix = (await getVideoIDHash(videoID)).slice(0, 3);
+    const prefix = (await getVideoIDHash(videoID)).slice(0, 4);
     const existing = await videoLabelCache.getRaw(prefix);
     if (!existing?.value) return;
     const next = { ...existing.value } as LabelBlock;
