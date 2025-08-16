@@ -11,7 +11,7 @@ interface RequestOptions {
 
 export async function getPortVideoByHash(videoId: NewVideoID, options: RequestOptions = {}): Promise<PortVideo> {
     const { bvId, cid } = parseBvidAndCidFromVideoId(videoId);
-    const hashedPrefix = (await getHash(bvId, 1)).slice(0, 3);
+    const hashedPrefix = (await getHash(bvId, 1)).slice(0, 4);
     const response = await asyncRequestToServer("GET", `/api/portVideo/${hashedPrefix}`, options?.bypassCache).catch(
         (e) => e
     );
