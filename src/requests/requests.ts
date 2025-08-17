@@ -1,6 +1,7 @@
-import Config from "../config";
 import * as CompileConfig from "../../config.json";
-import { FetchResponse, sendRequestToCustomServer } from "./background-request-proxy";
+import Config from "../config";
+import { sendRequestToCustomServer } from "./background-request-proxy";
+import { FetchResponse } from "./type/requestType";
 
 /**
  * Sends a request to a custom server

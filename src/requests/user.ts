@@ -1,7 +1,7 @@
 import Config from "../config";
 import { getHash } from "../utils/hash";
-import { FetchResponse } from "./background-request-proxy";
 import { asyncRequestToServer } from "./requests";
+import { FetchResponse } from "./type/requestType";
 
 export async function setUsername(inputUserName: string): Promise<FetchResponse> {
     const response = asyncRequestToServer(

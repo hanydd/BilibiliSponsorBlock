@@ -2,7 +2,7 @@ import Config from "../config";
 import { NewVideoID, PortVideo, YTID } from "../types";
 import { getHash } from "../utils/hash";
 import { parseBvidAndCidFromVideoId } from "../utils/videoIdUtils";
-import { FetchResponse } from "./background-request-proxy";
+import { FetchResponse } from "./type/requestType";
 import { asyncRequestToServer } from "./requests";
 
 interface RequestOptions {

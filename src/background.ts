@@ -1,12 +1,14 @@
-import * as CompileConfig from "../config.json";
-
 import "content-scripts-register-polyfill";
 import Config from "./config";
-import { sendRealRequestToCustomServer, setupBackgroundRequestProxy } from "./requests/background-request-proxy";
-import { Registration } from "./types";
+import { sendRealRequestToCustomServer } from "./requests/background-request-proxy";
+import { getSegmentsBackground } from "./requests/background/segmentRequest";
+import { clearVideoLabelCacheBackground, getVideoLabelBackground } from "./requests/background/videoLabelRequest";
+import { BVID, NewVideoID, Registration } from "./types";
 import { chromeP } from "./utils/browserApi";
+import { getHash } from "./utils/hash";
 import { generateUserID } from "./utils/setup";
 import { setupTabUpdates } from "./utils/tab-updates";
+import { submitVote } from "./requests/background/voteRequest";
 
 const popupPort: Record<string, chrome.runtime.Port> = {};
 
@@ -29,11 +31,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
         case "openPage":
             chrome.tabs.create({ url: chrome.runtime.getURL(request.url) });
             return false;
-        case "submitVote":
-            submitVote(request.type, request.UUID, request.category).then(callback);
-
-            //this allows the callback to be called later
-            return true;
         case "registerContentScript":
             registerFirefoxContentScript(request);
             return false;
@@ -179,57 +176,67 @@ async function unregisterFirefoxContentScript(id: string) {
     }
 }
 
-async function submitVote(type: number, UUID: string, category: string) {
-    let userID = Config.config.userID;
-
-    if (userID == undefined || userID === "undefined") {
-        //generate one
-        userID = generateUserID();
-        Config.config.userID = userID;
-    }
-
-    const typeSection = type !== undefined ? "&type=" + type : "&category=" + category;
-
-    try {
-        const response = await asyncRequestToServer(
-            "POST",
-            "/api/voteOnSponsorTime?UUID=" + UUID + "&userID=" + userID + typeSection
-        );
-
-        if (response.ok) {
-            return {
-                successType: 1,
-                responseText: await response.text(),
-            };
-        } else if (response.status == 405) {
-            //duplicate vote
-            return {
-                successType: 0,
-                statusCode: response.status,
-                responseText: await response.text(),
-            };
-        } else {
-            //error while connect
-            return {
-                successType: -1,
-                statusCode: response.status,
-                responseText: await response.text(),
-            };
+function setupBackgroundRequestProxy() {
+    chrome.runtime.onMessage.addListener((request, sender, callback) => {
+        if (request.message === "sendRequest") {
+            sendRealRequestToCustomServer(request.type, request.url, request.data, request.headers)
+                .then(async (response) => {
+                    callback({ responseText: await response.text(), status: response.status, ok: response.ok });
+                })
+                .catch(() => {
+                    callback({ responseText: "", status: -1, ok: false });
+                });
+            return true;
         }
-    } catch (e) {
-        console.error(e);
-        return {
-            successType: -1,
-            statusCode: -1,
-            responseText: "",
-        };
-    }
-}
 
-async function asyncRequestToServer(type: string, address: string, data = {}) {
-    const serverAddress = Config.config.testingServer
-        ? CompileConfig.testingServerAddress
-        : Config.config.serverAddress;
+        if (request.message === "getHash") {
+            getHash(request.value, request.times)
+                .then(callback)
+                .catch((e) => {
+                    callback({ error: e?.message });
+                });
+            return true;
+        }
 
-    return await sendRealRequestToCustomServer(type, serverAddress + address, data);
+        // ============ Video Labels Cached API (background only) ============
+        if (request.message === "getVideoLabel") {
+            getVideoLabelBackground(request.videoID as NewVideoID, Boolean(request.refreshCache))
+                .then((category) => callback({ category }))
+                .catch(() => callback({ category: null }));
+            return true;
+        }
+
+        if (request.message === "clearVideoLabelCache") {
+            clearVideoLabelCacheBackground(request.videoID as BVID | undefined)
+                .then(() => callback({ ok: true }))
+                .catch(() => callback({ ok: false }));
+            return true;
+        }
+
+        // ============ Segments Cached API (background only) ============
+        if (request.message === "getSegments") {
+            getSegmentsBackground(
+                request.videoID as NewVideoID,
+                (request.extraRequestData as Record<string, unknown>) || {},
+                Boolean(request.ignoreCache)
+            )
+                .then((response) => callback({ response }))
+                .catch(() => callback({ response: { segments: null, status: -1 } }));
+            return true;
+        }
+
+        if (request.message === "clearSegmentsCache") {
+            getSegmentsBackground(request.videoID as BVID | undefined)
+                .then(() => callback({ ok: true }))
+                .catch(() => callback({ ok: false }));
+            return true;
+        }
+
+        if (request.message === "submitVote") {
+            submitVote(request.type, request.UUID, request.category).then(callback);
+            return true;
+        }
+
+        return false;
+    });
 }

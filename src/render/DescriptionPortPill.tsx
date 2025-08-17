@@ -4,7 +4,7 @@ import { DescriptionPortPillComponent } from "../components/DescriptionPortPillC
 import YouTubeLogoButton from "../components/YouTubeLogoButton";
 import Config from "../config";
 import { getPageLoaded } from "../content";
-import { FetchResponse } from "../requests/background-request-proxy";
+import { FetchResponse } from "../requests/type/requestType";
 import { PortVideo, BVID } from "../types";
 import { waitFor } from "../utils/index";
 import { waitForElement } from "../utils/dom";

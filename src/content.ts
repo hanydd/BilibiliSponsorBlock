@@ -14,7 +14,7 @@ import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import { PlayerButton } from "./render/PlayerButton";
 import SkipNotice from "./render/SkipNotice";
 import SubmissionNotice from "./render/SubmissionNotice";
-import { FetchResponse } from "./requests/background-request-proxy";
+import { FetchResponse } from "./requests/type/requestType";
 import { getPortVideoByHash, postPortVideo, postPortVideoVote, updatePortedSegments } from "./requests/portVideo";
 import { asyncRequestToServer } from "./requests/requests";
 import { getSegmentsByVideoID } from "./requests/segments";

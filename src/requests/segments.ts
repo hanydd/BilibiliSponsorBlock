@@ -1,9 +1,5 @@
-import { NewVideoID, SponsorTime } from "../types";
-
-export interface SegmentResponse {
-    segments: SponsorTime[] | null;
-    status: number;
-}
+import { NewVideoID } from "../types";
+import { SegmentResponse } from "./type/requestType";
 
 /**
  * Content-side thin wrapper: forward to background to leverage persistent caching.
