@@ -92,12 +92,9 @@ export class PersistentTTLCache<K extends string, V> {
         const keys = Object.keys(this.cache) as K[];
         if (keys.length <= this.maxEntries) return;
         // remove oldest entries until within limit
-        keys
-            .map((k) => [k, this.cache[k].timestamp] as const)
+        keys.map((k) => [k, this.cache[k].timestamp] as const)
             .sort((a, b) => a[1] - b[1])
             .slice(0, Math.max(0, keys.length - this.maxEntries))
             .forEach(([k]) => delete this.cache[k]);
     }
 }
-
-
