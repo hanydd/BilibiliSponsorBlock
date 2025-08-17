@@ -139,6 +139,34 @@ export function sendRequestToCustomServer(type: string, url: string, data = {}, 
     });
 }
 
+// ===================== Common Helper Functions =====================
+
+function getServerAddress(): string {
+    return Config.config.testingServer ? CompileConfig.testingServerAddress : Config.config.serverAddress;
+}
+
+async function callAPI(
+    type: string,
+    endpoint: string,
+    extraRequestData: Record<string, unknown> = {},
+    skipServerCache: boolean = false
+): Promise<FetchResponse> {
+    const url = `${getServerAddress()}${endpoint}`;
+
+    const response = await sendRealRequestToCustomServer(
+        type,
+        url,
+        extraRequestData,
+        skipServerCache ? { "X-SKIP-CACHE": "1" } : {}
+    );
+
+    return {
+        responseText: await response.text(),
+        status: response.status,
+        ok: response.ok,
+    };
+}
+
 // ===================== Internal: Video Label Cache Service =====================
 
 type LabelBlock = Record<BVID, Category>;
@@ -160,27 +188,15 @@ function isCategoryEnabled(category: Category): boolean {
 }
 
 async function fetchLabelBlock(prefix: string, skipServerCache: boolean): Promise<LabelBlock> {
-    const serverAddress = Config.config.testingServer
-        ? CompileConfig.testingServerAddress
-        : Config.config.serverAddress;
-    const url = `${serverAddress}/api/videoLabels/${prefix}`;
-    try {
-        const response = await sendRealRequestToCustomServer(
-            "GET",
-            url,
-            {},
-            { "X-SKIP-CACHE": skipServerCache ? "1" : "0" }
-        );
-        if (!response.ok || response.status !== 200) return {} as LabelBlock;
-        const text = await response.text();
-        const data = JSON.parse(text) as Array<{ videoID: BVID; segments: Array<{ category: Category }> }>;
-        const block: LabelBlock = Object.fromEntries(
-            (data || []).map((video) => [video.videoID, video.segments?.[0]?.category]).filter(([, c]) => !!c)
-        ) as LabelBlock;
-        return block;
-    } catch {
-        return {} as LabelBlock;
-    }
+    const response = await callAPI("GET", `/api/videoLabels/${prefix}`, {}, skipServerCache);
+
+    if (!response.ok || response.status !== 200) return {} as LabelBlock;
+
+    const data = JSON.parse(response.responseText) as Array<{ videoID: BVID; segments: Array<{ category: Category }> }>;
+    const block: LabelBlock = Object.fromEntries(
+        (data || []).map((video) => [video.videoID, video.segments?.[0]?.category]).filter(([, c]) => !!c)
+    ) as LabelBlock;
+    return block;
 }
 
 async function getOrFetchLabelBlock(prefix: string, refreshCache: boolean): Promise<LabelBlock> {
@@ -235,23 +251,7 @@ async function fetchSegmentsByHash(
     extraRequestData: Record<string, unknown>,
     ignoreCache: boolean
 ): Promise<FetchResponse> {
-    const serverAddress = Config.config.testingServer
-        ? CompileConfig.testingServerAddress
-        : Config.config.serverAddress;
-    const url = `${serverAddress}/api/skipSegments/${hashPrefix}`;
-
-    const response = await sendRealRequestToCustomServer(
-        "GET",
-        url,
-        extraRequestData,
-        ignoreCache ? { "X-SKIP-CACHE": "1" } : {}
-    );
-
-    return {
-        responseText: await response.text(),
-        status: response.status,
-        ok: response.ok,
-    };
+    return await callAPI("GET", `/api/skipSegments/${hashPrefix}`, extraRequestData, ignoreCache);
 }
 
 async function getSegmentsBackground(
