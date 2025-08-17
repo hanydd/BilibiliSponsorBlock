@@ -15,7 +15,7 @@ export async function sendRealRequestToCustomServer(
     url: string,
     data: Record<string, unknown> | null = {},
     headers: Record<string, string> = {}
-) {
+): Promise<FetchResponse> {
     // If GET, convert JSON to parameters
     if (type.toLowerCase() === "get") {
         url = objectToURI(url, data, true);
@@ -34,25 +34,15 @@ export async function sendRealRequestToCustomServer(
         body: data ? JSON.stringify(data) : null,
     });
 
-    return response;
-}
-
-export async function asyncRequestToServer(type: string, address: string, data = {}) {
-    const serverAddress = getServerAddress();
-    return await sendRealRequestToCustomServer(type, serverAddress + address, data);
-}
-
-export function sendRequestToCustomServer(type: string, url: string, data = {}, headers = {}): Promise<FetchResponse> {
-    return new Promise((resolve, reject) => {
-        // Ask the background script to do the work
-        chrome.runtime.sendMessage({ message: "sendRequest", type, url, data, headers }, (response) => {
-            if (response.status !== -1) {
-                resolve(response);
-            } else {
-                reject(response);
-            }
-        });
-    });
+    if (response?.ok) {
+        return {
+            responseText: await response.text(),
+            status: response.status,
+            ok: response.ok,
+        };
+    } else {
+        return { responseText: "", status: -1, ok: false };
+    }
 }
 
 function getServerAddress(): string {
@@ -74,9 +64,6 @@ export async function callAPI(
 
     const response = await sendRealRequestToCustomServer(type, url, extraRequestData, headers);
 
-    return {
-        responseText: await response.text(),
-        status: response.status,
-        ok: response.ok,
-    };
+    return response;
 }
+

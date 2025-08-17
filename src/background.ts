@@ -180,9 +180,7 @@ function setupBackgroundRequestProxy() {
     chrome.runtime.onMessage.addListener((request, sender, callback) => {
         if (request.message === "sendRequest") {
             sendRealRequestToCustomServer(request.type, request.url, request.data, request.headers)
-                .then(async (response) => {
-                    callback({ responseText: await response.text(), status: response.status, ok: response.ok });
-                })
+                .then(callback)
                 .catch(() => {
                     callback({ responseText: "", status: -1, ok: false });
                 });

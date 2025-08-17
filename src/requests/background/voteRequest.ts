@@ -1,6 +1,6 @@
 import Config from "../../config";
 import { generateUserID } from "../../utils/setup";
-import { asyncRequestToServer } from "../background-request-proxy";
+import { callAPI } from "../background-request-proxy";
 
 export async function submitVote(type: number, UUID: string, category: string) {
     let userID = Config.config.userID;
@@ -14,7 +14,7 @@ export async function submitVote(type: number, UUID: string, category: string) {
     const typeSection = type !== undefined ? "&type=" + type : "&category=" + category;
 
     try {
-        const response = await asyncRequestToServer(
+        const response = await callAPI(
             "POST",
             "/api/voteOnSponsorTime?UUID=" + UUID + "&userID=" + userID + typeSection
         );
@@ -22,21 +22,21 @@ export async function submitVote(type: number, UUID: string, category: string) {
         if (response.ok) {
             return {
                 successType: 1,
-                responseText: await response.text(),
+                responseText: response.responseText,
             };
         } else if (response.status == 405) {
             //duplicate vote
             return {
                 successType: 0,
                 statusCode: response.status,
-                responseText: await response.text(),
+                responseText: response.responseText,
             };
         } else {
             //error while connect
             return {
                 successType: -1,
                 statusCode: response.status,
-                responseText: await response.text(),
+                responseText: response.responseText,
             };
         }
     } catch (e) {
