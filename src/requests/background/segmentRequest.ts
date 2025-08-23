@@ -22,7 +22,20 @@ async function fetchSegmentsByHash(
     extraRequestData: Record<string, unknown>,
     ignoreCache: boolean
 ): Promise<FetchResponse> {
-    return await callAPI("GET", `/api/skipSegments/${hashPrefix}`, extraRequestData, ignoreCache);
+    if (ignoreCache) {
+        await segmentsCache.delete(hashPrefix);
+    } else {
+        const cachedData = await segmentsCache.get(hashPrefix);
+        if (cachedData) {
+            return cachedData;
+        }
+    }
+
+    const response = await callAPI("GET", `/api/skipSegments/${hashPrefix}`, extraRequestData, ignoreCache);
+    if (response.status == 200 || response.status == 404) {
+        await segmentsCache.set(hashPrefix, response);
+    }
+    return response;
 }
 
 export async function getSegmentsBackground(
@@ -35,22 +48,12 @@ export async function getSegmentsBackground(
         return { segments: null, status: 404 };
     }
 
-    if (ignoreCache) {
-        await segmentsCache.delete(bvId);
-    }
-
-    const cachedData = await segmentsCache.getFresh(bvId);
-    if (cachedData) {
-        return cachedData;
-    }
-
     const categories: string[] = Config.config.categorySelections.map((category) => category.name);
     const hashPrefix = (await getVideoIDHash(bvId)).slice(0, 4);
     const response = await fetchSegmentsByHash(hashPrefix, extraRequestData, ignoreCache);
 
     const responseSegments: SegmentResponse = { segments: null, status: response.status };
     if (!response?.ok) {
-        await segmentsCache.set(bvId, responseSegments);
         return responseSegments;
     }
 
@@ -68,13 +71,11 @@ export async function getSegmentsBackground(
             }))
             ?.sort((a: SponsorTime, b: SponsorTime) => a.segment[0] - b.segment[0]);
 
-        await segmentsCache.set(segmentResponse.videoID, { segments: segment, status: response.status });
         if (bvId == segmentResponse.videoID) {
             responseSegments.segments = segment;
         }
     }
 
-    await segmentsCache.set(bvId, responseSegments);
     return responseSegments;
 }
 
@@ -83,5 +84,6 @@ export async function clearSegmentsCacheBackground(videoID?: BVID): Promise<void
         await segmentsCache.clear();
         return;
     }
-    await segmentsCache.delete(videoID);
+    const hashPrefix = (await getVideoIDHash(videoID)).slice(0, 4);
+    await segmentsCache.delete(hashPrefix);
 }

@@ -1,7 +1,7 @@
 import "content-scripts-register-polyfill";
 import Config from "./config";
 import { sendRealRequestToCustomServer } from "./requests/background-request-proxy";
-import { getSegmentsBackground } from "./requests/background/segmentRequest";
+import { clearSegmentsCacheBackground, getSegmentsBackground } from "./requests/background/segmentRequest";
 import { clearVideoLabelCacheBackground, getVideoLabelBackground } from "./requests/background/videoLabelRequest";
 import { BVID, NewVideoID, Registration } from "./types";
 import { chromeP } from "./utils/browserApi";
@@ -224,7 +224,7 @@ function setupBackgroundRequestProxy() {
         }
 
         if (request.message === "clearSegmentsCache") {
-            getSegmentsBackground(request.videoID as BVID | undefined)
+            clearSegmentsCacheBackground(request.videoID as BVID | undefined)
                 .then(() => callback({ ok: true }))
                 .catch(() => callback({ ok: false }));
             return true;

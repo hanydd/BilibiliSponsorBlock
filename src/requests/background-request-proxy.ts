@@ -41,7 +41,7 @@ export async function sendRealRequestToCustomServer(
             ok: response.ok,
         };
     } else {
-        return { responseText: "", status: -1, ok: false };
+        return { responseText: await response.text(), status: response.status, ok: false };
     }
 }
 
@@ -66,4 +66,3 @@ export async function callAPI(
 
     return response;
 }
-

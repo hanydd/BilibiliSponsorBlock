@@ -19,7 +19,7 @@ async function fetchLabelBlock(prefix: string, skipServerCache: boolean): Promis
 }
 
 async function getOrFetchLabelBlock(prefix: string, refreshCache: boolean): Promise<LabelBlock> {
-    const cached = await videoLabelCache.getFresh(prefix);
+    const cached = await videoLabelCache.get(prefix);
     if (cached && !refreshCache) return cached;
 
     const block = await fetchLabelBlock(prefix, refreshCache);

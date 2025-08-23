@@ -67,7 +67,7 @@ export class PersistentTTLCache<K extends string, V> {
         return this.cache[key];
     }
 
-    async getFresh(key: K): Promise<V | undefined> {
+    async get(key: K): Promise<V | undefined> {
         await this.ensureLoaded();
         const entry = this.cache[key];
         if (!entry) return undefined;
