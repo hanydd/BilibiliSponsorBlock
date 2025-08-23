@@ -9,20 +9,23 @@ type TimestampedValue<V> = {
  * Small persistent TTL cache built on chrome.storage.local.
  * - Values are stored under a single storage key as a map from key -> { timestamp, value }
  * - getFresh returns undefined if not present or expired
+ * - Supports both entry count and size-based eviction
  * - Designed for background-only usage
  */
 export class PersistentTTLCache<K extends string, V> {
     private storageKey: string;
     private ttlMs: number;
     private maxEntries: number;
+    private maxSizeBytes: number;
     private loaded = false;
     private cache: Record<K, TimestampedValue<V>> = {} as Record<K, TimestampedValue<V>>;
     private operationQueue: Promise<void> = Promise.resolve();
 
-    constructor(storageKey: string, ttlMs: number, maxEntries = 2000) {
+    constructor(storageKey: string, ttlMs: number, maxEntries = 2000, maxSizeBytes = 500 * 1024) {
         this.storageKey = storageKey;
         this.ttlMs = ttlMs;
         this.maxEntries = maxEntries;
+        this.maxSizeBytes = maxSizeBytes;
     }
 
     private async ensureLoaded(): Promise<void> {
@@ -60,6 +63,20 @@ export class PersistentTTLCache<K extends string, V> {
 
     private isExpired(entry: TimestampedValue<V>): boolean {
         return Date.now() - entry.timestamp >= this.ttlMs;
+    }
+
+    private getCurrentCacheSize(): number {
+        try {
+            return new Blob([JSON.stringify(this.cache)]).size;
+        } catch {
+            return JSON.stringify(this.cache || "").length * 2;
+        }
+    }
+
+    private getEntriesByCreationTime(): [K, TimestampedValue<V>][] {
+        return Object.entries(this.cache)
+            .map(([key, value]) => [key as K, value as TimestampedValue<V>] as [K, TimestampedValue<V>])
+            .sort(([, a], [, b]) => a.timestamp - b.timestamp);
     }
 
     async getRaw(key: K): Promise<TimestampedValue<V> | undefined> {
@@ -133,11 +150,60 @@ export class PersistentTTLCache<K extends string, V> {
 
     private async gcIfNeeded(): Promise<void> {
         const keys = Object.keys(this.cache) as K[];
-        if (keys.length <= this.maxEntries) return;
+        let needsEviction = keys.length > this.maxEntries;
 
-        keys.map((k) => [k, this.cache[k].timestamp] as const)
-            .sort((a, b) => a[1] - b[1])
-            .slice(0, Math.max(0, keys.length - this.maxEntries))
-            .forEach(([k]) => delete this.cache[k]);
+        if (!needsEviction) {
+            const currentSize = this.getCurrentCacheSize();
+            needsEviction = currentSize > this.maxSizeBytes;
+        }
+
+        if (!needsEviction) return;
+
+        const entriesByAge = this.getEntriesByCreationTime();
+
+        let entriesToRemove = Math.max(0, keys.length - this.maxEntries);
+
+        for (const [key] of entriesByAge) {
+            if (entriesToRemove > 0) {
+                delete this.cache[key];
+                entriesToRemove--;
+            } else {
+                const currentSize = this.getCurrentCacheSize();
+                if (currentSize <= this.maxSizeBytes) {
+                    break;
+                }
+                delete this.cache[key];
+            }
+        }
+    }
+
+    async getCacheStats(): Promise<{
+        entryCount: number;
+        sizeBytes: number;
+        maxEntries: number;
+        maxSizeBytes: number;
+        sizeLimitReached: boolean;
+        entryLimitReached: boolean;
+    }> {
+        await this.ensureLoaded();
+        const entryCount = Object.keys(this.cache).length;
+        const sizeBytes = this.getCurrentCacheSize();
+
+        return {
+            entryCount,
+            sizeBytes,
+            maxEntries: this.maxEntries,
+            maxSizeBytes: this.maxSizeBytes,
+            sizeLimitReached: sizeBytes > this.maxSizeBytes,
+            entryLimitReached: entryCount > this.maxEntries,
+        };
+    }
+
+    setMaxSizeBytes(maxSizeBytes: number): void {
+        this.maxSizeBytes = maxSizeBytes;
+    }
+
+    getMaxSizeBytes(): number {
+        return this.maxSizeBytes;
     }
 }
