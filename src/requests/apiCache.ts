@@ -17,8 +17,8 @@ export class PersistentTTLCache<K extends string, V> {
     private ttlMs: number;
     private maxEntries: number;
     private maxSizeBytes: number;
-    private loading = false;
     private loaded = false;
+    private loadingPromise: Promise<void> | null = null;
     private cache: Record<K, TimestampedValue<V>> = {} as Record<K, TimestampedValue<V>>;
     private operationQueue: Promise<void> = Promise.resolve();
     private persistTimer: number | null = null;
@@ -37,13 +37,22 @@ export class PersistentTTLCache<K extends string, V> {
 
     private async ensureLoaded(): Promise<void> {
         if (this.loaded) return;
-        console.log("ensureLoaded", this.storageKey, "at", new Date().toISOString());
-        const data = await new Promise<Record<string, unknown>>((resolve) => {
-            chromeP.storage?.local?.get(this.storageKey, (items) => resolve(items || {}));
-        });
-        const stored = data?.[this.storageKey] as Record<K, TimestampedValue<V>> | undefined;
-        this.cache = (stored || {}) as Record<K, TimestampedValue<V>>;
-        this.loaded = true;
+
+        if (this.loadingPromise) {
+            return this.loadingPromise;
+        }
+
+        this.loadingPromise = (async () => {
+            const data = await new Promise<Record<string, unknown>>((resolve) => {
+                chromeP.storage?.local?.get(this.storageKey, (items) => resolve(items || {}));
+            });
+            const stored = data?.[this.storageKey] as Record<K, TimestampedValue<V>> | undefined;
+            this.cache = (stored || {}) as Record<K, TimestampedValue<V>>;
+            this.loaded = true;
+            this.loadingPromise = null;
+        })();
+
+        return this.loadingPromise;
     }
 
     private queueOperation<T>(operation: () => Promise<T>): Promise<T> {
@@ -80,7 +89,7 @@ export class PersistentTTLCache<K extends string, V> {
                 timeSinceFirst >= this.maxWaitTime ? 0 : Math.min(this.normalDelay, this.maxWaitTime - timeSinceFirst);
 
             this.persistTimer = setTimeout(() => {
-                console.log("persist", this.cache, "at", new Date().toISOString());
+                console.debug("persist", this.storageKey, "at", new Date().toISOString());
                 this.persistTimer = null;
                 this.firstPersistTime = null;
                 chromeP.storage?.local?.set({ [this.storageKey]: this.cache }, () => {
