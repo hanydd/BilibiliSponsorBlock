@@ -17,9 +17,16 @@ export class PersistentTTLCache<K extends string, V> {
     private ttlMs: number;
     private maxEntries: number;
     private maxSizeBytes: number;
+    private loading = false;
     private loaded = false;
     private cache: Record<K, TimestampedValue<V>> = {} as Record<K, TimestampedValue<V>>;
     private operationQueue: Promise<void> = Promise.resolve();
+    private persistTimer: number | null = null;
+    private persistWaiters: Array<() => void> = [];
+    private firstPersistTime: number | null = null;
+
+    private maxWaitTime = 5000;
+    private normalDelay = 1000;
 
     constructor(storageKey: string, ttlMs: number, maxEntries = 2000, maxSizeBytes = 500 * 1024) {
         this.storageKey = storageKey;
@@ -30,6 +37,7 @@ export class PersistentTTLCache<K extends string, V> {
 
     private async ensureLoaded(): Promise<void> {
         if (this.loaded) return;
+        console.log("ensureLoaded", this.storageKey, "at", new Date().toISOString());
         const data = await new Promise<Record<string, unknown>>((resolve) => {
             chromeP.storage?.local?.get(this.storageKey, (items) => resolve(items || {}));
         });
@@ -56,8 +64,30 @@ export class PersistentTTLCache<K extends string, V> {
     }
 
     private async persist(): Promise<void> {
-        await new Promise<void>((resolve) => {
-            chromeP.storage?.local?.set({ [this.storageKey]: this.cache }, () => resolve());
+        return new Promise<void>((resolve) => {
+            this.persistWaiters.push(resolve);
+
+            const now = Date.now();
+            if (this.firstPersistTime === null) {
+                this.firstPersistTime = now;
+            }
+            if (this.persistTimer != null) {
+                clearTimeout(this.persistTimer);
+            }
+
+            const timeSinceFirst = now - this.firstPersistTime;
+            const delay =
+                timeSinceFirst >= this.maxWaitTime ? 0 : Math.min(this.normalDelay, this.maxWaitTime - timeSinceFirst);
+
+            this.persistTimer = setTimeout(() => {
+                console.log("persist", this.cache, "at", new Date().toISOString());
+                this.persistTimer = null;
+                this.firstPersistTime = null;
+                chromeP.storage?.local?.set({ [this.storageKey]: this.cache }, () => {
+                    const waiters = this.persistWaiters.splice(0);
+                    waiters.forEach((w) => w());
+                });
+            }, delay) as unknown as number;
         });
     }
 
@@ -98,7 +128,7 @@ export class PersistentTTLCache<K extends string, V> {
             this.cleanupExpired();
             this.cache[key] = { value, timestamp: Date.now() } as TimestampedValue<V>;
             await this.gcIfNeeded();
-            await this.persist();
+            this.persist();
         });
     }
 
@@ -109,7 +139,7 @@ export class PersistentTTLCache<K extends string, V> {
             const next = mergeFn(old);
             this.cache[key] = { value: next, timestamp: Date.now() } as TimestampedValue<V>;
             await this.gcIfNeeded();
-            await this.persist();
+            this.persist();
             return next;
         });
     }
@@ -119,7 +149,7 @@ export class PersistentTTLCache<K extends string, V> {
             await this.ensureLoaded();
             this.cleanupExpired();
             delete this.cache[key];
-            await this.persist();
+            this.persist();
         });
     }
 
