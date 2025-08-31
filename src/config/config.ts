@@ -57,6 +57,10 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
                 }
             } else if (areaName === "local") {
                 for (const key in changes) {
+                    // skip bsb_cache
+                    if (key.startsWith("bsb_cache")) {
+                        continue;
+                    }
                     this.cachedLocalStorage![key] = changes[key].newValue;
                 }
 

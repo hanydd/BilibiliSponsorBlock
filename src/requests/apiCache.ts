@@ -25,11 +25,11 @@ export class PersistentTTLCache<K extends string, V> {
     private persistWaiters: Array<() => void> = [];
     private firstPersistTime: number | null = null;
 
-    private maxWaitTime = 5000;
-    private normalDelay = 1000;
+    private maxWaitTime = 30000;
+    private normalDelay = 5000;
 
-    constructor(storageKey: string, ttlMs: number, maxEntries = 2000, maxSizeBytes = 500 * 1024) {
-        this.storageKey = storageKey;
+    constructor(customKey: string, ttlMs: number, maxEntries = 2000, maxSizeBytes = 500 * 1024) {
+        this.storageKey = "bsb_cache_" + customKey;
         this.ttlMs = ttlMs;
         this.maxEntries = maxEntries;
         this.maxSizeBytes = maxSizeBytes;
@@ -90,12 +90,14 @@ export class PersistentTTLCache<K extends string, V> {
 
             this.persistTimer = setTimeout(() => {
                 console.debug("persist", this.storageKey, "at", new Date().toISOString());
-                this.persistTimer = null;
-                this.firstPersistTime = null;
+                console.debug("status", this.storageKey, this.getCacheStats());
+                this.gcIfNeeded();
                 chromeP.storage?.local?.set({ [this.storageKey]: this.cache }, () => {
                     const waiters = this.persistWaiters.splice(0);
                     waiters.forEach((w) => w());
                 });
+                this.persistTimer = null;
+                this.firstPersistTime = null;
             }, delay) as unknown as number;
         });
     }
@@ -136,7 +138,6 @@ export class PersistentTTLCache<K extends string, V> {
             await this.ensureLoaded();
             this.cleanupExpired();
             this.cache[key] = { value, timestamp: Date.now() } as TimestampedValue<V>;
-            await this.gcIfNeeded();
             this.persist();
         });
     }
@@ -147,7 +148,6 @@ export class PersistentTTLCache<K extends string, V> {
             const old = this.cache[key]?.value;
             const next = mergeFn(old);
             this.cache[key] = { value: next, timestamp: Date.now() } as TimestampedValue<V>;
-            await this.gcIfNeeded();
             this.persist();
             return next;
         });
@@ -187,7 +187,7 @@ export class PersistentTTLCache<K extends string, V> {
         }
     }
 
-    private async gcIfNeeded(): Promise<void> {
+    private gcIfNeeded(): void {
         const keys = Object.keys(this.cache) as K[];
         let needsEviction = keys.length > this.maxEntries;
 
@@ -216,15 +216,20 @@ export class PersistentTTLCache<K extends string, V> {
         }
     }
 
-    async getCacheStats(): Promise<{
+    getCacheStats(): {
         entryCount: number;
         sizeBytes: number;
         maxEntries: number;
         maxSizeBytes: number;
-        sizeLimitReached: boolean;
-        entryLimitReached: boolean;
-    }> {
-        await this.ensureLoaded();
+    } {
+        if (!this.loaded) {
+            return {
+                entryCount: 0,
+                sizeBytes: 0,
+                maxEntries: this.maxEntries,
+                maxSizeBytes: this.maxSizeBytes,
+            };
+        }
         const entryCount = Object.keys(this.cache).length;
         const sizeBytes = this.getCurrentCacheSize();
 
@@ -233,8 +238,6 @@ export class PersistentTTLCache<K extends string, V> {
             sizeBytes,
             maxEntries: this.maxEntries,
             maxSizeBytes: this.maxSizeBytes,
-            sizeLimitReached: sizeBytes > this.maxSizeBytes,
-            entryLimitReached: entryCount > this.maxEntries,
         };
     }
 
