@@ -229,7 +229,7 @@ export interface ToggleSkippable {
     setShowKeybindHint: (show: boolean) => void;
 }
 
-export enum NoticeVisbilityMode {
+export enum NoticeVisibilityMode {
     FullSize = 0,
     MiniForAutoSkip = 1,
     MiniForAll = 2,

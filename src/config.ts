@@ -3,7 +3,7 @@ import {
     Category,
     CategorySelection,
     CategorySkipOption,
-    NoticeVisbilityMode,
+    NoticeVisibilityMode,
     PreviewBarOption,
     SponsorTime,
     BVID,
@@ -47,7 +47,7 @@ interface SBConfig {
     trackDownvotes: boolean;
     trackDownvotesInPrivate: boolean;
     dontShowNotice: boolean;
-    noticeVisibilityMode: NoticeVisbilityMode;
+    noticeVisibilityMode: NoticeVisibilityMode;
     hideVideoPlayerControls: boolean;
     hideInfoButtonPlayerControls: boolean;
     hideDeleteButtonPlayerControls: boolean;
@@ -65,7 +65,7 @@ interface SBConfig {
     checkForUnlistedVideos: boolean;
     testingServer: boolean;
     ytInfoPermissionGranted: boolean;
-    allowExpirements: boolean;
+    allowExperiments: boolean;
     showDonationLink: boolean;
     showPopupDonationCount: number;
     showNewFeaturePopups: boolean;
@@ -296,7 +296,7 @@ const syncDefaults = {
     trackDownvotes: true,
     trackDownvotesInPrivate: false,
     dontShowNotice: false,
-    noticeVisibilityMode: NoticeVisbilityMode.FadedForAutoSkip,
+    noticeVisibilityMode: NoticeVisibilityMode.FadedForAutoSkip,
     hideVideoPlayerControls: false,
     hideInfoButtonPlayerControls: false,
     hideDeleteButtonPlayerControls: false,
@@ -314,7 +314,7 @@ const syncDefaults = {
     checkForUnlistedVideos: false,
     testingServer: false,
     ytInfoPermissionGranted: false,
-    allowExpirements: true,
+    allowExperiments: true,
     showDonationLink: true,
     showPopupDonationCount: 0,
     showNewFeaturePopups: true,
@@ -338,7 +338,7 @@ const syncDefaults = {
 
     dynamicAndCommentSponsorWhitelistedChannels: false,
     dynamicAndCommentSponsorBlocker: false,
-    dynamicAndCommentSponsorRegexPattern: 
+    dynamicAndCommentSponsorRegexPattern:
     "/" +
     "(618|11(?!1).11|双(?:11|十一|12|十二)|女神节)|" + // 购物节日
     "恰(?:个|了|到)?饭|金主|" + // 广告

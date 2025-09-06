@@ -7,7 +7,7 @@ const utils = new Utils();
 import SkipNoticeComponent from "../components/SkipNoticeComponent";
 import Config from "../config";
 import { ContentContainer } from "../ContentContainerTypes";
-import { NoticeVisbilityMode, SponsorTime } from "../types";
+import { NoticeVisibilityMode, SponsorTime } from "../types";
 import { SkipNoticeAction } from "../utils/noticeUtils";
 
 class SkipNotice {
@@ -62,8 +62,8 @@ class SkipNotice {
                 ref={this.skipNoticeRef}
                 closeListener={() => this.close()}
                 smaller={
-                    Config.config.noticeVisibilityMode >= NoticeVisbilityMode.MiniForAll ||
-                    (Config.config.noticeVisibilityMode >= NoticeVisbilityMode.MiniForAutoSkip && autoSkip)
+                    Config.config.noticeVisibilityMode >= NoticeVisibilityMode.MiniForAll ||
+                    (Config.config.noticeVisibilityMode >= NoticeVisibilityMode.MiniForAutoSkip && autoSkip)
                 }
                 fadeIn={!advanceSkipNoticeShow}
                 fadeOut={true}

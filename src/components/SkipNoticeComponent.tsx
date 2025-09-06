@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
-import { ActionType, Category, NoticeVisbilityMode, SegmentUUID, SponsorSourceType, SponsorTime } from "../types";
+import { ActionType, Category, NoticeVisibilityMode, SegmentUUID, SponsorSourceType, SponsorTime } from "../types";
 import Utils from "../utils";
 import { getAdvanceSkipText, getSkippingText } from "../utils/categoryUtils";
 import NoticeComponent from "./NoticeComponent";
@@ -204,8 +204,8 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 fadeIn={this.props.fadeIn}
                 fadeOut={!this.props.fadeOut}
                 startFaded={
-                    Config.config.noticeVisibilityMode >= NoticeVisbilityMode.FadedForAll ||
-                    (Config.config.noticeVisibilityMode >= NoticeVisbilityMode.FadedForAutoSkip && this.autoSkip)
+                    Config.config.noticeVisibilityMode >= NoticeVisibilityMode.FadedForAll ||
+                    (Config.config.noticeVisibilityMode >= NoticeVisibilityMode.FadedForAutoSkip && this.autoSkip)
                 }
                 timed={true}
                 maxCountdownTime={this.state.maxCountdownTime}
