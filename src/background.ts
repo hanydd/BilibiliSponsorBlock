@@ -1,14 +1,15 @@
 import "content-scripts-register-polyfill";
 import Config from "./config";
 import { sendRealRequestToCustomServer } from "./requests/background-request-proxy";
+import { segmentsCache, videoLabelCache } from "./requests/background/backgroundCache";
 import { clearSegmentsCacheBackground, getSegmentsBackground } from "./requests/background/segmentRequest";
 import { clearVideoLabelCacheBackground, getVideoLabelBackground } from "./requests/background/videoLabelRequest";
-import { BVID, NewVideoID, Registration } from "./types";
+import { submitVote } from "./requests/background/voteRequest";
+import { BVID, CacheStats, NewVideoID, Registration } from "./types";
 import { chromeP } from "./utils/browserApi";
 import { getHash } from "./utils/hash";
 import { generateUserID } from "./utils/setup";
 import { setupTabUpdates } from "./utils/tab-updates";
-import { submitVote } from "./requests/background/voteRequest";
 
 const popupPort: Record<string, chrome.runtime.Port> = {};
 
@@ -235,6 +236,41 @@ function setupBackgroundRequestProxy() {
             return true;
         }
 
+        // ============ Cache Management API (background only) ============
+        if (request.message === "getCacheStats") {
+            getCacheStatsBackground()
+                .then((stats) => callback({ stats }))
+                .catch(() => callback({ stats: null }));
+            return true;
+        }
+
+        if (request.message === "clearAllCache") {
+            clearAllCacheBackground()
+                .then(() => callback({ ok: true }))
+                .catch(() => callback({ ok: false }));
+            return true;
+        }
+
         return false;
     });
+}
+
+/**
+ * Get cache statistics for segments and video labels caches
+ */
+async function getCacheStatsBackground(): Promise<{ segments: CacheStats; videoLabels: CacheStats }> {
+    const segmentStats = segmentsCache.getCacheStats();
+    const videoLabelStats = videoLabelCache.getCacheStats();
+
+    return {
+        segments: segmentStats,
+        videoLabels: videoLabelStats,
+    };
+}
+
+/**
+ * Clear all caches (segments and video labels)
+ */
+async function clearAllCacheBackground(): Promise<void> {
+    await Promise.all([segmentsCache.clear(), videoLabelCache.clear()]);
 }

@@ -497,6 +497,36 @@
     "customServerAddressDescription": {
         "message": "小电视空降助手的伺服器地址。\n不建議更改，除非您有自己的伺服器。"
     },
+    "cacheManagement": {
+        "message": "緩存管理"
+    },
+    "segmentResponseCache": {
+        "message": "影片片段緩存"
+    },
+    "videoLabelsCache": {
+        "message": "影片標籤緩存"
+    },
+    "totalCacheSize": {
+        "message": "總緩存大小"
+    },
+    "refreshCacheStats": {
+        "message": "重整統計"
+    },
+    "clearAllCache": {
+        "message": "清除所有緩存"
+    },
+    "confirmClearAllCache": {
+        "message": "確定要清除所有緩存嗎？此操作無法復原。"
+    },
+    "clearAllCacheSuccess": {
+        "message": "所有緩存已成功清除"
+    },
+    "clearAllCacheFailed": {
+        "message": "清除緩存失敗"
+    },
+    "cacheManagementDescription": {
+        "message": "顯示目前緩存使用狀況。緩存可以加速影片載入，但會占用儲存空間。"
+    },
     "save": {
         "message": "儲存"
     },

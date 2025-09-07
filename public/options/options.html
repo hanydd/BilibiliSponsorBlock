@@ -767,6 +767,34 @@
 						<div class="option-button text-change-reset inline">__MSG_reset__</div>
 					</div>
 				</div>
+
+				<div data-type="cache-stats" id="cacheStatsContainer">
+					<div class="medium-description">__MSG_cacheManagement__</div>
+
+					<div class="small-description">
+						<div>
+							<span class="optionLabel">__MSG_segmentResponseCache__:</span>
+							<span id="segmentCacheSize">--</span> KB
+							(<span id="segmentCacheEntries">-- 项</span>)
+						</div>
+						<div style="margin-top: 10px;">
+							<span class="optionLabel">__MSG_videoLabelsCache__:</span>
+							<span id="videoLabelCacheSize">--</span> KB
+							(<span id="videoLabelCacheEntries">-- 项</span>)
+						</div>
+						<div style="margin-top: 10px; font-weight: bold;">
+							<span class="optionLabel">__MSG_totalCacheSize__:</span>
+							<span id="totalCacheSize">--</span> KB
+						</div>
+					</div>
+
+					<div style="margin-top: 15px;">
+						<div class="option-button inline" id="refreshCacheStats" style="margin-right: 10px;">__MSG_refreshCacheStats__</div>
+						<div class="option-button inline" id="clearAllCache" data-confirm-message="confirmClearAllCache" style="background-color: #d73a49;">__MSG_clearAllCache__</div>
+					</div>
+
+					<div class="small-description">__MSG_cacheManagementDescription__</div>
+				</div>
 			</div>
 
 			<div id="experiment" class="option-group hidden">

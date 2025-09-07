@@ -10,10 +10,11 @@ window.SB = Config;
 import KeybindComponent from "./components/options/KeybindComponent";
 import { StorageChangesObject } from "./config/config";
 import { showDonationLink } from "./config/configUtils";
-import { CategoryChooser, DynamicSponsorChooser} from "./render/CategoryChooser";
+import { CategoryChooser, DynamicSponsorChooser } from "./render/CategoryChooser";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import UnsubmittedVideos from "./render/UnsubmittedVideos";
 import { asyncRequestToServer } from "./requests/requests";
+import { CacheStats } from "./types";
 import { isFirefoxOrSafari, waitFor } from "./utils/";
 import { getHash } from "./utils/hash";
 import { localizeHtmlPage } from "./utils/setup";
@@ -321,6 +322,10 @@ async function init() {
             case "react-DynamicSponsorChooserComponent":
                 categoryChoosers.push(new DynamicSponsorChooser(optionsElements[i]));
                 break;
+            case "cache-stats": {
+                setupCacheManagement(optionsElements[i] as HTMLElement);
+                break;
+            }
         }
     }
 
@@ -612,4 +617,92 @@ function copyDebugOutputToClipboard() {
 
 function isIncognitoAllowed(): Promise<boolean> {
     return new Promise((resolve) => chrome.extension.isAllowedIncognitoAccess(resolve));
+}
+
+/**
+ * Setup cache management functionality
+ */
+function setupCacheManagement(element: HTMLElement) {
+    const refreshButton = element.querySelector("#refreshCacheStats") as HTMLElement;
+    const clearButton = element.querySelector("#clearAllCache") as HTMLElement;
+
+    // Initial cache stats load
+    refreshCacheStats();
+
+    // Setup refresh button
+    refreshButton?.addEventListener("click", refreshCacheStats);
+
+    // Setup clear button with confirmation
+    clearButton?.addEventListener("click", () => {
+        const confirmMessage = clearButton.getAttribute("data-confirm-message");
+        if (confirmMessage && !confirm(chrome.i18n.getMessage(confirmMessage))) {
+            return;
+        }
+        clearAllCache();
+    });
+}
+
+/**
+ * Refresh cache statistics display
+ */
+function refreshCacheStats() {
+    chrome.runtime.sendMessage({ message: "getCacheStats" }, (response) => {
+        if (response?.stats) {
+            updateCacheStatsDisplay(response.stats);
+        } else {
+            // Show error or default values
+            updateCacheStatsDisplay({
+                segments: { entryCount: 0, sizeBytes: 0 },
+                videoLabels: { entryCount: 0, sizeBytes: 0 },
+            });
+        }
+    });
+}
+
+/**
+ * Clear all cache and refresh display
+ */
+function clearAllCache() {
+    chrome.runtime.sendMessage({ message: "clearAllCache" }, (response) => {
+        if (response?.ok) {
+            showMessage(chrome.i18n.getMessage("clearAllCacheSuccess"), "success");
+            refreshCacheStats(); // Refresh display after clearing
+        } else {
+            showMessage(chrome.i18n.getMessage("clearAllCacheFailed"), "error");
+        }
+    });
+}
+
+/**
+ * Update cache statistics in the UI
+ */
+function updateCacheStatsDisplay(stats: { segments: CacheStats; videoLabels: CacheStats }) {
+    const segmentSizeElement = document.getElementById("segmentCacheSize");
+    const segmentEntriesElement = document.getElementById("segmentCacheEntries");
+    const videoLabelSizeElement = document.getElementById("videoLabelCacheSize");
+    const videoLabelEntriesElement = document.getElementById("videoLabelCacheEntries");
+    const totalSizeElement = document.getElementById("totalCacheSize");
+
+    if (segmentSizeElement) {
+        const sizeKB = Math.round(stats.segments.sizeBytes / 1024);
+        segmentSizeElement.textContent = sizeKB.toString();
+    }
+
+    if (segmentEntriesElement) {
+        segmentEntriesElement.textContent = `${stats.segments.entryCount} 项`;
+    }
+
+    if (videoLabelSizeElement) {
+        const sizeKB = Math.round(stats.videoLabels.sizeBytes / 1024);
+        videoLabelSizeElement.textContent = sizeKB.toString();
+    }
+
+    if (videoLabelEntriesElement) {
+        videoLabelEntriesElement.textContent = `${stats.videoLabels.entryCount} 项`;
+    }
+
+    if (totalSizeElement) {
+        const totalKB = Math.round((stats.segments.sizeBytes + stats.videoLabels.sizeBytes) / 1024);
+        totalSizeElement.textContent = totalKB.toString();
+    }
 }

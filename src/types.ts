@@ -12,7 +12,7 @@ export enum PageType {
     Manga = "manga", // 漫画
     Anime = "bangumi", // 番剧
     Live = "live",
-    Opus = "opus",//专栏
+    Opus = "opus", //专栏
     Embed = "embed",
 }
 export interface VideoDurationResponse {
@@ -241,7 +241,12 @@ export enum HideFullVideoLabels {
     Disabled = 0,
     Overlay = 1,
     Hide = 2,
-    BlurRevealOnHover  = 3,
+    BlurRevealOnHover = 3,
     BlurAlways = 4,
     SolidCover = 5,
+}
+
+export interface CacheStats {
+    entryCount: number;
+    sizeBytes: number;
 }
