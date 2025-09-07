@@ -705,7 +705,7 @@ function updateCacheStatsDisplay(stats: { segments: CacheStats; videoLabels: Cac
     }
 
     if (segmentEntriesElement) {
-        segmentEntriesElement.textContent = `${stats.segments.entryCount} 项`;
+        segmentEntriesElement.textContent = stats.segments.entryCount.toString();
     }
 
     if (videoLabelSizeElement) {
@@ -714,7 +714,7 @@ function updateCacheStatsDisplay(stats: { segments: CacheStats; videoLabels: Cac
     }
 
     if (videoLabelEntriesElement) {
-        videoLabelEntriesElement.textContent = `${stats.videoLabels.entryCount} 项`;
+        videoLabelEntriesElement.textContent = stats.videoLabels.entryCount.toString();
     }
 
     if (totalSizeElement) {
