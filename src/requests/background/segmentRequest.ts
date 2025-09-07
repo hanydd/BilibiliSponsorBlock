@@ -1,5 +1,5 @@
 import Config from "../../config";
-import { ActionType, BVID, NewVideoID, SponsorSourceType, SponsorTime, SponsorTimeHashedID } from "../../types";
+import { ActionType, NewVideoID, SponsorSourceType, SponsorTime, SponsorTimeHashedID } from "../../types";
 import { getVideoIDHash } from "../../utils/hash";
 import { parseBvidAndCidFromVideoId } from "../../utils/videoIdUtils";
 import { callAPI } from "../background-request-proxy";
@@ -77,13 +77,4 @@ export async function getSegmentsBackground(
     }
 
     return responseSegments;
-}
-
-export async function clearSegmentsCacheBackground(videoID?: BVID): Promise<void> {
-    if (!videoID) {
-        await segmentsCache.clear();
-        return;
-    }
-    const hashPrefix = (await getVideoIDHash(videoID)).slice(0, 4);
-    await segmentsCache.delete(hashPrefix);
 }

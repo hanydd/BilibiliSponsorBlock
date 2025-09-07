@@ -768,7 +768,18 @@
 					</div>
 				</div>
 
-				<div data-type="cache-stats" id="cacheStatsContainer">
+				<div data-type="toggle" data-sync="enableCache">
+					<div class="switch-container">
+						<label class="switch">
+							<input id="enableCache" type="checkbox" checked />
+							<span class="slider round"></span>
+						</label>
+						<label class="switch-label" for="enableCache">__MSG_enableCache__</label>
+					</div>
+					<div class="small-description">__MSG_enableCacheDescription__</div>
+				</div>
+
+				<div data-type="cache-stats" id="cacheStatsContainer" data-dependent-on="enableCache">
 					<div class="medium-description">__MSG_cacheManagement__</div>
 
 					<div class="small-description">

@@ -46,15 +46,3 @@ export async function getVideoLabelBackground(videoID: NewVideoID, refreshCache:
     return isCategoryEnabled(category) ? category : null;
 }
 
-export async function clearVideoLabelCacheBackground(videoID?: BVID): Promise<void> {
-    if (!videoID) {
-        await videoLabelCache.clear();
-        return;
-    }
-    const prefix = (await getVideoIDHash(videoID)).slice(0, 4);
-    const existing = await videoLabelCache.getRaw(prefix);
-    if (!existing?.value) return;
-    const next = { ...existing.value } as LabelBlock;
-    delete next[videoID];
-    await videoLabelCache.set(prefix, next);
-}

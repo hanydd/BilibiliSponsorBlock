@@ -527,6 +527,12 @@
     "cacheManagementDescription": {
         "message": "显示当前缓存使用情况。缓存可以加速视频加载，但会占用存储空间。"
     },
+    "enableCache": {
+        "message": "启用缓存"
+    },
+    "enableCacheDescription": {
+        "message": "启用缓存可以提高视频片段和标签的加载速度。关闭时会清除所有已存储的缓存数据。"
+    },
     "save": {
         "message": "保存"
     },

@@ -1,11 +1,11 @@
 import "content-scripts-register-polyfill";
 import Config from "./config";
 import { sendRealRequestToCustomServer } from "./requests/background-request-proxy";
-import { segmentsCache, videoLabelCache } from "./requests/background/backgroundCache";
-import { clearSegmentsCacheBackground, getSegmentsBackground } from "./requests/background/segmentRequest";
-import { clearVideoLabelCacheBackground, getVideoLabelBackground } from "./requests/background/videoLabelRequest";
+import { clearAllCacheBackground, segmentsCache, videoLabelCache } from "./requests/background/backgroundCache";
+import { getSegmentsBackground } from "./requests/background/segmentRequest";
+import { getVideoLabelBackground } from "./requests/background/videoLabelRequest";
 import { submitVote } from "./requests/background/voteRequest";
-import { BVID, CacheStats, NewVideoID, Registration } from "./types";
+import { CacheStats, NewVideoID, Registration } from "./types";
 import { chromeP } from "./utils/browserApi";
 import { getHash } from "./utils/hash";
 import { generateUserID } from "./utils/setup";
@@ -197,7 +197,7 @@ function setupBackgroundRequestProxy() {
             return true;
         }
 
-        // ============ Video Labels Cached API (background only) ============
+        // ============ Request Handlers ============
         if (request.message === "getVideoLabel") {
             getVideoLabelBackground(request.videoID as NewVideoID, Boolean(request.refreshCache))
                 .then((category) => callback({ category }))
@@ -205,14 +205,6 @@ function setupBackgroundRequestProxy() {
             return true;
         }
 
-        if (request.message === "clearVideoLabelCache") {
-            clearVideoLabelCacheBackground(request.videoID as BVID | undefined)
-                .then(() => callback({ ok: true }))
-                .catch(() => callback({ ok: false }));
-            return true;
-        }
-
-        // ============ Segments Cached API (background only) ============
         if (request.message === "getSegments") {
             getSegmentsBackground(
                 request.videoID as NewVideoID,
@@ -224,19 +216,12 @@ function setupBackgroundRequestProxy() {
             return true;
         }
 
-        if (request.message === "clearSegmentsCache") {
-            clearSegmentsCacheBackground(request.videoID as BVID | undefined)
-                .then(() => callback({ ok: true }))
-                .catch(() => callback({ ok: false }));
-            return true;
-        }
-
         if (request.message === "submitVote") {
             submitVote(request.type, request.UUID, request.category).then(callback);
             return true;
         }
 
-        // ============ Cache Management API (background only) ============
+        // ============ Cache Management Handlers ============
         if (request.message === "getCacheStats") {
             getCacheStatsBackground()
                 .then((stats) => callback({ stats }))
@@ -266,11 +251,4 @@ async function getCacheStatsBackground(): Promise<{ segments: CacheStats; videoL
         segments: segmentStats,
         videoLabels: videoLabelStats,
     };
-}
-
-/**
- * Clear all caches (segments and video labels)
- */
-async function clearAllCacheBackground(): Promise<void> {
-    await Promise.all([segmentsCache.clear(), videoLabelCache.clear()]);
 }

@@ -91,6 +91,7 @@ interface SBConfig {
     showPreviewYoutubeButton: boolean;
     showPortVideoButton: boolean;
     cleanPopup: boolean;
+    enableCache: boolean;
 
     dynamicAndCommentSponsorWhitelistedChannels: boolean;
     dynamicAndCommentSponsorBlocker: boolean;
@@ -335,6 +336,7 @@ const syncDefaults = {
     showPreviewYoutubeButton: true,
     showPortVideoButton: true,
     cleanPopup: false,
+    enableCache: true,
 
     dynamicAndCommentSponsorWhitelistedChannels: false,
     dynamicAndCommentSponsorBlocker: false,

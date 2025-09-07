@@ -159,6 +159,13 @@ async function init() {
                                 Config.local.downvotedSegments = {};
                             }
                             break;
+                        case "enableCache":
+                            if (checkbox.checked) {
+                                refreshCacheStats();
+                            } else {
+                                chrome.runtime.sendMessage({ message: "clearAllCache" });
+                            }
+                            break;
                     }
 
                     // If other options depend on this, hide/show them
@@ -646,6 +653,15 @@ function setupCacheManagement(element: HTMLElement) {
  * Refresh cache statistics display
  */
 function refreshCacheStats() {
+    // Only refresh if cache is enabled
+    if (!Config.config?.enableCache) {
+        updateCacheStatsDisplay({
+            segments: { entryCount: 0, sizeBytes: 0 },
+            videoLabels: { entryCount: 0, sizeBytes: 0 },
+        });
+        return;
+    }
+
     chrome.runtime.sendMessage({ message: "getCacheStats" }, (response) => {
         if (response?.stats) {
             updateCacheStatsDisplay(response.stats);

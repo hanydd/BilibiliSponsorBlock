@@ -33,6 +33,7 @@ export class PersistentTTLCache<K extends string, V> {
         this.ttlMs = ttlMs;
         this.maxEntries = maxEntries;
         this.maxSizeBytes = maxSizeBytes;
+        this.ensureLoaded();
     }
 
     private async ensureLoaded(): Promise<void> {

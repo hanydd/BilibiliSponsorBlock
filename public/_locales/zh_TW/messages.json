@@ -527,6 +527,12 @@
     "cacheManagementDescription": {
         "message": "顯示目前緩存使用狀況。緩存可以加速影片載入，但會占用儲存空間。"
     },
+    "enableCache": {
+        "message": "啟用緩存"
+    },
+    "enableCacheDescription": {
+        "message": "啟用緩存可以提高影片片段和標籤的載入速度。關閉時會清除所有已儲存的緩存資料。"
+    },
     "save": {
         "message": "儲存"
     },
