@@ -101,7 +101,7 @@ export class PortVideoSection extends React.Component<PortVideoProps, PortVideoS
                         {this.hasPortVideo() ? (
                             <>
                                 <span style={{ color: "var(--sb-grey-fg-color)" }}>
-                                    {chrome.i18n.getMessage("hasbindedPortVideo")}
+                                    {chrome.i18n.getMessage("hasBoundPortVideo")}
                                 </span>
                                 <a style={{ paddingRight: "12px" }} href={this.getVideoLink()} target="blank">
                                     {this.state.portVideo.ytbID}

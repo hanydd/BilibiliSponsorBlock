@@ -963,7 +963,7 @@
     "chapterNameTooltipWarning": {
         "message": "One of your chapter names is similar to a category. You should use categories when possible instead."
     },
-    "experiementOptOut": {
+    "experimentOptOut": {
         "message": "Opt-out of all future experiments",
         "description": "This is used in a popup about a new experiment to get a list of unlisted videos to back up since all unlisted videos uploaded before 2017 will be set to private."
     },
@@ -985,7 +985,7 @@
     "warningError": {
         "message": "Error when trying to acknowledge warning:"
     },
-    "deArrowMessageRecieved": {
+    "deArrowMessageReceived": {
         "message": "You've received a tip from a moderator"
     },
     "Donate": {

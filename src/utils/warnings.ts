@@ -25,7 +25,7 @@ export async function openWarningDialog(contentContainer: ContentContainer): Pro
 
         let notice: GenericNotice = null;
         const options: NoticeOptions = {
-            title: chrome.i18n.getMessage("deArrowMessageRecieved"),
+            title: chrome.i18n.getMessage("deArrowMessageReceived"),
             textBoxes: [
                 {
                     text: chrome.i18n.getMessage("warningChatInfo"),

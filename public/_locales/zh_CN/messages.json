@@ -1000,7 +1000,7 @@
     "chapterNameTooltipWarning": {
         "message": "提交的章节名称与现有类别名称相似。如果已经存在分类，您应该优先使用它。"
     },
-    "experiementOptOut": {
+    "experimentOptOut": {
         "message": "关闭所有实验性功能",
         "description": "This is used in a popup about a new experiment to get a list of unlisted videos to back up since all unlisted videos uploaded before 2017 will be set to private."
     },
@@ -1022,7 +1022,7 @@
     "warningError": {
         "message": "尝试确认警告时发生错误："
     },
-    "deArrowMessageRecieved": {
+    "deArrowMessageReceived": {
         "message": "您收到了来自版主的提示"
     },
     "Donate": {
@@ -1253,7 +1253,7 @@
         "message": "请在提交前预览您的片段，你可以使用快捷键预览：",
         "description": "Appears when trying to submit a segment without previewing it first. After the colon, the shortcut will appear"
     },
-    "hasbindedPortVideo": {
+    "hasBoundPortVideo": {
         "message": "已绑定视频："
     },
     "enterPortVideoURL": {

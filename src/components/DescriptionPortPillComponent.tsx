@@ -47,7 +47,7 @@ export class DescriptionPortPillComponent extends React.Component<DescriptionPor
                     <div hidden={!this.state.show} id="bsbDescriptionPortVideoPill">
                         {this.hasYtbVideo() && (
                             <>
-                                <span>{chrome.i18n.getMessage("hasbindedPortVideo")}</span>
+                                <span>{chrome.i18n.getMessage("hasBoundPortVideo")}</span>
                                 <a id="ytbLink" href={this.getVideoLink()} target="blank">
                                     {this.state.ytbVideoID}
                                 </a>
