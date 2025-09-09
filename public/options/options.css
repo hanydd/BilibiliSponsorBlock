@@ -415,10 +415,10 @@ input[type="number"] {
 }
 
 .switch {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 24px;
+	position: relative;
+	display: inline-block;
+	width: 40px;
+	height: 24px;
 	min-width: 40px;
 }
 
@@ -697,11 +697,11 @@ svg {
 		width: 100%;
 		font-size: 30px;
 		padding: 10px;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-    }
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+	}
 
 	#title .profilepic {
 		height: 40px;
@@ -733,11 +733,11 @@ svg {
 	#version {
 		font-size: 10px;
 		height: 10px;
-        width: 100%;
-        text-align: center;
-        margin-top: 5px;
-        padding-right: 80px;
-    }
+		width: 100%;
+		text-align: center;
+		margin-top: 5px;
+		padding-right: 80px;
+	}
 
 	.sticky #menubar {
 		position: fixed;
@@ -779,4 +779,9 @@ svg {
 .playerButtonImage {
 	height: 18px;
 	vertical-align: middle;
+}
+
+.cache-stats-table td,
+.cache-stats-table th {
+	padding: 10px;
 }

@@ -1,8 +1,14 @@
+import { DailyCacheStats } from "../types";
 import { chromeP } from "../utils/browserApi";
 
 type TimestampedValue<V> = {
     timestamp: number;
     value: V;
+};
+
+type StoredData<K extends string, V> = {
+    cache: Record<K, TimestampedValue<V>>;
+    stats: DailyCacheStats;
 };
 
 /**
@@ -24,6 +30,12 @@ export class PersistentTTLCache<K extends string, V> {
     private persistTimer: number | null = null;
     private persistWaiters: Array<() => void> = [];
     private firstPersistTime: number | null = null;
+
+    private dailyStats: DailyCacheStats = {
+        date: new Date().getDate().toString(),
+        hits: 0,
+        sizeBytes: 0,
+    };
 
     private maxWaitTime = 30000;
     private normalDelay = 5000;
@@ -47,13 +59,52 @@ export class PersistentTTLCache<K extends string, V> {
             const data = await new Promise<Record<string, unknown>>((resolve) => {
                 chromeP.storage?.local?.get(this.storageKey, (items) => resolve(items || {}));
             });
-            const stored = data?.[this.storageKey] as Record<K, TimestampedValue<V>> | undefined;
-            this.cache = (stored || {}) as Record<K, TimestampedValue<V>>;
+            const stored = data?.[this.storageKey] as StoredData<K, V>;
+
+            if (stored && stored.cache) {
+                this.cache = (stored.cache || {}) as Record<K, TimestampedValue<V>>;
+                if (stored.stats) {
+                    this.dailyStats = stored.stats as DailyCacheStats;
+                }
+            } else if (stored) {
+                // Old format, just cache data
+                this.cache = (stored || {}) as Record<K, TimestampedValue<V>>;
+            }
+
             this.loaded = true;
             this.loadingPromise = null;
+            this.checkAndResetDailyStats();
         })();
 
         return this.loadingPromise;
+    }
+
+    private getEntrySize(value: V): number {
+        try {
+            return new Blob([JSON.stringify(value)]).size;
+        } catch {
+            return JSON.stringify(value || "").length * 2;
+        }
+    }
+
+    private checkAndResetDailyStats(): void {
+        const today = new Date().getDate().toString();
+        if (this.dailyStats.date !== today) {
+            this.dailyStats = {
+                date: today,
+                hits: 0,
+                sizeBytes: 0,
+            };
+            this.persist();
+        }
+    }
+
+    private resetDailyStats(): void {
+        this.dailyStats = {
+            date: new Date().getDate().toString(),
+            hits: 0,
+            sizeBytes: 0,
+        };
     }
 
     private queueOperation<T>(operation: () => Promise<T>): Promise<T> {
@@ -93,7 +144,11 @@ export class PersistentTTLCache<K extends string, V> {
                 console.debug("persist", this.storageKey, "at", new Date().toISOString());
                 console.debug("status", this.storageKey, this.getCacheStats());
                 this.gcIfNeeded();
-                chromeP.storage?.local?.set({ [this.storageKey]: this.cache }, () => {
+                const dataToStore: StoredData<K, V> = {
+                    cache: this.cache,
+                    stats: this.dailyStats,
+                };
+                chromeP.storage?.local?.set({ [this.storageKey]: dataToStore }, () => {
                     const waiters = this.persistWaiters.splice(0);
                     waiters.forEach((w) => w());
                 });
@@ -126,11 +181,20 @@ export class PersistentTTLCache<K extends string, V> {
         return this.cache[key];
     }
 
-    async get(key: K): Promise<V | undefined> {
+    async get(key: K, countAsHit = true): Promise<V | undefined> {
         await this.ensureLoaded();
+        this.checkAndResetDailyStats();
         const entry = this.cache[key];
         if (!entry) return undefined;
         if (this.isExpired(entry)) return undefined;
+
+        if (countAsHit) {
+            this.dailyStats.hits++;
+            this.dailyStats.sizeBytes += this.getEntrySize(entry.value);
+        }
+
+        this.persist();
+
         return entry.value;
     }
 
@@ -167,6 +231,7 @@ export class PersistentTTLCache<K extends string, V> {
         return this.queueOperation(async () => {
             await this.ensureLoaded();
             this.cache = {} as Record<K, TimestampedValue<V>>;
+            this.resetDailyStats();
             await new Promise<void>((resolve) => {
                 chromeP.storage?.local?.remove(this.storageKey, () => resolve());
             });
@@ -222,6 +287,11 @@ export class PersistentTTLCache<K extends string, V> {
         sizeBytes: number;
         maxEntries: number;
         maxSizeBytes: number;
+        dailyStats: {
+            date: string;
+            hits: number;
+            sizeBytes: number;
+        };
     } {
         if (!this.loaded) {
             return {
@@ -229,6 +299,7 @@ export class PersistentTTLCache<K extends string, V> {
                 sizeBytes: 0,
                 maxEntries: this.maxEntries,
                 maxSizeBytes: this.maxSizeBytes,
+                dailyStats: this.dailyStats,
             };
         }
         const entryCount = Object.keys(this.cache).length;
@@ -239,6 +310,7 @@ export class PersistentTTLCache<K extends string, V> {
             sizeBytes,
             maxEntries: this.maxEntries,
             maxSizeBytes: this.maxSizeBytes,
+            dailyStats: this.dailyStats,
         };
     }
 

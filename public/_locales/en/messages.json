@@ -533,6 +533,21 @@
     "enableCacheDescription": {
         "message": "启用缓存可以提高视频片段和标签的加载速度。关闭时会清除所有已存储的缓存数据。"
     },
+    "cacheType": {
+        "message": "缓存类型"
+    },
+    "cacheSize": {
+        "message": "缓存大小"
+    },
+    "cacheEntries": {
+        "message": "缓存项数"
+    },
+    "dailyHits": {
+        "message": "今日缓存命中次数"
+    },
+    "dailyDataRetrieved": {
+        "message": "今日缓存读取量"
+    },
     "save": {
         "message": "保存"
     },

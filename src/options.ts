@@ -656,8 +656,8 @@ function refreshCacheStats() {
     // Only refresh if cache is enabled
     if (!Config.config?.enableCache) {
         updateCacheStatsDisplay({
-            segments: { entryCount: 0, sizeBytes: 0 },
-            videoLabels: { entryCount: 0, sizeBytes: 0 },
+            segments: { entryCount: 0, sizeBytes: 0, dailyStats: { date: "", hits: 0, sizeBytes: 0 } },
+            videoLabels: { entryCount: 0, sizeBytes: 0, dailyStats: { date: "", hits: 0, sizeBytes: 0 } },
         });
         return;
     }
@@ -668,8 +668,16 @@ function refreshCacheStats() {
         } else {
             // Show error or default values
             updateCacheStatsDisplay({
-                segments: { entryCount: 0, sizeBytes: 0 },
-                videoLabels: { entryCount: 0, sizeBytes: 0 },
+                segments: {
+                    entryCount: 0,
+                    sizeBytes: 0,
+                    dailyStats: { date: "", hits: 0, sizeBytes: 0 },
+                },
+                videoLabels: {
+                    entryCount: 0,
+                    sizeBytes: 0,
+                    dailyStats: { date: "", hits: 0, sizeBytes: 0 },
+                },
             });
         }
     });
@@ -695,9 +703,18 @@ function clearAllCache() {
 function updateCacheStatsDisplay(stats: { segments: CacheStats; videoLabels: CacheStats }) {
     const segmentSizeElement = document.getElementById("segmentCacheSize");
     const segmentEntriesElement = document.getElementById("segmentCacheEntries");
+    const segmentHitsElement = document.getElementById("segmentCacheHits");
+    const segmentDataRetrievedElement = document.getElementById("segmentCacheDataRetrieved");
+
     const videoLabelSizeElement = document.getElementById("videoLabelCacheSize");
     const videoLabelEntriesElement = document.getElementById("videoLabelCacheEntries");
+    const videoLabelHitsElement = document.getElementById("videoLabelCacheHits");
+    const videoLabelDataRetrievedElement = document.getElementById("videoLabelCacheDataRetrieved");
+
     const totalSizeElement = document.getElementById("totalCacheSize");
+    const totalEntriesElement = document.getElementById("totalCacheEntries");
+    const totalHitsElement = document.getElementById("totalCacheHits");
+    const totalDataRetrievedElement = document.getElementById("totalCacheDataRetrieved");
 
     if (segmentSizeElement) {
         const sizeKB = Math.round(stats.segments.sizeBytes / 1024);
@@ -708,9 +725,31 @@ function updateCacheStatsDisplay(stats: { segments: CacheStats; videoLabels: Cac
         segmentEntriesElement.textContent = stats.segments.entryCount.toString();
     }
 
+    if (segmentHitsElement) {
+        segmentHitsElement.textContent = stats.segments.dailyStats?.hits.toString();
+    }
+
+    if (segmentDataRetrievedElement) {
+        segmentDataRetrievedElement.textContent = Math.round(stats.segments.dailyStats?.sizeBytes / 1024).toString();
+    }
+
+    if (videoLabelEntriesElement) {
+        videoLabelEntriesElement.textContent = stats.videoLabels.entryCount.toString();
+    }
+
     if (videoLabelSizeElement) {
         const sizeKB = Math.round(stats.videoLabels.sizeBytes / 1024);
         videoLabelSizeElement.textContent = sizeKB.toString();
+    }
+
+    if (videoLabelHitsElement) {
+        videoLabelHitsElement.textContent = stats.videoLabels.dailyStats?.hits.toString();
+    }
+
+    if (videoLabelDataRetrievedElement) {
+        videoLabelDataRetrievedElement.textContent = Math.round(
+            stats.videoLabels.dailyStats?.sizeBytes / 1024
+        ).toString();
     }
 
     if (videoLabelEntriesElement) {
@@ -720,5 +759,21 @@ function updateCacheStatsDisplay(stats: { segments: CacheStats; videoLabels: Cac
     if (totalSizeElement) {
         const totalKB = Math.round((stats.segments.sizeBytes + stats.videoLabels.sizeBytes) / 1024);
         totalSizeElement.textContent = totalKB.toString();
+    }
+
+    if (totalEntriesElement) {
+        totalEntriesElement.textContent = (stats.segments.entryCount + stats.videoLabels.entryCount).toString();
+    }
+
+    if (totalHitsElement) {
+        totalHitsElement.textContent = (
+            stats.segments.dailyStats?.hits + stats.videoLabels.dailyStats?.hits
+        ).toString();
+    }
+
+    if (totalDataRetrievedElement) {
+        totalDataRetrievedElement.textContent = Math.round(
+            (stats.segments.dailyStats?.sizeBytes + stats.videoLabels.dailyStats?.sizeBytes) / 1024
+        ).toString();
     }
 }

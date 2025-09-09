@@ -531,7 +531,22 @@
         "message": "啟用緩存"
     },
     "enableCacheDescription": {
-        "message": "啟用緩存可以提高影片片段和標籤的載入速度。關閉時會清除所有已儲存的緩存資料。"
+        "message": "啟用快取可以提高影片片段和標籤的載入速度。關閉時會清除所有已儲存的快取資料。"
+    },
+    "cacheType": {
+        "message": "緩存類型"
+    },
+    "cacheSize": {
+        "message": "緩存大小"
+    },
+    "cacheEntries": {
+        "message": "緩存項數"
+    },
+    "dailyHits": {
+        "message": "今日緩存命中次數"
+    },
+    "dailyDataRetrieved": {
+        "message": "今日緩存讀取量"
     },
     "save": {
         "message": "儲存"

@@ -822,31 +822,48 @@
 				<div data-type="cache-stats" id="cacheStatsContainer" data-dependent-on="enableCache">
 					<div class="medium-description">__MSG_cacheManagement__</div>
 
-					<div class="small-description">
-						<div>
-							<span class="optionLabel">__MSG_segmentResponseCache__:</span>
-							<span id="segmentCacheSize">--</span> KB
-							(<span id="segmentCacheEntries">--</span> 项)
-						</div>
-						<div style="margin-top: 10px;">
-							<span class="optionLabel">__MSG_videoLabelsCache__:</span>
-							<span id="videoLabelCacheSize">--</span> KB
-							(<span id="videoLabelCacheEntries">--</span>项)
-						</div>
-						<div style="margin-top: 10px; font-weight: bold;">
-							<span class="optionLabel">__MSG_totalCacheSize__:</span>
-							<span id="totalCacheSize">--</span> KB
-						</div>
-					</div>
+					<table class="cache-stats-table" style="margin-top: 15px;">
+						<thead>
+							<tr>
+								<th>__MSG_cacheType__</th>
+								<th>__MSG_cacheSize__</th>
+								<th>__MSG_cacheEntries__</th>
+								<th>__MSG_dailyHits__</th>
+								<th>__MSG_dailyDataRetrieved__</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>__MSG_segmentResponseCache__</td>
+								<td><span id="segmentCacheSize">--</span> KB</td>
+								<td><span id="segmentCacheEntries">--</span> 项</td>
+								<td><span id="segmentCacheHits">--</span>次</td>
+								<td><span id="segmentCacheDataRetrieved">--</span>KB</td>
+							</tr>
+							<tr>
+								<td>__MSG_videoLabelsCache__</td>
+								<td><span id="videoLabelCacheSize">--</span> KB</td>
+								<td><span id="videoLabelCacheEntries">--</span> 项</td>
+								<td><span id="videoLabelCacheHits">--</span>次</td>
+								<td><span id="videoLabelCacheDataRetrieved">--</span>KB</td>
+							</tr>
+							<tr>
+								<td>__MSG_totalCacheSize__</td>
+								<td><span id="totalCacheSize">--</span> KB</td>
+								<td><span id="totalCacheEntries">--</span> 项</td>
+								<td><span id="totalCacheHits">--</span>次</td>
+								<td><span id="totalCacheDataRetrieved">--</span>KB</td>
+							</tr>
+						</tbody>
+					</table>
 
 					<div style="margin-top: 15px;">
 						<div class="option-button inline" id="refreshCacheStats" style="margin-right: 10px;">
 							__MSG_refreshCacheStats__</div>
 						<div class="option-button inline" id="clearAllCache" data-confirm-message="confirmClearAllCache"
 							style="background-color: #d73a49;">__MSG_clearAllCache__</div>
+						<div class="small-description">__MSG_cacheManagementDescription__</div>
 					</div>
-
-					<div class="small-description">__MSG_cacheManagementDescription__</div>
 				</div>
 
 			</div>

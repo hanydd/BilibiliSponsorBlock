@@ -249,4 +249,11 @@ export enum HideFullVideoLabels {
 export interface CacheStats {
     entryCount: number;
     sizeBytes: number;
+    dailyStats?: DailyCacheStats;
+}
+
+export interface DailyCacheStats {
+    date: string;
+    hits: number;
+    sizeBytes: number;
 }
