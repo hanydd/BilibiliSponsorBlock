@@ -1,11 +1,11 @@
 import Config from "../../config";
-import { BVID } from "../../types";
+import { chromeP } from "../../utils/browserApi";
 import { PersistentTTLCache } from "../apiCache";
-import { FetchResponse, LabelBlock, SegmentResponse } from "../type/requestType";
+import { FetchResponse, LabelBlock } from "../type/requestType";
 
 const HOUR_MS = 60 * 60 * 1000;
 
-class CacheAwareWrapper<K extends string, V> {
+class ConfigAwareCacheWrapper<K extends string, V> {
     private cache: PersistentTTLCache<K, V>;
 
     constructor(cacheInstance: PersistentTTLCache<K, V>) {
@@ -40,11 +40,9 @@ class CacheAwareWrapper<K extends string, V> {
 }
 
 /**
- * Legacy Video Segment Cache
+ * Clear Legacy Video Segment Cache
  */
-const SEGMENTS_CACHE_KEY = "segments";
-export const legacySegmentsCache = new PersistentTTLCache<BVID, SegmentResponse>(SEGMENTS_CACHE_KEY, HOUR_MS, 0, 1024);
-legacySegmentsCache.clear();
+chromeP.storage?.local?.remove("bsb_cache_segments");
 
 /**
  * Video Segment Cache
@@ -56,7 +54,7 @@ export const rawSegmentsCache = new PersistentTTLCache<string, FetchResponse>(
     1000,
     500 * 1024
 );
-export const segmentsCache = new CacheAwareWrapper(rawSegmentsCache);
+export const segmentsCache = new ConfigAwareCacheWrapper(rawSegmentsCache);
 
 /**
  * Video Label Cache
@@ -68,7 +66,7 @@ export const rawVideoLabelCache = new PersistentTTLCache<string, LabelBlock>(
     1000,
     500 * 1024
 );
-export const videoLabelCache = new CacheAwareWrapper(rawVideoLabelCache);
+export const videoLabelCache = new ConfigAwareCacheWrapper(rawVideoLabelCache);
 
 /**
  * Clear all caches (segments and video labels)

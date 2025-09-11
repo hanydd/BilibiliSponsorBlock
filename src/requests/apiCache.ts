@@ -37,7 +37,7 @@ export class PersistentTTLCache<K extends string, V> {
         sizeBytes: 0,
     };
 
-    private maxWaitTime = 30000;
+    private maxPersistWaitTime = 30000;
     private normalDelay = 5000;
 
     constructor(customKey: string, ttlMs: number, maxEntries = 2000, maxSizeBytes = 500 * 1024) {
@@ -95,7 +95,6 @@ export class PersistentTTLCache<K extends string, V> {
                 hits: 0,
                 sizeBytes: 0,
             };
-            this.persist();
         }
     }
 
@@ -138,11 +137,12 @@ export class PersistentTTLCache<K extends string, V> {
 
             const timeSinceFirst = now - this.firstPersistTime;
             const delay =
-                timeSinceFirst >= this.maxWaitTime ? 0 : Math.min(this.normalDelay, this.maxWaitTime - timeSinceFirst);
+                timeSinceFirst >= this.maxPersistWaitTime
+                    ? 0
+                    : Math.min(this.normalDelay, this.maxPersistWaitTime - timeSinceFirst);
 
             this.persistTimer = setTimeout(() => {
                 console.debug("persist", this.storageKey, "at", new Date().toISOString());
-                console.debug("status", this.storageKey, this.getCacheStats());
                 this.gcIfNeeded();
                 const dataToStore: StoredData<K, V> = {
                     cache: this.cache,
@@ -186,14 +186,15 @@ export class PersistentTTLCache<K extends string, V> {
         this.checkAndResetDailyStats();
         const entry = this.cache[key];
         if (!entry) return undefined;
-        if (this.isExpired(entry)) return undefined;
+        if (this.isExpired(entry)) {
+            delete this.cache[key];
+            return undefined;
+        }
 
         if (countAsHit) {
             this.dailyStats.hits++;
             this.dailyStats.sizeBytes += this.getEntrySize(entry.value);
         }
-
-        this.persist();
 
         return entry.value;
     }
@@ -201,7 +202,6 @@ export class PersistentTTLCache<K extends string, V> {
     async set(key: K, value: V): Promise<void> {
         return this.queueOperation(async () => {
             await this.ensureLoaded();
-            this.cleanupExpired();
             this.cache[key] = { value, timestamp: Date.now() } as TimestampedValue<V>;
             this.persist();
         });
@@ -221,7 +221,6 @@ export class PersistentTTLCache<K extends string, V> {
     async delete(key: K): Promise<void> {
         return this.queueOperation(async () => {
             await this.ensureLoaded();
-            this.cleanupExpired();
             delete this.cache[key];
             this.persist();
         });
@@ -254,6 +253,8 @@ export class PersistentTTLCache<K extends string, V> {
     }
 
     private gcIfNeeded(): void {
+        this.cleanupExpired();
+
         const keys = Object.keys(this.cache) as K[];
         let needsEviction = keys.length > this.maxEntries;
 
@@ -304,6 +305,9 @@ export class PersistentTTLCache<K extends string, V> {
         }
         const entryCount = Object.keys(this.cache).length;
         const sizeBytes = this.getCurrentCacheSize();
+
+        this.checkAndResetDailyStats();
+        this.persist();
 
         return {
             entryCount,
