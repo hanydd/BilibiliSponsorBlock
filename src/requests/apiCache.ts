@@ -4,7 +4,7 @@ import { chromeP } from "../utils/browserApi";
 type TimestampedValue<V> = {
     timestamp: number;
     value: V;
-    sizeBytes?: number;
+    size?: number;
 };
 
 type StoredData<K extends string, V> = {
@@ -58,6 +58,7 @@ export class PersistentTTLCache<K extends string, V> {
         }
 
         this.loadingPromise = (async () => {
+            console.debug("loading", this.storageKey);
             const data = await new Promise<Record<string, unknown>>((resolve) => {
                 chromeP.storage?.local?.get(this.storageKey, (items) => resolve(items || {}));
             });
@@ -78,7 +79,7 @@ export class PersistentTTLCache<K extends string, V> {
             for (const key in this.cache) {
                 const entry = this.cache[key];
                 if (!entry) continue;
-                this.totalSizeBytes += entry.sizeBytes || 0;
+                this.totalSizeBytes += this.getEntrySize(entry);
             }
 
             this.loaded = true;
@@ -89,17 +90,14 @@ export class PersistentTTLCache<K extends string, V> {
         return this.loadingPromise;
     }
 
+    private getEntrySize(entry: TimestampedValue<V>): number {
+        if (entry.size != null) return entry.size;
+        entry.size = this.calculateSize(entry.value);
+        return entry.size;
+    }
+
     private calculateSize(value: V): number {
-        try {
-            // Prefer TextEncoder if available to avoid Blob allocations in some environments
-            if (typeof TextEncoder !== "undefined") {
-                const json = JSON.stringify(value);
-                return json ? new TextEncoder().encode(json).length : 0;
-            }
-            return new Blob([JSON.stringify(value)]).size;
-        } catch {
-            return JSON.stringify(value || "").length * 2;
-        }
+        return JSON.stringify(value).length;
     }
 
     private checkAndResetDailyStats(): void {
@@ -142,8 +140,8 @@ export class PersistentTTLCache<K extends string, V> {
 
     private removeKey(key: K): void {
         const entry = this.cache[key];
-        if (entry && entry.sizeBytes != null) {
-            this.totalSizeBytes -= entry.sizeBytes;
+        if (entry && entry.size != null) {
+            this.totalSizeBytes -= entry.size;
         }
         delete this.cache[key];
     }
@@ -165,7 +163,7 @@ export class PersistentTTLCache<K extends string, V> {
 
         if (countAsHit) {
             this.dailyStats.hits++;
-            this.dailyStats.sizeBytes += this.calculateSize(entry.value);
+            this.dailyStats.sizeBytes += this.getEntrySize(entry);
         }
 
         return entry.value;
@@ -176,7 +174,7 @@ export class PersistentTTLCache<K extends string, V> {
             await this.ensureLoaded();
             const newSize = this.calculateSize(value);
             this.removeKey(key);
-            this.cache[key] = { value, timestamp: Date.now(), sizeBytes: newSize } as TimestampedValue<V>;
+            this.cache[key] = { value, timestamp: Date.now(), size: newSize } as TimestampedValue<V>;
             this.totalSizeBytes += newSize;
             this.persist();
         });
@@ -185,11 +183,10 @@ export class PersistentTTLCache<K extends string, V> {
     async merge(key: K, mergeFn: (oldValue: V | undefined) => V): Promise<V> {
         return this.queueOperation(async () => {
             await this.ensureLoaded();
-            const oldValue = this.cache[key]?.value;
-            const next = mergeFn(oldValue);
+            const next = mergeFn(this.cache[key]?.value);
             const newSize = this.calculateSize(next);
             this.removeKey(key);
-            this.cache[key] = { value: next, timestamp: Date.now(), sizeBytes: newSize } as TimestampedValue<V>;
+            this.cache[key] = { value: next, timestamp: Date.now(), size: newSize } as TimestampedValue<V>;
             this.totalSizeBytes += newSize;
             this.persist();
             return next;
