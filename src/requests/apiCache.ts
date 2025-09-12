@@ -4,6 +4,7 @@ import { chromeP } from "../utils/browserApi";
 type TimestampedValue<V> = {
     timestamp: number;
     value: V;
+    sizeBytes?: number;
 };
 
 type StoredData<K extends string, V> = {
@@ -25,12 +26,13 @@ export class PersistentTTLCache<K extends string, V> {
     private maxSizeBytes: number;
     private loaded = false;
     private loadingPromise: Promise<void> | null = null;
-    private cache: Record<K, TimestampedValue<V>> = {} as Record<K, TimestampedValue<V>>;
+    private totalSizeBytes: number = 0;
     private operationQueue: Promise<void> = Promise.resolve();
     private persistTimer: number | null = null;
     private persistWaiters: Array<() => void> = [];
     private firstPersistTime: number | null = null;
 
+    private cache: Record<K, TimestampedValue<V>> = {} as Record<K, TimestampedValue<V>>;
     private dailyStats: DailyCacheStats = {
         date: new Date().getDate().toString(),
         hits: 0,
@@ -71,6 +73,14 @@ export class PersistentTTLCache<K extends string, V> {
                 this.cache = (stored || {}) as Record<K, TimestampedValue<V>>;
             }
 
+            // Recompute aggregate totalSizeBytes from cached per-entry sizeBytes only
+            this.totalSizeBytes = 0;
+            for (const key in this.cache) {
+                const entry = this.cache[key];
+                if (!entry) continue;
+                this.totalSizeBytes += entry.sizeBytes || 0;
+            }
+
             this.loaded = true;
             this.loadingPromise = null;
             this.checkAndResetDailyStats();
@@ -79,8 +89,13 @@ export class PersistentTTLCache<K extends string, V> {
         return this.loadingPromise;
     }
 
-    private getEntrySize(value: V): number {
+    private calculateSize(value: V): number {
         try {
+            // Prefer TextEncoder if available to avoid Blob allocations in some environments
+            if (typeof TextEncoder !== "undefined") {
+                const json = JSON.stringify(value);
+                return json ? new TextEncoder().encode(json).length : 0;
+            }
             return new Blob([JSON.stringify(value)]).size;
         } catch {
             return JSON.stringify(value || "").length * 2;
@@ -98,14 +113,6 @@ export class PersistentTTLCache<K extends string, V> {
         }
     }
 
-    private resetDailyStats(): void {
-        this.dailyStats = {
-            date: new Date().getDate().toString(),
-            hits: 0,
-            sizeBytes: 0,
-        };
-    }
-
     private queueOperation<T>(operation: () => Promise<T>): Promise<T> {
         return new Promise((resolve, reject) => {
             this.operationQueue = this.operationQueue
@@ -121,6 +128,100 @@ export class PersistentTTLCache<K extends string, V> {
                     reject(error);
                 });
         });
+    }
+
+    private isExpired(entry: TimestampedValue<V>): boolean {
+        return Date.now() - entry.timestamp >= this.ttlMs;
+    }
+
+    private getEntriesByCreationTime(): [K, TimestampedValue<V>][] {
+        return Object.entries(this.cache)
+            .map(([key, value]) => [key as K, value as TimestampedValue<V>] as [K, TimestampedValue<V>])
+            .sort(([, a], [, b]) => a.timestamp - b.timestamp);
+    }
+
+    private removeKey(key: K): void {
+        const entry = this.cache[key];
+        if (entry && entry.sizeBytes != null) {
+            this.totalSizeBytes -= entry.sizeBytes;
+        }
+        delete this.cache[key];
+    }
+
+    async getRaw(key: K): Promise<TimestampedValue<V> | undefined> {
+        await this.ensureLoaded();
+        return this.cache[key];
+    }
+
+    async get(key: K, countAsHit = true): Promise<V | undefined> {
+        await this.ensureLoaded();
+        this.checkAndResetDailyStats();
+        const entry = this.cache[key];
+        if (!entry) return undefined;
+        if (this.isExpired(entry)) {
+            this.removeKey(key);
+            return undefined;
+        }
+
+        if (countAsHit) {
+            this.dailyStats.hits++;
+            this.dailyStats.sizeBytes += this.calculateSize(entry.value);
+        }
+
+        return entry.value;
+    }
+
+    async set(key: K, value: V): Promise<void> {
+        return this.queueOperation(async () => {
+            await this.ensureLoaded();
+            const newSize = this.calculateSize(value);
+            this.removeKey(key);
+            this.cache[key] = { value, timestamp: Date.now(), sizeBytes: newSize } as TimestampedValue<V>;
+            this.totalSizeBytes += newSize;
+            this.persist();
+        });
+    }
+
+    async merge(key: K, mergeFn: (oldValue: V | undefined) => V): Promise<V> {
+        return this.queueOperation(async () => {
+            await this.ensureLoaded();
+            const oldValue = this.cache[key]?.value;
+            const next = mergeFn(oldValue);
+            const newSize = this.calculateSize(next);
+            this.removeKey(key);
+            this.cache[key] = { value: next, timestamp: Date.now(), sizeBytes: newSize } as TimestampedValue<V>;
+            this.totalSizeBytes += newSize;
+            this.persist();
+            return next;
+        });
+    }
+
+    async delete(key: K): Promise<void> {
+        return this.queueOperation(async () => {
+            await this.ensureLoaded();
+            this.removeKey(key);
+            this.persist();
+        });
+    }
+
+    async clear(): Promise<void> {
+        return this.queueOperation(async () => {
+            await this.ensureLoaded();
+            this.cache = {} as Record<K, TimestampedValue<V>>;
+            this.totalSizeBytes = 0;
+            this.resetDailyStats();
+            await new Promise<void>((resolve) => {
+                chromeP.storage?.local?.remove(this.storageKey, () => resolve());
+            });
+        });
+    }
+
+    private resetDailyStats(): void {
+        this.dailyStats = {
+            date: new Date().getDate().toString(),
+            hits: 0,
+            sizeBytes: 0,
+        };
     }
 
     private async persist(): Promise<void> {
@@ -158,85 +259,6 @@ export class PersistentTTLCache<K extends string, V> {
         });
     }
 
-    private isExpired(entry: TimestampedValue<V>): boolean {
-        return Date.now() - entry.timestamp >= this.ttlMs;
-    }
-
-    private getCurrentCacheSize(): number {
-        try {
-            return new Blob([JSON.stringify(this.cache)]).size;
-        } catch {
-            return JSON.stringify(this.cache || "").length * 2;
-        }
-    }
-
-    private getEntriesByCreationTime(): [K, TimestampedValue<V>][] {
-        return Object.entries(this.cache)
-            .map(([key, value]) => [key as K, value as TimestampedValue<V>] as [K, TimestampedValue<V>])
-            .sort(([, a], [, b]) => a.timestamp - b.timestamp);
-    }
-
-    async getRaw(key: K): Promise<TimestampedValue<V> | undefined> {
-        await this.ensureLoaded();
-        return this.cache[key];
-    }
-
-    async get(key: K, countAsHit = true): Promise<V | undefined> {
-        await this.ensureLoaded();
-        this.checkAndResetDailyStats();
-        const entry = this.cache[key];
-        if (!entry) return undefined;
-        if (this.isExpired(entry)) {
-            delete this.cache[key];
-            return undefined;
-        }
-
-        if (countAsHit) {
-            this.dailyStats.hits++;
-            this.dailyStats.sizeBytes += this.getEntrySize(entry.value);
-        }
-
-        return entry.value;
-    }
-
-    async set(key: K, value: V): Promise<void> {
-        return this.queueOperation(async () => {
-            await this.ensureLoaded();
-            this.cache[key] = { value, timestamp: Date.now() } as TimestampedValue<V>;
-            this.persist();
-        });
-    }
-
-    async merge(key: K, mergeFn: (oldValue: V | undefined) => V): Promise<V> {
-        return this.queueOperation(async () => {
-            await this.ensureLoaded();
-            const old = this.cache[key]?.value;
-            const next = mergeFn(old);
-            this.cache[key] = { value: next, timestamp: Date.now() } as TimestampedValue<V>;
-            this.persist();
-            return next;
-        });
-    }
-
-    async delete(key: K): Promise<void> {
-        return this.queueOperation(async () => {
-            await this.ensureLoaded();
-            delete this.cache[key];
-            this.persist();
-        });
-    }
-
-    async clear(): Promise<void> {
-        return this.queueOperation(async () => {
-            await this.ensureLoaded();
-            this.cache = {} as Record<K, TimestampedValue<V>>;
-            this.resetDailyStats();
-            await new Promise<void>((resolve) => {
-                chromeP.storage?.local?.remove(this.storageKey, () => resolve());
-            });
-        });
-    }
-
     private cleanupExpired(): void {
         const keysToDelete: K[] = [];
 
@@ -248,7 +270,7 @@ export class PersistentTTLCache<K extends string, V> {
         }
 
         for (const key of keysToDelete) {
-            delete this.cache[key];
+            this.removeKey(key);
         }
     }
 
@@ -256,12 +278,7 @@ export class PersistentTTLCache<K extends string, V> {
         this.cleanupExpired();
 
         const keys = Object.keys(this.cache) as K[];
-        let needsEviction = keys.length > this.maxEntries;
-
-        if (!needsEviction) {
-            const currentSize = this.getCurrentCacheSize();
-            needsEviction = currentSize > this.maxSizeBytes;
-        }
+        const needsEviction = keys.length > this.maxEntries || this.totalSizeBytes > this.maxSizeBytes;
 
         if (!needsEviction) return;
 
@@ -271,14 +288,13 @@ export class PersistentTTLCache<K extends string, V> {
 
         for (const [key] of entriesByAge) {
             if (entriesToRemove > 0) {
-                delete this.cache[key];
+                this.removeKey(key);
                 entriesToRemove--;
             } else {
-                const currentSize = this.getCurrentCacheSize();
-                if (currentSize <= this.maxSizeBytes) {
+                if (this.totalSizeBytes <= this.maxSizeBytes) {
                     break;
                 }
-                delete this.cache[key];
+                this.removeKey(key);
             }
         }
     }
@@ -304,7 +320,7 @@ export class PersistentTTLCache<K extends string, V> {
             };
         }
         const entryCount = Object.keys(this.cache).length;
-        const sizeBytes = this.getCurrentCacheSize();
+        const sizeBytes = this.totalSizeBytes;
 
         this.checkAndResetDailyStats();
         this.persist();
