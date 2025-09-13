@@ -25,7 +25,7 @@ async function fetchSegmentsByHash(
     if (ignoreCache) {
         await segmentsCache.delete(hashPrefix);
     } else {
-        const cachedData = await segmentsCache.get(hashPrefix);
+        const cachedData = await segmentsCache.get(hashPrefix, true);
         if (cachedData) {
             return cachedData;
         }

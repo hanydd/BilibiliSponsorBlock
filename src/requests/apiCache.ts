@@ -151,7 +151,7 @@ export class PersistentTTLCache<K extends string, V> {
         return this.cache[key];
     }
 
-    async get(key: K, countAsHit = true): Promise<V | undefined> {
+    async get(key: K, countAsHit = false): Promise<V | undefined> {
         await this.ensureLoaded();
         this.checkAndResetDailyStats();
         const entry = this.cache[key];

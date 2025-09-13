@@ -19,7 +19,7 @@ async function fetchLabelBlock(prefix: string, skipServerCache: boolean): Promis
 }
 
 async function getOrFetchLabelBlock(prefix: string, refreshCache: boolean): Promise<LabelBlock> {
-    const cached = await videoLabelCache.get(prefix);
+    const cached = await videoLabelCache.get(prefix, true);
     if (cached && !refreshCache) return cached;
 
     const block = await fetchLabelBlock(prefix, refreshCache);
@@ -45,4 +45,3 @@ export async function getVideoLabelBackground(videoID: NewVideoID, refreshCache:
 
     return isCategoryEnabled(category) ? category : null;
 }
-

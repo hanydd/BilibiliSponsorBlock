@@ -11,9 +11,9 @@ class ConfigAwareCacheWrapper<K extends string, V> {
     constructor(cacheInstance: PersistentTTLCache<K, V>) {
         this.cache = cacheInstance;
     }
-    async get(key: K): Promise<V | undefined> {
+    async get(key: K, countAsHit = false): Promise<V | undefined> {
         if (!Config.config.enableCache) return undefined;
-        return this.cache.get(key);
+        return this.cache.get(key, countAsHit);
     }
     async set(key: K, value: V): Promise<void> {
         if (!Config.config.enableCache) return;
