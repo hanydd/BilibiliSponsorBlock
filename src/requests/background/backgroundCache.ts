@@ -63,7 +63,7 @@ const VIDEO_LABEL_CACHE_KEY = "video_labels";
 export const rawVideoLabelCache = new PersistentTTLCache<string, LabelBlock>(
     VIDEO_LABEL_CACHE_KEY,
     HOUR_MS,
-    1000,
+    5000,
     500 * 1024
 );
 export const videoLabelCache = new ConfigAwareCacheWrapper(rawVideoLabelCache);

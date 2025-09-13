@@ -2,7 +2,7 @@ import { DailyCacheStats } from "../types";
 import { chromeP } from "../utils/browserApi";
 
 type TimestampedValue<V> = {
-    timestamp: number;
+    maxAge: number;
     value: V;
     size?: number;
 };
@@ -14,7 +14,7 @@ type StoredData<K extends string, V> = {
 
 /**
  * Small persistent TTL cache built on chrome.storage.local.
- * - Values are stored under a single storage key as a map from key -> { timestamp, value }
+ * - Values are stored under a single storage key as a map from key -> { maxAge, value }
  * - getFresh returns undefined if not present or expired
  * - Supports both entry count and size-based eviction
  * - Designed for background-only usage
@@ -129,13 +129,13 @@ export class PersistentTTLCache<K extends string, V> {
     }
 
     private isExpired(entry: TimestampedValue<V>): boolean {
-        return Date.now() - entry.timestamp >= this.ttlMs;
+        return !entry.maxAge || Date.now() >= entry.maxAge;
     }
 
     private getEntriesByCreationTime(): [K, TimestampedValue<V>][] {
         return Object.entries(this.cache)
             .map(([key, value]) => [key as K, value as TimestampedValue<V>] as [K, TimestampedValue<V>])
-            .sort(([, a], [, b]) => a.timestamp - b.timestamp);
+            .sort(([, a], [, b]) => a.maxAge - b.maxAge);
     }
 
     private removeKey(key: K): void {
@@ -174,7 +174,7 @@ export class PersistentTTLCache<K extends string, V> {
             await this.ensureLoaded();
             const newSize = this.calculateSize(value);
             this.removeKey(key);
-            this.cache[key] = { value, timestamp: Date.now(), size: newSize } as TimestampedValue<V>;
+            this.cache[key] = { value, maxAge: Date.now() + this.ttlMs, size: newSize } as TimestampedValue<V>;
             this.totalSizeBytes += newSize;
             this.persist();
         });
@@ -186,7 +186,7 @@ export class PersistentTTLCache<K extends string, V> {
             const next = mergeFn(this.cache[key]?.value);
             const newSize = this.calculateSize(next);
             this.removeKey(key);
-            this.cache[key] = { value: next, timestamp: Date.now(), size: newSize } as TimestampedValue<V>;
+            this.cache[key] = { value: next, maxAge: Date.now() + this.ttlMs, size: newSize } as TimestampedValue<V>;
             this.totalSizeBytes += newSize;
             this.persist();
             return next;
