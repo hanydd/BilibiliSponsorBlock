@@ -254,6 +254,9 @@ function hideVideoCard(thumbnail: HTMLElement, containerType: string) {
         if (Config.config.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.SolidCover) {
             mask.style.backgroundColor = "var(--graph_bg_regular)";
             mask.style.pointerEvents = "all";
+        } else if (Config.config.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.BlurAlways) {
+            mask.style.backdropFilter = "blur(8px)";
+            mask.style.pointerEvents = "all";
         } else {
             mask.style.backdropFilter = "blur(8px)";
         }
