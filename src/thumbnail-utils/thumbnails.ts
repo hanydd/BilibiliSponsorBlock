@@ -197,10 +197,10 @@ function hideVideoCard(thumbnail: HTMLElement, containerType: string) {
         case "spaceUpload":
             card = thumbnail.parentNode.parentNode.parentNode as HTMLElement;
             break;
-        case "mainPageRecommendation":
         case "bewlybewlyMainPage":
             card = thumbnail.parentNode.parentNode as HTMLElement;
             break;
+        case "mainPageRecommendation":
         case "search":
         case "spaceMain":
             card = thumbnail.parentNode as HTMLElement;
