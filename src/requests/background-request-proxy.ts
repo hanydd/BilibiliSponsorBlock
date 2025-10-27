@@ -60,6 +60,7 @@ export async function callAPI(
 
     if (skipServerCache) {
         headers["X-SKIP-CACHE"] = "1";
+        headers["cache-control"] = "no-cache";
     }
 
     const response = await sendRealRequestToCustomServer(type, url, extraRequestData, headers);
