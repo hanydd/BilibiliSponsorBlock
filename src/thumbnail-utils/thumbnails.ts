@@ -197,10 +197,10 @@ function hideVideoCard(thumbnail: HTMLElement, containerType: string) {
         case "spaceUpload":
             card = thumbnail.parentNode.parentNode.parentNode as HTMLElement;
             break;
-        case "mainPageRecommendation":
         case "bewlybewlyMainPage":
             card = thumbnail.parentNode.parentNode as HTMLElement;
             break;
+        case "mainPageRecommendation":
         case "search":
         case "spaceMain":
             card = thumbnail.parentNode as HTMLElement;
@@ -253,6 +253,9 @@ function hideVideoCard(thumbnail: HTMLElement, containerType: string) {
         `;
         if (Config.config.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.SolidCover) {
             mask.style.backgroundColor = "var(--graph_bg_regular)";
+            mask.style.pointerEvents = "all";
+        } else if (Config.config.fullVideoLabelsOnThumbnailsMode === HideFullVideoLabels.BlurAlways) {
+            mask.style.backdropFilter = "blur(8px)";
             mask.style.pointerEvents = "all";
         } else {
             mask.style.backdropFilter = "blur(8px)";
