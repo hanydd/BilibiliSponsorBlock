@@ -23,41 +23,43 @@ class WhitelistListComponent extends React.Component<WhitelistListProps, Whiteli
         }
 
         return (
-            <table className="categoryChooserTable" style={{ marginTop: "15px" }}>
-                <thead>
-                    <tr className="categoryTableElement categoryTableHeader">
-                        <th>{chrome.i18n.getMessage("whitelistUploaderName")}</th>
-                        <th>{chrome.i18n.getMessage("whitelistUploaderId")}</th>
-                        <th>{chrome.i18n.getMessage("whitelistActions")}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {whitelistedChannels.map((channel) => (
-                        <tr key={channel.id} className="categoryTableElement">
-                            <td>
-                                <a
-                                    href={`https://space.bilibili.com/${channel.id}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{ color: "inherit", textDecoration: "underline" }}
-                                >
-                                    {channel.name}
-                                </a>
-                            </td>
-                            <td>{channel.id}</td>
-                            <td>
-                                <div
-                                    className="option-button inline"
-                                    onClick={() => this.removeChannel(channel.id)}
-                                    style={{ fontSize: "0.9em", padding: "5px 10px" }}
-                                >
-                                    {chrome.i18n.getMessage("whitelistRemove")}
-                                </div>
-                            </td>
+            <div style={{ maxHeight: "300px", overflowY: "auto", marginTop: "15px" }}>
+                <table className="categoryChooserTable">
+                    <thead>
+                        <tr className="categoryTableElement categoryTableHeader">
+                            <th>{chrome.i18n.getMessage("whitelistUploaderName")}</th>
+                            <th>{chrome.i18n.getMessage("whitelistUploaderId")}</th>
+                            <th>{chrome.i18n.getMessage("whitelistActions")}</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {whitelistedChannels.map((channel) => (
+                            <tr key={channel.id} className="categoryTableElement">
+                                <td>
+                                    <a
+                                        href={`https://space.bilibili.com/${channel.id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{ color: "inherit", textDecoration: "underline" }}
+                                    >
+                                        {channel.name}
+                                    </a>
+                                </td>
+                                <td>{channel.id}</td>
+                                <td>
+                                    <div
+                                        className="option-button inline"
+                                        onClick={() => this.removeChannel(channel.id)}
+                                        style={{ fontSize: "0.9em", padding: "5px 10px" }}
+                                    >
+                                        {chrome.i18n.getMessage("whitelistRemove")}
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         );
     }
 

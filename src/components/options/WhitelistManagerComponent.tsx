@@ -4,17 +4,12 @@ import WhitelistListComponent from "./WhitelistListComponent";
 
 export interface WhitelistManagerProps {}
 
-export interface WhitelistManagerState {
-    tableVisible: boolean;
-}
+export interface WhitelistManagerState {}
 
 class WhitelistManagerComponent extends React.Component<WhitelistManagerProps, WhitelistManagerState> {
     constructor(props: WhitelistManagerProps) {
         super(props);
-
-        this.state = {
-            tableVisible: false,
-        };
+        this.state = {};
     }
 
     render(): React.ReactElement {
@@ -29,21 +24,11 @@ class WhitelistManagerComponent extends React.Component<WhitelistManagerProps, W
                         : chrome.i18n.getMessage("whitelistCount").replace("{0}", channelCount.toString())}
                 </div>
                 {channelCount > 0 && (
-                    <>
-                        <div
-                            className="option-button inline"
-                            onClick={() => this.setState({ tableVisible: !this.state.tableVisible })}
-                        >
-                            {chrome.i18n.getMessage(
-                                this.state.tableVisible ? "hideWhitelist" : "showWhitelist"
-                            )}
-                        </div>{" "}
-                        <div className="option-button inline" onClick={this.clearWhitelist.bind(this)}>
-                            {chrome.i18n.getMessage("clearWhitelist")}
-                        </div>
-                    </>
+                    <div className="option-button inline" onClick={this.clearWhitelist.bind(this)}>
+                        {chrome.i18n.getMessage("clearWhitelist")}
+                    </div>
                 )}
-                {this.state.tableVisible && <WhitelistListComponent />}
+                <WhitelistListComponent />
             </>
         );
     }
@@ -54,7 +39,7 @@ class WhitelistManagerComponent extends React.Component<WhitelistManagerProps, W
         }
 
         Config.config.whitelistedChannels = [];
-        this.setState({ tableVisible: false });
+        this.forceUpdate();
     }
 }
 
