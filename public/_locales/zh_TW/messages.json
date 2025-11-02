@@ -1444,5 +1444,11 @@
     },
     "whitelistUnknownUploader": {
         "message": "未知UP主"
+    },
+    "danmakuMatchingTitle": {
+        "message": "彈幕匹配"
+    },
+    "cacheManagementTitle": {
+        "message": "快取管理"
     }
 }
