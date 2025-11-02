@@ -406,6 +406,10 @@ const syncDefaults = {
             option: CategorySkipOption.ShowOverlay,
         },
         {
+            name: "padding" as Category,
+            option: CategorySkipOption.AutoSkip,
+        },
+        {
             name: "music_offtopic" as Category,
             option: CategorySkipOption.AutoSkip,
         },
@@ -513,6 +517,14 @@ const syncDefaults = {
         },
         "preview-filler": {
             color: "#2E0066",
+            opacity: "0.7",
+        },
+        padding: {
+            color: "#222222",
+            opacity: "0.7",
+        },
+        "preview-padding": {
+            color: "#111111",
             opacity: "0.7",
         },
     },

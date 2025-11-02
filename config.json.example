@@ -2,7 +2,7 @@
     "serverAddress": "https://www.bsbsb.top",
     "testingServerAddress": "http://127.0.0.1:9876",
     "serverAddressComment": "This specifies the default SponsorBlock server to connect to",
-    "categoryList": ["sponsor", "selfpromo", "exclusive_access", "interaction", "poi_highlight", "intro", "outro", "preview", "filler", "music_offtopic"],
+    "categoryList": ["sponsor", "selfpromo", "exclusive_access", "interaction", "poi_highlight", "intro", "outro", "preview", "padding", "filler", "music_offtopic"],
     "categorySupport": {
         "sponsor": ["skip", "mute", "full"],
         "selfpromo": ["skip", "mute", "full"],
@@ -13,7 +13,8 @@
         "preview": ["skip", "mute"],
         "filler": ["skip", "mute"],
         "music_offtopic": ["skip"],
-        "poi_highlight": ["poi"]
+        "poi_highlight": ["poi"],
+        "padding": ["skip"]
     },
     "wikiLinks": {
         "sponsor": "https://github.com/hanydd/BilibiliSponsorBlock/wiki/Sponsor",
@@ -27,6 +28,7 @@
         "music_offtopic": "https://github.com/hanydd/BilibiliSponsorBlock/wiki/Music%20Non-Music%20Section",
         "poi_highlight": "https://github.com/hanydd/BilibiliSponsorBlock/wiki/HighLight",
         "guidelines": "https://github.com/hanydd/BilibiliSponsorBlock/wiki/Submitting%20tips",
-        "mute": "https://github.com/hanydd/BilibiliSponsorBlock/wiki/Mute%20Segment"
+        "mute": "https://github.com/hanydd/BilibiliSponsorBlock/wiki/Mute%20Segment",
+        "padding": "https://github.com/hanydd/BilibiliSponsorBlock/wiki/Sponsor"
     }
 }

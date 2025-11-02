@@ -786,6 +786,21 @@
     "category_poi_highlight_guideline3": {
         "message": "可以跳到標題或封面"
     },
+    "category_padding": {
+        "message": "填充內容/前黑/後黑"
+    },
+    "category_padding_description": {
+        "message": "搬運影片片頭片尾的純粹填充內容，如黑屏或無關畫面，與影片主體內容無實際意義和關聯。"
+    },
+    "category_padding_short": {
+        "message": "填充內容"
+    },
+    "category_padding_guideline1": {
+        "message": "影片開頭或結尾的黑屏或無意義內容"
+    },
+    "category_padding_guideline2": {
+        "message": "搬運影片中與內容無關的填充畫面"
+    },
     "category_livestream_messages": {
         "message": "直播：捐贈/消息閱讀"
     },
