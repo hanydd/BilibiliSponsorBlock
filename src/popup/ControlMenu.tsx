@@ -37,8 +37,8 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
     }
 
     async whitelistChannel() {
-        //get the channel url
-        const response = (await this.props.sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
+        //get the channel info
+        const response = (await this.props.sendTabMessageAsync({ message: "getChannelInfo" })) as import("../messageTypes").GetChannelInfoResponse;
         if (!response.channelID) {
             this.props.messageApi.error(
                 chrome.i18n.getMessage("channelDataNotFound") +
@@ -53,8 +53,11 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
             whitelistedChannels = [];
         }
 
-        // add on this channel
-        whitelistedChannels.push(response.channelID);
+        // add on this channel with name
+        whitelistedChannels.push({
+            id: response.channelID,
+            name: response.channelName,
+        });
 
         //change button
         this.setState({ hasWhiteListed: true });
@@ -70,7 +73,7 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
     }
 
     async unwhitelistChannel() {
-        //get the channel url
+        //get the channel id
         const response = (await this.props.sendTabMessageAsync({ message: "getChannelID" })) as GetChannelIDResponse;
 
         //get whitelisted channels
@@ -80,8 +83,10 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
         }
 
         //remove this channel
-        const index = whitelistedChannels.indexOf(response.channelID);
-        whitelistedChannels.splice(index, 1);
+        const index = whitelistedChannels.findIndex(ch => ch.id === response.channelID);
+        if (index !== -1) {
+            whitelistedChannels.splice(index, 1);
+        }
 
         //change button
         this.setState({ hasWhiteListed: false });

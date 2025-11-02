@@ -14,6 +14,7 @@ interface DefaultMessage {
     | "sponsorStart"
     | "getVideoID"
     | "getChannelID"
+    | "getChannelInfo"
     | "isChannelWhitelisted"
     | "submitTimes"
     | "refreshSegments"
@@ -123,6 +124,11 @@ export interface GetChannelIDResponse {
     channelID: string;
 }
 
+export interface GetChannelInfoResponse {
+    channelID: string;
+    channelName: string;
+}
+
 export interface SponsorStartResponse {
     creatingSegment: boolean;
 }
@@ -135,6 +141,7 @@ export type MessageResponse =
     | IsInfoFoundMessageResponse
     | GetVideoIdResponse
     | GetChannelIDResponse
+    | GetChannelInfoResponse
     | SponsorStartResponse
     | IsChannelWhitelistedResponse
     | Record<string, never> // empty object response {}

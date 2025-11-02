@@ -29,8 +29,8 @@ async function DynamicListener() {
 
             const upId = element.querySelector('.bili-dyn-item__avatar').getAttribute('bilisponsor-userid');
             const upIdOrigin = element?.querySelector('.dyn-orig-author__face')?.getAttribute('bilisponsor-userid');
-            if ((!(Config.config.whitelistedChannels.includes(upId) ||
-                Config.config.whitelistedChannels?.includes(upIdOrigin)) ||
+            if ((!(Config.config.whitelistedChannels.some(ch => ch.id === upId) ||
+                Config.config.whitelistedChannels?.some(ch => ch.id === upIdOrigin)) ||
                 Config.config.dynamicAndCommentSponsorWhitelistedChannels) &&
                 !(!Config.config.dynamicSpaceSponsorBlocker &&
                 window.location.href.includes("space.bilibili.com"))
@@ -39,7 +39,7 @@ async function DynamicListener() {
                 if (action == DynamicSponsorOption.Hide) {
                     const bodyElement = element.querySelector('.bili-dyn-content') as HTMLElement;
                     hideSponsorContent(bodyElement, element.querySelectorAll('.bili-dyn-item__action')[2] as HTMLElement);
-                } 
+                }
             }
         }
     });
@@ -66,7 +66,7 @@ async function CommentListener() {
     } else if ([PageType.Video,PageType.List,PageType.Opus].includes(detectPageType())) {
         commentElementsRoot = await getElementWaitFor(() => document.querySelector('bili-comments')) as HTMLElement;
     }
-    
+
     const init = new MutationObserver(async () => {
         SponsorComment(commentElementsRoot);
 
@@ -90,7 +90,7 @@ async function CommentListener() {
     let dynListClickHandler: (event: Event) => void;
     if ([PageType.Dynamic,PageType.Channel].includes(detectPageType())) {
         const dynList = await getElementWaitFor(() => document.querySelector(".bili-dyn-list__items"));
-    
+
         dynListClickHandler = async (event) => {
             const target = (event.target as HTMLElement).closest(".bili-dyn-item");
             if (target) {
@@ -100,13 +100,13 @@ async function CommentListener() {
                 });
             }
         };
-    
+
         dynList.addEventListener("click", dynListClickHandler, true);
-    
+
         (await getElementWaitFor(() => document.querySelector(".bili-dyn-up-list__content, .nav-bar__main-left"))).addEventListener("click", async () => {
             init_1.disconnect();
             const newDynList = await getElementWaitFor(() => document.querySelector(".bili-dyn-list__items"));
-            
+
             dynList.removeEventListener("click", dynListClickHandler, true);
             newDynList.addEventListener("click", dynListClickHandler, true);
         });
@@ -139,7 +139,7 @@ function hideSponsorContent(content: HTMLElement, button: HTMLElement, inShadeRo
         shadowRootStyle(button);
         insertSBIconDefinition(button);
     }
-    
+
     content.style.display = 'none';
 
     const toggleButton = getButton();
@@ -381,7 +381,7 @@ async function SponsorComment(root: HTMLElement) {
             link.getAttribute("data-type") === "goods"
         );
         const action = getCategorySelection("dynamicSponsor_sponsor")?.option;
-        const inWhitelist = Config.config.whitelistedChannels.includes(comment?.shadowRoot.querySelector("#user-avatar")?.getAttribute("data-user-profile-id")) && !Config.config.dynamicAndCommentSponsorWhitelistedChannels;
+        const inWhitelist = Config.config.whitelistedChannels.some(ch => ch.id === comment?.shadowRoot.querySelector("#user-avatar")?.getAttribute("data-user-profile-id")) && !Config.config.dynamicAndCommentSponsorWhitelistedChannels;
 
         if (isSponsor && !inWhitelist && action !== DynamicSponsorOption.Disabled) {//这里借用动态屏蔽的那套方式
             labelSponsorStyle(

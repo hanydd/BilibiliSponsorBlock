@@ -311,6 +311,23 @@ function messageListener(
             });
 
             break;
+        case "getChannelInfo":
+            {
+                const channelID = getChannelIDInfo().id;
+                let channelName = chrome.i18n.getMessage("whitelistUnknownUploader") || "Unknown UP";
+
+                // Try to get channel name from the page
+                const upNameElement = document.querySelector("a.up-name");
+                if (upNameElement && upNameElement.textContent) {
+                    channelName = upNameElement.textContent.trim();
+                }
+
+                sendResponse({
+                    channelID,
+                    channelName,
+                });
+            }
+            break;
         case "isChannelWhitelisted":
             sendResponse({
                 value: channelWhitelisted,
@@ -1644,7 +1661,7 @@ async function channelIDChange(channelIDInfo: ChannelIDInfo) {
     if (
         whitelistedChannels != undefined &&
         channelIDInfo.status === ChannelIDStatus.Found &&
-        whitelistedChannels.includes(channelIDInfo.id)
+        whitelistedChannels.some(ch => ch.id === channelIDInfo.id)
     ) {
         channelWhitelisted = true;
     }

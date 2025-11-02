@@ -1402,5 +1402,47 @@
     },
     "requestVote": {
         "message": "片段標記準確嗎？"
+    },
+    "whitelistManagement": {
+        "message": "白名單管理"
+    },
+    "whitelistCount": {
+        "message": "白名單中有 {0} 個UP主"
+    },
+    "whitelistCountZero": {
+        "message": "白名單為空"
+    },
+    "showWhitelist": {
+        "message": "顯示白名單"
+    },
+    "hideWhitelist": {
+        "message": "隱藏白名單"
+    },
+    "clearWhitelist": {
+        "message": "清空白名單"
+    },
+    "clearWhitelistConfirm": {
+        "message": "確定要清空所有白名單嗎？"
+    },
+    "removeFromWhitelistConfirm": {
+        "message": "確定要將此UP主移出白名單嗎？"
+    },
+    "whitelistUploaderName": {
+        "message": "UP主名稱"
+    },
+    "whitelistUploaderId": {
+        "message": "UID"
+    },
+    "whitelistActions": {
+        "message": "操作"
+    },
+    "whitelistRemove": {
+        "message": "移除"
+    },
+    "whitelistEmptyHint": {
+        "message": "白名單為空，可以在影片頁面新增UP主到白名單"
+    },
+    "whitelistUnknownUploader": {
+        "message": "未知UP主"
     }
 }

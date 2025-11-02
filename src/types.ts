@@ -214,6 +214,11 @@ export interface ChannelIDInfo {
     status: ChannelIDStatus;
 }
 
+export interface WhitelistedChannel {
+    id: string;
+    name: string;
+}
+
 export interface SkipToTimeParams {
     v: HTMLVideoElement;
     skipTime: number[];

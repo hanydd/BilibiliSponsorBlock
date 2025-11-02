@@ -11,6 +11,7 @@ import {
     DynamicSponsorSelection,
     DynamicSponsorOption,
     HideFullVideoLabels,
+    WhitelistedChannel,
 } from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
 import { HashedValue } from "./utils/hash";
@@ -25,7 +26,7 @@ interface SBConfig {
     permissions: Record<Category, Permission>;
     defaultCategory: Category;
     renderSegmentsAsChapters: boolean;
-    whitelistedChannels: string[];
+    whitelistedChannels: WhitelistedChannel[];
     forceChannelCheck: boolean;
     minutesSaved: number;
     skipCount: number;
@@ -243,6 +244,17 @@ function migrateOldSyncFormats(config: SBConfig) {
     }
     if (oldDynamicSponsorRegexPattern.includes(config["dynamicAndCommentSponsorRegexPattern"])) {
         config["dynamicAndCommentSponsorRegexPattern"] = syncDefaults.dynamicAndCommentSponsorRegexPattern;
+    }
+
+    // Migrate whitelistedChannels from string[] to WhitelistedChannel[]
+    if (config["whitelistedChannels"] && config["whitelistedChannels"].length > 0) {
+        // Check if it's the old format (string array)
+        if (typeof config["whitelistedChannels"][0] === "string") {
+            config["whitelistedChannels"] = (config["whitelistedChannels"] as unknown as string[]).map((id) => ({
+                id,
+                name: chrome.i18n.getMessage("whitelistUnknownUploader") || "Unknown UP",
+            }));
+        }
     }
 
     //动态贴片设置变量名迁移 // 0.8.1

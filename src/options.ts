@@ -13,6 +13,7 @@ import { showDonationLink } from "./config/configUtils";
 import { CategoryChooser, DynamicSponsorChooser } from "./render/CategoryChooser";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import UnsubmittedVideos from "./render/UnsubmittedVideos";
+import WhitelistManager from "./render/WhitelistManager";
 import { asyncRequestToServer } from "./requests/requests";
 import { CacheStats } from "./types";
 import { isFirefoxOrSafari, waitFor } from "./utils/";
@@ -23,6 +24,7 @@ let embed = false;
 
 const categoryChoosers: CategoryChooser[] = [];
 const unsubmittedVideos: UnsubmittedVideos[] = [];
+const whitelistManagers: WhitelistManager[] = [];
 
 if (document.readyState === "complete") {
     init();
@@ -329,6 +331,9 @@ async function init() {
             case "react-DynamicSponsorChooserComponent":
                 categoryChoosers.push(new DynamicSponsorChooser(optionsElements[i]));
                 break;
+            case "react-WhitelistManagerComponent":
+                whitelistManagers.push(new WhitelistManager(optionsElements[i]));
+                break;
             case "cache-stats": {
                 setupCacheManagement(optionsElements[i] as HTMLElement);
                 break;
@@ -410,6 +415,12 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
     if (changes.categorySelections || changes.payments) {
         for (const chooser of categoryChoosers) {
             chooser.update();
+        }
+    }
+
+    if (changes.whitelistedChannels) {
+        for (const manager of whitelistManagers) {
+            manager.update();
         }
     }
 }
