@@ -40,10 +40,15 @@ export async function asyncRequestToServer(
         ? CompileConfig.testingServerAddress
         : Config.config.serverAddress;
 
-    return await asyncRequestToCustomServer(type, serverAddress + address, data, {
-        "X-SKIP-CACHE": ignoreServerCache ? "1" : "0",
-        ...customHeaders,
-    });
+    // Only add cache-related headers when explicitly skipping cache to avoid CORS preflight
+    const headers = ignoreServerCache
+        ? {
+              "X-SKIP-CACHE": "1",
+              ...customHeaders,
+          }
+        : customHeaders;
+
+    return await asyncRequestToCustomServer(type, serverAddress + address, data, headers);
 }
 
 /**

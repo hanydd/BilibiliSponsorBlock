@@ -23,13 +23,20 @@ export async function sendRealRequestToCustomServer(
         data = null;
     }
 
+    // only add headers when necessary
+    const requestHeaders: Record<string, string> = {
+        ...headers,
+    };
+    if (data) {
+        requestHeaders["Content-Type"] = "application/json";
+    }
+    if (Object.keys(headers).length > 0) {
+        requestHeaders["X-EXT-VERSION"] = chrome.runtime.getManifest().version;
+    }
+
     const response = await fetch(url, {
         method: type,
-        headers: {
-            "Content-Type": "application/json",
-            "X-EXT-VERSION": chrome.runtime.getManifest().version,
-            ...headers,
-        },
+        headers: requestHeaders,
         redirect: "follow",
         body: data ? JSON.stringify(data) : null,
     });
