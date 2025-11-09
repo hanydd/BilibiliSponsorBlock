@@ -237,11 +237,13 @@ function isSponsor(element: HTMLElement) {
 }
 
 function isDynamicSponsorSuspicionSponsor(element: HTMLElement) {
+    const contentTitle = element?.querySelectorAll('.dyn-card-opus__title');
     const contentDiv = element?.querySelectorAll('.bili-rich-text__content span:not(.bili-dyn-item__interaction *)');
-    if (!contentDiv) return null;
+    const content = [...contentTitle, ...contentDiv];
+    if (!content) return '';
 
     let combinedText = '';
-    contentDiv.forEach(span => {
+    content.forEach(span => {
         combinedText += span.textContent;
     });
     return combinedText;
