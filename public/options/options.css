@@ -468,6 +468,15 @@ input:checked + .slider:before {
 	transform: translateX(16px);
 }
 
+.input-container:before {
+	content: attr(label-name);
+	padding-right: 4px;
+	width: max-content;
+
+	font-size: 14px;
+	color: white;
+}
+
 /* Rounded sliders */
 .slider.round {
 	border-radius: 34px;

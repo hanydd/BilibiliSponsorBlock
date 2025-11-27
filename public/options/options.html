@@ -94,15 +94,24 @@
 						<div id="DynamicSponsor" data-type="react-DynamicSponsorChooserComponent"></div>
 
 						<div data-type="text-change" data-sync="dynamicAndCommentSponsorRegexPattern">
-							<div class="input-container">
-								<label
-									for="dynamicAndCommentSponsorRegexPattern">__MSG_dynamicAndCommentSponsorRegexPattern__</label>
-								<input id="dynamicAndCommentSponsorRegexPattern" class="option-text-box" type="text" />
-								<button class="text-change-set">__MSG_save__</button>
-								<button class="text-change-reset">__MSG_reset__</button>
-							</div>
+                            <label class="input-container">
+                                <span class="optionLabel">__MSG_dynamicAndCommentSponsorRegexPattern__</span>
+                                <input id="dynamicAndCommentSponsorRegexPattern" class="option-text-box" type="text" />
+                                <button class="text-change-set">__MSG_save__</button>
+                                <button class="text-change-reset">__MSG_reset__</button>
+                            </label>
 							<div class="small-description">__MSG_dynamicAndCommentSponsorRegexPatternDescription__</div>
 						</div>
+
+                        <div data-type="number-change" data-sync="dynamicAndCommentSponsorRegexPatternKeywordNumber">
+                            <br />
+                            <label class="number-container">
+                                <span class="optionLabel">__MSG_dynamicAndCommentSponsorRegexPatternKeywordNumber__</span>
+                                <input type="number" step="1" min="1" />
+                            </label>
+
+                            <div class="small-description">__MSG_dynamicAndCommentSponsorRegexPatternKeywordNumberDescription__</div>
+                        </div>
 
 						<div data-type="toggle" data-sync="dynamicAndCommentSponsorWhitelistedChannels">
 							<br />

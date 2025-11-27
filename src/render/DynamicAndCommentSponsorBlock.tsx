@@ -37,6 +37,7 @@ async function DynamicListener() {
             ) {
                 labelSponsorStyle("dynamicSponsorLabel", element.querySelector('.bili-dyn-title__text'), category, debugMode, dynamicSponsorMatch);
                 if (action !== DynamicSponsorOption.Hide) continue;
+                if (category === "dynamicSponsor_suspicion_sponsor" ? dynamicSponsorMatch.length < Config.config.dynamicAndCommentSponsorRegexPatternKeywordNumber : false) continue;
 
                 const bodyElement = element.querySelector('.bili-dyn-content') as HTMLElement;
                 hideSponsorContent(bodyElement, element.querySelectorAll('.bili-dyn-item__action')[2] as HTMLElement);
