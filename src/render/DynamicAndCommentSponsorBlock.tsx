@@ -36,10 +36,10 @@ async function DynamicListener() {
                 window.location.href.includes("space.bilibili.com"))
             ) {
                 labelSponsorStyle("dynamicSponsorLabel", element.querySelector('.bili-dyn-title__text'), category, debugMode, dynamicSponsorMatch);
-                if (action == DynamicSponsorOption.Hide) {
-                    const bodyElement = element.querySelector('.bili-dyn-content') as HTMLElement;
-                    hideSponsorContent(bodyElement, element.querySelectorAll('.bili-dyn-item__action')[2] as HTMLElement);
-                }
+                if (action !== DynamicSponsorOption.Hide) continue;
+
+                const bodyElement = element.querySelector('.bili-dyn-content') as HTMLElement;
+                hideSponsorContent(bodyElement, element.querySelectorAll('.bili-dyn-item__action')[2] as HTMLElement);
             }
         }
     });
@@ -127,9 +127,7 @@ async function getElementWaitFor<T>(element: () => T): Promise<T> {
 
 function getCategorySelection(category: string): DynamicSponsorSelection {
     for (const selection of Config.config.dynamicSponsorSelections) {
-        if (selection.name === category) {
-            return selection;
-        }
+        if (selection.name === category) return selection;
     }
     return { name: category, option: DynamicSponsorOption.Disabled } as DynamicSponsorSelection;
 }
@@ -381,8 +379,8 @@ async function SponsorComment(root: HTMLElement) {
     for (const element of comments) {
         const comment = element?.shadowRoot?.querySelector("bili-comment-renderer");
         const reply = element;
-        if (comment.className === "BSB-Processed") continue;
-        comment.className = "BSB-Processed";
+        if (comment.classList.contains("BSB-Processed")) continue;
+        comment.classList.add("BSB-Processed");
 
         const isSponsor = Array.from(comment?.shadowRoot.querySelector("bili-rich-text")?.shadowRoot.querySelectorAll("a")).some(link =>
             link.getAttribute("data-type") === "goods"
@@ -390,32 +388,31 @@ async function SponsorComment(root: HTMLElement) {
         const action = getCategorySelection("dynamicSponsor_sponsor")?.option;
         const inWhitelist = Config.config.whitelistedChannels.some(ch => ch.id === comment?.shadowRoot.querySelector("#user-avatar")?.getAttribute("data-user-profile-id")) && !Config.config.dynamicAndCommentSponsorWhitelistedChannels;
 
-        if (isSponsor && !inWhitelist && action !== DynamicSponsorOption.Disabled) {//这里借用动态屏蔽的那套方式
-            labelSponsorStyle(
-                "commentSponsorLabel"
-                , comment.shadowRoot.querySelector("bili-comment-user-info").shadowRoot.querySelector("#user-up")
-                || comment.shadowRoot.querySelector("bili-comment-user-info").shadowRoot.querySelector("#user-level")
-                , "dynamicSponsor_sponsor"
-                , false
-                , null
-                , true
-            );
-            if (action === DynamicSponsorOption.Hide) {
-                hideSponsorContent(
-                    comment.shadowRoot.querySelector("#content")
-                    , comment.shadowRoot.querySelector('#main').querySelector("bili-comment-action-buttons-renderer").shadowRoot.querySelector("#reply")
-                    , true
-                );
+        if (!isSponsor || inWhitelist || action == DynamicSponsorOption.Disabled) continue;//这里借用动态屏蔽的那套方式
+        labelSponsorStyle(
+            "commentSponsorLabel"
+            , comment.shadowRoot.querySelector("bili-comment-user-info").shadowRoot.querySelector("#user-up")
+            || comment.shadowRoot.querySelector("bili-comment-user-info").shadowRoot.querySelector("#user-level")
+            , "dynamicSponsor_sponsor"
+            , false
+            , null
+            , true
+        );
 
-                if (Config.config.dynamicAndCommentSponsorBlocker === true && Config.config.commentSponsorBlock === true && Config.config.commentSponsorReplyBlock === true) {
-                    const replys = reply.shadowRoot.querySelector("bili-comment-replies-renderer").shadowRoot.querySelectorAll("bili-comment-reply-renderer");
-                    replys.forEach((e) => { (e as HTMLElement).style.display = "none" });
+        if (action !== DynamicSponsorOption.Hide) continue;
+        hideSponsorContent(
+            comment.shadowRoot.querySelector("#content")
+            , comment.shadowRoot.querySelector('#main').querySelector("bili-comment-action-buttons-renderer").shadowRoot.querySelector("#reply")
+            , true
+        );
 
-                    reply.shadowRoot.querySelector("bili-comment-replies-renderer").shadowRoot.querySelector("bili-text-button").shadowRoot.querySelector("button").addEventListener("click", () => {
-                        replys.forEach((e) => { (e as HTMLElement).style.display = null });
-                    }, { once: true });
-                }
-            }
+        if (Config.config.dynamicAndCommentSponsorBlocker === true && Config.config.commentSponsorBlock === true && Config.config.commentSponsorReplyBlock === true) {
+            const replys = reply.shadowRoot.querySelector("bili-comment-replies-renderer").shadowRoot.querySelectorAll("bili-comment-reply-renderer");
+            replys.forEach((e) => { (e as HTMLElement).style.display = "none" });
+
+            reply.shadowRoot.querySelector("bili-comment-replies-renderer").shadowRoot.querySelector("bili-text-button").shadowRoot.querySelector("button").addEventListener("click", () => {
+                replys.forEach((e) => { (e as HTMLElement).style.display = null });
+            }, { once: true });
         }
     }
 }
