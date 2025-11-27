@@ -1341,7 +1341,7 @@
         "message": "屏蔽匹配正则: "
     },
     "dynamicAndCommentSponsorRegexPatternDescription": {
-        "message": "默认正则表达式偏保守，建议根据您关注的UP主动态内容自行修改(如果您会编写正则表达式)\n例如您关注的UP主们经常发某一个产品的广告，您可以将该产品的名称添加到正则表达式中"
+        "message": "默认正则表达式偏保守，建议根据您关注的UP主动态内容自行修改(如果您会编写正则表达式)\n例如您关注的UP主们经常发某一个产品的广告，您可以将该产品的名称添加到正则表达式中\n会不定期更新默认正则表达式以提升屏蔽效果, 如果你更改了正则表达式则不会进行更新, 以防止覆盖您的修改, 请手动合并更新内容"
     },
     "category_dynamicSponsor_sponsor": {
         "message": "商品链接"
@@ -1359,7 +1359,7 @@
         "message": "疑似商品链接"
     },
     "category_dynamicSponsor_suspicion_sponsor_description": {
-        "message": "使用正则表达式对内容进行匹配来额外屏蔽柔性推广，是对“商品链接”的补充，可能会误屏蔽或漏屏蔽部分内容"
+        "message": "使用正则表达式对内容进行匹配来额外屏蔽柔性推广，是对“商品链接”的补充，可能会误屏蔽或漏屏蔽部分内容\n可能会频繁误屏蔽游戏官方相关动态"
     },
     "showOverlay_DynamicSponsor": {
         "message": "仅添加标签"
@@ -1451,5 +1451,11 @@
     },
     "cacheManagementTitle": {
         "message": "缓存管理"
+    },
+    "dynamicAndCommentSponsorRegexPatternKeywordNumber": {
+        "message": "当匹配到多少个关键词时才隐藏:"
+    },
+    "dynamicAndCommentSponsorRegexPatternKeywordNumberDescription": {
+        "message": "当匹配到的关键词到一定数量后才执行隐藏操作否则仅添加标签\n默认为1，即匹配到任意关键字就隐藏"
     }
 }

@@ -97,6 +97,7 @@ interface SBConfig {
     dynamicAndCommentSponsorWhitelistedChannels: boolean;
     dynamicAndCommentSponsorBlocker: boolean;
     dynamicAndCommentSponsorRegexPattern: string;
+    dynamicAndCommentSponsorRegexPatternKeywordNumber: number;
     dynamicSponsorBlock: boolean;
     dynamicSponsorBlockerDebug: boolean;
     dynamicSpaceSponsorBlocker: boolean;
@@ -367,6 +368,7 @@ const syncDefaults = {
     "(?:饿了么|美(?:团|団)|百度外卖|蜂鸟|达达|UU跑腿|(?:淘宝)?闪购)|(?:点|订|送|吃)(?:外卖|餐)|外卖(?:节|服务|平台|app)" + //外卖大战
     "/gi" //匹配参数
     ,
+    dynamicAndCommentSponsorRegexPatternKeywordNumber: 1,
     dynamicSponsorBlock: true,
     dynamicSponsorBlockerDebug: false,
     dynamicSpaceSponsorBlocker: false,
