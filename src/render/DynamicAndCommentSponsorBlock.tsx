@@ -237,9 +237,14 @@ function isSponsor(element: HTMLElement) {
 }
 
 function isDynamicSponsorSuspicionSponsor(element: HTMLElement) {
-    const contentTitle = element?.querySelectorAll('.dyn-card-opus__title');
-    const contentDiv = element?.querySelectorAll('.bili-rich-text__content span:not(.bili-dyn-item__interaction *)');
-    const content = [...contentTitle, ...contentDiv];
+    //文本动态
+    const contentDivText = element?.querySelectorAll('.bili-rich-text__content span:not(.bili-dyn-item__interaction *)');
+    //专栏/文字动态
+    const contentDivOpus = element?.querySelectorAll('.opus-paragraph-children span');
+    //专栏/文字动态标题
+    const contentOpusTitle = element?.querySelectorAll('.dyn-card-opus__title');
+    
+    const content = [...contentOpusTitle, ...contentDivText, ...contentDivOpus];
     if (!content) return '';
 
     let combinedText = '';
