@@ -653,6 +653,10 @@ svg {
 	border-radius: 5px;
 }
 
+#categoryChooserTable .optionsSelector{
+	width: 90%;
+}
+
 .categoryColorTextBox {
 	width: 60px;
 
