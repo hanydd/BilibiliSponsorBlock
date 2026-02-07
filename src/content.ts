@@ -1174,7 +1174,8 @@ function setupVideoListeners(video: HTMLVideoElement) {
                 if (video.loop && video.currentTime < 0.2) {
                     startSponsorSchedule(false, 0);
                 } else {
-                    startSponsorSchedule();
+                    // Include intersecting segments so that seeking into the middle of a segment still triggers a skip
+                    startSponsorSchedule(Config.config.skipOnSeekToSegment);
                 }
             } else {
                 updateActiveSegment(video.currentTime);

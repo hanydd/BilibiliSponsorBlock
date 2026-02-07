@@ -458,6 +458,12 @@
     "whatManualSkipOnFullVideo": {
         "message": "如果您想看推廣影片時不跳過中間的內容，而是觀看完整影片，可以啟用推廣手動跳過"
     },
+    "enableSkipOnSeekToSegment": {
+        "message": "快進到片段中間時仍然跳過"
+    },
+    "whatSkipOnSeekToSegment": {
+        "message": "啟用後，當您透過方向鍵快進跳過了廣告片段的開頭、但仍處於片段中間時，外掛依然會自動跳過該片段。"
+    },
     "optionSectionSkipNotice": {
         "message": "跳過提醒跳出視窗"
     },

@@ -87,6 +87,7 @@ interface SBConfig {
     showCategoryWithoutPermission: boolean;
     showSegmentNameInChapterBar: boolean;
     useVirtualTime: boolean;
+    skipOnSeekToSegment: boolean;
     showSegmentFailedToFetchWarning: boolean;
     allowScrollingToEdit: boolean;
     showPreviewYoutubeButton: boolean;
@@ -345,6 +346,7 @@ const syncDefaults = {
     showCategoryWithoutPermission: false,
     showSegmentNameInChapterBar: true,
     useVirtualTime: true,
+    skipOnSeekToSegment: true,
     showSegmentFailedToFetchWarning: true,
     allowScrollingToEdit: true,
     showPreviewYoutubeButton: true,
