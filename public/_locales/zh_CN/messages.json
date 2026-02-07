@@ -458,6 +458,12 @@
     "whatManualSkipOnFullVideo": {
         "message": "如果你想看软广视频时不跳过中间的内容，而是观看完整视频，可以启用软广手动跳过"
     },
+    "enableSkipOnSeekToSegment": {
+        "message": "快进到片段中间时仍然跳过"
+    },
+    "whatSkipOnSeekToSegment": {
+        "message": "启用后，当你通过方向键快进跳过了广告片段的开头、但仍处于片段中间时，插件依然会自动跳过该片段。"
+    },
     "optionSectionSkipNotice": {
         "message": "跳过提醒弹窗"
     },
