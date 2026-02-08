@@ -69,7 +69,7 @@ import {
     getVideo,
     getVideoID,
     setupVideoModule,
-    updateFrameRate,
+    getFrameRate,
     waitForVideo,
 } from "./utils/video";
 import { parseBvidAndCidFromVideoId } from "./utils/videoIdUtils";
@@ -2806,9 +2806,9 @@ function hotkeyListener(e: KeyboardEvent): void {
  *
  * @param key keydown event
  */
-export async function seekFrameByKeyPressListener(key) {
+export function seekFrameByKeyPressListener(key) {
     const vid = getVideo();
-    const frameRate = await updateFrameRate();
+    const frameRate = getFrameRate();
     if (!vid.paused) return;
 
     if (keybindEquals(key, Config.config.nextFrameKeybind)) {
