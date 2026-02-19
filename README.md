@@ -45,6 +45,33 @@
 
     1. 打开浏览器的插件管理页面，启用“开发者模式”，点击`加载已解压的拓展程序`，选择刚刚下载解压的插件文件夹，就可以完成安装。
 
+## macOS Safari 安装（源码构建）
+
+Safari 版本通过 Safari Web Extension 打包。项目已提供一键脚本：
+
+```bash
+# 先准备配置文件和依赖
+cp config.json.example config.json
+npm ci
+
+# 构建 Safari 扩展并生成 macOS Xcode 工程
+npm run build:safari:macos
+```
+
+默认会在项目根目录生成 `safari/` Xcode 工程。然后：
+
+1. 使用 Xcode 打开 `safari/` 工程并编译运行。
+1. 打开 Safari -> 设置 -> 扩展，启用对应扩展。
+
+可选环境变量（用于自定义工程信息）：
+
+```bash
+BSB_SAFARI_APP_NAME="小电视空降助手" \
+BSB_SAFARI_BUNDLE_ID="top.bsbsb.safari" \
+BSB_SAFARI_PROJECT_DIR="safari" \
+npm run build:safari:macos
+```
+
 # 功能
 
 ## 使用说明

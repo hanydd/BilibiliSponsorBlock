@@ -26,13 +26,14 @@
 
 1. 在项目目录下执行 `npm run build:dev` (Chrome) 或 `npm run build:dev:firefox` (Firefox)，打包开发版插件。
 
-    也可以执行 `npm run build` 或者 `npm run build:firefox` 打包发行版插件，
+    也可以执行 `npm run build`、`npm run build:firefox` 或 `npm run build:safari` 打包发行版插件。
+    如果要生成 macOS Safari 可直接用的 Xcode 工程，执行 `npm run build:safari:macos`。
 
 1. 打包好的程序会输出在 `dist/` 文件夹下，你可以直接把生成的文件直接[加载到Chrome浏览器中](https://developer.chrome.com/docs/extensions/mv3/getstarted/#manifest)或者[压缩后加载到火狐浏览器中](https://developer.mozilla.org/docs/Tools/about:debugging#loading_a_temporary_extension)。
+   Safari 的 `npm run build:safari:macos` 会在项目根目录生成 `safari/` Xcode 工程。
 
 ## 开发和测试
 
 执行 `npm run dev` (Chrome) 或者 `npm run dev:firefox` (火狐)，npm 会打开一个安装好测试版插件的浏览器窗口，并且支持代码修改热加载。这里使用了[`web-ext run`](https://extensionworkshop.com/documentation/develop/web-ext-command-reference/#commands)。
 
 插件有可能在初次打开的时候不正常加载。如果你发现有问题，可以打开浏览器的插件管理，并手动重新加载插件。
-
