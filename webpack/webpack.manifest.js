@@ -5,9 +5,10 @@ const path = require("path");
 const { validate } = require("schema-utils");
 const fs = require("fs");
 
-const manifest = require("../manifest/manifest.json");
+const baseManifest = require("../manifest/manifest.json");
 const firefoxManifestExtra = require("../manifest/firefox-manifest-extra.json");
 const chromeManifestExtra = require("../manifest/chrome-manifest-extra.json");
+const safariManifestExtra = require("../manifest/safari-manifest-extra.json");
 
 // schema for options object
 const schema = {
@@ -35,10 +36,13 @@ class BuildManifest {
     apply() {
         const distFolder = path.resolve(__dirname, "../dist/");
         const distManifestFile = path.resolve(distFolder, "manifest.json");
+        const manifest = JSON.parse(JSON.stringify(baseManifest));
 
         // Add missing manifest elements
         if (this.options.browser.toLowerCase() === "firefox") {
             mergeObjects(manifest, firefoxManifestExtra);
+        } else if (this.options.browser.toLowerCase() === "safari") {
+            mergeObjects(manifest, safariManifestExtra);
         } else if (
             this.options.browser.toLowerCase() === "chrome" ||
             this.options.browser.toLowerCase() === "chromium" ||
