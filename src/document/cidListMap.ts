@@ -1,10 +1,10 @@
-import { BilibiliPagelistDetail } from "../requests/type/BilibiliRequestType";
+import { BilibiliPagelistDetail, BilibiliPagelistDetailForEvent } from "../requests/type/BilibiliRequestType";
 import { BVID, CID } from "../types";
 import { DataCache } from "../utils/cache";
 
 const cache = new DataCache<BVID, Map<number, CID>>("cid_map", () => new Map());
 
-export function saveCidMap(bvid: BVID, pageList: BilibiliPagelistDetail[]): void {
+export function saveCidMap(bvid: BVID, pageList: BilibiliPagelistDetail[] | BilibiliPagelistDetailForEvent[] ): void {
     if (!bvid || !pageList || !Array.isArray(pageList)) {
         console.error("[BSB] Invalid data for saveCidMap", { bvid, pageList });
         return;
@@ -30,6 +30,8 @@ export function getCidMap(bvid: BVID): Map<number, CID> {
     // Try to get CID from window state if available
     if (window?.__INITIAL_STATE__?.videoData?.pages && window?.__INITIAL_STATE__?.bvid === bvid) {
         saveCidMap(bvid, window.__INITIAL_STATE__.videoData.pages);
+    } else if (window?.__INITIAL_STATE__?.videoInfo?.pages && window?.__INITIAL_STATE__?.toBvid === bvid) {
+        saveCidMap(bvid, window.__INITIAL_STATE__.videoInfo.pages);
     }
 
     const result = cache.getFromCache(bvid);

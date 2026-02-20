@@ -209,7 +209,7 @@ export function detectPageType(): PageType {
 
     const urlObject = new URL(document.URL);
     if (urlObject.hostname === "www.bilibili.com") {
-        if (urlObject.pathname.startsWith("/video/")) {
+        if (urlObject.pathname.startsWith("/video/") || /BV[a-zA-Z0-9]{10}/.test(urlObject.searchParams.get("bvid"))) {
             pageType = PageType.Video;
         } else if (urlObject.pathname.startsWith("/list/")) {
             pageType = PageType.List;
