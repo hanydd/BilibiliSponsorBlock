@@ -37,6 +37,27 @@ export interface BiliVideoDetail {
     duration: number;
 }
 
+
+export interface BiliVideoDetailForEvent {
+    bvid: BVID;
+    aid: AID;
+    cid: CID;
+    copyright: number;
+    desc: string;
+    danmakuCount: number;
+    enableVt: boolean;
+    his_rank: number;
+    noReprint: number;
+    pages: BilibiliPagelistDetailForEvent[];
+    pubdate:number;
+    title:string;
+    upMid: number;
+    upName: string;
+    viewCount: number;
+    vt: number;
+    vtDisplay: string;
+}
+
 export interface BilibiliPagelistDetail {
     cid: CID;
     page: number;
@@ -47,6 +68,22 @@ export interface BilibiliPagelistDetail {
     weblink: string | null;
     dimension: unknown | null;
     first_frame: string | null;
+}
+
+
+export interface BilibiliPagelistDetailForEvent {
+    cid: CID;
+    dimension: {
+        height: number;
+        rotate: number;
+        width: number;
+    }
+    duration: number;
+    from: string;
+    page: number
+    part: string;
+    vid: string;
+    weblink: string;
 }
 
 export interface BiliPlayInfo {

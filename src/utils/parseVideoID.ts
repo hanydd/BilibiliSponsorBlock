@@ -9,7 +9,7 @@ import {
 export async function getBilibiliVideoID(url?: string): Promise<NewVideoID | null> {
     url ||= document?.URL;
 
-    if (url.includes("bilibili.com/video") || url.includes("bilibili.com/list/")) {
+    if (/www\.bilibili\.com.*BV[a-zA-Z0-9]{10}/.test(url)) {
         const id = (await getVideoIDFromWindow()) ?? (await getVideoIDFromURL(url));
         return id;
     }
@@ -68,12 +68,11 @@ export async function getBvIDFromURL(url: string): Promise<BVID | null> {
             // av id
             return await getBvidFromAidFromWindow(idMatch[3]);
         }
-    } else if (urlObject.host == "www.bilibili.com" && urlObject.pathname.startsWith("/list/")) {
+        return null;
+    } else {
         const id = urlObject.searchParams.get("bvid");
-        return id as BVID;
+        return id as BVID ?? null;
     }
-
-    return null;
 }
 
 export async function getVideoIDFromURL(url: string): Promise<NewVideoID | null> {
@@ -114,8 +113,8 @@ export async function getVideoIDFromURL(url: string): Promise<NewVideoID | null>
                 }
             }
         }
-        // List video page
-        else if (urlObject.pathname.startsWith("/list/")) {
+        // List & event video page
+        else {
             bvid = urlObject.searchParams.get("bvid") as BVID;
         }
 
