@@ -66,7 +66,12 @@ h6 {
 html,
 body {
 	color-scheme: var(--color-scheme);
-	font-family: PingFang SC, HarmonyOS_Regular, Helvetica Neue, Microsoft YaHei, sans-serif;
+	font-family:
+		PingFang SC,
+		HarmonyOS_Regular,
+		Helvetica Neue,
+		Microsoft YaHei,
+		sans-serif;
 	margin: 0;
 	font-size: 14px;
 	background-color: var(--background);
@@ -653,8 +658,8 @@ svg {
 	border-radius: 5px;
 }
 
-#categoryChooserTable .optionsSelector{
-	width: 90%;
+#categoryChooserTable .optionsSelector {
+	width: 75%;
 }
 
 .categoryColorTextBox {
