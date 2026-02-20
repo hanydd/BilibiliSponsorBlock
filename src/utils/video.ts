@@ -209,10 +209,12 @@ export function detectPageType(): PageType {
 
     const urlObject = new URL(document.URL);
     if (urlObject.hostname === "www.bilibili.com") {
-        if (urlObject.pathname.startsWith("/video/") || /BV[a-zA-Z0-9]{10}/.test(urlObject.searchParams.get("bvid"))) {
+        if (urlObject.pathname.startsWith("/video/")) {
             pageType = PageType.Video;
         } else if (urlObject.pathname.startsWith("/list/")) {
             pageType = PageType.List;
+        } else if (/BV[a-zA-Z0-9]{10}/.test(urlObject.searchParams.get("bvid"))){
+            pageType = PageType.Festival;
         } else if (urlObject.pathname.startsWith("/history")) {
             pageType = PageType.History;
         } else if (urlObject.pathname.startsWith("/account/history")) {

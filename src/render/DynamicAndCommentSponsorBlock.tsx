@@ -1,7 +1,7 @@
 import Config from "../config";
 import { waitFor } from "../utils/";
 import { DynamicSponsorOption, DynamicSponsorSelection } from "../types";
-import { detectPageType } from "../utils/video";
+import { getPageType } from "../utils/video";
 import { PageType } from "../types";
 import { insertSBIconDefinition } from "../thumbnail-utils/thumbnails";
 
@@ -62,9 +62,9 @@ async function DynamicListener() {
 
 async function CommentListener() {
     let commentElementsRoot: HTMLElement;
-    if ([PageType.Dynamic,PageType.Channel].includes(detectPageType())) {
+    if ([PageType.Dynamic, PageType.Channel].includes(getPageType())) {
         //可能会有多个评论区 所以没有默认的根节点
-    } else if ([PageType.Video,PageType.List,PageType.Opus].includes(detectPageType())) {
+    } else if ([PageType.Video, PageType.List, PageType.Opus, PageType.Festival].includes(getPageType())) {
         commentElementsRoot = await getElementWaitFor(() => document.querySelector('bili-comments')) as HTMLElement;
     }
 
@@ -89,7 +89,7 @@ async function CommentListener() {
     });
 
     let dynListClickHandler: (event: Event) => void;
-    if ([PageType.Dynamic,PageType.Channel].includes(detectPageType())) {
+    if ([PageType.Dynamic,PageType.Channel].includes(getPageType())) {
         const dynList = await getElementWaitFor(() => document.querySelector(".bili-dyn-list__items"));
 
         dynListClickHandler = async (event) => {
@@ -111,7 +111,7 @@ async function CommentListener() {
             dynList.removeEventListener("click", dynListClickHandler, true);
             newDynList.addEventListener("click", dynListClickHandler, true);
         });
-    } else if ([PageType.Video,PageType.List,PageType.Opus].includes(detectPageType())) {
+    } else if ([PageType.Video, PageType.List, PageType.Opus, PageType.Festival].includes(getPageType())) {
         init.observe(commentElementsRoot.shadowRoot, {
             childList: true
         });

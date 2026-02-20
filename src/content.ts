@@ -92,12 +92,12 @@ waitFor(() => Config.isReady(), 5000, 10).then(() => {
         (Config.config.dynamicAndCommentSponsorBlocker && Config.config.dynamicSponsorBlock)
     ) DynamicListener();
 
-    if ([PageType.Video, PageType.List, PageType.Dynamic, PageType.Channel, PageType.Opus].includes(detectPageType()) &&
+    if ([PageType.Video, PageType.List, PageType.Dynamic, PageType.Channel, PageType.Opus, PageType.Festival].includes(getPageType()) &&
         (Config.config.dynamicAndCommentSponsorBlocker && Config.config.commentSponsorBlock)
     ) CommentListener();
 });
 
-if ((document.hidden && getPageType() == PageType.Video) || getPageType() == PageType.List) {
+if ((document.hidden && getPageType() == PageType.Video) || ([PageType.Video, PageType.Festival].includes(getPageType()))) {
     document.addEventListener("visibilitychange", () => videoElementChange(true, getVideo()), { once: true });
     window.addEventListener("mouseover", () => videoElementChange(true, getVideo()), { once: true });
 }
@@ -557,7 +557,7 @@ async function videoIDChange(): Promise<void> {
     checkPreviewbarState();
     setupDescriptionPill();
 
-    if ([PageType.Video, PageType.List, PageType.Dynamic, PageType.Channel, PageType.Opus].includes(detectPageType()) &&
+    if ([PageType.Video, PageType.List, PageType.Dynamic, PageType.Channel, PageType.Opus, PageType.Festival].includes(getPageType()) &&
         (Config.config.dynamicAndCommentSponsorBlocker && Config.config.commentSponsorBlock)
     ) CommentListener();
 }

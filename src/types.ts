@@ -14,6 +14,7 @@ export enum PageType {
     Live = "live",
     Opus = "opus", //专栏
     Embed = "embed",
+    Festival = "Festival", //活动定制界面
 }
 export interface VideoDurationResponse {
     duration: number;
