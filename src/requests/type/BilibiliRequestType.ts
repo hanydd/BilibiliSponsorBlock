@@ -37,7 +37,6 @@ export interface BiliVideoDetail {
     duration: number;
 }
 
-
 export interface BiliVideoDetailForEvent {
     bvid: BVID;
     aid: AID;
@@ -49,8 +48,8 @@ export interface BiliVideoDetailForEvent {
     his_rank: number;
     noReprint: number;
     pages: BilibiliPagelistDetailForEvent[];
-    pubdate:number;
-    title:string;
+    pubdate: number;
+    title: string;
     upMid: number;
     upName: string;
     viewCount: number;
@@ -70,17 +69,16 @@ export interface BilibiliPagelistDetail {
     first_frame: string | null;
 }
 
-
 export interface BilibiliPagelistDetailForEvent {
     cid: CID;
     dimension: {
         height: number;
         rotate: number;
         width: number;
-    }
+    };
     duration: number;
     from: string;
-    page: number
+    page: number;
     part: string;
     vid: string;
     weblink: string;
