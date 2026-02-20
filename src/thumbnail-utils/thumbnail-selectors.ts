@@ -126,6 +126,12 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         thumbnailSelector: ".video-card",
         labelAnchorSelector: ".vertical-card-cover img",
         inShadowRoot: true,
+    },
+    "festivalPage": {
+        //活动定制界面
+        containerSelector: ".video-sections",
+        thumbnailSelector: ".video-episode-card",
+        labelAnchorSelector: ".activity-image-card__image",
     }
 };
 
@@ -146,6 +152,7 @@ const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
     [PageType.Opus]: [],
     [PageType.Unknown]: [],
     [PageType.Embed]: [],
+    [PageType.Festival]: ["festivalPage"],
 };
 
 const combinedPageTypeSelectors = {};
