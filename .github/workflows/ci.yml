@@ -46,3 +46,14 @@ jobs:
       - uses: montudor/action-zip@0852c26906e00f8a315c704958823928d8018b28
         with:
           args: zip -qq -r ./builds/FirefoxExtension.zip ./dist
+
+      # Create Safari artifacts
+      - name: Create Safari artifacts
+        run: npm run build:safari
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SafariExtension
+          path: dist
+      - uses: montudor/action-zip@0852c26906e00f8a315c704958823928d8018b28
+        with:
+          args: zip -qq -r ./builds/SafariExtension.zip ./dist
