@@ -5,7 +5,7 @@
   "main": "background.js",
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
-    "antd": "^5.27.0",
+    "antd": "^5.29.3",
     "content-scripts-register-polyfill": "^4.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
@@ -16,10 +16,10 @@
     }
   },
   "devDependencies": {
-    "@types/chrome": "^0.1.4",
-    "@types/firefox-webext-browser": "^120.0.4",
+    "@types/chrome": "^0.1.36",
+    "@types/firefox-webext-browser": "^120.0.5",
     "@types/jest": "^29.5.14",
-    "@types/react": "^18.3.23",
+    "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
     "@types/wicg-mediasession": "^1.1.4",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
@@ -37,8 +37,8 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "typescript": "5.9.2",
-    "web-ext": "^8.9.0",
-    "webpack": "^5.101.2",
+    "web-ext": "^8.10.0",
+    "webpack": "^5.105.2",
     "webpack-cli": "^5.1.4",
     "webpack-merge": "^5.8.0"
   },

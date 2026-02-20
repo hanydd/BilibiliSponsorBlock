@@ -56,12 +56,13 @@ export async function injectUpdatedScripts(extraScripts: InjectedScript[] = [], 
                     });
                 }
 
-                await chromeP.scripting.executeScript({
-                    target: { tabId: tab.id! },
-                    files: cs.js || [],
-
-                    world: cs["world"] || "ISOLATED",
-                });
+                if (cs.js && cs.js.length > 0) {
+                    await (chromeP.scripting as typeof chrome.scripting).executeScript({
+                        target: { tabId: tab.id! },
+                        files: cs.js,
+                        world: cs["world"] || "ISOLATED",
+                    });
+                }
             }
         }
     } else {
@@ -79,7 +80,7 @@ export async function injectUpdatedScripts(extraScripts: InjectedScript[] = [], 
                                 )
                             ) {
                                 if (script.js) {
-                                    void chromeP.scripting.executeScript({
+                                    void (chromeP.scripting as typeof chrome.scripting).executeScript({
                                         target: { tabId: tab.id! },
                                         files: script.js,
                                     });
