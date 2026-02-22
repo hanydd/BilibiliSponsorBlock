@@ -9,7 +9,7 @@ import {
 export async function getBilibiliVideoID(url?: string): Promise<NewVideoID | null> {
     url ||= document?.URL;
 
-    if (/www\.bilibili\.com.*BV[a-zA-Z0-9]{10}/.test(url)) {
+    if (/www\.bilibili\.com.*((BV1[a-zA-Z0-9]{9})|(av\d+)|((ss\d+)|(ep\d+)))/.test(url)) {
         const id = (await getVideoIDFromWindow()) ?? (await getVideoIDFromURL(url));
         return id;
     }
