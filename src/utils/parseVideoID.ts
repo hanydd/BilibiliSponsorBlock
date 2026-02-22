@@ -1,15 +1,18 @@
-import { BVID, NewVideoID, YTID } from "../types";
+import { BVID, CID, NewVideoID, YTID } from "../types";
 import { BILI_DOMAINS } from "./constants";
 import {
     getBvidFromAidFromWindow,
     getCidFromBvidAndPageFromWindow,
     getPropertyFromWindow,
+    getAidFromWindowForBangumi,
+    getCidFromWindowForBangumi,
 } from "./injectedScriptMessageUtils";
+import { CalculateAvidToBvid } from "./bvidAvidUtils";
 
 export async function getBilibiliVideoID(url?: string): Promise<NewVideoID | null> {
     url ||= document?.URL;
 
-    if (/www\.bilibili\.com.*BV[a-zA-Z0-9]{10}/.test(url)) {
+    if (/www\.bilibili\.com.*((BV1[a-zA-Z0-9]{9})|(av\d+)|((ss\d+)|(ep\d+)))/.test(url)) {
         const id = (await getVideoIDFromWindow()) ?? (await getVideoIDFromURL(url));
         return id;
     }
@@ -30,7 +33,8 @@ export function getVideoIDFromWindow(timeout = 200): Promise<NewVideoID | null> 
     );
 }
 
-const BILIBILI_VIDEO_URL_REGEX = /^\/video\/((BV1[a-zA-Z0-9]{9})|(av\d+))\/?/;
+const BILIBILI_VIDEO_URL_REGEX = /^\/video\/((BV1[a-zA-Z0-9]{9})|(av\d+)|((ss\d+)|(ep\d+)))\/?/;
+const BILIBILI_BANGUMI_URL_REGEX = /^\/bangumi\/play\/(((ss\d+)|(ep\d+)))\/?/;
 const BVID_REGEX = /^(BV1[a-zA-Z0-9]{9})$/;
 /**
  * Parse without side effects
@@ -112,6 +116,16 @@ export async function getVideoIDFromURL(url: string): Promise<NewVideoID | null>
                     return null;
                 }
             }
+        } else if (urlObject.pathname.startsWith("/bangumi/")) {
+            const idMatch = urlObject.pathname.match(BILIBILI_BANGUMI_URL_REGEX);
+            if (idMatch && idMatch[1]) {
+                const aid = await getAidFromWindowForBangumi();
+                bvid = CalculateAvidToBvid(aid);
+                if (!bvid) {
+                    console.error("[BSB] Unable to convert ss/ep id to bv id: " + idMatch[1]);
+                    return null;
+                }
+            }
         }
         // List & event video page
         else {
@@ -120,7 +134,13 @@ export async function getVideoIDFromURL(url: string): Promise<NewVideoID | null>
 
         // Return combined ID if bvid was found
         if (bvid) {
-            const cid = (await getCidFromBvidAndPageFromWindow(bvid, page)) ?? "";
+            let cid : CID | string | null;
+
+            if (urlObject.pathname.startsWith("/bangumi/")) {
+                cid = (await getCidFromWindowForBangumi()) ?? "";
+            } else {
+                cid = (await getCidFromBvidAndPageFromWindow(bvid, page)) ?? "";
+            }
             return (bvid + "+" + cid) as NewVideoID;
         }
     }

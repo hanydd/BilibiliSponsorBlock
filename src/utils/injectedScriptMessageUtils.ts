@@ -1,4 +1,4 @@
-import { BVID, CID } from "../types";
+import { AID, BVID, CID } from "../types";
 
 export const sourceId = "biliSponsorBlock";
 
@@ -94,5 +94,27 @@ export async function getCidMapFromWindow(bvid: BVID): Promise<Map<number, CID> 
             responseType: "returnCidMap",
         },
         bvid
+    );
+}
+
+export async function getAidFromWindowForBangumi(): Promise<AID | null> {
+    return getPropertyFromWindow<AID>(
+        {
+            sendType: "getAidForBangumi",
+            responseType: "returnAid",
+        },
+        null,
+        1000
+    );
+}
+
+export async function getCidFromWindowForBangumi(): Promise<CID | null> {
+    return getPropertyFromWindow<CID>(
+        {
+            sendType: "getCidForBangumi",
+            responseType: "returnCid",
+        },
+        null,
+        1000
     );
 }
