@@ -5,6 +5,16 @@ export interface BilibiliResponse<T> {
     message: string;
     ttl: number;
     data: T;
+    result: {
+        play_view_business_info: {
+            //仅第一次加载有效 切换分P不会自动更新
+            episode_info?: {
+                aid: number;
+                cid: number;
+                ep_id: number;
+            };
+        };
+    };
 }
 
 export interface BiliVideoDetail {
