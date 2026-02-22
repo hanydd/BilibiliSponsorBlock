@@ -6,6 +6,11 @@ import { getBvid, saveAidFromDetail } from "./aidMap";
 import { getCidFromBvIdPage, getCidMap } from "./cidListMap";
 import { getFrameRate, playUrlResponseToPlayInfo, savePlayInfo } from "./frameRateUtils";
 
+const BangumiVideoInfo: { aid: string; cid: string } = {
+    aid: null,
+    cid: null,
+}
+
 const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): void => {
     window.postMessage(
         {
@@ -17,6 +22,19 @@ const sendMessageToContent = (messageData: InjectedScriptMessageSend, payload): 
         "/"
     );
 };
+
+function waitForBangumiVideoInfo(): Promise<{ aid: string; cid: string }> {
+    return new Promise((resolve) => {
+        const check = () => {
+            if (BangumiVideoInfo.aid !== null && BangumiVideoInfo.cid !== null) {
+                resolve(BangumiVideoInfo);
+            } else {
+                setTimeout(check, 100);
+            }
+        };
+        check();
+    });
+}
 
 function overwriteFetch() {
     const originalFetch = window.fetch;
@@ -65,6 +83,9 @@ function processURLRequest(url: URL, responseText: string): void {
     } else if (url.pathname.startsWith("/x/player/wbi/v2")) {
         const response = JSON.parse(responseText) as BilibiliResponse<BiliVideoDetail>;
         saveAidFromDetail(response.data);
+
+        BangumiVideoInfo.aid = url.searchParams.get("aid");
+        BangumiVideoInfo.cid = url.searchParams.get("cid");
     }
 }
 
@@ -93,6 +114,12 @@ async function windowMessageListener(message: MessageEvent) {
             sendMessageToContent(data, await getCidFromBvIdPage(payload.bvid, payload.page));
         } else if (data.type === "getCidMap") {
             sendMessageToContent(data, await getCidMap(data.payload as BVID));
+        } else if (data.type === "getAidForBangumi") {
+            const bangumiVideoInfo = await waitForBangumiVideoInfo();
+            sendMessageToContent(data, bangumiVideoInfo.aid);
+        } else if (data.type === "getCidForBangumi") {
+            const bangumiVideoInfo = await waitForBangumiVideoInfo();
+            sendMessageToContent(data, bangumiVideoInfo.cid);
         }
     }
 }
