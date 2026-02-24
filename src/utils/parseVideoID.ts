@@ -6,13 +6,18 @@ import {
     getPropertyFromWindow,
     getAidFromWindowForBangumi,
     getCidFromWindowForBangumi,
+    getBvidFromWindowForFestival,
 } from "./injectedScriptMessageUtils";
 import { CalculateAvidToBvid } from "./bvidAvidUtils";
 
 export async function getBilibiliVideoID(url?: string): Promise<NewVideoID | null> {
     url ||= document?.URL;
 
-    if (/www\.bilibili\.com.*((BV1[a-zA-Z0-9]{9})|(av\d+)|((ss\d+)|(ep\d+)))/.test(url)) {
+    if ((url.includes("bilibili.com/video") ||
+        url.includes("bilibili.com/list/")) ||
+        url.includes("bilibili.com/festival/") ||
+        url.includes("bilibili.com/bangumi/") ||
+        /www\.bilibili\.com.*((BV1[a-zA-Z0-9]{9})|(av\d+)|((ss\d+)|(ep\d+)))/.test(url)) {
         const id = (await getVideoIDFromWindow()) ?? (await getVideoIDFromURL(url));
         return id;
     }
@@ -126,8 +131,12 @@ export async function getVideoIDFromURL(url: string): Promise<NewVideoID | null>
                     return null;
                 }
             }
+            //event video page
+        } else if (urlObject.pathname.startsWith("/festival/")) {
+            // 活动定制界面使用bvid查询参数 该参数可为空
+            bvid = await getBvidFromWindowForFestival();
         }
-        // List & event video page
+            // List video page
         else {
             bvid = urlObject.searchParams.get("bvid") as BVID;
         }

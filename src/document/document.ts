@@ -114,6 +114,8 @@ async function windowMessageListener(message: MessageEvent) {
             sendMessageToContent(data, await getCidFromBvIdPage(payload.bvid, payload.page));
         } else if (data.type === "getCidMap") {
             sendMessageToContent(data, await getCidMap(data.payload as BVID));
+        } else if (data.type === "getBvidForFestival") {
+            sendMessageToContent(data, window?.__INITIAL_STATE__?.videoInfo?.bvid);
         } else if (data.type === "getAidForBangumi") {
             const bangumiVideoInfo = await waitForBangumiVideoInfo();
             sendMessageToContent(data, bangumiVideoInfo.aid);

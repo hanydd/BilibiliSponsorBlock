@@ -97,6 +97,16 @@ export async function getCidMapFromWindow(bvid: BVID): Promise<Map<number, CID> 
     );
 }
 
+export async function getBvidFromWindowForFestival(): Promise<BVID | null> {
+    return getPropertyFromWindow<BVID>(
+        {
+            sendType: "getBvidForFestival",
+            responseType: "returnBvid",
+        }
+    );
+}
+
+
 export async function getAidFromWindowForBangumi(): Promise<AID | null> {
     return getPropertyFromWindow<AID>(
         {
