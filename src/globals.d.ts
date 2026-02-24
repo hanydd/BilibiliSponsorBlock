@@ -19,5 +19,8 @@ declare global {
             videoInfo: BiliVideoDetailForEvent;
         };
         __playinfo__?: BilibiliResponse<BiliPlayInfo>;
+        player: {
+            getManifest: () => { aid: AID | null; cid: CID | null; bvid: BVID | null; p: number };
+        };
     }
 }

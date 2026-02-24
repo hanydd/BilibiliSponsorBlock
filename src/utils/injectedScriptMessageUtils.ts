@@ -97,34 +97,11 @@ export async function getCidMapFromWindow(bvid: BVID): Promise<Map<number, CID> 
     );
 }
 
-export async function getBvidFromWindowForFestival(): Promise<BVID | null> {
-    return getPropertyFromWindow<BVID>(
+export async function getVideoInfoFromWindowOnplayerManifest(): Promise<{ aid: AID | null; cid: CID | null; bvid: BVID | null; p: number }> {
+    return getPropertyFromWindow<{ aid: AID | null; cid: CID | null; bvid: BVID | null; p: number }>(
         {
-            sendType: "getBvidForFestival",
-            responseType: "returnBvid",
+            sendType: "getVideoInfoOnplayer",
+            responseType: "returnVideoInfo",
         }
-    );
-}
-
-
-export async function getAidFromWindowForBangumi(): Promise<AID | null> {
-    return getPropertyFromWindow<AID>(
-        {
-            sendType: "getAidForBangumi",
-            responseType: "returnAid",
-        },
-        null,
-        1000
-    );
-}
-
-export async function getCidFromWindowForBangumi(): Promise<CID | null> {
-    return getPropertyFromWindow<CID>(
-        {
-            sendType: "getCidForBangumi",
-            responseType: "returnCid",
-        },
-        null,
-        1000
     );
 }

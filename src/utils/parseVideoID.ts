@@ -1,24 +1,23 @@
-import { BVID, CID, NewVideoID, YTID } from "../types";
+import { BVID, NewVideoID, YTID } from "../types";
 import { BILI_DOMAINS } from "./constants";
 import {
     getBvidFromAidFromWindow,
     getCidFromBvidAndPageFromWindow,
     getPropertyFromWindow,
-    getAidFromWindowForBangumi,
-    getCidFromWindowForBangumi,
-    getBvidFromWindowForFestival,
+    getVideoInfoFromWindowOnplayerManifest,
 } from "./injectedScriptMessageUtils";
 import { CalculateAvidToBvid } from "./bvidAvidUtils";
 
 export async function getBilibiliVideoID(url?: string): Promise<NewVideoID | null> {
     url ||= document?.URL;
 
-    if ((url.includes("bilibili.com/video") ||
-        url.includes("bilibili.com/list/")) ||
-        url.includes("bilibili.com/festival/") ||
-        url.includes("bilibili.com/bangumi/") ||
+    if ((url.includes("www.bilibili.com/video/") ||
+        url.includes("www.bilibili.com/list/")) ||
+        url.includes("www.bilibili.com/festival/") ||
+        url.includes("www.bilibili.com/bangumi/") ||
+        //漏网之鱼
         /www\.bilibili\.com.*((BV1[a-zA-Z0-9]{9})|(av\d+)|((ss\d+)|(ep\d+)))/.test(url)) {
-        const id = (await getVideoIDFromWindow()) ?? (await getVideoIDFromURL(url));
+        const id = (await getVideoIDFromWindow()) || (await getVideoIDFromPlayerManifest()) || (await getVideoIDFromURL(url));
         return id;
     }
     return null;
@@ -39,7 +38,6 @@ export function getVideoIDFromWindow(timeout = 200): Promise<NewVideoID | null> 
 }
 
 const BILIBILI_VIDEO_URL_REGEX = /^\/video\/((BV1[a-zA-Z0-9]{9})|(av\d+)|((ss\d+)|(ep\d+)))\/?/;
-const BILIBILI_BANGUMI_URL_REGEX = /^\/bangumi\/play\/(((ss\d+)|(ep\d+)))\/?/;
 const BVID_REGEX = /^(BV1[a-zA-Z0-9]{9})$/;
 /**
  * Parse without side effects
@@ -84,6 +82,21 @@ export async function getBvIDFromURL(url: string): Promise<BVID | null> {
     }
 }
 
+export async function getVideoIDFromPlayerManifest(): Promise<NewVideoID | null> {
+    let bvid: BVID | null = null;
+    const videoInfo = await getVideoInfoFromWindowOnplayerManifest();
+
+    if (!videoInfo.bvid) {
+        bvid = videoInfo.aid ? CalculateAvidToBvid(videoInfo.aid) : null;
+    } else {
+        bvid = videoInfo.bvid;
+    }
+    if (!bvid) return null;
+
+    const cid = videoInfo?.cid ?? "";
+    return (bvid + "+" + cid) as NewVideoID;
+}
+
 export async function getVideoIDFromURL(url: string): Promise<NewVideoID | null> {
     url = url.trim();
 
@@ -121,35 +134,15 @@ export async function getVideoIDFromURL(url: string): Promise<NewVideoID | null>
                     return null;
                 }
             }
-        } else if (urlObject.pathname.startsWith("/bangumi/")) {
-            const idMatch = urlObject.pathname.match(BILIBILI_BANGUMI_URL_REGEX);
-            if (idMatch && idMatch[1]) {
-                const aid = await getAidFromWindowForBangumi();
-                bvid = CalculateAvidToBvid(aid);
-                if (!bvid) {
-                    console.error("[BSB] Unable to convert ss/ep id to bv id: " + idMatch[1]);
-                    return null;
-                }
-            }
-            //event video page
-        } else if (urlObject.pathname.startsWith("/festival/")) {
-            // 活动定制界面使用bvid查询参数 该参数可为空
-            bvid = await getBvidFromWindowForFestival();
         }
-            // List video page
+        // List video page
         else {
             bvid = urlObject.searchParams.get("bvid") as BVID;
         }
 
         // Return combined ID if bvid was found
         if (bvid) {
-            let cid : CID | string | null;
-
-            if (urlObject.pathname.startsWith("/bangumi/")) {
-                cid = (await getCidFromWindowForBangumi()) ?? "";
-            } else {
-                cid = (await getCidFromBvidAndPageFromWindow(bvid, page)) ?? "";
-            }
+            const cid = (await getCidFromBvidAndPageFromWindow(bvid, page)) ?? "";
             return (bvid + "+" + cid) as NewVideoID;
         }
     }
