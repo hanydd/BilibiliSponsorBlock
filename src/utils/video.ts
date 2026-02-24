@@ -213,7 +213,7 @@ export function detectPageType(): PageType {
             pageType = PageType.Video;
         } else if (urlObject.pathname.startsWith("/list/")) {
             pageType = PageType.List;
-        } else if (/BV[a-zA-Z0-9]{10}/.test(urlObject.searchParams.get("bvid"))){
+        } else if (urlObject.pathname.startsWith("/festival/")) {
             pageType = PageType.Festival;
         } else if (urlObject.pathname.startsWith("/history")) {
             pageType = PageType.History;
