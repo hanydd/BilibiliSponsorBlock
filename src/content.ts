@@ -260,11 +260,11 @@ const manualSkipPercentCount = 0.5;
 //get messages from the background script and the popup
 chrome.runtime.onMessage.addListener(messageListener);
 
-function messageListener(
+async function messageListener(
     request: Message,
     sender: unknown,
     sendResponse: (response: MessageResponse) => void
-): void | boolean {
+): Promise<void | boolean> {
     //messages from popup script
     switch (request.message) {
         case "update":
@@ -279,6 +279,8 @@ function messageListener(
 
             break;
         case "isInfoFound":
+            if (!lastResponseStatus) return;
+
             //send the sponsor times along with if it's found
             sendResponse({
                 found: sponsorDataFound,
@@ -300,9 +302,18 @@ function messageListener(
             popupInitialised = true;
             break;
         case "getVideoID":
-            sendResponse({
-                videoID: getVideoID(),
-            });
+            {
+                let id = getVideoID();
+                if (!id) {
+                    id = await getBilibiliVideoID();
+                    if (id) {
+                        await videoIDChange();
+                    }
+                }
+                sendResponse({
+                    videoID: id,
+                });
+            }
 
             break;
         case "getChannelID":
