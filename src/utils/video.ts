@@ -115,6 +115,8 @@ async function videoIDChange(id: NewVideoID | null): Promise<boolean> {
         return false;
     }
 
+    // Refresh content even when ID didn't change (e.g. URL params removed) so segments/UI update
+    if ([PageType.Festival, PageType.Anime].includes(getPageType())) contentMethod.videoIDChange();
     //if the id has not changed return unless the video element has changed
     if (videoID === id && (isVisible(video) || !video)) return false;
 
