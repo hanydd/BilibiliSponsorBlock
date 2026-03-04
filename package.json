@@ -16,7 +16,7 @@
     }
   },
   "devDependencies": {
-    "@types/chrome": "^0.1.36",
+    "@types/chrome": " 0.1.37",
     "@types/firefox-webext-browser": "^120.0.5",
     "@types/jest": "^29.5.14",
     "@types/react": "^18.3.28",
@@ -25,7 +25,7 @@
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "concurrently": "^7.6.0",
-    "copy-webpack-plugin": "^11.0.0",
+    "copy-webpack-plugin": "^14.0.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.35.0",
     "fork-ts-checker-webpack-plugin": "^7.3.0",
@@ -37,8 +37,8 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "typescript": "5.9.2",
-    "web-ext": "^8.10.0",
-    "webpack": "^5.105.2",
+    "web-ext": "^9.3.0",
+    "webpack": "^5.105.4",
     "webpack-cli": "^5.1.4",
     "webpack-merge": "^5.8.0"
   },
@@ -70,19 +70,14 @@
     "lint:fix": "eslint src --fix"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=20"
   },
-  "funding": [
-    {
-      "type": "patreon",
-      "url": "https://www.patreon.com/hanyd"
-    }
-  ],
+  "funding": "https://bsbsb.top/donate/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hanydd/BilibiliSponsorBlock.git"
   },
-  "author": "Yaodong Han",
+  "author": "hanydd",
   "license": "GPL-3.0",
   "private": true
 }

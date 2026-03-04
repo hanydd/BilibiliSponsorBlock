@@ -14,7 +14,7 @@ jobs:
           submodules: recursive
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
       - run: npm ci
       - run: sudo apt-get install chromium-chromedriver
 
