@@ -149,9 +149,9 @@ async function createOrGetThumbnail(
     overlay.appendChild(text);
 
     // try append after image element, exclude avatar in feed popup
-    // wait unitl there is an anchor point, or the label might get inserted elsewhere and break the header
+    // wait until there is an anchor point, or the label might get inserted elsewhere and break the header
     const labelAnchor =
-        (await waitFor(() => thumbnail.querySelector(getLabelAnchorSelector(containerType)), 10000, 100)) ??
+        (await waitFor(() => thumbnail.querySelector(getLabelAnchorSelector(containerType)), 2000, 100).catch(() => null)) ??
         thumbnail.lastChild;
     labelAnchor.after(overlay);
 

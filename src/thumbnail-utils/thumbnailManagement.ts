@@ -42,7 +42,7 @@ export function setupThumbnailListener(): void {
                     thumbnailContainerObserver ??= new MutationObserver(() => checkPageForNewThumbnails());
                     thumbnailContainerObserver?.observe(thumbnailContainer, { childList: true, subtree: true });
                 })
-                .catch();
+                .catch(() => { /* container not found on this page, expected */ });
             if (isShadowRoot(containerType)) {
                 const parent = document.querySelector(getParentElement(containerType));
                 const shadowRoot = parent?.shadowRoot;
@@ -103,12 +103,12 @@ export function checkPageForNewThumbnails() {
             waitFor(() => (shouldWaitForPageLoad(containerType) ? getPageLoaded() : true), 30000, 10)
                 .then(() => waitFor(() => document.querySelector(getParentElement(containerType))?.shadowRoot?.querySelector(selector), 10000))
                 .finally(() => labelNewThumbnails(document.querySelector(getParentElement(containerType))?.shadowRoot?.querySelector(selector), containerType))
-                .catch();
+                .catch(() => { /* container not found on this page */ });
         } else {
             waitFor(() => (shouldWaitForPageLoad(containerType) ? getPageLoaded() : true), 30000, 10)
                 .then(() => waitFor(() => document.querySelector(selector), 10000))
                 .finally(() => labelNewThumbnails(document.querySelector(selector), containerType))
-                .catch();
+                .catch(() => { /* container not found on this page */ });
         }
     }
 }
