@@ -147,7 +147,6 @@ let sponsorSkipped: boolean[] = [];
 
 let videoMuted = false; // Has it been attempted to be muted
 
-// TODO: More robust way to check for page loaded
 let headerLoaded = false;
 setupPageLoadingListener();
 
@@ -171,21 +170,45 @@ const playerButton = new PlayerButton(
 
 /**
  *  根据页面元素加载状态判断页面是否加载完成
+ *
+ *  Bilibili uses SSR + Vue 3 hydration. The header is pre-rendered in the
+ *  server HTML, so counting childList mutations (the old approach) no longer
+ *  works — zero mutations fire after the initial render.
+ *
+ *  New strategy:
+ *    1. Wait for the DOM to be parsed (DOMContentLoaded).
+ *    2. Verify the header's navigation section is populated.
+ *    3. Brief delay for Vue hydration to finalize.
  */
 async function setupPageLoadingListener() {
-    // header栏会加载组件，登录后触发5次mutation，未登录触发4次mutation
-    const header = await waitFor(() => document.querySelector("#biliMainHeader, .bili-header"), 10000, 100);
-    let mutationCounter = 0;
-    const headerObserver = new MutationObserver(async () => {
-        mutationCounter += 1;
-        if (mutationCounter >= 4) {
-            headerObserver.disconnect();
-            // 再等待500ms，确保页面加载完成
-            await sleep(500);
-            headerLoaded = true;
+    if (document.readyState === "loading") {
+        await new Promise<void>((resolve) => {
+            document.addEventListener("DOMContentLoaded", () => resolve(), { once: true });
+        });
+    }
+
+    try {
+        await waitFor(() => {
+            const rightEntry = document.querySelector(".bili-header .right-entry");
+            if (rightEntry && rightEntry.children.length > 0) return true;
+
+            const headerBar = document.querySelector(".bili-header__bar");
+            if (headerBar && headerBar.children.length > 0) return true;
+
+            return false;
+        }, 10000, 100);
+    } catch (e) {
+        // Fallback: if header elements are not found (embed pages or
+        // future layout changes), wait for all page resources to load.
+        if (document.readyState !== "complete") {
+            await new Promise<void>((resolve) => {
+                window.addEventListener("load", () => resolve(), { once: true });
+            });
         }
-    });
-    headerObserver.observe(header, { childList: true, subtree: true });
+    }
+
+    await sleep(300);
+    headerLoaded = true;
 }
 
 export function getPageLoaded() {
