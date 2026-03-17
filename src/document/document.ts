@@ -130,10 +130,53 @@ async function addMid() {
     }
 }
 
+/**
+ * Detect when Vue has finished mounting / hydrating the page.
+ *
+ * Bilibili uses SSR + Vue 2.  All DOM elements arrive pre-rendered, but Vue
+ * does not attach event handlers or reactive behaviour until its mount phase
+ * completes (~2 s after DOMContentLoaded based on profiling).
+ *
+ * We poll for the `__vue__` (Vue 2) or `__vue_app__` (Vue 3) property on
+ * `#app`, then notify the ISOLATED-world content script via postMessage.
+ */
+function detectVueMountAndNotify(): void {
+    const t0 = performance.now();
+    const TAG = "[BSB-pageReady]";
+    let checkCount = 0;
+
+    const check = () => {
+        checkCount++;
+        const app = document.querySelector("#app");
+        const vue2 = !!(app as unknown as { __vue__?: unknown })?.__vue__;
+        const vue3 = !!(app as unknown as { __vue_app__?: unknown })?.__vue_app__;
+
+        if (vue2 || vue3) {
+            const elapsed = Math.round(performance.now() - t0);
+            console.log(`${TAG} Vue mounted (vue2=${vue2}, vue3=${vue3}) at +${elapsed}ms after ${checkCount} checks`);
+            window.postMessage({ source: sourceId, type: "pageReady" }, "/");
+            return;
+        }
+
+        if (checkCount >= 200) {
+            // ~10 s timeout (200 × 50 ms) — give up and notify anyway
+            const elapsed = Math.round(performance.now() - t0);
+            console.warn(`${TAG} Vue mount not detected after ${elapsed}ms / ${checkCount} checks, sending pageReady anyway`);
+            window.postMessage({ source: sourceId, type: "pageReady" }, "/");
+            return;
+        }
+
+        setTimeout(check, 50);
+    };
+
+    check();
+}
+
 function init(): void {
     window.addEventListener("message", windowMessageListener);
     overwriteFetch();
     overwriteXHR();
+    detectVueMountAndNotify();
     if (window.location.href.includes("t.bilibili.com") || window.location.href.includes("space.bilibili.com")) {
         addMid();
     }

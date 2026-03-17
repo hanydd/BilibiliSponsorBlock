@@ -41,7 +41,7 @@ import {
     YTID,
 } from "./types";
 import Utils from "./utils";
-import { isFirefox, isFirefoxOrSafari, isSafari, sleep, waitFor } from "./utils/";
+import { isFirefox, isFirefoxOrSafari, isSafari, waitFor } from "./utils/";
 import { AnimationUtils } from "./utils/animationUtils";
 import { addCleanupListener, cleanPage } from "./utils/cleanup";
 import { defaultPreviewTime } from "./utils/constants";
@@ -52,7 +52,7 @@ import { importTimes } from "./utils/exporter";
 import { getErrorMessage, getFormattedTime } from "./utils/formating";
 import { GenericUtils } from "./utils/genericUtils";
 import { getHash, getVideoIDHash, HashedValue } from "./utils/hash";
-import { getCidMapFromWindow } from "./utils/injectedScriptMessageUtils";
+import { getCidMapFromWindow, sourceId } from "./utils/injectedScriptMessageUtils";
 import { logDebug } from "./utils/logger";
 import { getControls, getHashParams, getProgressBar, isPlayingPlaylist } from "./utils/pageUtils";
 import { getBilibiliVideoID } from "./utils/parseVideoID";
@@ -169,46 +169,53 @@ const playerButton = new PlayerButton(
 );
 
 /**
- *  根据页面元素加载状态判断页面是否加载完成
+ *  等待页面真正可用（Vue mount/hydration 完成）后再让插件操作 DOM。
  *
- *  Bilibili uses SSR + Vue 3 hydration. The header is pre-rendered in the
- *  server HTML, so counting childList mutations (the old approach) no longer
- *  works — zero mutations fire after the initial render.
+ *  Bilibili 使用 SSR + Vue 2。所有 DOM 元素在 DOMContentLoaded (~+156ms) 时
+ *  就已存在，但 Vue 直到 ~+2200ms 才完成 hydration/mount。在这之间操作 DOM 会
+ *  被 Vue 的 mount 过程覆盖或移除。
  *
- *  New strategy:
- *    1. Wait for the DOM to be parsed (DOMContentLoaded).
- *    2. Verify the header's navigation section is populated.
- *    3. Brief delay for Vue hydration to finalize.
+ *  方案：MAIN world 脚本 (document.ts) 轮询 #app.__vue__ 检测 Vue mount，
+ *  完成后通过 postMessage 通知本脚本 (ISOLATED world)。
+ *
+ *  Primary:  监听来自 MAIN world 的 "pageReady" 消息
+ *  Fallback: 如果 10s 内没收到消息，用 readyState=complete + 2s 延迟兜底
  */
-async function setupPageLoadingListener() {
-    if (document.readyState === "loading") {
-        await new Promise<void>((resolve) => {
-            document.addEventListener("DOMContentLoaded", () => resolve(), { once: true });
-        });
-    }
+function setupPageLoadingListener(): void {
+    const TAG = "[BSB-pageReady]";
+    const t0 = performance.now();
 
-    try {
-        await waitFor(() => {
-            const rightEntry = document.querySelector(".bili-header .right-entry");
-            if (rightEntry && rightEntry.children.length > 0) return true;
+    let resolved = false;
+    const markReady = (reason: string) => {
+        if (resolved) return;
+        resolved = true;
+        const elapsed = Math.round(performance.now() - t0);
+        console.log(`${TAG} Page ready (${reason}) at +${elapsed}ms`);
+        headerLoaded = true;
+    };
 
-            const headerBar = document.querySelector(".bili-header__bar");
-            if (headerBar && headerBar.children.length > 0) return true;
-
-            return false;
-        }, 10000, 100);
-    } catch (e) {
-        // Fallback: if header elements are not found (embed pages or
-        // future layout changes), wait for all page resources to load.
-        if (document.readyState !== "complete") {
-            await new Promise<void>((resolve) => {
-                window.addEventListener("load", () => resolve(), { once: true });
-            });
+    // Primary: listen for Vue-mount notification from MAIN world (document.ts)
+    window.addEventListener("message", (e: MessageEvent) => {
+        if (e.data?.source === sourceId && e.data?.type === "pageReady") {
+            markReady("vue-mount signal from MAIN world");
         }
-    }
+    });
 
-    await sleep(300);
-    headerLoaded = true;
+    // Fallback: if the MAIN world signal never arrives (e.g. document.js
+    // failed to load, or a page type that doesn't mount Vue on #app),
+    // fall back to readyState=complete + 2 s delay.
+    const FALLBACK_TIMEOUT = 10000;
+    setTimeout(() => {
+        if (!resolved) {
+            if (document.readyState === "complete") {
+                markReady(`fallback: readyState already complete after ${FALLBACK_TIMEOUT}ms`);
+            } else {
+                window.addEventListener("load", () => {
+                    setTimeout(() => markReady("fallback: window.load + 2s delay"), 2000);
+                }, { once: true });
+            }
+        }
+    }, FALLBACK_TIMEOUT);
 }
 
 export function getPageLoaded() {
