@@ -1,5 +1,5 @@
 import Config from "../config";
-import { getPageLoaded } from "../content";
+import { getPageLoaded } from "../content/state";
 import { PageType } from "../types";
 import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";

@@ -1,6 +1,6 @@
 import Config from "../config";
 import { keybindToString } from "../config/config";
-import { getPageLoaded } from "../content";
+import { getPageLoaded } from "../content/state";
 import { SegmentUUID, SponsorTime } from "../types";
 import { AnimationUtils } from "../utils/animationUtils";
 import { getSkippingText } from "../utils/categoryUtils";
