@@ -1,6 +1,6 @@
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import Config from "./config";
-import { keybindToString, StorageChangesObject } from "./config/config";
+import { keybindToString } from "./config/config";
 import { ContentContainer } from "./ContentContainerTypes";
 import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";
 import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
@@ -15,7 +15,7 @@ import {
 import { danmakuForSkip, initDanmakuSkip } from "./content/danmakuSkip";
 import { initMessageHandler, setupMessageListener } from "./content/messageHandler";
 import { addHotkeyListener, initHotkeyHandler, seekFrameByKeyPressListener } from "./content/hotkeyHandler";
-import { Message, MessageResponse, VoteResponse } from "./messageTypes";
+import { VoteResponse } from "./messageTypes";
 import advanceSkipNotice from "./render/advanceSkipNotice";
 import { CategoryPill } from "./render/CategoryPill";
 import { ChapterVote } from "./render/ChapterVote";
@@ -57,7 +57,6 @@ import { defaultPreviewTime } from "./utils/constants";
 import { parseTargetTimeFromDanmaku } from "./utils/danmakusUtils";
 import { findValidElement } from "./utils/dom";
 import { durationEquals } from "./utils/duraionUtils";
-import { importTimes } from "./utils/exporter";
 import { getErrorMessage, getFormattedTime } from "./utils/formating";
 import { GenericUtils } from "./utils/genericUtils";
 import { getHash, getVideoIDHash, HashedValue } from "./utils/hash";
@@ -164,240 +163,28 @@ const skipNoticeContentContainer: ContentContainer = () => ({
     channelIDInfo: getChannelIDInfo(),
 });
 
-//get messages from the background script and the popup
-chrome.runtime.onMessage.addListener(messageListener);
-
-async function messageListener(
-    request: Message,
-    sender: unknown,
-    sendResponse: (response: MessageResponse) => void
-): Promise<void | boolean> {
-    //messages from popup script
-    switch (request.message) {
-        case "update":
-            checkVideoIDChange();
-            break;
-        case "sponsorStart":
-            startOrEndTimingNewSegment();
-
-            sendResponse({
-                creatingSegment: isSegmentCreationInProgress(),
-            });
-
-            break;
-        case "isInfoFound":
-            if (!contentState.lastResponseStatus) return;
-
-            //send the sponsor times along with if it's found
-            sendResponse({
-                found: contentState.sponsorDataFound,
-                status: contentState.lastResponseStatus,
-                sponsorTimes: contentState.sponsorTimes,
-                portVideo: contentState.portVideo,
-                time: getVideo()?.currentTime ?? 0,
-            });
-
-            if (
-                !request.updating &&
-                contentState.popupInitialised &&
-                document.getElementById("sponsorBlockPopupContainer") != null
-            ) {
-                //the popup should be closed now that another is opening
-                closeInfoMenu();
-            }
-
-            contentState.popupInitialised = true;
-            break;
-        case "getVideoID":
-            {
-                let id = getVideoID();
-                if (!id) {
-                    id = await getBilibiliVideoID();
-                    if (id) {
-                        await videoIDChange();
-                    }
-                }
-                sendResponse({
-                    videoID: id,
-                });
-            }
-
-            break;
-        case "getChannelID":
-            sendResponse({
-                channelID: getChannelIDInfo().id,
-            });
-
-            break;
-        case "getChannelInfo":
-            {
-                const channelID = getChannelIDInfo().id;
-                let channelName = chrome.i18n.getMessage("whitelistUnknownUploader") || "Unknown UP";
-
-                // Try to get channel name from the page
-                const upNameElement = document.querySelector("a.up-name");
-                if (upNameElement && upNameElement.textContent) {
-                    channelName = upNameElement.textContent.trim();
-                }
-
-                sendResponse({
-                    channelID,
-                    channelName,
-                });
-            }
-            break;
-        case "isChannelWhitelisted":
-            sendResponse({
-                value: contentState.channelWhitelisted,
-            });
-
-            break;
-        case "whitelistChange":
-            contentState.channelWhitelisted = request.value;
-            sponsorsLookup();
-
-            break;
-        case "submitTimes":
-            openSubmissionMenu();
-            break;
-        case "refreshSegments":
-            // update video on refresh if videoID invalid
-            if (!getVideoID()) {
-                checkVideoIDChange();
-            }
-
-            // if popup rescieves no response, or the videoID is invalid,
-            // it will assume the page is not a video page and stop the refresh animation
-            sendResponse({ hasVideo: getVideoID() != null });
-            // fetch segments
-            sponsorsLookup(false, true);
-
-            break;
-        case "unskip":
-            unskipSponsorTime(
-                contentState.sponsorTimes.find((segment) => segment.UUID === request.UUID),
-                null,
-                true
-            );
-            break;
-        case "reskip":
-            reskipSponsorTime(
-                contentState.sponsorTimes.find((segment) => segment.UUID === request.UUID),
-                true
-            );
-            break;
-        case "selectSegment":
-            selectSegment(request.UUID);
-            break;
-        case "submitVote":
-            vote(request.type, request.UUID).then((response) => sendResponse(response));
-            return true;
-        case "hideSegment":
-            utils.getSponsorTimeFromUUID(contentState.sponsorTimes, request.UUID).hidden = request.type;
-            utils.addHiddenSegment(getVideoID(), request.UUID, request.type);
-            updatePreviewBar();
-
-            if (
-                contentState.skipButtonControlBar?.isEnabled() &&
-                contentState.sponsorTimesSubmitting.every(
-                    (s) => s.hidden !== SponsorHideType.Visible || s.actionType !== ActionType.Poi
-                )
-            ) {
-                contentState.skipButtonControlBar.disable();
-            }
-            break;
-        case "closePopup":
-            closeInfoMenu();
-            break;
-        case "copyToClipboard":
-            navigator.clipboard.writeText(request.text);
-            break;
-        case "importSegments": {
-            const importedSegments = importTimes(request.data, getVideo().duration);
-            let addedSegments = false;
-            for (const segment of importedSegments) {
-                if (
-                    !contentState.sponsorTimesSubmitting.some(
-                        (s) =>
-                            Math.abs(s.segment[0] - segment.segment[0]) < 1 &&
-                            Math.abs(s.segment[1] - segment.segment[1]) < 1
-                    )
-                ) {
-                    contentState.sponsorTimesSubmitting.push(segment);
-                    addedSegments = true;
-                }
-            }
-
-            if (addedSegments) {
-                Config.local.unsubmittedSegments[getVideoID()] = contentState.sponsorTimesSubmitting;
-                Config.forceLocalUpdate("unsubmittedSegments");
-
-                updateSegmentSubmitting();
-                updateSponsorTimesSubmitting(false);
-                openSubmissionMenu();
-            }
-
-            sendResponse({
-                importedSegments,
-            });
-            break;
-        }
-        case "keydown":
-            (document.body || document).dispatchEvent(
-                new KeyboardEvent("keydown", {
-                    key: request.key,
-                    keyCode: request.keyCode,
-                    code: request.code,
-                    which: request.which,
-                    shiftKey: request.shiftKey,
-                    ctrlKey: request.ctrlKey,
-                    altKey: request.altKey,
-                    metaKey: request.metaKey,
-                })
-            );
-            break;
-        case "submitPortVideo":
-            submitPortVideo(request.ytbID);
-            break;
-        case "votePortVideo":
-            portVideoVote(request.UUID, request.vote);
-            break;
-        case "updatePortedSegments":
-            updateSegments(request.UUID);
-            break;
-    }
-
-    sendResponse({});
-}
-
-/**
- * Called when the config is updated
- */
-function contentConfigUpdateListener(changes: StorageChangesObject) {
-    for (const key in changes) {
-        switch (key) {
-            case "hideVideoPlayerControls":
-            case "hideInfoButtonPlayerControls":
-            case "hideDeleteButtonPlayerControls":
-                updateVisibilityOfPlayerControlsButton();
-                break;
-            case "categorySelections":
-                sponsorsLookup();
-                break;
-            case "barTypes":
-                setCategoryColorCSSVariables();
-                break;
-            case "fullVideoSegments":
-            case "fullVideoLabelsOnThumbnails":
-                checkPageForNewThumbnails();
-                break;
-        }
-    }
-}
-
-if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
-    Config.configSyncListeners.push(contentConfigUpdateListener);
-}
+initMessageHandler({
+    startOrEndTimingNewSegment,
+    isSegmentCreationInProgress,
+    closeInfoMenu,
+    openSubmissionMenu,
+    videoIDChange,
+    selectSegment,
+    vote,
+    updatePreviewBar,
+    updateSegmentSubmitting,
+    updateSponsorTimesSubmitting,
+    unskipSponsorTime,
+    reskipSponsorTime,
+    sponsorsLookup,
+    submitPortVideo,
+    portVideoVote,
+    updateSegments,
+    updateVisibilityOfPlayerControlsButton,
+    setCategoryColorCSSVariables,
+    utils,
+});
+setupMessageListener();
 
 function resetValues() {
     contentState.lastCheckTime = 0;
