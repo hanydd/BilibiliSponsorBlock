@@ -12,6 +12,7 @@ import {
     setupPageLoadingListener,
     skipBuffer,
 } from "./content/state";
+import { danmakuForSkip, initDanmakuSkip } from "./content/danmakuSkip";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import advanceSkipNotice from "./render/advanceSkipNotice";
 import { CategoryPill } from "./render/CategoryPill";
@@ -109,6 +110,13 @@ if ((document.hidden && getPageType() == PageType.Video) || ([PageType.Video, Pa
 }
 
 setupPageLoadingListener();
+
+initDanmakuSkip({
+    getVirtualTime,
+    isSegmentMarkedNearCurrentTime,
+    skipToTime,
+    openSubmissionMenu,
+});
 
 setupVideoModule({ videoIDChange, channelIDChange, resetValues, videoElementChange });
 
@@ -766,94 +774,6 @@ async function startSponsorSchedule(
     }
 }
 
-function checkDanmaku(text: string, offset: number) {
-    const targetTime = parseTargetTimeFromDanmaku(text, getVirtualTime());
-    if (targetTime === null) return;
-
-    // [DEBUG]
-    // console.debug("检测到空降弹幕: ", text, "请求跳转到: ", targetTime);
-
-    const startTime = getVirtualTime() + offset;
-
-    // ignore if the time is in the past
-    if (targetTime < startTime + 5) return;
-    if (targetTime > getVideo().duration) return;
-
-    if (Config.config.checkTimeDanmakuSkip && isSegmentMarkedNearCurrentTime(startTime)) return;
-
-    const skippingSegments: SponsorTime[] = [
-        {
-            cid: getCid(),
-            actionType: ActionType.Skip,
-            segment: [startTime, targetTime],
-            source: SponsorSourceType.Danmaku,
-            UUID: generateUserID() as SegmentUUID,
-            category: "sponsor" as Category,
-        },
-    ];
-
-    setTimeout(() => {
-        skipToTime({
-            v: getVideo(),
-            skipTime: [startTime, targetTime],
-            skippingSegments,
-            openNotice: true,
-            forceAutoSkip: Config.config.enableAutoSkipDanmakuSkip,
-            unskipTime: startTime,
-        });
-        if (Config.config.enableMenuDanmakuSkip) {
-            setTimeout(() => {
-                if (!contentState.sponsorTimesSubmitting?.some((s) => s.segment[1] === skippingSegments[0].segment[1])) {
-                    contentState.sponsorTimesSubmitting.push(skippingSegments[0]);
-                }
-                openSubmissionMenu();
-            }, Config.config.skipNoticeDuration * 1000 + 500);
-        }
-    }, offset * 1000 - 100);
-}
-
-let danmakuObserver: MutationObserver = null;
-const processedDanmaku = new Set<string>();
-
-function danmakuForSkip() {
-    if (!Config.config.enableDanmakuSkip || Config.config.disableSkipping) return;
-    if (danmakuObserver) return;
-
-    const targetNode = document.querySelector(".bpx-player-row-dm-wrap"); // 选择父节点
-    const config = { attributes: true, subtree: true }; // 观察属性变化
-    const callback = (mutationsList: MutationRecord[]) => {
-        if (!Config.config.enableDanmakuSkip || Config.config.disableSkipping) return;
-        if (targetNode.classList.contains("bili-danmaku-x-paused")) return;
-        for (const mutation of mutationsList) {
-            const target = mutation.target as HTMLElement;
-            if (mutation.type === "attributes" && target.classList.contains("bili-danmaku-x-dm")) {
-                const content = mutation.target.textContent;
-                if (target.classList.contains("bili-danmaku-x-show")) {
-                    if (!content || processedDanmaku.has(content)) {
-                        continue;
-                    }
-                    processedDanmaku.add(content);
-                    const offset = target.classList.contains("bili-danmaku-x-center") ? 0.3 : 1;
-                    checkDanmaku(content, offset);
-                } else {
-                    if (!content || processedDanmaku.has(content)) {
-                        processedDanmaku.delete(content);
-                    }
-                }
-            }
-        }
-    };
-    danmakuObserver = new MutationObserver(callback);
-    danmakuObserver.observe(targetNode, config);
-    addCleanupListener(() => {
-        if (danmakuObserver) {
-            danmakuObserver.disconnect();
-            danmakuObserver = null;
-            processedDanmaku.clear();
-            return;
-        }
-    });
-}
 
 /**
  * Used on Firefox only, waits for the next animation frame until
