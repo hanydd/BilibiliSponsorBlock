@@ -15,6 +15,7 @@ import Utils from "../utils";
 import { importTimes } from "../utils/exporter";
 import { getBilibiliVideoID } from "../utils/parseVideoID";
 import { checkVideoIDChange, getChannelIDInfo, getVideo, getVideoID } from "../utils/video";
+import { getPopupInitialised, getSkipButtonControlBar, setPopupInitialised } from "./segmentSubmission";
 import { contentState } from "./state";
 
 export interface MessageHandlerDeps {
@@ -82,13 +83,13 @@ async function messageListener(
 
             if (
                 !request.updating &&
-                contentState.popupInitialised &&
+                getPopupInitialised() &&
                 document.getElementById("sponsorBlockPopupContainer") != null
             ) {
                 deps.closeInfoMenu();
             }
 
-            contentState.popupInitialised = true;
+            setPopupInitialised(true);
             break;
         case "getVideoID":
             {
@@ -175,12 +176,12 @@ async function messageListener(
             deps.updatePreviewBar();
 
             if (
-                contentState.skipButtonControlBar?.isEnabled() &&
+                getSkipButtonControlBar()?.isEnabled() &&
                 contentState.sponsorTimesSubmitting.every(
                     (s) => s.hidden !== SponsorHideType.Visible || s.actionType !== ActionType.Poi
                 )
             ) {
-                contentState.skipButtonControlBar.disable();
+                getSkipButtonControlBar().disable();
             }
             break;
         case "closePopup":

@@ -6,10 +6,11 @@ import {
     setupPageLoadingListener,
 } from "./content/state";
 import { initDanmakuSkip } from "./content/danmakuSkip";
-import { initVideoListeners, setupVideoListeners } from "./content/videoListeners";
+import { initVideoListeners, resetVideoListenerState, setupVideoListeners } from "./content/videoListeners";
 import {
     checkPreviewbarState,
     createPreviewBar,
+    getPreviewBar,
     initPreviewBarManager,
     removeDurationAfterSkip,
     selectSegment,
@@ -21,6 +22,7 @@ import {
     initSkipScheduler,
     isSegmentMarkedNearCurrentTime,
     previewTime,
+    resetSponsorSkipped,
     reskipSponsorTime,
     skipToTime,
     startSkipScheduleCheckingForStartSponsors,
@@ -34,7 +36,10 @@ import {
     clearSponsorTimes,
     closeInfoMenu,
     dontShowNoticeAgain,
+    getCategoryPill,
     getRealCurrentTime,
+    getSkipButtonControlBar,
+    getSubmissionNotice,
     initSegmentSubmission,
     isSegmentCreationInProgress,
     openInfoMenu,
@@ -155,7 +160,7 @@ const skipNoticeContentContainer: ContentContainer = () => ({
     sponsorVideoID: getVideoID(),
     reskipSponsorTime,
     updatePreviewBar,
-    sponsorSubmissionNotice: contentState.submissionNotice,
+    sponsorSubmissionNotice: getSubmissionNotice(),
     resetSponsorSubmissionNotice,
     updateEditButtonsOnPlayer: updateSegmentSubmitting,
     previewTime,
@@ -206,12 +211,11 @@ initMessageHandler({
 setupMessageListener();
 
 function resetValues() {
-    contentState.lastCheckTime = 0;
-    contentState.lastCheckVideoTime = -1;
+    resetVideoListenerState();
     contentState.previewedSegment = false;
 
     contentState.sponsorTimes = [];
-    contentState.sponsorSkipped = [];
+    resetSponsorSkipped();
     contentState.lastResponseStatus = 0;
     contentState.shownSegmentFailedToFetchWarning = false;
 
@@ -220,8 +224,8 @@ function resetValues() {
     contentState.lockedCategories = [];
 
     //empty the preview bar
-    if (contentState.previewBar !== null) {
-        contentState.previewBar.clear();
+    if (getPreviewBar() !== null) {
+        getPreviewBar().clear();
     }
 
     // resetDurationAfterSkip
@@ -238,8 +242,8 @@ function resetValues() {
         logDebug("Setting switching videos to true (reset data)");
     }
 
-    contentState.skipButtonControlBar?.disable();
-    contentState.categoryPill?.resetSegment();
+    getSkipButtonControlBar()?.disable();
+    getCategoryPill()?.resetSegment();
 
     for (let i = 0; i < contentState.skipNotices.length; i++) {
         contentState.skipNotices.pop()?.close();
@@ -253,7 +257,7 @@ function resetValues() {
 
 async function videoIDChange(): Promise<void> {
     //setup the preview bar
-    if (contentState.previewBar === null) {
+    if (getPreviewBar() === null) {
         waitFor(getControls).then(createPreviewBar);
     }
 

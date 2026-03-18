@@ -2,7 +2,7 @@ import Config from "../config";
 import PreviewBar, { PreviewBarSegment } from "../js-components/previewBar";
 import { VoteResponse } from "../messageTypes";
 import { ChapterVote } from "../render/ChapterVote";
-import { ActionType, Category, SegmentUUID, SponsorHideType } from "../types";
+import { ActionType, BVID, Category, SegmentUUID, SponsorHideType } from "../types";
 import Utils from "../utils";
 import { waitFor } from "../utils/";
 import { findValidElement } from "../utils/dom";
@@ -12,6 +12,22 @@ import { getVideo, getVideoID } from "../utils/video";
 import { contentState } from "./state";
 
 const utils = new Utils();
+
+// --- Module-private state (formerly on contentState) ---
+let previewBar: PreviewBar = null;
+let selectedSegment: SegmentUUID | null = null;
+let lastPreviewBarUpdate: BVID;
+
+export function getPreviewBar() { return previewBar; }
+export function getLastPreviewBarUpdate() { return lastPreviewBarUpdate; }
+
+export function resetPreviewBarState(): void {
+    if (previewBar) {
+        previewBar.remove();
+        previewBar = null;
+    }
+    selectedSegment = null;
+}
 
 let _voteAsync: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse | undefined>;
 let _updateVisibilityOfPlayerControlsButton: () => Promise<void>;
@@ -27,7 +43,7 @@ export function initPreviewBarManager(deps: {
 export const durationID = "sponsorBlockDurationAfterSkips";
 
 export function createPreviewBar(): void {
-    if (contentState.previewBar !== null) return;
+    if (previewBar !== null) return;
 
     const progressElementOptions = [
         {
@@ -45,7 +61,7 @@ export function createPreviewBar(): void {
 
         if (parent) {
             const chapterVote = new ChapterVote(_voteAsync);
-            contentState.previewBar = new PreviewBar(parent, shadowParent, chapterVote);
+            previewBar = new PreviewBar(parent, shadowParent, chapterVote);
             updatePreviewBar();
             break;
         }
@@ -53,7 +69,7 @@ export function createPreviewBar(): void {
 }
 
 export function updatePreviewBar(): void {
-    if (contentState.previewBar === null) return;
+    if (previewBar === null) return;
     if (getVideo() === null) return;
 
     const hashParams = getHashParams();
@@ -72,7 +88,7 @@ export function updatePreviewBar(): void {
                 source: segment.source,
                 requiredSegment:
                     requiredSegment && (segment.UUID === requiredSegment || segment.UUID?.startsWith(requiredSegment)),
-                selectedSegment: contentState.selectedSegment && segment.UUID === contentState.selectedSegment,
+                selectedSegment: selectedSegment && segment.UUID === selectedSegment,
             });
         });
     }
@@ -88,7 +104,7 @@ export function updatePreviewBar(): void {
         });
     });
 
-    contentState.previewBar.set(
+    previewBar.set(
         previewBarSegments.filter((segment) => segment.actionType !== ActionType.Full),
         getVideo()?.duration
     );
@@ -105,13 +121,13 @@ export function updatePreviewBar(): void {
         showTimeWithoutSkips(skippedDuration);
     }
 
-    contentState.lastPreviewBarUpdate = getVideoID();
+    lastPreviewBarUpdate = getVideoID();
 }
 
 export function checkPreviewbarState(): void {
-    if (contentState.previewBar && !utils.findReferenceNode()?.contains(contentState.previewBar.container)) {
-        contentState.previewBar.remove();
-        contentState.previewBar = null;
+    if (previewBar && !utils.findReferenceNode()?.contains(previewBar.container)) {
+        previewBar.remove();
+        previewBar = null;
         removeDurationAfterSkip();
     }
 
@@ -119,12 +135,12 @@ export function checkPreviewbarState(): void {
 }
 
 export function selectSegment(UUID: SegmentUUID): void {
-    contentState.selectedSegment = UUID;
+    selectedSegment = UUID;
     updatePreviewBar();
 }
 
 export function updateActiveSegment(currentTime: number): void {
-    contentState.previewBar?.updateChapterText(contentState.sponsorTimes, contentState.sponsorTimesSubmitting, currentTime);
+    previewBar?.updateChapterText(contentState.sponsorTimes, contentState.sponsorTimesSubmitting, currentTime);
 
     chrome.runtime.sendMessage({
         message: "time",

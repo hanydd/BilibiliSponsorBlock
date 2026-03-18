@@ -27,6 +27,7 @@ import {
     getVideo,
     getVideoID,
 } from "../utils/video";
+import { getCategoryPill, getSkipButtonControlBar } from "./segmentSubmission";
 import {
     contentState,
     endTimeSkipBuffer,
@@ -35,6 +36,51 @@ import {
 } from "./state";
 
 const utils = new Utils();
+
+// --- Module-private state (formerly on contentState) ---
+let currentSkipSchedule: NodeJS.Timeout = null;
+let currentSkipInterval: NodeJS.Timeout = null;
+let currentVirtualTimeInterval: NodeJS.Timeout = null;
+let currentadvanceSkipSchedule: NodeJS.Timeout = null;
+let lastTimeFromWaitingEvent: number = null;
+let videoMuted = false;
+const lastKnownVideoTime: { videoTime: number; preciseTime: number; fromPause: boolean; approximateDelay: number } = {
+    videoTime: null,
+    preciseTime: null,
+    fromPause: false,
+    approximateDelay: null,
+};
+let sponsorSkipped: boolean[] = [];
+
+export function getLastKnownVideoTime() { return lastKnownVideoTime; }
+export function getSponsorSkipped() { return sponsorSkipped; }
+export function resetSponsorSkipped() { sponsorSkipped = []; }
+
+export function resetSchedulerState(): void {
+    if (currentSkipSchedule !== null) {
+        clearTimeout(currentSkipSchedule);
+        currentSkipSchedule = null;
+    }
+    if (currentSkipInterval !== null) {
+        clearInterval(currentSkipInterval);
+        currentSkipInterval = null;
+    }
+    if (currentVirtualTimeInterval !== null) {
+        clearInterval(currentVirtualTimeInterval);
+        currentVirtualTimeInterval = null;
+    }
+    if (currentadvanceSkipSchedule !== null) {
+        clearTimeout(currentadvanceSkipSchedule);
+        currentadvanceSkipSchedule = null;
+    }
+    lastTimeFromWaitingEvent = null;
+    videoMuted = false;
+    lastKnownVideoTime.videoTime = null;
+    lastKnownVideoTime.preciseTime = null;
+    lastKnownVideoTime.fromPause = false;
+    lastKnownVideoTime.approximateDelay = null;
+    sponsorSkipped = [];
+}
 
 export interface SkipSchedulerDeps {
     skipNoticeContentContainer: ContentContainer;
@@ -50,19 +96,19 @@ export function initSkipScheduler(d: SkipSchedulerDeps): void {
 export function cancelSponsorSchedule(): void {
     logDebug("Pausing skipping");
 
-    if (contentState.currentSkipSchedule !== null) {
-        clearTimeout(contentState.currentSkipSchedule);
-        contentState.currentSkipSchedule = null;
+    if (currentSkipSchedule !== null) {
+        clearTimeout(currentSkipSchedule);
+        currentSkipSchedule = null;
     }
 
-    if (contentState.currentSkipInterval !== null) {
-        clearInterval(contentState.currentSkipInterval);
-        contentState.currentSkipInterval = null;
+    if (currentSkipInterval !== null) {
+        clearInterval(currentSkipInterval);
+        currentSkipInterval = null;
     }
 
-    if (contentState.currentadvanceSkipSchedule !== null) {
-        clearInterval(contentState.currentadvanceSkipSchedule);
-        contentState.currentadvanceSkipSchedule = null;
+    if (currentadvanceSkipSchedule !== null) {
+        clearInterval(currentadvanceSkipSchedule);
+        currentadvanceSkipSchedule = null;
     }
 }
 
@@ -100,14 +146,14 @@ export async function startSponsorSchedule(
     const videoID = getVideoID();
 
     if (
-        contentState.videoMuted &&
+        videoMuted &&
         !inMuteSegment(
             currentTime,
             skipInfo.index !== -1 && timeUntilSponsor < skipBuffer && shouldAutoSkip(currentSkip)
         )
     ) {
         video.muted = false;
-        contentState.videoMuted = false;
+        videoMuted = false;
 
         for (const notice of contentState.skipNotices) {
             notice.unmutedListener(currentTime);
@@ -227,22 +273,22 @@ export async function startSponsorSchedule(
             const reportedVideoTimeAtStart = getVideo().currentTime;
             logDebug(`Starting setInterval skipping ${getVideo().currentTime} to skip at ${skipTime[0]}`);
 
-            if (contentState.currentSkipInterval !== null) clearInterval(contentState.currentSkipInterval);
-            contentState.currentSkipInterval = setInterval(() => {
+            if (currentSkipInterval !== null) clearInterval(currentSkipInterval);
+            currentSkipInterval = setInterval(() => {
                 if (
                     isFirefoxOrSafari() &&
-                    !contentState.lastKnownVideoTime.fromPause &&
+                    !lastKnownVideoTime.fromPause &&
                     startWaitingForReportedTimeToChange &&
                     reportedVideoTimeAtStart !== getVideo().currentTime
                 ) {
                     startWaitingForReportedTimeToChange = false;
                     const delay = getVirtualTime() - getVideo().currentTime;
-                    if (delay > 0) contentState.lastKnownVideoTime.approximateDelay = delay;
+                    if (delay > 0) lastKnownVideoTime.approximateDelay = delay;
                 }
 
                 const intervalDuration = performance.now() - startIntervalTime;
                 if (intervalDuration + skipBuffer * 1000 >= delayTime || getVideo().currentTime >= skipTime[0]) {
-                    clearInterval(contentState.currentSkipInterval);
+                    clearInterval(currentSkipInterval);
                     if (!isFirefoxOrSafari() && !getVideo().muted && !inMuteSegment(getVideo().currentTime, true)) {
                         getVideo().muted = true;
                         getVideo().muted = false;
@@ -261,7 +307,7 @@ export async function startSponsorSchedule(
 
             const offset = isFirefoxOrSafari() && !isSafari() ? 600 : 150;
             const offsetDelayTime = Math.max(0, delayTime - offset);
-            contentState.currentSkipSchedule = setTimeout(skippingFunction, offsetDelayTime);
+            currentSkipSchedule = setTimeout(skippingFunction, offsetDelayTime);
 
             if (
                 Config.config.advanceSkipNotice &&
@@ -276,8 +322,8 @@ export async function startSponsorSchedule(
                 const timeUntilPopup = Math.max(0, offsetDelayTime - maxPopupTime);
                 const autoSkip = shouldAutoSkip(skippingSegments[0]);
 
-                if (contentState.currentadvanceSkipSchedule) clearTimeout(contentState.currentadvanceSkipSchedule);
-                contentState.currentadvanceSkipSchedule = setTimeout(() => {
+                if (currentadvanceSkipSchedule) clearTimeout(currentadvanceSkipSchedule);
+                currentadvanceSkipSchedule = setTimeout(() => {
                     createAdvanceSkipNotice([skippingSegments[0]], skipTime[0], autoSkip, false);
                     sessionStorage.setItem("SKIPPING", "true");
                 }, timeUntilPopup);
@@ -298,10 +344,10 @@ function waitForNextTimeChange(): Promise<DOMHighResTimeStamp | null> {
 
 export function getVirtualTime(): number {
     const virtualTime =
-        contentState.lastTimeFromWaitingEvent ??
-        (contentState.lastKnownVideoTime.videoTime !== null
-            ? ((performance.now() - contentState.lastKnownVideoTime.preciseTime) * getVideo().playbackRate) / 1000 +
-            contentState.lastKnownVideoTime.videoTime
+        lastTimeFromWaitingEvent ??
+        (lastKnownVideoTime.videoTime !== null
+            ? ((performance.now() - lastKnownVideoTime.preciseTime) * getVideo().playbackRate) / 1000 +
+            lastKnownVideoTime.videoTime
             : null);
 
     if (
@@ -318,19 +364,19 @@ export function getVirtualTime(): number {
 }
 
 export function updateVirtualTime(): void {
-    if (contentState.currentVirtualTimeInterval) clearInterval(contentState.currentVirtualTimeInterval);
+    if (currentVirtualTimeInterval) clearInterval(currentVirtualTimeInterval);
 
-    contentState.lastKnownVideoTime.videoTime = getVideo().currentTime;
-    contentState.lastKnownVideoTime.preciseTime = performance.now();
+    lastKnownVideoTime.videoTime = getVideo().currentTime;
+    lastKnownVideoTime.preciseTime = performance.now();
 
     // If on Firefox, wait for the second time change (time remains fixed for many "frames" for privacy reasons)
     if (isFirefoxOrSafari()) {
         let count = 0;
         let rawCount = 0;
-        let lastTime = contentState.lastKnownVideoTime.videoTime;
+        let lastTime = lastKnownVideoTime.videoTime;
         let lastPerformanceTime = performance.now();
 
-        contentState.currentVirtualTimeInterval = setInterval(() => {
+        currentVirtualTimeInterval = setInterval(() => {
             const frameTime = performance.now() - lastPerformanceTime;
             if (lastTime !== getVideo().currentTime) {
                 rawCount++;
@@ -343,15 +389,15 @@ export function updateVirtualTime(): void {
 
             if (count > 1) {
                 const delay =
-                    contentState.lastKnownVideoTime.fromPause && contentState.lastKnownVideoTime.approximateDelay
-                        ? contentState.lastKnownVideoTime.approximateDelay
+                    lastKnownVideoTime.fromPause && lastKnownVideoTime.approximateDelay
+                        ? lastKnownVideoTime.approximateDelay
                         : 0;
 
-                contentState.lastKnownVideoTime.videoTime = getVideo().currentTime + delay;
-                contentState.lastKnownVideoTime.preciseTime = performance.now();
+                lastKnownVideoTime.videoTime = getVideo().currentTime + delay;
+                lastKnownVideoTime.preciseTime = performance.now();
 
-                clearInterval(contentState.currentVirtualTimeInterval);
-                contentState.currentVirtualTimeInterval = null;
+                clearInterval(currentVirtualTimeInterval);
+                currentVirtualTimeInterval = null;
             }
 
             lastPerformanceTime = performance.now();
@@ -360,11 +406,11 @@ export function updateVirtualTime(): void {
 }
 
 export function updateWaitingTime(): void {
-    contentState.lastTimeFromWaitingEvent = getVideo().currentTime;
+    lastTimeFromWaitingEvent = getVideo().currentTime;
 }
 
 export function clearWaitingTime(): void {
-    contentState.lastTimeFromWaitingEvent = null;
+    lastTimeFromWaitingEvent = null;
 }
 
 export function inMuteSegment(currentTime: number, includeOverlap: boolean): boolean {
@@ -635,8 +681,8 @@ function sendTelemetryAndCount(skippingSegments: SponsorTime[], secondsSkipped: 
     let counted = false;
     for (const segment of skippingSegments) {
         const index = contentState.sponsorTimes?.findIndex((s) => s.segment === segment.segment);
-        if (index !== -1 && !contentState.sponsorSkipped[index]) {
-            contentState.sponsorSkipped[index] = true;
+        if (index !== -1 && !sponsorSkipped[index]) {
+            sponsorSkipped[index] = true;
             if (!counted) {
                 Config.config.minutesSaved = Config.config.minutesSaved + secondsSkipped / 60;
                 Config.config.skipCount = Config.config.skipCount + 1;
@@ -710,8 +756,8 @@ export function startSkipScheduleCheckingForStartSponsors(): void {
 
         const fullVideoSegment = contentState.sponsorTimes.filter((time) => time.actionType === ActionType.Full)[0];
         if (fullVideoSegment) {
-            waitFor(() => contentState.categoryPill).then(() => {
-                contentState.categoryPill?.setSegment(fullVideoSegment);
+            waitFor(() => getCategoryPill()).then(() => {
+                getCategoryPill()?.setSegment(fullVideoSegment);
             });
         }
 
@@ -797,7 +843,7 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
                 } else {
                     if (inMuteSegment(skipTime[1], true)) {
                         v.muted = true;
-                        contentState.videoMuted = true;
+                        videoMuted = true;
                     }
 
                     v.currentTime = skipTime[1];
@@ -808,7 +854,7 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
             case ActionType.Mute: {
                 if (!v.muted) {
                     v.muted = true;
-                    contentState.videoMuted = true;
+                    videoMuted = true;
                 }
                 break;
             }
@@ -830,12 +876,12 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
     }
 
     if (!autoSkip && skippingSegments.length === 1 && skippingSegments[0].actionType === ActionType.Poi) {
-        waitFor(() => contentState.skipButtonControlBar).then(() => {
-            contentState.skipButtonControlBar.enable(skippingSegments[0]);
-            if (Config.config.skipKeybind == null) contentState.skipButtonControlBar.setShowKeybindHint(false);
+        waitFor(() => getSkipButtonControlBar()).then(() => {
+            getSkipButtonControlBar().enable(skippingSegments[0]);
+            if (Config.config.skipKeybind == null) getSkipButtonControlBar().setShowKeybindHint(false);
 
             contentState.activeSkipKeybindElement?.setShowKeybindHint(false);
-            contentState.activeSkipKeybindElement = contentState.skipButtonControlBar;
+            contentState.activeSkipKeybindElement = getSkipButtonControlBar();
         });
     } else {
         if (openNotice) {
@@ -920,7 +966,7 @@ export function createAdvanceSkipNotice(
 export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = null, forceSeek = false): void {
     if (segment.actionType === ActionType.Mute) {
         getVideo().muted = false;
-        contentState.videoMuted = false;
+        videoMuted = false;
     }
 
     if (forceSeek || segment.actionType === ActionType.Skip) {
@@ -931,7 +977,7 @@ export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = nul
 export function reskipSponsorTime(segment: SponsorTime, forceSeek = false): void {
     if (segment.actionType === ActionType.Mute && !forceSeek) {
         getVideo().muted = true;
-        contentState.videoMuted = true;
+        videoMuted = true;
     } else {
         const skippedTime = Math.max(segment.segment[1] - getVideo().currentTime, 0);
         const segmentDuration = segment.segment[1] - segment.segment[0];

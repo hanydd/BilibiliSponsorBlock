@@ -7,12 +7,22 @@ import { createPreviewBar, updateActiveSegment, updatePreviewBar } from "./previ
 import {
     cancelSponsorSchedule,
     clearWaitingTime,
+    getLastKnownVideoTime,
     startSkipScheduleCheckingForStartSponsors,
     startSponsorSchedule,
     updateVirtualTime,
     updateWaitingTime,
 } from "./skipScheduler";
 import { contentState } from "./state";
+
+// --- Module-private state (formerly on contentState) ---
+let lastCheckTime = 0;
+let lastCheckVideoTime = -1;
+
+export function resetVideoListenerState(): void {
+    lastCheckTime = 0;
+    lastCheckVideoTime = -1;
+}
 
 export interface VideoListenerDeps {
     updateVisibilityOfPlayerControlsButton: () => Promise<void>;
@@ -91,11 +101,11 @@ export function setupVideoListeners(video: HTMLVideoElement): void {
             lastPausedAtZero = false;
 
             if (
-                Math.abs(contentState.lastCheckVideoTime - video.currentTime) > 0.3 ||
-                (contentState.lastCheckVideoTime !== video.currentTime && Date.now() - contentState.lastCheckTime > 2000)
+                Math.abs(lastCheckVideoTime - video.currentTime) > 0.3 ||
+                (lastCheckVideoTime !== video.currentTime && Date.now() - lastCheckTime > 2000)
             ) {
-                contentState.lastCheckTime = Date.now();
-                contentState.lastCheckVideoTime = video.currentTime;
+                lastCheckTime = Date.now();
+                lastCheckVideoTime = video.currentTime;
 
                 startSponsorSchedule();
             }
@@ -109,8 +119,8 @@ export function setupVideoListeners(video: HTMLVideoElement): void {
             if (startedWaiting) {
                 startedWaiting = false;
                 logDebug(
-                    `[SB] Playing event after buffering: ${Math.abs(contentState.lastCheckVideoTime - video.currentTime) > 0.3 ||
-                    (contentState.lastCheckVideoTime !== video.currentTime && Date.now() - contentState.lastCheckTime > 2000)
+                    `[SB] Playing event after buffering: ${Math.abs(lastCheckVideoTime - video.currentTime) > 0.3 ||
+                    (lastCheckVideoTime !== video.currentTime && Date.now() - lastCheckTime > 2000)
                     }`
                 );
             }
@@ -123,11 +133,11 @@ export function setupVideoListeners(video: HTMLVideoElement): void {
             }
 
             if (
-                Math.abs(contentState.lastCheckVideoTime - video.currentTime) > 0.3 ||
-                (contentState.lastCheckVideoTime !== video.currentTime && Date.now() - contentState.lastCheckTime > 2000)
+                Math.abs(lastCheckVideoTime - video.currentTime) > 0.3 ||
+                (lastCheckVideoTime !== video.currentTime && Date.now() - lastCheckTime > 2000)
             ) {
-                contentState.lastCheckTime = Date.now();
-                contentState.lastCheckVideoTime = video.currentTime;
+                lastCheckTime = Date.now();
+                lastCheckVideoTime = video.currentTime;
 
                 startSponsorSchedule();
             }
@@ -153,11 +163,11 @@ export function setupVideoListeners(video: HTMLVideoElement): void {
         video.addEventListener("playing", playingListener);
 
         const seekingListener = () => {
-            contentState.lastKnownVideoTime.fromPause = false;
+            getLastKnownVideoTime().fromPause = false;
 
             if (!video.paused) {
-                contentState.lastCheckTime = Date.now();
-                contentState.lastCheckVideoTime = video.currentTime;
+                lastCheckTime = Date.now();
+                lastCheckVideoTime = video.currentTime;
 
                 updateVirtualTime();
                 clearWaitingTime();
@@ -178,19 +188,19 @@ export function setupVideoListeners(video: HTMLVideoElement): void {
         video.addEventListener("seeking", seekingListener);
 
         const stoppedPlayback = () => {
-            contentState.lastCheckVideoTime = -1;
-            contentState.lastCheckTime = 0;
+            lastCheckVideoTime = -1;
+            lastCheckTime = 0;
 
             if (playbackRateCheckInterval) clearInterval(playbackRateCheckInterval);
 
-            contentState.lastKnownVideoTime.videoTime = null;
-            contentState.lastKnownVideoTime.preciseTime = null;
+            getLastKnownVideoTime().videoTime = null;
+            getLastKnownVideoTime().preciseTime = null;
             updateWaitingTime();
 
             cancelSponsorSchedule();
         };
         const pauseListener = () => {
-            contentState.lastKnownVideoTime.fromPause = true;
+            getLastKnownVideoTime().fromPause = true;
 
             stoppedPlayback();
         };

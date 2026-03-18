@@ -3,6 +3,7 @@ import { Keybind, keybindEquals } from "../config/config";
 import Utils from "../utils";
 import { addCleanupListener } from "../utils/cleanup";
 import { getFrameRate, getVideo } from "../utils/video";
+import { getSkipButtonControlBar } from "./segmentSubmission";
 import { contentState } from "./state";
 
 export interface HotkeyHandlerDeps {
@@ -83,8 +84,8 @@ function hotkeyListener(e: KeyboardEvent): void {
 
         return;
     } else if (keybindEquals(key, skipToHighlightKey)) {
-        if (contentState.skipButtonControlBar) {
-            contentState.skipButtonControlBar.toggleSkip.call(contentState.skipButtonControlBar);
+        if (getSkipButtonControlBar()) {
+            getSkipButtonControlBar().toggleSkip.call(getSkipButtonControlBar());
         }
 
         return;
