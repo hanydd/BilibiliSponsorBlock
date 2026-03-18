@@ -5,7 +5,8 @@ import {
     getPageLoaded,
     setupPageLoadingListener,
 } from "./content/state";
-import { danmakuForSkip, initDanmakuSkip } from "./content/danmakuSkip";
+import { initDanmakuSkip } from "./content/danmakuSkip";
+import { initVideoListeners, setupVideoListeners } from "./content/videoListeners";
 import {
     checkPreviewbarState,
     createPreviewBar,
@@ -16,8 +17,6 @@ import {
     updatePreviewBar,
 } from "./content/previewBarManager";
 import {
-    cancelSponsorSchedule,
-    clearWaitingTime,
     getVirtualTime,
     initSkipScheduler,
     isSegmentMarkedNearCurrentTime,
@@ -27,8 +26,6 @@ import {
     startSkipScheduleCheckingForStartSponsors,
     startSponsorSchedule,
     unskipSponsorTime,
-    updateVirtualTime,
-    updateWaitingTime,
 } from "./content/skipScheduler";
 import { initMessageHandler, setupMessageListener } from "./content/messageHandler";
 import { addHotkeyListener, initHotkeyHandler, seekFrameByKeyPressListener } from "./content/hotkeyHandler";
@@ -70,7 +67,7 @@ import {
 } from "./types";
 import Utils from "./utils";
 import { waitFor } from "./utils/";
-import { addCleanupListener, cleanPage } from "./utils/cleanup";
+import { cleanPage } from "./utils/cleanup";
 import { GenericUtils } from "./utils/genericUtils";
 import { logDebug } from "./utils/logger";
 import { getControls, getProgressBar } from "./utils/pageUtils";
@@ -122,6 +119,8 @@ initDanmakuSkip({
 initHotkeyHandler({ startOrEndTimingNewSegment, submitSegments, openSubmissionMenu, previewRecentSegment });
 
 initPreviewBarManager({ voteAsync, updateVisibilityOfPlayerControlsButton });
+
+initVideoListeners({ updateVisibilityOfPlayerControlsButton });
 
 setupVideoModule({ videoIDChange, channelIDChange, resetValues, videoElementChange });
 
@@ -287,220 +286,6 @@ async function videoIDChange(): Promise<void> {
     ) CommentListener();
 }
 
-/**
- * Triggered every time the video duration changes.
- * This happens when the resolution changes or at random time to clear memory.
- */
-function durationChangeListener(): void {
-    updatePreviewBar();
-}
-
-/**
- * Triggered once the video is ready.
- * This is mainly to attach to embedded players who don't have a video element visible.
- */
-function videoOnReadyListener(): void {
-    createPreviewBar();
-    updatePreviewBar();
-    updateVisibilityOfPlayerControlsButton();
-}
-
-
-let playbackRateCheckInterval: NodeJS.Timeout | null = null;
-let lastPlaybackSpeed = 1;
-let setupVideoListenersFirstTime = true;
-function setupVideoListeners(video: HTMLVideoElement) {
-    if (!video) return; // Maybe video became invisible
-
-    //wait until it is loaded
-    video.addEventListener("loadstart", videoOnReadyListener);
-    video.addEventListener("durationchange", durationChangeListener);
-
-    if (setupVideoListenersFirstTime) {
-        addCleanupListener(() => {
-            video.removeEventListener("loadstart", videoOnReadyListener);
-            video.removeEventListener("durationchange", durationChangeListener);
-        });
-    }
-
-    if (!Config.config.disableSkipping) {
-        danmakuForSkip();
-
-        contentState.switchingVideos = false;
-
-        let startedWaiting = false;
-        let lastPausedAtZero = true;
-
-        const rateChangeListener = () => {
-            updateVirtualTime();
-            clearWaitingTime();
-
-            startSponsorSchedule();
-        };
-        video.addEventListener("ratechange", rateChangeListener);
-        // Used by videospeed extension (https://github.com/igrigorik/videospeed/pull/740)
-        video.addEventListener("videoSpeed_ratechange", rateChangeListener);
-
-        const playListener = () => {
-            // If it is not the first event, then the only way to get to 0 is if there is a seek event
-            // This check makes sure that changing the video resolution doesn't cause the extension to think it
-            // gone back to the begining
-            if (video.readyState <= HTMLMediaElement.HAVE_CURRENT_DATA && video.currentTime === 0) return;
-
-            updateVirtualTime();
-
-            if (contentState.switchingVideos || lastPausedAtZero) {
-                contentState.switchingVideos = false;
-                logDebug("Setting switching videos to false");
-
-                // If already segments loaded before video, retry to skip starting segments
-                if (contentState.sponsorTimes) startSkipScheduleCheckingForStartSponsors();
-            }
-
-            lastPausedAtZero = false;
-
-            // Make sure it doesn't get double called with the playing event
-            if (
-                Math.abs(contentState.lastCheckVideoTime - video.currentTime) > 0.3 ||
-                (contentState.lastCheckVideoTime !== video.currentTime && Date.now() - contentState.lastCheckTime > 2000)
-            ) {
-                contentState.lastCheckTime = Date.now();
-                contentState.lastCheckVideoTime = video.currentTime;
-
-                startSponsorSchedule();
-            }
-        };
-        video.addEventListener("play", playListener);
-
-        const playingListener = () => {
-            updateVirtualTime();
-            lastPausedAtZero = false;
-
-            if (startedWaiting) {
-                startedWaiting = false;
-                logDebug(
-                    `[SB] Playing event after buffering: ${Math.abs(contentState.lastCheckVideoTime - video.currentTime) > 0.3 ||
-                    (contentState.lastCheckVideoTime !== video.currentTime && Date.now() - contentState.lastCheckTime > 2000)
-                    }`
-                );
-            }
-
-            if (contentState.switchingVideos) {
-                contentState.switchingVideos = false;
-                logDebug("Setting switching videos to false");
-
-                // If already segments loaded before video, retry to skip starting segments
-                if (contentState.sponsorTimes) startSkipScheduleCheckingForStartSponsors();
-            }
-
-            // Make sure it doesn't get double called with the play event
-            if (
-                Math.abs(contentState.lastCheckVideoTime - video.currentTime) > 0.3 ||
-                (contentState.lastCheckVideoTime !== video.currentTime && Date.now() - contentState.lastCheckTime > 2000)
-            ) {
-                contentState.lastCheckTime = Date.now();
-                contentState.lastCheckVideoTime = video.currentTime;
-
-                startSponsorSchedule();
-            }
-
-            if (playbackRateCheckInterval) clearInterval(playbackRateCheckInterval);
-            lastPlaybackSpeed = video.playbackRate;
-
-            // Video speed controller compatibility
-            // That extension makes rate change events not propagate
-            if (document.body.classList.contains("vsc-initialized")) {
-                playbackRateCheckInterval = setInterval(() => {
-                    if ((!getVideoID() || video.paused) && playbackRateCheckInterval) {
-                        // Video is gone, stop checking
-                        clearInterval(playbackRateCheckInterval);
-                        return;
-                    }
-
-                    if (video.playbackRate !== lastPlaybackSpeed) {
-                        lastPlaybackSpeed = video.playbackRate;
-
-                        rateChangeListener();
-                    }
-                }, 2000);
-            }
-        };
-        video.addEventListener("playing", playingListener);
-
-        const seekingListener = () => {
-            contentState.lastKnownVideoTime.fromPause = false;
-
-            if (!video.paused) {
-                // Reset lastCheckVideoTime
-                contentState.lastCheckTime = Date.now();
-                contentState.lastCheckVideoTime = video.currentTime;
-
-                updateVirtualTime();
-                clearWaitingTime();
-
-                // Sometimes looped videos loop back to almost zero, but not quite
-                if (video.loop && video.currentTime < 0.2) {
-                    startSponsorSchedule(false, 0);
-                } else {
-                    // Include intersecting segments so that seeking into the middle of a segment still triggers a skip
-                    startSponsorSchedule(Config.config.skipOnSeekToSegment);
-                }
-            } else {
-                updateActiveSegment(video.currentTime);
-
-                if (video.currentTime === 0) {
-                    lastPausedAtZero = true;
-                }
-            }
-        };
-        video.addEventListener("seeking", seekingListener);
-
-        const stoppedPlayback = () => {
-            // Reset lastCheckVideoTime
-            contentState.lastCheckVideoTime = -1;
-            contentState.lastCheckTime = 0;
-
-            if (playbackRateCheckInterval) clearInterval(playbackRateCheckInterval);
-
-            contentState.lastKnownVideoTime.videoTime = null;
-            contentState.lastKnownVideoTime.preciseTime = null;
-            updateWaitingTime();
-
-            cancelSponsorSchedule();
-        };
-        const pauseListener = () => {
-            contentState.lastKnownVideoTime.fromPause = true;
-
-            stoppedPlayback();
-        };
-        video.addEventListener("pause", pauseListener);
-        const waitingListener = () => {
-            logDebug("[SB] Not skipping due to buffering");
-            startedWaiting = true;
-
-            stoppedPlayback();
-        };
-        video.addEventListener("waiting", waitingListener);
-
-        startSponsorSchedule();
-
-        if (setupVideoListenersFirstTime) {
-            addCleanupListener(() => {
-                video.removeEventListener("play", playListener);
-                video.removeEventListener("playing", playingListener);
-                video.removeEventListener("seeking", seekingListener);
-                video.removeEventListener("ratechange", rateChangeListener);
-                video.removeEventListener("videoSpeed_ratechange", rateChangeListener);
-                video.removeEventListener("pause", pauseListener);
-                video.removeEventListener("waiting", waitingListener);
-
-                if (playbackRateCheckInterval) clearInterval(playbackRateCheckInterval);
-            });
-        }
-    }
-
-    setupVideoListenersFirstTime = false;
-}
 
 
 //checks if this channel is whitelisted, should be done only after the channelID has been loaded
