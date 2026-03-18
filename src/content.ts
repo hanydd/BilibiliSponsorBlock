@@ -1,6 +1,6 @@
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import Config from "./config";
-import { Keybind, keybindEquals, keybindToString, StorageChangesObject } from "./config/config";
+import { keybindToString, StorageChangesObject } from "./config/config";
 import { ContentContainer } from "./ContentContainerTypes";
 import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";
 import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
@@ -13,6 +13,8 @@ import {
     skipBuffer,
 } from "./content/state";
 import { danmakuForSkip, initDanmakuSkip } from "./content/danmakuSkip";
+import { initMessageHandler, setupMessageListener } from "./content/messageHandler";
+import { addHotkeyListener, initHotkeyHandler, seekFrameByKeyPressListener } from "./content/hotkeyHandler";
 import { Message, MessageResponse, VoteResponse } from "./messageTypes";
 import advanceSkipNotice from "./render/advanceSkipNotice";
 import { CategoryPill } from "./render/CategoryPill";
@@ -72,7 +74,6 @@ import {
     getBvID,
     getChannelIDInfo,
     getCid,
-    getFrameRate,
     getPageType,
     getVideo,
     getVideoID,
@@ -117,6 +118,8 @@ initDanmakuSkip({
     skipToTime,
     openSubmissionMenu,
 });
+
+initHotkeyHandler({ startOrEndTimingNewSegment, submitSegments, openSubmissionMenu, previewRecentSegment });
 
 setupVideoModule({ videoIDChange, channelIDChange, resetValues, videoElementChange });
 
@@ -2534,118 +2537,7 @@ function updateActiveSegment(currentTime: number): void {
     });
 }
 
-function addHotkeyListener(): void {
-    document.addEventListener("keydown", hotkeyListener);
-
-    const onLoad = () => {
-        // Allow us to stop propagation to Bilibili by being deeper
-        document.removeEventListener("keydown", hotkeyListener);
-        document.body.addEventListener("keydown", hotkeyListener);
-
-        addCleanupListener(() => {
-            document.body.removeEventListener("keydown", hotkeyListener);
-        });
-    };
-
-    if (document.readyState === "complete") {
-        onLoad();
-    } else {
-        document.addEventListener("DOMContentLoaded", onLoad);
-    }
-}
-
-function hotkeyListener(e: KeyboardEvent): void {
-    if (
-        ["textarea", "input"].includes(document.activeElement?.tagName?.toLowerCase()) ||
-        document.activeElement?.id?.toLowerCase()?.includes("editable")
-    )
-        return;
-
-    const key: Keybind = {
-        key: e.key,
-        code: e.code,
-        alt: e.altKey,
-        ctrl: e.ctrlKey,
-        shift: e.shiftKey,
-    };
-
-    const skipKey = Config.config.skipKeybind;
-    const skipToHighlightKey = Config.config.skipToHighlightKeybind;
-    const closeSkipNoticeKey = Config.config.closeSkipNoticeKeybind;
-    const startSponsorKey = Config.config.startSponsorKeybind;
-    const submitKey = Config.config.actuallySubmitKeybind;
-    const previewKey = Config.config.previewKeybind;
-    const openSubmissionMenuKey = Config.config.submitKeybind;
-
-    if (keybindEquals(key, skipKey)) {
-        if (contentState.activeSkipKeybindElement) {
-            contentState.activeSkipKeybindElement.toggleSkip.call(contentState.activeSkipKeybindElement);
-
-            /*
-             * 视频播放器全屏或网页全屏时，快捷键`Enter`会聚焦到弹幕输入框
-             * 这里阻止了使用`Enter`跳过赞助片段时播放器的默认行为
-             */
-            if (key.key === 'Enter') {
-                const currentTime: number | null = document.querySelector<HTMLVideoElement>(".bpx-player-video-wrap video")?.currentTime ?? null;
-                if (currentTime) {
-                    const inSponsorRange = contentState.sponsorTimes.some(({ segment: [start, end] }) => start <= currentTime && end >= currentTime);
-                    if (inSponsorRange) {
-                        utils.biliBiliPlayerDanmakuInputBlur();
-                    }
-                }
-
-            }
-        }
-
-        return;
-    } else if (keybindEquals(key, skipToHighlightKey)) {
-        if (contentState.skipButtonControlBar) {
-            contentState.skipButtonControlBar.toggleSkip.call(contentState.skipButtonControlBar);
-        }
-
-        return;
-    } else if (keybindEquals(key, closeSkipNoticeKey)) {
-        for (let i = 0; i < contentState.skipNotices.length; i++) {
-            contentState.skipNotices.pop().close();
-        }
-
-        return;
-    } else if (keybindEquals(key, startSponsorKey)) {
-        startOrEndTimingNewSegment();
-        return;
-    } else if (keybindEquals(key, submitKey)) {
-        submitSegments();
-        return;
-    } else if (keybindEquals(key, openSubmissionMenuKey)) {
-        e.preventDefault();
-
-        openSubmissionMenu();
-        return;
-    } else if (keybindEquals(key, previewKey)) {
-        previewRecentSegment();
-        return;
-    }
-}
-
-/**
- * Hot keys to jump to the next or previous frame, for easier segment time editting
- * only effective when the SubmissionNotice is open
- *
- * @param key keydown event
- */
-export function seekFrameByKeyPressListener(key) {
-    const vid = getVideo();
-    const frameRate = getFrameRate();
-    if (!vid.paused) return;
-
-    if (keybindEquals(key, Config.config.nextFrameKeybind)) {
-        // next frame
-        vid.currentTime += 1 / frameRate;
-    } else if (keybindEquals(key, Config.config.previousFrameKeybind)) {
-        // previous frame
-        vid.currentTime -= 1 / frameRate;
-    }
-}
+export { seekFrameByKeyPressListener } from "./content/hotkeyHandler";
 
 const durationID = "sponsorBlockDurationAfterSkips";
 function showTimeWithoutSkips(skippedDuration: number): void {
