@@ -2,7 +2,6 @@ import SkipNoticeComponent from "./components/SkipNoticeComponent";
 import Config from "./config";
 import { keybindToString } from "./config/config";
 import { ContentContainer } from "./ContentContainerTypes";
-import PreviewBar, { PreviewBarSegment } from "./js-components/previewBar";
 import { SkipButtonControlBar } from "./js-components/skipButtonControlBar";
 import {
     contentState,
@@ -13,12 +12,20 @@ import {
     skipBuffer,
 } from "./content/state";
 import { danmakuForSkip, initDanmakuSkip } from "./content/danmakuSkip";
+import {
+    checkPreviewbarState,
+    createPreviewBar,
+    initPreviewBarManager,
+    removeDurationAfterSkip,
+    selectSegment,
+    updateActiveSegment,
+    updatePreviewBar,
+} from "./content/previewBarManager";
 import { initMessageHandler, setupMessageListener } from "./content/messageHandler";
 import { addHotkeyListener, initHotkeyHandler, seekFrameByKeyPressListener } from "./content/hotkeyHandler";
 import { VoteResponse } from "./messageTypes";
 import advanceSkipNotice from "./render/advanceSkipNotice";
 import { CategoryPill } from "./render/CategoryPill";
-import { ChapterVote } from "./render/ChapterVote";
 import { DescriptionPortPill } from "./render/DescriptionPortPill";
 import { CommentListener, DynamicListener } from "./render/DynamicAndCommentSponsorBlock";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
@@ -55,7 +62,6 @@ import { AnimationUtils } from "./utils/animationUtils";
 import { addCleanupListener, cleanPage } from "./utils/cleanup";
 import { defaultPreviewTime } from "./utils/constants";
 import { parseTargetTimeFromDanmaku } from "./utils/danmakusUtils";
-import { findValidElement } from "./utils/dom";
 import { durationEquals } from "./utils/duraionUtils";
 import { getErrorMessage, getFormattedTime } from "./utils/formating";
 import { GenericUtils } from "./utils/genericUtils";
@@ -119,6 +125,8 @@ initDanmakuSkip({
 });
 
 initHotkeyHandler({ startOrEndTimingNewSegment, submitSegments, openSubmissionMenu, previewRecentSegment });
+
+initPreviewBarManager({ voteAsync, updateVisibilityOfPlayerControlsButton });
 
 setupVideoModule({ videoIDChange, channelIDChange, resetValues, videoElementChange });
 
@@ -265,36 +273,6 @@ async function videoIDChange(): Promise<void> {
     if ([PageType.Video, PageType.List, PageType.Dynamic, PageType.Channel, PageType.Opus, PageType.Festival].includes(getPageType()) &&
         (Config.config.dynamicAndCommentSponsorBlocker && Config.config.commentSponsorBlock)
     ) CommentListener();
-}
-
-/**
- * Creates a preview bar on the video
- */
-function createPreviewBar(): void {
-    if (contentState.previewBar !== null) return;
-
-    const progressElementOptions = [
-        {
-            // For Desktop Bilibili
-            selector: ".bpx-player-progress",
-            shadowSelector: ".bpx-player-shadow-progress-area",
-            isVisibleCheck: true,
-        },
-    ];
-
-    for (const option of progressElementOptions) {
-        const allElements = document.querySelectorAll(option.selector) as NodeListOf<HTMLElement>;
-        const parent = option.isVisibleCheck ? findValidElement(allElements) : allElements[0];
-        const allshadowSelectorElements = document.querySelectorAll(option.shadowSelector) as NodeListOf<HTMLElement>;
-        const shadowParent = allshadowSelectorElements[0];
-
-        if (parent) {
-            const chapterVote = new ChapterVote(voteAsync);
-            contentState.previewBar = new PreviewBar(parent, shadowParent, chapterVote);
-            updatePreviewBar();
-            break;
-        }
-    }
 }
 
 /**
@@ -1208,69 +1186,6 @@ function startSkipScheduleCheckingForStartSponsors() {
     }
 }
 
-function selectSegment(UUID: SegmentUUID): void {
-    contentState.selectedSegment = UUID;
-    updatePreviewBar();
-}
-
-function updatePreviewBar(): void {
-    if (contentState.previewBar === null) return;
-    if (getVideo() === null) return;
-
-    const hashParams = getHashParams();
-    const requiredSegment = (hashParams?.requiredSegment as SegmentUUID) || undefined;
-    const previewBarSegments: PreviewBarSegment[] = [];
-    if (contentState.sponsorTimes) {
-        contentState.sponsorTimes.forEach((segment) => {
-            if (segment.hidden !== SponsorHideType.Visible) return;
-
-            previewBarSegments.push({
-                segment: segment.segment as [number, number],
-                category: segment.category,
-                actionType: segment.actionType,
-                unsubmitted: false,
-                showLarger: segment.actionType === ActionType.Poi,
-                source: segment.source,
-                requiredSegment:
-                    requiredSegment && (segment.UUID === requiredSegment || segment.UUID?.startsWith(requiredSegment)),
-                selectedSegment: contentState.selectedSegment && segment.UUID === contentState.selectedSegment,
-            });
-        });
-    }
-
-    contentState.sponsorTimesSubmitting.forEach((segment) => {
-        previewBarSegments.push({
-            segment: segment.segment as [number, number],
-            category: segment.category,
-            actionType: segment.actionType,
-            unsubmitted: true,
-            showLarger: segment.actionType === ActionType.Poi,
-            source: segment.source,
-        });
-    });
-
-    contentState.previewBar.set(
-        previewBarSegments.filter((segment) => segment.actionType !== ActionType.Full),
-        getVideo()?.duration
-    );
-    if (getVideo()) updateActiveSegment(getVideo().currentTime);
-
-    // retry create buttons in case the video is not ready
-    updateVisibilityOfPlayerControlsButton();
-
-    removeDurationAfterSkip();
-    if (Config.config.showTimeWithSkips) {
-        const skippedDuration = utils.getTimestampsDuration(
-            previewBarSegments.filter(({ actionType }) => actionType !== ActionType.Mute).map(({ segment }) => segment)
-        );
-
-        showTimeWithoutSkips(skippedDuration);
-    }
-
-    // Update last video id
-    contentState.lastPreviewBarUpdate = getVideoID();
-}
-
 //checks if this channel is whitelisted, should be done only after the channelID has been loaded
 async function channelIDChange(channelIDInfo: ChannelIDInfo) {
     const whitelistedChannels = Config.config.whitelistedChannels;
@@ -1307,16 +1222,6 @@ function videoElementChange(newVideo: boolean, video: HTMLVideoElement): void {
     });
 }
 
-function checkPreviewbarState(): void {
-    if (contentState.previewBar && !utils.findReferenceNode()?.contains(contentState.previewBar.container)) {
-        contentState.previewBar.remove();
-        contentState.previewBar = null;
-        removeDurationAfterSkip();
-    }
-
-    // wait until the page is active to create the preview bar
-    waitFor(() => !document.hidden, 24 * 60 * 60, 500).then(createPreviewBar);
-}
 
 /**
  * Returns info about the next upcoming sponsor skip
@@ -2315,58 +2220,7 @@ function getSegmentsMessage(sponsorTimes: SponsorTime[]): string {
     return sponsorTimesMessage;
 }
 
-function updateActiveSegment(currentTime: number): void {
-    contentState.previewBar?.updateChapterText(contentState.sponsorTimes, contentState.sponsorTimesSubmitting, currentTime);
-
-    chrome.runtime.sendMessage({
-        message: "time",
-        time: currentTime,
-    });
-}
-
 export { seekFrameByKeyPressListener } from "./content/hotkeyHandler";
-
-const durationID = "sponsorBlockDurationAfterSkips";
-function showTimeWithoutSkips(skippedDuration: number): void {
-    if (isNaN(skippedDuration) || skippedDuration < 0) {
-        skippedDuration = 0;
-    }
-
-    // Video player time display
-    const display = document.querySelector(".bpx-player-ctrl-time-label") as HTMLDivElement;
-    if (!display) return;
-
-    let duration = document.getElementById(durationID);
-
-    // Create span if needed
-    if (duration === null) {
-        duration = document.createElement("span");
-        duration.id = durationID;
-        display.appendChild(duration);
-    }
-
-    const durationAfterSkips = getFormattedTime(getVideo()?.duration - skippedDuration);
-
-    const refreshDurationTextWidth = () => {
-        // some hacks to change the min-width of the time control area,
-        // so it won't overlap with chapters on the right
-        display.style.width = "auto";
-        display.parentElement.style.minWidth = `${display.clientWidth - 11}px`;
-    };
-
-    if (durationAfterSkips != null && skippedDuration > 0) {
-        duration.innerText = " (" + durationAfterSkips + ")";
-
-        refreshDurationTextWidth();
-        // re-calculate text position after entering and exiting full screen
-        window.addEventListener("fullscreenchange", refreshDurationTextWidth);
-    }
-}
-
-function removeDurationAfterSkip() {
-    const duration = document.getElementById(durationID);
-    duration?.remove();
-}
 
 function checkForPreloadedSegment() {
     if (contentState.loadedPreloadedSegment) return;
