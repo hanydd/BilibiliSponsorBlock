@@ -32,7 +32,7 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
         };
     }
 
-    private extracInfo(): string {
+    private extraInfo(): string {
         if (this.state.hidden === SponsorHideType.Downvoted) {
             //this one is downvoted
             return " (" + chrome.i18n.getMessage("hiddenDueToDownvote") + ")";
@@ -150,7 +150,7 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                                 className="dot sponsorTimesCategoryColorCircle"
                                 style={{ backgroundColor: Config.config.barTypes[category]?.color }}
                             ></span>
-                            <span className="summaryLabel">{shortCategoryName(category) + this.extracInfo()}</span>
+                            <span className="summaryLabel">{shortCategoryName(category) + this.extraInfo()}</span>
                         </div>
                         <div style={{ margin: "5px" }}>{this.segmentFromToTime()}</div>
                     </summary>

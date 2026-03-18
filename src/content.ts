@@ -280,11 +280,11 @@ const manualSkipPercentCount = 0.5;
 //get messages from the background script and the popup
 chrome.runtime.onMessage.addListener(messageListener);
 
-async function messageListener(
+function messageListener(
     request: Message,
     sender: unknown,
     sendResponse: (response: MessageResponse) => void
-): Promise<void | boolean> {
+): void | boolean {
     //messages from popup script
     switch (request.message) {
         case "update":
@@ -322,20 +322,21 @@ async function messageListener(
             popupInitialised = true;
             break;
         case "getVideoID":
-            {
+            (async () => {
                 let id = getVideoID();
                 if (!id) {
                     id = await getBilibiliVideoID();
-                    if (id) {
-                        await videoIDChange();
-                    }
+                    if (id) await videoIDChange();
                 }
-                sendResponse({
-                    videoID: id,
-                });
-            }
-
-            break;
+                return {
+                    videoID: id
+                };
+            })()
+            .then(sendResponse)
+            .catch(e => {
+                console.error('get video id failed: ', e)
+            })
+            return true;
         case "getChannelID":
             sendResponse({
                 channelID: getChannelIDInfo().id,
@@ -403,7 +404,7 @@ async function messageListener(
             selectSegment(request.UUID);
             break;
         case "submitVote":
-            vote(request.type, request.UUID).then((response) => sendResponse(response));
+            vote(request.type, request.UUID).then(sendResponse);
             return true;
         case "hideSegment":
             utils.getSponsorTimeFromUUID(sponsorTimes, request.UUID).hidden = request.type;

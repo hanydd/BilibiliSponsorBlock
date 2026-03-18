@@ -21,9 +21,7 @@ interface VideoInfoState {
     loading: boolean;
     videoFound: boolean;
     loadedMessage: string;
-
     importInputOpen: boolean;
-
     downloadedTimes: SponsorTime[];
     currentTime: number;
 }
@@ -47,7 +45,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
     private lastStartLoadingTime = performance.now();
 
     startLoading() {
-        this.setState({ loading: true });
+        this.setState((prev) => ({...prev, loading: true}));
         this.lastStartLoadingTime = performance.now();
         if (this.stopLoadingTimeout) {
             clearTimeout(this.stopLoadingTimeout);
@@ -58,23 +56,23 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
         const timeSinceStart = performance.now() - this.lastStartLoadingTime;
         if (timeSinceStart < BUTTON_REFRESH_DURATION) {
             this.stopLoadingTimeout = setTimeout(() => {
-                this.setState({ loading: false });
+                this.setState((prev) => ({...prev, loading: false}));
                 this.stopLoadingTimeout = null;
             }, BUTTON_REFRESH_DURATION - timeSinceStart);
         } else {
-            this.setState({ loading: false });
+            this.setState((prev) => ({...prev, loading: false}));
         }
     }
 
     displayNoVideo() {
         // 无法找到视频，不是播放页面
-        this.setState({ videoFound: false });
+        this.setState(prev => ({...prev, videoFound: false}));
         this.stopLoading();
     }
 
     displayVideoWithMessage(message: string = chrome.i18n.getMessage("sponsorFound")) {
         // 可以找到视频ID
-        this.setState({ videoFound: true, loadedMessage: message });
+        this.setState(prev => ({...prev, videoFound: true, loadedMessage: message}));
         this.stopLoading();
     }
 
@@ -94,7 +92,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
     }
 
     private toggleImportInput() {
-        this.setState({ importInputOpen: !this.state.importInputOpen });
+        this.setState(prev => ({...prev, importInputOpen: !this.state.importInputOpen}));
     }
 
     private async importSegments() {
@@ -105,20 +103,19 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
             data: text,
         });
 
-        this.setState({ importInputOpen: false });
+        this.setState(prev => ({...prev, importInputOpen: false}));
     }
 
     private exportSegments() {
         this.props.copyToClipboard(exportTimes(this.state.downloadedTimes));
-        this.props.messageApi.success(chrome.i18n.getMessage(`CopiedExclamation`));
+        void this.props.messageApi.success(chrome.i18n.getMessage(`CopiedExclamation`));
     }
 
     private computeIndicatorText() {
-        let text = "";
+        let text: string;
         if (this.state.loading) {
             text = chrome.i18n.getMessage("Loading");
-        }
-        if (this.state.videoFound) {
+        } else if (this.state.videoFound) {
             text = this.state.loadedMessage;
         } else {
             text = chrome.i18n.getMessage("noVideoID");
@@ -139,7 +136,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
             .sort((a, b) => a.segment[1] - b.segment[1])
             .sort((a, b) => a.segment[0] - b.segment[0]);
 
-        this.setState({ downloadedTimes: downloadedTimes, currentTime: time });
+        this.setState(prev => ({...prev, downloadedTimes: downloadedTimes, currentTime: time}));
     }
 
     private SegmentList(): React.ReactNode[] {

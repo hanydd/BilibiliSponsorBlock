@@ -15,9 +15,9 @@ export class MessageHandler {
         if (this.messageListener) {
             this.messageListener(request, null, callback);
         } else if (chrome.tabs) {
-            chrome.tabs.sendMessage(id, request, callback);
+            void chrome.tabs.sendMessage(id, request, callback);
         } else {
-            chrome.runtime.sendMessage({ message: "tabs", data: request }, callback);
+            void chrome.runtime.sendMessage({ message: "tabs", data: request }, callback);
         }
     }
 
