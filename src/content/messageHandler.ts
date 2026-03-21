@@ -53,11 +53,11 @@ export function setupMessageListener(): void {
     }
 }
 
-async function messageListener(
+function messageListener(
     request: Message,
     sender: unknown,
     sendResponse: (response: MessageResponse) => void
-): Promise<void | boolean> {
+): void | boolean {
     switch (request.message) {
         case "update":
             checkVideoIDChange();
@@ -92,20 +92,21 @@ async function messageListener(
             setPopupInitialised(true);
             break;
         case "getVideoID":
-            {
+            (async () => {
                 let id = getVideoID();
                 if (!id) {
                     id = await getBilibiliVideoID();
-                    if (id) {
-                        await deps.videoIDChange();
-                    }
+                    if (id) await deps.videoIDChange();
                 }
-                sendResponse({
+                return {
                     videoID: id,
+                };
+            })()
+                .then(sendResponse)
+                .catch((e) => {
+                    console.error("get video id failed: ", e);
                 });
-            }
-
-            break;
+            return true;
         case "getChannelID":
             sendResponse({
                 channelID: getChannelIDInfo().id,
@@ -168,7 +169,7 @@ async function messageListener(
             deps.selectSegment(request.UUID);
             break;
         case "submitVote":
-            deps.vote(request.type, request.UUID).then((response) => sendResponse(response));
+            deps.vote(request.type, request.UUID).then(sendResponse);
             return true;
         case "hideSegment":
             deps.utils.getSponsorTimeFromUUID(contentState.sponsorTimes, request.UUID).hidden = request.type;
