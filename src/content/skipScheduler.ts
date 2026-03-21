@@ -41,7 +41,7 @@ const utils = new Utils();
 let currentSkipSchedule: NodeJS.Timeout = null;
 let currentSkipInterval: NodeJS.Timeout = null;
 let currentVirtualTimeInterval: NodeJS.Timeout = null;
-let currentadvanceSkipSchedule: NodeJS.Timeout = null;
+let currentAdvanceSkipSchedule: NodeJS.Timeout = null;
 let lastTimeFromWaitingEvent: number = null;
 let videoMuted = false;
 const lastKnownVideoTime: { videoTime: number; preciseTime: number; fromPause: boolean; approximateDelay: number } = {
@@ -69,9 +69,9 @@ export function resetSchedulerState(): void {
         clearInterval(currentVirtualTimeInterval);
         currentVirtualTimeInterval = null;
     }
-    if (currentadvanceSkipSchedule !== null) {
-        clearTimeout(currentadvanceSkipSchedule);
-        currentadvanceSkipSchedule = null;
+    if (currentAdvanceSkipSchedule !== null) {
+        clearTimeout(currentAdvanceSkipSchedule);
+        currentAdvanceSkipSchedule = null;
     }
     lastTimeFromWaitingEvent = null;
     videoMuted = false;
@@ -106,9 +106,9 @@ export function cancelSponsorSchedule(): void {
         currentSkipInterval = null;
     }
 
-    if (currentadvanceSkipSchedule !== null) {
-        clearInterval(currentadvanceSkipSchedule);
-        currentadvanceSkipSchedule = null;
+    if (currentAdvanceSkipSchedule !== null) {
+        clearInterval(currentAdvanceSkipSchedule);
+        currentAdvanceSkipSchedule = null;
     }
 }
 
@@ -322,8 +322,8 @@ export async function startSponsorSchedule(
                 const timeUntilPopup = Math.max(0, offsetDelayTime - maxPopupTime);
                 const autoSkip = shouldAutoSkip(skippingSegments[0]);
 
-                if (currentadvanceSkipSchedule) clearTimeout(currentadvanceSkipSchedule);
-                currentadvanceSkipSchedule = setTimeout(() => {
+                if (currentAdvanceSkipSchedule) clearTimeout(currentAdvanceSkipSchedule);
+                currentAdvanceSkipSchedule = setTimeout(() => {
                     createAdvanceSkipNotice([skippingSegments[0]], skipTime[0], autoSkip, false);
                     sessionStorage.setItem("SKIPPING", "true");
                 }, timeUntilPopup);
