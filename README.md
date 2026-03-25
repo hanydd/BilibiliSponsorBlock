@@ -114,6 +114,42 @@ API文档：https://github.com/hanydd/BilibiliSponsorBlock/wiki/API
 
 详见 [CONTRIBUTING.md](CONTRIBUTING.md)
 
+## 本地开发调试（bilibili.com）
+
+下面这套流程可以在本地快速跑起针对 `bilibili.com` 的开发调试环境：
+
+```bash
+# 1) 安装依赖（项目要求 Node.js >= 20）
+npm install
+
+# 2) 准备配置文件（构建前必须存在）
+cp config.json.example config.json
+
+# 3) 先做一次开发构建，生成 dist/
+npm run build:dev:chrome
+
+# 4) 启动“浏览器 + 监听重编译”联调
+npm run dev
+```
+
+如果本机无法自动拉起 Chromium（例如 CI 或无图形界面环境），可以只运行：
+
+```bash
+npm run build:watch:chrome
+```
+
+然后在本机 Chrome 中打开 `chrome://extensions`，启用开发者模式并“加载已解压的扩展程序”，选择仓库下的 `dist/` 目录。
+
+### 常用 npm 命令
+
+- `npm run build:dev:chrome`：开发模式构建 Chrome 扩展
+- `npm run build:watch:chrome`：监听源码改动并增量构建
+- `npm run dev`：先开发构建，再并行执行 `web-run:chrome` 与 `build:watch:chrome`
+- `npm run web-run:chrome`：用 `web-ext` 在 Chromium 中启动扩展（需本机可用 Chromium/Chrome）
+- `npm run test-without-building`：直接跑 Jest 单测（已有 `dist/` 时更快）
+- `npm run test`：先生产构建，再执行 Jest
+- `npm run lint` / `npm run lint:fix`：代码检查 / 自动修复
+
 # 致谢
 
 感谢[ajayyy](https://github.com/ajayyy)创造的[SponsorBlock](https://github.com/ajayyy/SponsorBlock)给我的启发！
