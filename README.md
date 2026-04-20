@@ -100,7 +100,7 @@ npm run build:safari:macos
 
 # 服务端及数据
 
-为了方便大家二次开发，所有片段的数据现在开放下载：https://bsbsb.top/database.zip
+为了方便大家二次开发，所有片段的数据现在开放下载：https://download.bsbsb.top/database.zip
 
 # API
 
