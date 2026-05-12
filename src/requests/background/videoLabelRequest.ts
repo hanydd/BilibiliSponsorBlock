@@ -1,5 +1,5 @@
 import Config from "../../config";
-import { BVID, Category, CategorySkipOption, NewVideoID } from "../../types";
+import { Category, CategorySkipOption, NewVideoID, SponsorTimeHashedID } from "../../types";
 import { getVideoIDHash } from "../../utils/hash";
 import { parseBvidAndCidFromVideoId } from "../../utils/videoIdUtils";
 import { callAPI } from "../background-request-proxy";
@@ -7,13 +7,13 @@ import { LabelBlock } from "../type/requestType";
 import { videoLabelCache } from "./backgroundCache";
 
 async function fetchLabelBlock(prefix: string, skipServerCache: boolean): Promise<LabelBlock> {
-    const response = await callAPI("GET", `/api/videoLabels/${prefix}`, {}, skipServerCache);
+    const response = await callAPI("GET", `/api/skipSegments/${prefix}`, { actionType: "full" }, skipServerCache);
 
     if (!response.ok || response.status !== 200) return {} as LabelBlock;
 
-    const data = JSON.parse(response.responseText) as Array<{ videoID: BVID; segments: Array<{ category: Category }> }>;
+    const data = JSON.parse(response.responseText) as SponsorTimeHashedID[];
     const block: LabelBlock = Object.fromEntries(
-        (data || []).map((video) => [video.videoID, video.segments?.[0]?.category]).filter(([, c]) => !!c)
+        (data || []).map((video) => [video.videoID, video.segments?.[0]?.category as Category]).filter(([, c]) => !!c)
     ) as LabelBlock;
     return block;
 }
