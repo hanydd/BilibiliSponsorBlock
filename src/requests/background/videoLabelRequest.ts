@@ -7,7 +7,12 @@ import { LabelBlock } from "../type/requestType";
 import { videoLabelCache } from "./backgroundCache";
 
 async function fetchLabelBlock(prefix: string, skipServerCache: boolean): Promise<LabelBlock> {
-    const response = await callAPI("GET", `/api/skipSegments/${prefix}`, { actionType: "full" }, skipServerCache);
+    const response = await callAPI(
+        "GET",
+        `/api/skipSegments/${prefix}`,
+        { categories: '["sponsor","selfpromo","exclusive_access"]', actionType: "full" },
+        skipServerCache
+    );
 
     if (!response.ok || response.status !== 200) return {} as LabelBlock;
 
