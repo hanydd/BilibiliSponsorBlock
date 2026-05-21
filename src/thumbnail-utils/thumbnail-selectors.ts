@@ -123,9 +123,41 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
     "bewlybewlyMainPage": {
         //bewlybewly插件主页
         parentElement: "#bewly",
-        containerSelector: ".grid-adaptive",
+        containerSelector: ".bewly-scroll-viewport",
         thumbnailSelector: ".video-card",
         labelAnchorSelector: ".vertical-card-cover img",
+        inShadowRoot: true,
+    },
+    "bewlybewlySearch": {
+        //bewlybewly插件搜索页
+        parentElement: "#bewly",
+        containerSelector: ".search-results-panel",
+        thumbnailSelector: ".virtual-item",
+        labelAnchorSelector: "img.image-transition",
+        inShadowRoot: true,
+    },
+    "bewlybewlyHistory&WatchLater": {
+        //bewlybewly插件播放历史&稍后再看页
+        parentElement: "#bewly",
+        containerSelector: ".bewly-scroll-viewport",
+        thumbnailSelector: "a.group",
+        labelAnchorSelector: "section img",
+        inShadowRoot: true,
+    },
+    "bewlybewlyFavorites": {
+        //bewlybewly插件搜索页
+        parentElement: "#bewly",
+        containerSelector: ".video-card-grid-container",
+        thumbnailSelector: ".virtual-item",
+        labelAnchorSelector: "picture img",
+        inShadowRoot: true,
+    },
+    "bewlybewlyPoppu": {
+        //bewlybewly插件弹出页集合
+        parentElement: "#bewly",
+        containerSelector: ".top-bar-header__side.top-bar-header__side--right",
+        thumbnailSelector: "a.group, main a",
+        labelAnchorSelector: "picture img, .group img",
         inShadowRoot: true,
     },
     "festivalPage": {
@@ -136,14 +168,14 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
     }
 };
 
-const commonSelector = ["dynamicPopup", "favPopup", "historyPopup"];
+const commonSelector = ["dynamicPopup", "favPopup", "historyPopup", "bewlybewlyPoppu"];
 const pageTypeSepecialSelector: { [key in PageType]: string[] } = {
     [PageType.Main]: ["mainPageRecommendation", "bilibiliGateMainPage", "bewlybewlyMainPage"],
-    [PageType.History]: ["history"],
+    [PageType.History]: ["history", "bewlybewlyHistory&WatchLater"],
     [PageType.OldHistory]: ["oldHistory"],
     [PageType.Video]: ["playerSideRecommendation", "playerListPod", "playerListPodVideo"],
-    [PageType.List]: ["listPlayerSideRecommendation", "listPlayerListCard"],
-    [PageType.Search]: ["search"],
+    [PageType.List]: ["listPlayerSideRecommendation", "listPlayerListCard", "bewlybewlyHistory&WatchLater", "bewlybewlyFavorites"],
+    [PageType.Search]: ["search", "bewlybewlySearch"],
     [PageType.Dynamic]: ["dynamic"],
     [PageType.Channel]: ["oldSpaceMain", "spaceMain", "oldSpaceUpload", "spaceUpload", "channelDynamic"],
     [PageType.Message]: [],

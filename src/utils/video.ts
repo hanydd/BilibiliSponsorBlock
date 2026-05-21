@@ -259,6 +259,18 @@ export function detectPageType(): PageType {
             pageType = PageType.Anime;
         } else if (urlObject.pathname.startsWith("/opus/")) {
             pageType = PageType.Opus;
+        } else if (urlObject.pathname === "/" && urlObject.searchParams.get("page") === "SearchResults") {
+            //BewlyBewly & BewlyCat搜索页
+            pageType = PageType.Search;
+        } else if (urlObject.pathname === "/" && urlObject.searchParams.get("page") === "History") {
+            //BewlyBewly & BewlyCat播放历史页
+            pageType = PageType.History;
+        } else if (urlObject.pathname === "/" && urlObject.searchParams.get("page") === "WatchLater") {
+            //BewlyBewly & BewlyCat稍后再看页
+            pageType = PageType.List;
+        } else if (urlObject.pathname === "/" && urlObject.searchParams.get("page") === "Favorites") {
+            //BewlyBewly & BewlyCat收藏页
+            pageType = PageType.List;
         } else {
             pageType = PageType.Main;
         }
