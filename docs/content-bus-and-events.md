@@ -58,6 +58,7 @@ content 内部现在分成四层：
 | 事件 | 业务语义 | 主要发射方 | 主要订阅方 | 状态 |
 | --- | --- | --- | --- | --- |
 | `app/pageReady` | 页面已真正 ready，可以开始 content 逻辑 | `src/content/state.ts` | 暂无 | emit-only |
+| `page/contextChanged` | SPA 路由上下文已变化，`pageType` / URL 已更新 | `src/utils/video.ts` | `src/content.ts` | active |
 | `video/resetRequested` | 视频上下文准备切换，content 侧需要先清理 | `src/utils/video.ts` | `src/content.ts` | active |
 | `video/idChanged` | 当前 canonical videoID 已变化，或需要同 ID refresh | `src/utils/video.ts` | `src/content.ts` | active |
 | `video/elementChanged` | 真实绑定的 `HTMLVideoElement` 已变化 | `src/utils/video.ts` | `src/content.ts` | active |
@@ -116,11 +117,27 @@ content 内部现在分成四层：
 
 下面是当前最重要的几条事件链。
 
-### 5.1 视频切换生命周期
+### 5.1 SPA 页面上下文生命周期
 
 触发顺序：
 
-1. `src/utils/video.ts` 检测到视频切换或需要 refresh。
+1. `src/utils/video.ts` 从初始 URL、Navigation API、background `update` 或 MAIN world 消息中发现当前路由。
+2. 它先把 URL 解析成稳定的 `PageType`，更新 page context。
+3. 如果 `pageType` 或 URL 变化，发 `page/contextChanged`。
+4. `src/content.ts` 订阅后把 `pageType` 和 `pageUrl` 投影进 `contentState` / store，并触发页面级缩略图刷新。
+5. 后续视频 ID 检测只读取已更新的 page context，不再在视频 reset 中清空 `pageType`。
+
+内在逻辑：
+
+- `pageType` 是 URL / 路由状态，不是视频实例状态。
+- SPA 路由变化可以不伴随视频 ID 变化，例如视频页到首页、动态页、搜索页。
+- 视频页内部短暂解析不到 ID 不能清空当前视频；只有 page context 确认离开支持视频 ID 的页面时，才允许清空 video context。
+
+### 5.2 视频切换生命周期
+
+触发顺序：
+
+1. `src/utils/video.ts` 在当前 page context 下检测到视频切换或需要 refresh。
 2. 它先发 `video/resetRequested`。
 3. `src/content.ts` 订阅后执行 content 侧 `resetValues()`，清理 scheduler、submission、notice、preview 相关状态。
 4. 随后 `src/utils/video.ts` 更新 videoID，并发 `video/idChanged`。
@@ -135,8 +152,9 @@ content 内部现在分成四层：
 - `src/utils/video.ts` 只负责检测页面和播放器状态。
 - `src/content.ts` 负责把生命周期 fan-out 到 content 内部模块。
 - `video/idChanged` 不表示“所有数据已完成”，它只表示“应该开始加载新视频上下文了”。
+- `video/resetRequested` 只清理视频上下文，不应清理 page context。
 
-### 5.2 `channel/whitelistChanged`
+### 5.3 `channel/whitelistChanged`
 
 这个事件现在承接了白名单变化的单一订阅链。
 
@@ -166,7 +184,7 @@ payload：
 - 后续到底是重拉 segments，还是重算 skip，由统一订阅链负责。
 - `resetValues()` 不会额外发这个事件，避免 reset 期间误触发拉取或调度。
 
-### 5.3 `segments/loaded`
+### 5.4 `segments/loaded`
 
 这是正式分段快照的主事件。
 
@@ -189,7 +207,7 @@ payload：
 - 分段拉取模块不再知道 preview bar、skip、popup 分别怎么刷新。
 - payload 带 `videoID`，用来避免异步结果污染新视频状态。
 
-### 5.4 `segments/submittingChanged`
+### 5.5 `segments/submittingChanged`
 
 这是本地草稿快照的主事件。
 
@@ -222,7 +240,7 @@ payload：
 - 当前草稿数组的 mutation 入口只有 `segmentSubmission` 内部 helper；组件通过 `skipNoticeContentContainer` 的窄 facade 调 command。
 - `skipNoticeContentContainer` 只保留 React notice 组件确实需要的 command facade 和渲染快照，不再暴露 notice registry、UI 实例或未使用的 contentState 快照。
 
-### 5.5 `segment/updated`
+### 5.6 `segment/updated`
 
 这是局部 segment 更新事件。
 
@@ -252,7 +270,7 @@ payload：
 - 事件 reason 是业务语义，而不是 UI 行为语义。
 - 这条链只处理内容脚本内部联动，不修改 popup/background 现有协议。
 
-### 5.6 player playback scheduling
+### 5.7 player playback scheduling
 
 播放器事实事件现在也是 skip 调度的主要入口。
 
@@ -278,7 +296,7 @@ payload：
 - `skipScheduler` 是播放调度状态机的归属方。
 - `setupVideoListeners()` 末尾仍保留一次初始 `skip/startSchedule` direct command，用来在 listener 安装后启动初始调度；它不是 play/pause/seek 事件响应。
 
-### 5.7 `skip/noticeRequested` 与 `skip/buttonStateChanged`
+### 5.8 `skip/noticeRequested` 与 `skip/buttonStateChanged`
 
 这两条事件现在是 skip UI 的边界。
 

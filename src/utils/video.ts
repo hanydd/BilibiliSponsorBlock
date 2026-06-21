@@ -35,9 +35,22 @@ let waitingForNewVideo = false;
 
 let videoID: NewVideoID | null = null;
 let pageType: PageType = PageType.Unknown;
+let pageUrl = "";
 let channelIDInfo: ChannelIDInfo;
 let waitingForChannelID = false;
 let frameRate: number = 30;
+
+interface VideoIDChangeOptions {
+    url?: string;
+    clearVideoOnNull?: boolean;
+    source?: string;
+}
+
+const videoIDPageTypes = [PageType.Video, PageType.List, PageType.Festival, PageType.Anime, PageType.Embed];
+
+function pageTypeSupportsVideoID(type: PageType): boolean {
+    return videoIDPageTypes.includes(type);
+}
 
 export function setupVideoModule() {
     setupCleanupListener();
@@ -48,9 +61,7 @@ export function setupVideoModule() {
 
     // Direct Links after the config is loaded
     void waitFor(() => Config.isReady(), 1000, 1)
-        .then(() => detectPageType())
-        .then(() => getBilibiliVideoID())
-        .then((id) => videoIDChange(id));
+        .then(() => handleRouteChange(document.URL, "utils/video.setupVideoModule"));
 
     // TODO: Add support for embed iframe videos
 
@@ -60,9 +71,10 @@ export function setupVideoModule() {
     const navigationApiAvailable = "navigation" in window;
     if (navigationApiAvailable) {
         // TODO: Remove type cast once type declarations are updated
-        const navigationListener = async (e) =>
-            void videoIDChange(
-                await getBilibiliVideoID((e as unknown as Record<string, Record<string, string>>).destination.url)
+        const navigationListener = (e) =>
+            void handleRouteChange(
+                (e as unknown as Record<string, Record<string, string>>).destination.url,
+                "utils/video.navigation"
             );
         (window as unknown as { navigation: EventTarget }).navigation.addEventListener("navigate", navigationListener);
 
@@ -95,31 +107,47 @@ export async function checkIfNewVideoID(): Promise<boolean> {
     const id = await getBilibiliVideoID();
 
     if (id === videoID) return false;
-    return await videoIDChange(id);
+    return await videoIDChange(id, { source: "utils/video.checkIfNewVideoID" });
 }
 
 export async function checkVideoIDChange(): Promise<boolean> {
     const id = await getBilibiliVideoID();
 
-    return await videoIDChange(id);
+    return await videoIDChange(id, { source: "utils/video.checkVideoIDChange" });
 }
 
-async function videoIDChange(id: NewVideoID | null): Promise<boolean> {
-    detectPageType();
+async function handleRouteChange(url: string, source: string): Promise<boolean> {
+    const nextPageType = updatePageContext(url, source);
+
+    return await videoIDChange(
+        await getBilibiliVideoID(url),
+        {
+            url,
+            clearVideoOnNull: !pageTypeSupportsVideoID(nextPageType),
+            source,
+        }
+    );
+}
+
+async function videoIDChange(id: NewVideoID | null, options: VideoIDChangeOptions = {}): Promise<boolean> {
+    const nextPageType = updatePageContext(options.url ?? document.URL, options.source ?? "utils/video.videoIDChange");
+    const clearVideoOnNull = options.clearVideoOnNull ?? !pageTypeSupportsVideoID(nextPageType);
     logUiLifecycle("video", "state", {
         action: "videoIDChangeIncoming",
         previousVideoID: videoID,
         nextVideoID: id,
         pageType: getPageType(),
+        clearVideoOnNull,
         videoVisible: isVisible(video),
         video,
     });
 
     // don't switch to invalid value
-    if (!id && videoID) {
+    if (!id && videoID && !clearVideoOnNull) {
         logUiLifecycle("video", "state", {
             action: "videoIDChangeIgnoredInvalid",
             previousVideoID: videoID,
+            pageType: getPageType(),
         });
         return false;
     }
@@ -154,7 +182,7 @@ async function videoIDChange(id: NewVideoID | null): Promise<boolean> {
     videoID = id;
 
     //id is not valid
-    if (!id) return false;
+    if (!id) return true;
 
     // Wait for options to be ready
     await waitFor(() => Config.isReady(), 5000, 1);
@@ -176,7 +204,6 @@ function resetValues() {
     getContentApp().bus.emit(CONTENT_EVENTS.VIDEO_RESET_REQUESTED, { reason: "videoIDChange" }, { source: "utils/video.resetValues" });
 
     videoID = null;
-    pageType = PageType.Unknown;
     channelIDInfo = {
         status: ChannelIDStatus.Fetching,
         id: null,
@@ -240,58 +267,102 @@ export async function whitelistCheck() {
     );
 }
 
-export function detectPageType(): PageType {
-    pageType = PageType.Unknown;
+export function getPageTypeFromUrl(url = document.URL): PageType {
+    let nextPageType = PageType.Unknown;
 
-    const urlObject = new URL(document.URL);
+    const urlObject = new URL(url);
     if (urlObject.hostname === "www.bilibili.com") {
         if (urlObject.pathname.startsWith("/video/")) {
-            pageType = PageType.Video;
+            nextPageType = PageType.Video;
         } else if (urlObject.pathname.startsWith("/list/")) {
-            pageType = PageType.List;
+            nextPageType = PageType.List;
         } else if (urlObject.pathname.startsWith("/festival/")) {
-            pageType = PageType.Festival;
+            nextPageType = PageType.Festival;
         } else if (urlObject.pathname.startsWith("/history")) {
-            pageType = PageType.History;
+            nextPageType = PageType.History;
         } else if (urlObject.pathname.startsWith("/account/history")) {
-            pageType = PageType.OldHistory;
+            nextPageType = PageType.OldHistory;
         } else if (urlObject.pathname.startsWith("/bangumi/")) {
-            pageType = PageType.Anime;
+            nextPageType = PageType.Anime;
         } else if (urlObject.pathname.startsWith("/opus/")) {
-            pageType = PageType.Opus;
+            nextPageType = PageType.Opus;
         } else if (urlObject.pathname === "/" && urlObject.searchParams.get("page") === "SearchResults") {
             //BewlyBewly & BewlyCat搜索页
-            pageType = PageType.Search;
+            nextPageType = PageType.Search;
         } else if (urlObject.pathname === "/" && urlObject.searchParams.get("page") === "History") {
             //BewlyBewly & BewlyCat播放历史页
-            pageType = PageType.History;
+            nextPageType = PageType.History;
         } else if (urlObject.pathname === "/" && urlObject.searchParams.get("page") === "WatchLater") {
             //BewlyBewly & BewlyCat稍后再看页
-            pageType = PageType.List;
+            nextPageType = PageType.List;
         } else if (urlObject.pathname === "/" && urlObject.searchParams.get("page") === "Favorites") {
             //BewlyBewly & BewlyCat收藏页
-            pageType = PageType.List;
+            nextPageType = PageType.List;
         } else {
-            pageType = PageType.Main;
+            nextPageType = PageType.Main;
         }
     } else if (urlObject.hostname === "search.bilibili.com") {
-        pageType = PageType.Search;
+        nextPageType = PageType.Search;
     } else if (urlObject.hostname === "t.bilibili.com") {
-        pageType = PageType.Dynamic;
+        nextPageType = PageType.Dynamic;
     } else if (urlObject.hostname === "space.bilibili.com") {
-        pageType = PageType.Channel;
+        nextPageType = PageType.Channel;
     } else if (urlObject.hostname === "message.bilibili.com") {
         if (urlObject.pathname === "/pages/nav/header_sync") {
-            pageType = PageType.Unsupported;
+            nextPageType = PageType.Unsupported;
         } else {
-            pageType = PageType.Message;
+            nextPageType = PageType.Message;
         }
     } else if (urlObject.hostname === "manga.bilibili.com") {
-        pageType = PageType.Manga;
+        nextPageType = PageType.Manga;
     } else if (urlObject.hostname === "live.bilibili.com") {
-        pageType = PageType.Live;
+        nextPageType = PageType.Live;
     }
+    return nextPageType;
+}
+
+function setPageContext(nextPageType: PageType, url: string, source: string): PageType {
+    const previousPageType = pageType;
+    const previousUrl = pageUrl;
+
+    pageType = nextPageType;
+    pageUrl = url;
+
+    if (previousPageType !== pageType || previousUrl !== pageUrl) {
+        logUiLifecycle("page", "state", {
+            action: "contextChanged",
+            previousPageType,
+            pageType,
+            previousUrl,
+            url,
+            source,
+        });
+
+        try {
+            getContentApp().bus.emit(
+                CONTENT_EVENTS.PAGE_CONTEXT_CHANGED,
+                {
+                    pageType,
+                    previousPageType,
+                    url: pageUrl,
+                    previousUrl,
+                },
+                { source }
+            );
+        } catch (error) {
+            // Content app may not exist in isolated unit tests or very early module evaluation.
+        }
+    }
+
     return pageType;
+}
+
+export function updatePageContext(url = document.URL, source = "utils/video.updatePageContext"): PageType {
+    return setPageContext(getPageTypeFromUrl(url), url, source);
+}
+
+export function detectPageType(url = document.URL): PageType {
+    return updatePageContext(url, "utils/video.detectPageType");
 }
 
 let lastMutationListenerCheck = 0;
@@ -431,9 +502,9 @@ async function refreshVideoAttachments(trigger = "unknown"): Promise<void> {
             .then((e) => (embedLastUrl = e.getAttribute("href")!))
             .then(() => (waitingForEmbed = false))
             .then(() => getBilibiliVideoID())
-            .then((id) => videoIDChange(id));
+            .then((id) => videoIDChange(id, { source: "utils/video.refreshVideoAttachments.embed" }));
     } else {
-        void videoIDChange(await getBilibiliVideoID());
+        void videoIDChange(await getBilibiliVideoID(), { source: "utils/video.refreshVideoAttachments" });
     }
 }
 
@@ -444,12 +515,15 @@ function windowListenerHandler(event: MessageEvent): void {
     if (data.source !== "sponsorblock") return;
 
     if (dataType === "navigation") {
-        checkPageForNewThumbnails();
+        const routeUrl = typeof data.url === "string" ? data.url : document.URL;
+        if (data.pageType && Object.values(PageType).includes(data.pageType)) {
+            setPageContext(data.pageType, routeUrl, "utils/video.windowNavigation");
+        } else {
+            updatePageContext(routeUrl, "utils/video.windowNavigation");
+        }
     }
 
     if (dataType === "navigation" && data.videoID) {
-        pageType = data.pageType;
-
         if (data.channelID) {
             channelIDInfo = {
                 id: data.channelID,
@@ -461,9 +535,12 @@ function windowListenerHandler(event: MessageEvent): void {
             }
         }
 
-        void videoIDChange(data.videoID);
+        void videoIDChange(data.videoID, {
+            url: typeof data.url === "string" ? data.url : document.URL,
+            source: "utils/video.windowNavigation",
+        });
     } else if (dataType === "data" && data.videoID) {
-        void videoIDChange(data.videoID);
+        void videoIDChange(data.videoID, { source: "utils/video.windowData" });
     } else if (dataType === "newElement") {
         checkPageForNewThumbnails();
     }

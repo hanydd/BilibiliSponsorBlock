@@ -1,5 +1,6 @@
 export const CONTENT_EVENTS = {
     APP_PAGE_READY: "app/pageReady",
+    PAGE_CONTEXT_CHANGED: "page/contextChanged",
     VIDEO_RESET_REQUESTED: "video/resetRequested",
     VIDEO_ID_CHANGED: "video/idChanged",
     VIDEO_ELEMENT_CHANGED: "video/elementChanged",

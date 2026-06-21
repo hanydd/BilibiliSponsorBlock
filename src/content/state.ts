@@ -2,6 +2,7 @@ import advanceSkipNotice from "../render/advanceSkipNotice";
 import SkipNotice from "../render/SkipNotice";
 import {
     Category,
+    PageType,
     PortVideo,
     SponsorTime,
     ToggleSkippable,
@@ -38,6 +39,8 @@ let sponsorTimesSubmitting: SponsorTime[] = [];
 let lastResponseStatus: number;
 
 let pageLoaded = false;
+let pageType = PageType.Unknown;
+let pageUrl = "";
 
 function buildContentStateSnapshot(): ContentAppState {
     return {
@@ -56,6 +59,8 @@ function buildContentStateSnapshot(): ContentAppState {
         sponsorTimesSubmitting,
         lastResponseStatus: lastResponseStatus ?? 0,
         pageLoaded,
+        pageType,
+        pageUrl,
     };
 }
 
@@ -159,6 +164,18 @@ export const contentState = {
     set pageLoaded(v: boolean) {
         pageLoaded = v;
         syncContentStateStore("contentState.pageLoaded");
+    },
+
+    get pageType() { return pageType; },
+    set pageType(v: PageType) {
+        pageType = v;
+        syncContentStateStore("contentState.pageType");
+    },
+
+    get pageUrl() { return pageUrl; },
+    set pageUrl(v: string) {
+        pageUrl = v;
+        syncContentStateStore("contentState.pageUrl");
     },
 };
 

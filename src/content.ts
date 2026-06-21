@@ -53,7 +53,8 @@ const app = createContentApp();
 let lifecycleRegistered = false;
 
 setupPageLoadingListener();
-detectPageType();
+contentState.pageType = detectPageType();
+contentState.pageUrl = document.URL;
 syncContentStateStore("content.bootstrap");
 
 if (getPageType() === PageType.Unsupported || getPageType() === PageType.Live) {
@@ -79,6 +80,11 @@ function init(): void {
         app.bus.on(CONTENT_EVENTS.VIDEO_RESET_REQUESTED, () => resetValues());
         app.bus.on(CONTENT_EVENTS.VIDEO_ID_CHANGED, () => {
             void videoIDChange();
+        });
+        app.bus.on(CONTENT_EVENTS.PAGE_CONTEXT_CHANGED, ({ pageType, url }) => {
+            contentState.pageType = pageType;
+            contentState.pageUrl = url;
+            checkPageForNewThumbnails();
         });
         app.bus.on(CONTENT_EVENTS.VIDEO_CHANNEL_RESOLVED, ({ channelIDInfo }) => {
             void channelIDChange(channelIDInfo);

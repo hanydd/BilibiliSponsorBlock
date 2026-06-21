@@ -4,6 +4,7 @@ import { ContentStore } from "./store";
 import { createContentTrace } from "./trace";
 import { ContentCommandMap, ContentAppState, ContentEventMap } from "./types";
 import { ContentUIRegistry } from "./uiRegistry";
+import { PageType } from "../../types";
 
 const initialContentState: ContentAppState = {
     sponsorDataFound: false,
@@ -21,6 +22,8 @@ const initialContentState: ContentAppState = {
     sponsorTimesSubmitting: [],
     lastResponseStatus: 0,
     pageLoaded: false,
+    pageType: PageType.Unknown,
+    pageUrl: "",
 };
 
 export interface ContentApp {

@@ -15,6 +15,7 @@ import {
     Category,
     ChannelIDInfo,
     NewVideoID,
+    PageType,
     PortVideo,
     SegmentUUID,
     SkipToTimeParams,
@@ -41,6 +42,8 @@ export interface ContentAppState {
     sponsorTimesSubmitting: SponsorTime[];
     lastResponseStatus: number;
     pageLoaded: boolean;
+    pageType: PageType;
+    pageUrl: string;
 }
 
 export interface ContentUIRegistryState {
@@ -70,6 +73,12 @@ export interface ContentEventMeta {
 
 export interface ContentEventMap {
     [CONTENT_EVENTS.APP_PAGE_READY]: { pageLoaded: boolean };
+    [CONTENT_EVENTS.PAGE_CONTEXT_CHANGED]: {
+        pageType: PageType;
+        previousPageType: PageType;
+        url: string;
+        previousUrl: string;
+    };
     [CONTENT_EVENTS.VIDEO_RESET_REQUESTED]: { reason: string };
     [CONTENT_EVENTS.VIDEO_ID_CHANGED]: { videoID: NewVideoID | null };
     [CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED]: { newVideo: boolean; video: HTMLVideoElement | null };
