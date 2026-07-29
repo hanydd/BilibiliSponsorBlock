@@ -67,7 +67,8 @@
     "dev:firefox-android": "npm run build:dev:firefox && concurrently \"npm run web-run:firefox-android\" \"npm run build:watch:firefox\"",
     "clean": "rimraf dist",
     "test": "npm run build:chrome && npx jest",
-    "test:e2e": "npm run build:dev && playwright test",
+    "test:e2e": "npm run build:dev && playwright test --grep-invert @real",
+    "test:e2e:real": "npm run build:dev && playwright test --grep @real",
     "test-without-building": "npx jest",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix"
