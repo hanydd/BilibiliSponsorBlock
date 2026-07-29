@@ -123,11 +123,12 @@ function applySkipButtonState(enabled: boolean, segment: SponsorTime | null, dur
     }
 
     void waitFor(() => getSkipButtonControlBar(), 5000, 10)
-        .then((skipButtonControlBar) => {
+        .then(async (skipButtonControlBar) => {
             if (!skipButtonControlBar) {
                 return;
             }
 
+            await skipButtonControlBar.attachToPage();
             skipButtonControlBar.enable(segment, duration);
             skipButtonControlBar.setShowKeybindHint(Config.config.skipKeybind != null);
 

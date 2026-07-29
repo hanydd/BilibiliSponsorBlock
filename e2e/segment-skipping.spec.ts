@@ -104,3 +104,37 @@ test("does not schedule skips when skipping is disabled", async ({
     expect(await getMockVideoTime(extensionPage)).toBeLessThan(7);
     await expect(extensionPage.locator("[id^='sponsorSkipNoticeContainer']")).toHaveCount(0);
 });
+
+test("updates a manual highlight button when seeking across the highlight", async ({
+    extensionContext,
+    extensionPage,
+    extensionServiceWorker,
+    sendContentMessage,
+}) => {
+    await writeSyncStorage(extensionServiceWorker, {
+        hideSkipButtonPlayerControls: false,
+        skipNoticeDuration: 60,
+    });
+    await routeMockSponsorSegments(extensionContext, defaultMockBvid, [
+        {
+            segment: [34.8, 34.8],
+            UUID: "mock-highlight-segment",
+            category: "poi_highlight",
+            actionType: "poi",
+            cid: defaultMockCid,
+            videoDuration: 120,
+        },
+    ]);
+    await routeMockBilibiliVideoPage(extensionPage, { currentTime: 5, paused: true });
+    await extensionPage.goto(`https://www.bilibili.com/video/${defaultMockBvid}/`);
+    await waitForBilibiliContentScript(extensionPage, sendContentMessage);
+
+    const highlightButton = extensionPage.locator(".skipButtonControlBarContainer");
+    await expect(highlightButton).toBeVisible();
+
+    await setMockVideoTime(extensionPage, 60, true);
+    await expect(highlightButton).toHaveClass(/sbhidden/);
+
+    await setMockVideoTime(extensionPage, 5, true);
+    await expect(highlightButton).toBeVisible();
+});

@@ -1,8 +1,8 @@
-import type { Page, TestInfo } from "@playwright/test";
 import { expect, test } from "./fixtures/extension";
 import { writeSyncStorage } from "./support/extensionStorage";
 import { findLifecycleIndex, getLifecycleLogs } from "./support/lifecycle";
 import { openEmbeddedPopup } from "./support/popup";
+import { openRealBilibiliPage } from "./support/realBilibili";
 import {
     assertSubmissionNoticeActionTypeSwitching,
     closeSubmissionNotice,
@@ -13,52 +13,11 @@ import {
 const realVideoUrl =
     process.env.BSB_E2E_REAL_VIDEO_URL?.trim() || "https://www.bilibili.com/video/BV1JfLg6qEtf/";
 
-async function openRealBilibiliPage(page: Page, testInfo: TestInfo): Promise<void> {
-    let responseStatus: number | null = null;
-    try {
-        const response = await page.goto(realVideoUrl, {
-            waitUntil: "domcontentloaded",
-            timeout: 60_000,
-        });
-        responseStatus = response?.status() ?? null;
-    } catch (error) {
-        throw new Error(
-            `Unable to open the real Bilibili page. If a system proxy is interfering, retry with ` +
-                `BSB_E2E_DIRECT=1. Original error: ${error instanceof Error ? error.message : String(error)}`
-        );
-    }
-
-    const title = await page.title();
-    const bodyText = await page.locator("body").innerText().catch(() => "");
-    const securityBlocked =
-        responseStatus === 412 || /错误号\s*[:：]?\s*412|请求被拦截|访问被拒绝/.test(bodyText);
-    const diagnostics = {
-        requestedUrl: realVideoUrl,
-        finalUrl: page.url(),
-        responseStatus,
-        title,
-        securityBlocked,
-        directConnection: process.env.BSB_E2E_DIRECT === "1",
-        explicitProxy: Boolean(process.env.BSB_E2E_PROXY_SERVER),
-    };
-
-    console.log(`[e2e:real] ${JSON.stringify(diagnostics)}`);
-    await testInfo.attach("bilibili-page-diagnostics", {
-        body: Buffer.from(JSON.stringify(diagnostics, null, 2)),
-        contentType: "application/json",
-    });
-
-    test.skip(
-        securityBlocked,
-        "Bilibili returned a security-control page (usually HTTP 412). Retry from a trusted direct network with BSB_E2E_DIRECT=1."
-    );
-}
-
 test.describe("@real real Bilibili rendering", () => {
     test.beforeEach(async ({ extensionPage, extensionServiceWorker }, testInfo) => {
         testInfo.setTimeout(120_000);
         await writeSyncStorage(extensionServiceWorker, { autoHideInfoButton: false });
-        await openRealBilibiliPage(extensionPage, testInfo);
+        await openRealBilibiliPage(extensionPage, testInfo, realVideoUrl);
     });
 
     test("renders player controls only after detected Vue hydration and opens the embedded popup", async ({

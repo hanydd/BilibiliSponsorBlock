@@ -169,7 +169,12 @@ export function registerSkipScheduler(): void {
     );
 
     app.bus.on(CONTENT_EVENTS.SEGMENTS_LOADED, ({ sponsorTimes, videoID }) => {
-        if (videoID !== getVideoID() || sponsorTimes.length === 0) {
+        if (videoID !== getVideoID()) {
+            return;
+        }
+
+        updatePoiSkipButtonForCurrentTime();
+        if (sponsorTimes.length === 0) {
             return;
         }
 
@@ -181,6 +186,9 @@ export function registerSkipScheduler(): void {
         }
 
         void startSponsorSchedule();
+    });
+    app.bus.on(CONTENT_EVENTS.PLAYER_VIDEO_READY, () => {
+        updatePoiSkipButtonForCurrentTime();
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_RATE_CHANGED, () => {
         updateVirtualTime();
@@ -220,6 +228,7 @@ export function registerSkipScheduler(): void {
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_SEEKING, ({ video }) => {
         lastKnownVideoTime.fromPause = false;
+        updatePoiSkipButtonForCurrentTime();
 
         if (!video.paused) {
             lastCheckTime = Date.now();
@@ -931,28 +940,7 @@ export function startSkipScheduleCheckingForStartSponsors(): void {
             }
         }
 
-        // For highlight category
-        const poiSegments = contentState.sponsorTimes
-            .filter(
-                (time) =>
-                    time.segment[1] > getVideo().currentTime &&
-                    time.actionType === ActionType.Poi &&
-                    time.hidden === SponsorHideType.Visible
-            )
-            .sort((a, b) => b.segment[0] - a.segment[0]);
-        for (const time of poiSegments) {
-            const skipOption = utils.getCategorySelection(time.category)?.option;
-            if (skipOption !== CategorySkipOption.ShowOverlay) {
-                skipToTime({
-                    v: getVideo(),
-                    skipTime: time.segment,
-                    skippingSegments: [time],
-                    openNotice: true,
-                    unskipTime: getVideo().currentTime,
-                });
-                if (skipOption === CategorySkipOption.AutoSkip) break;
-            }
-        }
+        updatePoiSkipButtonForCurrentTime();
 
         const fullVideoSegment = contentState.sponsorTimes.filter((time) => time.actionType === ActionType.Full)[0];
         if (fullVideoSegment) {
@@ -988,6 +976,57 @@ export function startSkipScheduleCheckingForStartSponsors(): void {
             startSponsorSchedule();
         }
     }
+}
+
+function updatePoiSkipButtonForCurrentTime(): void {
+    const video = getVideo();
+    if (!video || !contentState.sponsorTimes) {
+        emitSkipButtonStateChanged(false, null, undefined, "skipScheduler.updatePoiButton.missingState");
+        return;
+    }
+
+    const poiSegments = contentState.sponsorTimes
+        .filter(
+            (time) =>
+                time.segment[1] > video.currentTime &&
+                time.actionType === ActionType.Poi &&
+                time.hidden === SponsorHideType.Visible
+        )
+        .sort((a, b) => b.segment[0] - a.segment[0]);
+    let manualPoiEnabled = false;
+    logUiLifecycle("skipButton", "state", {
+        action: "poiCandidates",
+        videoID: getVideoID(),
+        currentTime: video.currentTime,
+        segmentCount: contentState.sponsorTimes.length,
+        futurePoiCount: poiSegments.length,
+        switchingVideos: contentState.switchingVideos,
+    });
+
+    for (const time of poiSegments) {
+        const skipOption = utils.getCategorySelection(time.category)?.option;
+        if (skipOption !== CategorySkipOption.ShowOverlay) {
+            skipToTime({
+                v: video,
+                skipTime: time.segment,
+                skippingSegments: [time],
+                openNotice: true,
+                unskipTime: video.currentTime,
+            });
+            manualPoiEnabled = skipOption !== CategorySkipOption.AutoSkip;
+            if (skipOption === CategorySkipOption.AutoSkip) break;
+        }
+    }
+
+    if (!manualPoiEnabled) {
+        emitSkipButtonStateChanged(false, null, undefined, "skipScheduler.updatePoiButton.noFuturePoi");
+    }
+    logUiLifecycle("skipButton", "state", {
+        action: "poiResult",
+        videoID: getVideoID(),
+        currentTime: video.currentTime,
+        manualPoiEnabled,
+    });
 }
 
 export function shouldAutoSkip(segment: SponsorTime): boolean {

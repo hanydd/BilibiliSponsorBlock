@@ -252,6 +252,7 @@ async function videoIDChange(): Promise<void> {
         progressBar,
     });
 
+    void app.commands.execute("ui/setupSkipButtonControlBar", undefined);
     void app.commands.execute("ui/updatePlayerButtons", undefined);
     void app.commands.execute("ui/checkPreviewBarState", undefined);
     void app.commands.execute("ui/setupDescriptionPill", undefined);

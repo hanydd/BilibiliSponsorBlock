@@ -87,9 +87,18 @@ export class SkipButtonControlBar {
         const mountingContainer = leftControls;
         // this.chapterText = document.querySelector(".ytp-chapter-container");
 
+        document.querySelectorAll(".skipButtonControlBarContainer").forEach((container) => {
+            if (container !== this.container) {
+                container.remove();
+            }
+        });
+
         if (mountingContainer && !mountingContainer.contains(this.container)) {
             mountingContainer.append(this.container);
             AnimationUtils.setupAutoHideAnimation(this.skipButton, mountingContainer, false, false);
+            if (this.enabled) {
+                AnimationUtils.disableAutoHideAnimation(this.skipButton);
+            }
             logUiLifecycle("skipButton", "attach", {
                 action: "mount",
                 debugId: this.debugId,
