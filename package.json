@@ -16,6 +16,7 @@
     }
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/chrome": " 0.1.37",
     "@types/firefox-webext-browser": "^120.0.5",
     "@types/jest": "^29.5.14",
@@ -66,6 +67,7 @@
     "dev:firefox-android": "npm run build:dev:firefox && concurrently \"npm run web-run:firefox-android\" \"npm run build:watch:firefox\"",
     "clean": "rimraf dist",
     "test": "npm run build:chrome && npx jest",
+    "test:e2e": "npm run build:dev && playwright test",
     "test-without-building": "npx jest",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix"

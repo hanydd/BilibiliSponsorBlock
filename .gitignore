@@ -11,3 +11,4 @@ tmp/
 ci/invidious_instances.json
 ci/piped_instances.json
 test-results
+playwright-report/
