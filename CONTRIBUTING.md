@@ -36,4 +36,6 @@
 
 执行 `npm run dev` (Chrome) 或者 `npm run dev:firefox` (火狐)，npm 会打开一个安装好测试版插件的浏览器窗口，并且支持代码修改热加载。这里使用了[`web-ext run`](https://extensionworkshop.com/documentation/develop/web-ext-command-reference/#commands)。
 
+Playwright 页面集成测试的安装、运行方式和 Bilibili 风控排查见 [docs/playwright-e2e.md](docs/playwright-e2e.md)。
+
 插件有可能在初次打开的时候不正常加载。如果你发现有问题，可以打开浏览器的插件管理，并手动重新加载插件。

@@ -23,6 +23,11 @@ jobs:
       - name: Run tests
         run: npm run test
 
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright integration tests
+        run: npm run test:e2e
+
       - name: Upload results on fail
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4

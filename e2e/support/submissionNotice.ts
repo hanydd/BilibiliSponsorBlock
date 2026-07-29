@@ -2,10 +2,16 @@ import type { Page, Worker } from "@playwright/test";
 import { expect } from "../fixtures/extension";
 
 type SendContentMessage = <TResponse = unknown>(message: unknown) => Promise<TResponse>;
+type VideoIdResponse = {
+    videoID: string | null;
+};
 
-export async function waitForBilibiliContentScript(page: Page, sendContentMessage: SendContentMessage): Promise<void> {
+export async function waitForBilibiliContentScript(
+    page: Page,
+    sendContentMessage: SendContentMessage
+): Promise<VideoIdResponse> {
     await page.locator("#bilibili-player video").first().waitFor({ state: "attached", timeout: 60_000 });
-    await sendContentMessage({ message: "getVideoID" });
+    return await sendContentMessage<VideoIdResponse>({ message: "getVideoID" });
 }
 
 export async function openSubmissionNoticeWithImportedSegment(
