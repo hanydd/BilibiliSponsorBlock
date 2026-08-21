@@ -1,9 +1,9 @@
 {
     "backends": [
         {
-            "id": "bsbsb",
+            "id": "main",
             "name": "小电视空降助手",
-            "desc": "BilibiliSponsorBlock 默认后端",
+            "desc": "默认后端 - 提供广告跳过、章节标记、精彩提示等功能",
             "api_url": "https://www.bsbsb.top",
             "capabilities": [
                 "/api/skipSegments",
