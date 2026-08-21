@@ -42,6 +42,7 @@ import { parseBvidAndCidFromVideoId } from "../utils/videoIdUtils";
 import { openWarningDialog } from "../utils/warnings";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
+import { getBackendIdFromSegment, requestWithBackendId } from "./backendService";
 import { seekFrameByKeyPressListener } from "./hotkeyHandler";
 import { waitForPlayerUiReady } from "./playerUi";
 import { getSkipNoticeContentContainer } from "./skipNoticeContentContainer";
@@ -302,7 +303,10 @@ export function registerSegmentSubmission(): void {
     app.commands.register("segment/isCreationInProgress", () => isSegmentCreationInProgress());
     app.commands.register("segment/getRealCurrentTime", () => getRealCurrentTime());
     app.commands.register("segment/resetSubmissionNotice", ({ callRef }) => resetSponsorSubmissionNotice(callRef));
-    app.commands.register("segment/vote", ({ type, UUID, category, skipNotice }) => vote(type, UUID, category, skipNotice));
+    app.commands.register("segment/vote", (payload) => {
+        const backendId = (payload as unknown as { backendId?: string }).backendId;
+        return vote(payload.type, payload.UUID, payload.category, payload.skipNotice, backendId);
+    });
     app.commands.register("segment/voteAsync", ({ type, UUID, category }) => voteAsync(type, UUID, category));
     app.commands.register("segments/lookup", ({ keepOldSubmissions, ignoreServerCache, forceUpdatePreviewBar }) =>
         sponsorsLookup(keepOldSubmissions, ignoreServerCache, forceUpdatePreviewBar)
@@ -771,14 +775,15 @@ export async function vote(
     type: number,
     UUID: SegmentUUID,
     category?: Category,
-    skipNotice?: SkipNoticeComponent
+    skipNotice?: SkipNoticeComponent,
+    backendId?: string
 ): Promise<VoteResponse> {
     if (skipNotice !== null && skipNotice !== undefined) {
         skipNotice.addVoteButtonInfo.bind(skipNotice)(chrome.i18n.getMessage("Loading"));
         skipNotice.setNoticeInfoMessage.bind(skipNotice)();
     }
 
-    const response = await voteAsync(type, UUID, category);
+    const response = await voteAsync(type, UUID, category, backendId);
         if (response != undefined) {
             if (skipNotice != null) {
                 if (response.successType == 1 || (response.successType == -1 && response.statusCode == 429)) {
@@ -803,7 +808,12 @@ export async function vote(
     return response;
 }
 
-export async function voteAsync(type: number, UUID: SegmentUUID, category?: Category): Promise<VoteResponse | undefined> {
+export async function voteAsync(
+    type: number,
+    UUID: SegmentUUID,
+    category?: Category,
+    backendId?: string
+): Promise<VoteResponse | undefined> {
     const sponsorIndex = utils.getSponsorIndexFromUUID(contentState.sponsorTimes, UUID);
 
     if (sponsorIndex == -1 || contentState.sponsorTimes[sponsorIndex].source !== SponsorSourceType.Server)
@@ -825,6 +835,8 @@ export async function voteAsync(type: number, UUID: SegmentUUID, category?: Cate
         Config.config.skipCount = Config.config.skipCount + factor;
     }
 
+    const segmentBackendId = backendId ?? getBackendIdFromSegment(contentState.sponsorTimes[sponsorIndex]);
+
     return new Promise((resolve) => {
         chrome.runtime.sendMessage(
             {
@@ -832,6 +844,7 @@ export async function voteAsync(type: number, UUID: SegmentUUID, category?: Cate
                 type: type,
                 UUID: UUID,
                 category: category,
+                backendId: segmentBackendId,
             },
             (response) => {
                 if (response.successType === 1) {
@@ -916,7 +929,7 @@ export function submitSegments(): void {
     }
 }
 
-export async function sendSubmitMessage(): Promise<boolean> {
+export async function sendSubmitMessage(backendId?: string): Promise<boolean> {
     if (
         !contentState.previewedSegment &&
         !contentState.sponsorTimesSubmitting.every(
@@ -970,19 +983,25 @@ export async function sendSubmitMessage(): Promise<boolean> {
         }
     }
 
-    const response = await asyncRequestToServer("POST", "/api/skipSegments", {
+    const response = await requestWithBackendId("POST", "/api/skipSegments", {
         videoID: getBvID(),
         cid: getCid(),
         userID: Config.config.userID,
         segments: contentState.sponsorTimesSubmitting,
         videoDuration: getVideo()?.duration,
         userAgent: `${chrome.runtime.id}/v${chrome.runtime.getManifest().version}`,
-    });
+    }, backendId);
 
     if (response.status === 200) {
         stopAnimation();
 
-        const newSegments = contentState.sponsorTimesSubmitting.map(cloneSubmittingSegment);
+        const newSegments = contentState.sponsorTimesSubmitting.map((segment) => {
+            const newSegment = cloneSubmittingSegment(segment);
+            if (backendId) {
+                (newSegment as SponsorTime & { backendId?: string }).backendId = backendId;
+            }
+            return newSegment;
+        });
         try {
             const receivedNewSegments = JSON.parse(response.responseText);
             if (receivedNewSegments?.length === newSegments.length) {
