@@ -1,3 +1,4 @@
+import { isBackendEnabled } from "./runtime";
 import { BackendConfig, BackendConfigDocument, BackendMatchExpression, VideoMatchContext } from "./types";
 
 function matchesExpression(expression: BackendMatchExpression, context: VideoMatchContext): boolean {
@@ -28,7 +29,7 @@ export function selectMatchedBackends(
     const suppressed = new Set<string>();
 
     for (const backend of backends) {
-        if (enabledMap[backend.id] === false || suppressed.has(backend.id) || !matchesBackend(backend, context)) continue;
+        if (!isBackendEnabled(backend, enabledMap) || suppressed.has(backend.id) || !matchesBackend(backend, context)) continue;
         selected.push(backend);
         for (const conflictId of backend.conflicts ?? []) suppressed.add(conflictId);
     }

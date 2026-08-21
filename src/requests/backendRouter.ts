@@ -1,5 +1,4 @@
-import * as CompileConfig from "../../config.json";
-import { BackendConfig, BackendConfigDocument, VideoMatchContext, selectMatchedBackends } from "../backends";
+import { BackendConfig, BackendConfigDocument, VideoMatchContext, isBackendEnabled, selectMatchedBackends } from "../backends";
 import Config from "../config";
 import { FetchResponse } from "./type/requestType";
 import { sendRealRequestToCustomServer } from "./backendTransport";
@@ -38,25 +37,16 @@ export function getCapabilityForEndpoint(endpoint: string): string {
 export function getConfiguredSnapshot(): BackendConfigSnapshot | null {
     const snapshot = Config.local?.backendConfig as BackendConfigSnapshot | undefined;
     if (!snapshot || !Array.isArray(snapshot.backends)) return null;
-    const result = JSON.parse(JSON.stringify(snapshot)) as BackendConfigSnapshot;
-    if (
-        result.backends[0]?.id === "bsbsb" &&
-        result.backends[0].api_url === CompileConfig.serverAddress &&
-        Config.config?.serverAddress &&
-        Config.config.serverAddress !== CompileConfig.serverAddress
-    ) {
-        result.backends[0].api_url = Config.config.serverAddress;
-    }
-    return result;
+    return JSON.parse(JSON.stringify(snapshot)) as BackendConfigSnapshot;
 }
 
-function isBackendEnabled(id: string): boolean {
+function isConfiguredBackendEnabled(backend: BackendConfig): boolean {
     const map = (Config.local?.backendEnabledMap ?? {}) as Record<string, boolean>;
-    return map[id] !== false;
+    return isBackendEnabled(backend, map);
 }
 
 export function getConfiguredBackends(): BackendRequestDefinition[] {
-    return getConfiguredSnapshot()?.backends.filter((backend) => isBackendEnabled(backend.id)) ?? [];
+    return getConfiguredSnapshot()?.backends.filter((backend) => isConfiguredBackendEnabled(backend)) ?? [];
 }
 
 export function getBackendById(id: string): BackendRequestDefinition | null {
@@ -65,8 +55,7 @@ export function getBackendById(id: string): BackendRequestDefinition | null {
 
 function getBaseUrl(backend: BackendRequestDefinition): string {
     const configured = backend.api_url.replace(/\/+$/, "");
-    const isBuiltIn = backend.id === "bsbsb";
-    return Config.config?.testingServer && isBuiltIn ? CompileConfig.testingServerAddress : configured;
+    return configured;
 }
 
 function requestHeaders(skipServerCache: boolean, headers: Record<string, string>): Record<string, string> {
@@ -146,12 +135,5 @@ export async function requestToBackend(
         return { responseText: "", status: 404, ok: false };
     }
 
-    const legacyAddress = Config.config?.testingServer ? CompileConfig.testingServerAddress : Config.config?.serverAddress;
-    if (!legacyAddress) return { responseText: "", status: -1, ok: false };
-    return sendRealRequestToCustomServer(
-        type,
-        `${legacyAddress.replace(/\/+$/, "")}${endpoint}`,
-        data,
-        requestHeaders(Boolean(options.skipServerCache), headers)
-    );
+    return { responseText: "", status: 404, ok: false };
 }

@@ -5,6 +5,31 @@
             "name": "小电视空降助手",
             "desc": "默认后端 - 提供广告跳过、章节标记、精彩提示等功能",
             "api_url": "https://www.bsbsb.top",
+            "enabled": true,
+            "capabilities": [
+                "/api/skipSegments",
+                "/api/voteOnSponsorTime",
+                "/api/viewedVideoSponsorTime",
+                "/api/lockCategories",
+                "/api/videoLabels",
+                "/api/portVideo",
+                "/api/votePort",
+                "/api/updatePortedSegments",
+                "/api/chapterNames",
+                "/api/userInfo",
+                "/api/setUsername",
+                "/api/getUsername",
+                "/api/warnUser"
+            ],
+            "mirrors": [],
+            "conflicts": []
+        },
+        {
+            "id": "beta",
+            "name": "Beta 测试服务器",
+            "desc": "原 Beta 测试服务器，默认关闭",
+            "api_url": "https://www.bsbsb.top/test",
+            "enabled": false,
             "capabilities": [
                 "/api/skipSegments",
                 "/api/voteOnSponsorTime",

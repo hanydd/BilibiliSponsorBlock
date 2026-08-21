@@ -24,6 +24,8 @@ describe("backend configuration contract", () => {
     test("accepts the default root configuration and deep clones it", () => {
         const document = getDefaultBackendConfig();
         expect(document.backends[0].api_url).toBe("https://www.bsbsb.top");
+        expect(document.backends[0].enabled).toBe(true);
+        expect(document.backends.find((backend) => backend.id === "beta")?.enabled).toBe(false);
         expect(document.backends[0].capabilities).toEqual([...BACKEND_REQUEST_CAPABILITIES]);
         expect(document.backends[0].capabilities).toContain(skipCapability);
 
@@ -81,7 +83,7 @@ describe("backend configuration contract", () => {
             backends: [backend(), backend({ id: "secondary", name: "Secondary", api_url: "https://secondary.example" })],
         };
         const enabledMap = normalizeBackendEnabledMap(document, { primary: false, removed: false });
-        expect(enabledMap).toEqual({ primary: false, secondary: true });
+        expect(enabledMap).toEqual({ primary: false });
         expect(document.backends).toHaveLength(2);
     });
 });

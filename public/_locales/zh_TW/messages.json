@@ -991,15 +991,6 @@
         "message": "跳過選項",
         "description": "Used on the options page to describe the ways to skip the segment (auto skip, manual, etc.)"
     },
-    "enableTestingServer": {
-        "message": "啟用Beta測試伺服器"
-    },
-    "whatEnableTestingServer": {
-        "message": "您的提交和投票將不會計入主伺服器。它只被用於測試。"
-    },
-    "testingServerWarning": {
-        "message": "當連接到測試伺服器時，所有的提交和投票將不會計入主伺服器。當您想要進行真實提交時，請確保停用了此選項。"
-    },
     "bracketNow": {
         "message": "[設為目前]"
     },
@@ -1250,9 +1241,6 @@
     },
     "bilibiliKeybindWarning": {
         "message": "這是网站內建的捷徑。您確定要使用嗎？"
-    },
-    "betaServerWarning": {
-        "message": "測試伺服器已啟用！"
     },
     "openOptionsPage": {
         "message": "打開選項頁面"

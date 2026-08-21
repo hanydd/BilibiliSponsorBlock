@@ -849,6 +849,10 @@ input[type="number"] {
 	word-break: break-all;
 }
 
+.backend-config-enabled-select {
+	min-width: 80px;
+}
+
 .backend-config-empty {
 	text-align: center !important;
 	color: var(--description);

@@ -16,7 +16,6 @@ import {
     WhitelistedChannel,
 } from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
-import { getMigratedMirrorServerAddresses } from "./config/serverConfig";
 import { HashedValue } from "./utils/hash";
 
 export interface BackendConfigStorageDefinition {
@@ -24,6 +23,7 @@ export interface BackendConfigStorageDefinition {
     name: string;
     desc?: string;
     api_url: string;
+    enabled?: boolean;
     capabilities: string[];
     match?: unknown[];
     mirrors?: string[];
@@ -83,15 +83,12 @@ interface SBConfig {
     hideDiscordLaunches: number;
     hideDiscordLink: boolean;
     invidiousInstances: string[];
-    serverAddress: string;
-    mirrorServerAddresses: string[];
     minDuration: number;
     skipNoticeDuration: number;
     skipNoticeDurationBefore: number;
     advanceSkipNotice: boolean;
     audioNotificationOnSkip: boolean;
     checkForUnlistedVideos: boolean;
-    testingServer: boolean;
     ytInfoPermissionGranted: boolean;
     allowExperiments: boolean;
     showDonationLink: boolean;
@@ -238,25 +235,6 @@ function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<st
         }
     }
 
-    // move to new server endpoint v0.1.8
-    if (config["serverAddress"].includes("47.103.74.95")) {
-        config["serverAddress"] = CompileConfig.serverAddress;
-    }
-
-    // move back to the server endpoint v0.8.2
-    if (config["serverAddress"].includes("115.190.32.254")) {
-        config["serverAddress"] = CompileConfig.serverAddress;
-    }
-
-    const migratedMirrorServerAddresses = getMigratedMirrorServerAddresses(
-        config["serverAddress"],
-        config["mirrorServerAddresses"],
-        initialSyncKeys.has("mirrorServerAddresses")
-    );
-    if (migratedMirrorServerAddresses !== config["mirrorServerAddresses"]) {
-        config["mirrorServerAddresses"] = migratedMirrorServerAddresses;
-    }
-
     // "danmakuRegexPattern" 在 0.6.0 版本中被移除，
     // 取而代之的是 "danmakuTimeMatchingRegexPattern" 和 "danmakuOffsetMatchingRegexPattern"
     delete config["danmakuRegexPattern"];
@@ -358,15 +336,12 @@ const syncDefaults = {
     hideDiscordLaunches: 0,
     hideDiscordLink: false,
     invidiousInstances: ["invidious.snopyta.org"], // leave as default
-    serverAddress: CompileConfig.serverAddress,
-    mirrorServerAddresses: CompileConfig.mirrorServerAddresses,
     minDuration: 0,
     skipNoticeDuration: 4,
     skipNoticeDurationBefore: 3,
     advanceSkipNotice: false,
     audioNotificationOnSkip: false,
     checkForUnlistedVideos: false,
-    testingServer: false,
     ytInfoPermissionGranted: false,
     allowExperiments: true,
     showDonationLink: true,
@@ -616,13 +591,11 @@ const localDefaults = {
     unsubmittedSegments: {},
     videoPageCidMap: {},
     backendConfig: JSON.parse(JSON.stringify(DefaultBackendConfig)) as BackendConfigStorageDocument,
-    backendEnabledMap: Object.fromEntries(
-        (DefaultBackendConfig.backends ?? []).map((backend) => [backend.id, true])
-    ) as Record<string, boolean>,
+    backendEnabledMap: {} as Record<string, boolean>,
     backendSubscription: {
-        url: "",
-        intervalMinutes: 60,
-        enabled: false,
+        url: CompileConfig.backendSubscriptionUrl,
+        intervalMinutes: 60 * 24 * 2,
+        enabled: true,
         lastSyncAt: null,
         lastError: null,
     },

@@ -115,7 +115,7 @@ function validateBackend(value: unknown, index: number, allIds: Set<string>, err
     for (const field of requiredFields) {
         if (!Object.prototype.hasOwnProperty.call(value, field)) errors.push(`${path}.${field} is required`);
     }
-    const allowedFields = ["id", "name", "desc", "api_url", "capabilities", "match", "mirrors", "conflicts"];
+    const allowedFields = ["id", "name", "desc", "api_url", "enabled", "capabilities", "match", "mirrors", "conflicts"];
     const unknownFields = Object.keys(value).filter((key) => !allowedFields.includes(key));
     if (unknownFields.length > 0) errors.push(`${path} contains unknown field(s): ${unknownFields.join(", ")}`);
 
@@ -129,6 +129,7 @@ function validateBackend(value: unknown, index: number, allIds: Set<string>, err
     if (typeof value.name !== "string" || value.name.length === 0) errors.push(`${path}.name must be a non-empty string`);
     if (value.desc !== undefined && typeof value.desc !== "string") errors.push(`${path}.desc must be a string`);
     if (!isHttpUrl(value.api_url)) errors.push(`${path}.api_url must be an http(s) URL`);
+    if (value.enabled !== undefined && typeof value.enabled !== "boolean") errors.push(`${path}.enabled must be a boolean`);
 
     if (!Array.isArray(value.capabilities) || value.capabilities.length === 0) {
         errors.push(`${path}.capabilities must be a non-empty array`);

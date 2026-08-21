@@ -505,12 +505,6 @@
     "showUploadButton": {
         "message": "Show upload button"
     },
-    "customServerAddress": {
-        "message": "SponsorBlock server address"
-    },
-    "customServerAddressDescription": {
-        "message": "The address SponsorBlock uses to make calls to the server.\nUnless you have your own server instance, this should not be changed."
-    },
     "dataFetchingServerAddress": {
         "message": "Data fetching server address"
     },
@@ -846,15 +840,6 @@
         "message": "Skip option",
         "description": "Used on the options page to describe the ways to skip the segment (auto skip, manual, etc.)"
     },
-    "enableTestingServer": {
-        "message": "Enable beta testing server"
-    },
-    "whatEnableTestingServer": {
-        "message": "Your submissions and votes WILL NOT COUNT towards the main server. Only use this for testing."
-    },
-    "testingServerWarning": {
-        "message": "All submissions and votes WILL NOT COUNT towards the main server while connecting to the test server. Make sure to disable this when you want to make real submissions."
-    },
     "bracketNow": {
         "message": "(Now)"
     },
@@ -1153,9 +1138,6 @@
     },
     "youtubeKeybindWarning": {
         "message": "This is a built-in YouTube shortcut. Are you sure you want to use it?"
-    },
-    "betaServerWarning": {
-        "message": "BETA Server is enabled!"
     },
     "openOptionsPage": {
         "message": "Open options page"
@@ -1875,6 +1857,15 @@
     },
     "backendConfigEnabled": {
         "message": "Enabled"
+    },
+    "backendConfigDefault": {
+        "message": "Default"
+    },
+    "backendConfigEnabledValue": {
+        "message": "Enabled"
+    },
+    "backendConfigDisabledValue": {
+        "message": "Disabled"
     },
     "backendConfigEmpty": {
         "message": "No backend configuration."

@@ -93,15 +93,15 @@ select {
 }
 
 /*
- * Alert indicating that Beta server is enabled
+ * Container when popup displayed in-page (content.ts)
  */
-#sbBetaServerWarning {
-	padding: 8px;
-	font-size: 1em;
-	font-weight: 700;
-	color: var(--sb-main-fg-color);
-	background-color: var(--sb-red-bg-color);
-	cursor: pointer;
+#sponsorBlockPopupContainer {
+	position: relative;
+	margin-bottom: 16px;
+}
+
+#sponsorBlockPopupContainer iframe {
+	width: 100%;
 }
 
 /*

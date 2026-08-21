@@ -273,16 +273,6 @@ function app() {
                     <img src="icons/close.png" width="15" height="15" alt="Close icon" />
                 </button>
 
-                {Config.config.testingServer && (
-                    <div
-                        id="sbBetaServerWarning"
-                        title={chrome.i18n.getMessage("openOptionsPage")}
-                        onClick={() => openOptionsAt("advanced")}
-                    >
-                        {chrome.i18n.getMessage("betaServerWarning")}
-                    </div>
-                )}
-
                 {!Config.config.cleanPopup && (
                     <header className={"sbPopupLogo"}>
                         <img

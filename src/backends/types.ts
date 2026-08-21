@@ -58,6 +58,8 @@ export interface BackendConfig {
     name: string;
     desc?: string;
     api_url: string;
+    /** Default runtime state; omitted means enabled. */
+    enabled?: boolean;
     capabilities: BackendRequestCapability[];
     match?: BackendMatchExpression[];
     mirrors?: string[];

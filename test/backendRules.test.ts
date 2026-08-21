@@ -71,4 +71,19 @@ describe("backend matching", () => {
         );
         expect(selected.map((item) => item.id)).toEqual(["first", "second"]);
     });
+
+    test("uses JSON defaults until an explicit map override exists", () => {
+        const selected = selectMatchedBackends(
+            [backend("default-off", { enabled: false }), backend("default-on", { enabled: true })],
+            context
+        );
+        expect(selected.map((item) => item.id)).toEqual(["default-on"]);
+        expect(
+            selectMatchedBackends(
+                [backend("default-off", { enabled: false }), backend("default-on", { enabled: true })],
+                context,
+                { "default-off": true, "default-on": false }
+            ).map((item) => item.id)
+        ).toEqual(["default-off"]);
+    });
 });

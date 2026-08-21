@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import * as CompileConfig from "../../../config.json";
 import Config from "../../config";
 import {
     BackendConfigService as ConfigBackendConfigService,
@@ -11,6 +12,7 @@ export interface BackendConfig {
     name: string;
     desc?: string;
     api_url: string;
+    enabled?: boolean;
     capabilities?: string[];
     match?: unknown[];
     mirrors?: string[];
@@ -41,7 +43,7 @@ export interface BackendConfigService {
     restoreDefault: () => BackendConfigDocument | Promise<BackendConfigDocument>;
     syncNow: (url: string) => BackendConfigDocument | void | Promise<BackendConfigDocument | void>;
     saveSubscription: (subscription: BackendSubscription) => void | Promise<void>;
-    setBackendEnabled: (id: string, enabled: boolean) => void | Promise<void>;
+    setBackendEnabled: (id: string, enabled?: boolean) => void | Promise<void>;
 }
 
 interface RuntimeConfig {
@@ -62,9 +64,9 @@ interface BackendConfigComponentState extends BackendConfigState {
 }
 
 const DEFAULT_SUBSCRIPTION: BackendSubscription = {
-    url: "",
+    url: CompileConfig.backendSubscriptionUrl,
     intervalMinutes: 60,
-    enabled: false,
+    enabled: true,
 };
 
 function getRuntimeConfig(): RuntimeConfig {
@@ -121,10 +123,10 @@ async function requestSubscriptionHostPermission(value: string): Promise<boolean
 }
 
 function reconcileEnabledMap(config: BackendConfigDocument, enabledMap: Record<string, boolean>): Record<string, boolean> {
-    return config.backends.reduce<Record<string, boolean>>((result, backend) => {
-        result[backend.id] = enabledMap[backend.id] !== false;
-        return result;
-    }, {});
+    const ids = new Set(config.backends.map((backend) => backend.id));
+    return Object.fromEntries(
+        Object.entries(enabledMap).filter(([id, enabled]) => ids.has(id) && typeof enabled === "boolean")
+    );
 }
 
 function createConfigServiceAdapter(): BackendConfigService {
@@ -178,7 +180,7 @@ function createConfigServiceAdapter(): BackendConfigService {
         saveSubscription: (subscription: BackendSubscription) => {
             ConfigBackendConfigService.setSubscription(subscription);
         },
-        setBackendEnabled: (id: string, enabled: boolean) => {
+        setBackendEnabled: (id: string, enabled?: boolean) => {
             ConfigBackendConfigService.setBackendEnabled(id, enabled);
         },
     };
@@ -380,8 +382,10 @@ export default class BackendConfigComponent extends React.Component<
         }
     }
 
-    async handleBackendEnabled(id: string, enabled: boolean): Promise<void> {
-        const backendEnabledMap = { ...this.state.backendEnabledMap, [id]: enabled };
+    async handleBackendEnabled(id: string, enabled?: boolean): Promise<void> {
+        const backendEnabledMap = { ...this.state.backendEnabledMap };
+        if (enabled === undefined) delete backendEnabledMap[id];
+        else backendEnabledMap[id] = enabled;
         this.setState({ backendEnabledMap, error: "", status: "" });
         try {
             await this.service.setBackendEnabled(id, enabled);
@@ -503,16 +507,27 @@ export default class BackendConfigComponent extends React.Component<
                                     <td>{backend.desc || ""}</td>
                                     <td className="backend-config-api-url">{backend.api_url}</td>
                                     <td>
-                                        <label className="switch">
-                                            <input
-                                                type="checkbox"
-                                                checked={backendEnabledMap[backend.id] !== false}
-                                                onChange={(event) =>
-                                                    void this.handleBackendEnabled(backend.id, event.target.checked)
-                                                }
-                                            />
-                                            <span className="slider round"></span>
-                                        </label>
+                                        <select
+                                            className="backend-config-enabled-select"
+                                            value={
+                                                Object.prototype.hasOwnProperty.call(backendEnabledMap, backend.id)
+                                                    ? backendEnabledMap[backend.id]
+                                                        ? "enabled"
+                                                        : "disabled"
+                                                    : "default"
+                                            }
+                                            onChange={(event) => {
+                                                const value = event.target.value;
+                                                void this.handleBackendEnabled(
+                                                    backend.id,
+                                                    value === "default" ? undefined : value === "enabled"
+                                                );
+                                            }}
+                                        >
+                                            <option value="default">{chrome.i18n.getMessage("backendConfigDefault")}</option>
+                                            <option value="enabled">{chrome.i18n.getMessage("backendConfigEnabledValue")}</option>
+                                            <option value="disabled">{chrome.i18n.getMessage("backendConfigDisabledValue")}</option>
+                                        </select>
                                     </td>
                                 </tr>
                             ))}

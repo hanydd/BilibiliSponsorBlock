@@ -2,7 +2,8 @@ import Config, {
     BackendConfigStorageDocument,
     BackendSubscriptionStorage,
 } from "../config";
-import { getDefaultBackendConfig } from "../backends/runtime";
+import { getDefaultBackendConfig, normalizeBackendEnabledMap } from "../backends/runtime";
+import { BackendConfigDocument } from "../backends/types";
 import { validateBackendConfigDocument as validateCanonicalBackendConfigDocument } from "../backends/validator";
 
 export type BackendConfigSource = "default" | "manual" | "subscription";
@@ -21,7 +22,7 @@ function cloneDocument(document: BackendConfigStorageDocument): BackendConfigSto
 }
 
 function reconcileEnabledMap(document: BackendConfigStorageDocument, existing: Record<string, boolean>): Record<string, boolean> {
-    return Object.fromEntries(document.backends.map((backend) => [backend.id, existing[backend.id] !== false]));
+    return normalizeBackendEnabledMap(document as unknown as BackendConfigDocument, existing);
 }
 
 export const BackendConfigService = {
@@ -74,8 +75,11 @@ export const BackendConfigService = {
         return getDefaultBackendConfig() as unknown as BackendConfigStorageDocument;
     },
 
-    setBackendEnabled(id: string, enabled: boolean): void {
-        Config.local.backendEnabledMap = { ...Config.local.backendEnabledMap, [id]: enabled };
+    setBackendEnabled(id: string, enabled?: boolean): void {
+        const next = { ...(Config.local.backendEnabledMap ?? {}) };
+        if (enabled === undefined) delete next[id];
+        else next[id] = enabled;
+        Config.local.backendEnabledMap = next;
         Config.forceLocalUpdate("backendEnabledMap");
     },
 
@@ -89,6 +93,16 @@ export const BackendConfigService = {
             } else {
                 void chrome.alarms.clear("backend-config-sync");
             }
+        }
+    },
+
+    ensureSubscriptionAlarm(): void {
+        const subscription = Config.local?.backendSubscription;
+        if (!subscription || !chrome.alarms) return;
+        if (subscription.enabled && subscription.intervalMinutes > 0) {
+            void chrome.alarms.create("backend-config-sync", { periodInMinutes: subscription.intervalMinutes });
+        } else {
+            void chrome.alarms.clear("backend-config-sync");
         }
     },
 
@@ -128,7 +142,10 @@ export const BackendConfigService = {
     },
 
     async setBackendEnabledMap(map: Record<string, boolean>): Promise<void> {
-        Config.local.backendEnabledMap = { ...map };
+        Config.local.backendEnabledMap = normalizeBackendEnabledMap(
+            Config.local.backendConfig as unknown as BackendConfigDocument,
+            map
+        );
         Config.forceLocalUpdate("backendEnabledMap");
     },
 

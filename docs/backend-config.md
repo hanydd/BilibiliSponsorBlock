@@ -1,6 +1,6 @@
 # 多后端配置
 
-扩展的默认多后端配置位于仓库根目录的 `backends.json`。运行时可以从本地编辑器或订阅 URL 加载同样格式的 JSON。配置文档只描述后端定义；每个后端的启用状态保存在浏览器本地的独立 `enabled map` 中，不会写回 JSON。
+扩展的默认多后端配置位于仓库根目录的 `backends.json`。运行时可以从本地编辑器或订阅 URL 加载同样格式的 JSON。配置文档只描述后端定义；每个后端的启用状态保存在浏览器本地的独立 `enabled map` 中，不会写回 JSON。编译配置中的 `backendSubscriptionUrl` 是默认订阅地址，`backendTestSubscriptionUrl` 是测试订阅地址；二者只用于预填设置，不要求订阅文件在本地存在。
 
 ## 顶层结构
 
@@ -8,10 +8,11 @@
 {
     "backends": [
         {
-            "id": "bsbsb",
+            "id": "main",
             "name": "小电视空降助手",
             "desc": "BilibiliSponsorBlock 默认后端",
             "api_url": "https://www.bsbsb.top",
+            "enabled": true,
             "capabilities": [
                 "/api/skipSegments",
                 "/api/voteOnSponsorTime",
@@ -42,6 +43,7 @@
 | `name` | string | 是 | 设置面板中显示的名称。 |
 | `desc` | string | 否 | 后端介绍。 |
 | `api_url` | string | 是 | API 根地址，必须为 `http` 或 `https` URL；接口路径由扩展追加。 |
+| `enabled` | boolean | 否 | 该后端的默认开关状态。省略时默认为启用；用户的独立开关覆盖此值。 |
 | `capabilities` | string[] | 是 | 后端支持的 API 路径。至少应包含 `/api/skipSegments` 才能提供跳过片段。 |
 | `match` | expression[] | 否 | 视频匹配规则。缺省或空数组表示匹配全部视频。 |
 | `mirrors` | string[] | 否 | API 根地址镜像。主地址请求失败时，在本次请求中尝试镜像。 |
@@ -141,15 +143,16 @@
 
 ## 运行时 enabled map
 
-后端定义与运行时开关分离保存。例如：
+后端定义与运行时开关分离保存。例如，下面只表示用户明确覆盖了 `testing`；没有 `main` 项，因此 `main` 跟随 JSON 内的 `enabled`：
 
 ```json
 {
     "backendEnabledMap": {
-        "bsbsb": true,
-        "community_backend": false
+        "testing": true
     }
 }
 ```
 
-`backendEnabledMap` 不是 `backends.json` 的一部分。它只保存 `id -> enabled`，不会改变 JSON，也不会关闭订阅更新。配置增加新 ID 时默认启用；删除后端时清理对应旧状态。匹配时只有 `enabled !== false` 的后端参与。
+`backendEnabledMap` 不是 `backends.json` 的一部分。它只保存用户明确设置过的 `id -> enabled`，不会改变 JSON，也不会关闭订阅更新。新 ID 没有 map 项时跟随该后端的 `enabled`，省略 `enabled` 时默认启用；配置更新会清理已经删除的 ID。设置面板中的“默认”选项会删除对应 map 项，使开关重新跟随 JSON。匹配时只有解析后的最终状态为启用的后端参与。
+
+根目录默认文件包含主后端和一个 `enabled: false` 的 `beta` 后端；该后端对应旧的“启用 Beta 测试服务器”选项。`backends.test.json` 只包含本地 `testing` 后端，测试地址直接由其中的 `api_url` 定义，适合在测试订阅中使用。根配置不包含本地测试后端。

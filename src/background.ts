@@ -31,6 +31,43 @@ if (chrome.alarms?.onAlarm) {
     });
 }
 
+function migrateLegacyTestingServer(): void {
+    const legacyConfig = Config.config as unknown as { testingServer?: boolean };
+    if (!legacyConfig?.testingServer || !Config.local?.backendConfig?.backends.some((backend) => backend.id === "beta")) {
+        return;
+    }
+    const enabledMap = { ...(Config.local.backendEnabledMap ?? {}) };
+    if (Object.prototype.hasOwnProperty.call(enabledMap, "beta")) return;
+    enabledMap.beta = true;
+    Config.local.backendEnabledMap = enabledMap;
+    Config.forceLocalUpdate("backendEnabledMap");
+}
+
+function whenBackendConfigReady(callback: () => void, attempt = 0): void {
+    if (Config.local?.backendSubscription || attempt >= 100) {
+        migrateLegacyTestingServer();
+        callback();
+        return;
+    }
+    setTimeout(() => whenBackendConfigReady(callback, attempt + 1), 10);
+}
+
+function initializeBackendSubscriptionAlarm(): void {
+    whenBackendConfigReady(() => BackendConfigService.ensureSubscriptionAlarm());
+}
+
+function syncBackendSubscriptionOnLifecycleEvent(): void {
+    whenBackendConfigReady(() => {
+        if (Config.local?.backendSubscription?.enabled) void BackendConfigService.syncFromUrl();
+    });
+}
+
+initializeBackendSubscriptionAlarm();
+chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === "install" || details.reason === "update") syncBackendSubscriptionOnLifecycleEvent();
+});
+chrome.runtime.onStartup.addListener(syncBackendSubscriptionOnLifecycleEvent);
+
 chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     switch (request.message) {
         case "openConfig":

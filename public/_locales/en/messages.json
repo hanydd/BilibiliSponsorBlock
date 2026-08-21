@@ -998,15 +998,6 @@
         "message": "跳过选项",
         "description": "Used on the options page to describe the ways to skip the segment (auto skip, manual, etc.)"
     },
-    "enableTestingServer": {
-        "message": "启用Beta测试服务器"
-    },
-    "whatEnableTestingServer": {
-        "message": "您的提交和投票将不会计入主服务器。它只被用于测试。"
-    },
-    "testingServerWarning": {
-        "message": "当连接到测试服务器时，所有的提交和投票将不会计入主服务器。当您想要进行真实提交时，请确保禁用了此选项。"
-    },
     "bracketNow": {
         "message": "[设为当前]"
     },
@@ -1257,9 +1248,6 @@
     },
     "bilibiliKeybindWarning": {
         "message": "这是网站内置的快捷方式。您确定要使用吗？"
-    },
-    "betaServerWarning": {
-        "message": "测试服务器已启用！"
     },
     "openOptionsPage": {
         "message": "打开选项页面"
@@ -1656,6 +1644,15 @@
     },
     "backendConfigEnabled": {
         "message": "Enabled"
+    },
+    "backendConfigDefault": {
+        "message": "Default"
+    },
+    "backendConfigEnabledValue": {
+        "message": "Enabled"
+    },
+    "backendConfigDisabledValue": {
+        "message": "Disabled"
     },
     "backendConfigEmpty": {
         "message": "No backend configuration."

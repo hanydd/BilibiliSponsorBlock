@@ -1,0 +1,28 @@
+{
+    "backends": [
+        {
+            "id": "testing",
+            "name": "测试后端",
+            "desc": "本地测试后端",
+            "api_url": "http://127.0.0.1:9876",
+            "enabled": false,
+            "capabilities": [
+                "/api/skipSegments",
+                "/api/voteOnSponsorTime",
+                "/api/viewedVideoSponsorTime",
+                "/api/lockCategories",
+                "/api/videoLabels",
+                "/api/portVideo",
+                "/api/votePort",
+                "/api/updatePortedSegments",
+                "/api/chapterNames",
+                "/api/userInfo",
+                "/api/setUsername",
+                "/api/getUsername",
+                "/api/warnUser"
+            ],
+            "mirrors": [],
+            "conflicts": []
+        }
+    ]
+}

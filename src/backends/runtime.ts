@@ -1,5 +1,5 @@
 import * as CompileBackends from "../../backends.json";
-import { BackendConfigDocument, BackendEnabledMap } from "./types";
+import { BackendConfig, BackendConfigDocument, BackendEnabledMap } from "./types";
 import { assertValidBackendConfigDocument } from "./validator";
 
 const compileDefaultDocument = CompileBackends as unknown as BackendConfigDocument;
@@ -8,13 +8,22 @@ export function getDefaultBackendConfig(): BackendConfigDocument {
     assertValidBackendConfigDocument(compileDefaultDocument);
     return JSON.parse(JSON.stringify(compileDefaultDocument)) as BackendConfigDocument;
 }
-/** Keep per-backend switches separate from the JSON document. New backends default to enabled. */
+/** Keep only explicit per-backend overrides; missing IDs follow the JSON `enabled` value. */
 export function normalizeBackendEnabledMap(
     document: BackendConfigDocument,
     enabledMap: Readonly<BackendEnabledMap> = {}
 ): BackendEnabledMap {
-    return document.backends.reduce<BackendEnabledMap>((result, backend) => {
-        result[backend.id] = enabledMap[backend.id] !== false;
-        return result;
-    }, {});
+    const ids = new Set(document.backends.map((backend) => backend.id));
+    return Object.fromEntries(
+        Object.entries(enabledMap).filter(([id, enabled]) => ids.has(id) && typeof enabled === "boolean")
+    );
+}
+
+export function isBackendEnabled(
+    backend: Pick<BackendConfig, "id" | "enabled">,
+    enabledMap: Readonly<BackendEnabledMap> = {}
+): boolean {
+    return Object.prototype.hasOwnProperty.call(enabledMap, backend.id)
+        ? enabledMap[backend.id]
+        : backend.enabled !== false;
 }
