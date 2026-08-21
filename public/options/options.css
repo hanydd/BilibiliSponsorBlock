@@ -725,6 +725,150 @@ input[type="number"] {
 	width: max-content;
 }
 
+.backend-config-component {
+	max-width: 1200px;
+}
+
+.backend-config-description {
+	padding-left: 0;
+}
+
+.backend-subscription-panel,
+.backend-json-editor,
+.backend-config-table-wrapper {
+	margin: 20px 0;
+	padding: 18px;
+	border: 1px solid var(--border-color);
+	border-radius: 6px;
+}
+
+.backend-subscription-panel h3 {
+	margin-top: 0;
+}
+
+.backend-config-field {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 12px 0;
+	color: var(--white);
+}
+
+.backend-config-field > span:first-child {
+	min-width: 120px;
+}
+
+.backend-subscription-url {
+	width: min(600px, 70%);
+}
+
+.backend-subscription-switch {
+	margin: 16px 0;
+}
+
+.backend-config-button {
+	border: 0;
+}
+
+.backend-json-editor > label {
+	display: block;
+	margin-bottom: 10px;
+	color: var(--white);
+}
+
+.backend-config-textarea {
+	display: block;
+	width: 100%;
+	min-height: 280px;
+	resize: vertical;
+	padding: 12px;
+	border: 1px solid var(--border-color);
+	border-radius: 4px;
+	background: var(--dialog-background);
+	color: var(--white);
+	font: 13px/1.5 monospace;
+}
+
+.backend-config-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 12px;
+}
+
+.backend-config-actions button,
+.backend-config-button {
+	border: 0;
+}
+
+.backend-config-secondary-button {
+	background-color: var(--tab-color);
+}
+
+.backend-config-message {
+	margin: 12px 0;
+	padding: 10px 12px;
+	border-radius: 4px;
+	font-weight: bold;
+}
+
+.backend-config-message.error {
+	background: #5b2020;
+	color: #ffd5d5;
+}
+
+.backend-config-message.success {
+	background: #1e5132;
+	color: #d8ffe5;
+}
+
+.backend-config-table-wrapper {
+	overflow-x: auto;
+}
+
+.backend-config-table {
+	width: 100%;
+	border-collapse: collapse;
+	color: var(--white);
+}
+
+.backend-config-table th,
+.backend-config-table td {
+	padding: 10px;
+	border-bottom: 1px solid var(--border-color);
+	text-align: left;
+	vertical-align: middle;
+}
+
+.backend-config-table th {
+	white-space: nowrap;
+}
+
+.backend-config-api-url {
+	max-width: 320px;
+	word-break: break-all;
+}
+
+.backend-config-empty {
+	text-align: center !important;
+	color: var(--description);
+}
+
+@media (max-width: 700px) {
+	.backend-config-field {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
+	.backend-config-field > span:first-child {
+		min-width: 0;
+	}
+
+	.backend-subscription-url {
+		width: 100%;
+	}
+}
+
 .option-button:hover:not(.disabled):not(:disabled) {
 	background-color: #00a1d6;
 }

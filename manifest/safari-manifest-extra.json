@@ -3,6 +3,7 @@
   "permissions": [
     "storage",
     "scripting",
+    "alarms",
     "https://*.bilibili.com/*",
     "http://*.bsbsb.top/*",
     "https://*.bsbsb.top/*",

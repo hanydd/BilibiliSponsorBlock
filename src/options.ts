@@ -16,6 +16,7 @@ import {
 window.SB = Config;
 
 import KeybindComponent from "./components/options/KeybindComponent";
+import BackendConfigComponent from "./components/options/BackendConfigComponent";
 import { StorageChangesObject } from "./config/config";
 import { showDonationLink } from "./config/configUtils";
 import { CategoryChooser, DynamicSponsorChooser } from "./render/CategoryChooser";
@@ -34,6 +35,7 @@ let embed = false;
 const categoryChoosers: CategoryChooser[] = [];
 const unsubmittedVideos: UnsubmittedVideos[] = [];
 const whitelistManagers: WhitelistManager[] = [];
+let backendConfigComponent: BackendConfigComponent | null = null;
 
 if (document.readyState === "complete") {
     init();
@@ -361,6 +363,17 @@ async function init() {
             case "react-WhitelistManagerComponent":
                 whitelistManagers.push(new WhitelistManager(optionsElements[i]));
                 break;
+            case "react-BackendConfigComponent": {
+                const root = createRoot(optionsElements[i]);
+                root.render(
+                    React.createElement(BackendConfigComponent, {
+                        ref: (instance: BackendConfigComponent) => {
+                            backendConfigComponent = instance;
+                        },
+                    })
+                );
+                break;
+            }
             case "cache-stats": {
                 setupCacheManagement(optionsElements[i] as HTMLElement);
                 break;
@@ -459,6 +472,13 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
 function optionsLocalConfigUpdateListener(changes: StorageChangesObject) {
     if (changes[SERVER_ROUTER_STORAGE_KEY]) {
         refreshServerStatus();
+    }
+
+    if (
+        backendConfigComponent &&
+        (changes.backendConfig || changes.backendEnabledMap || changes.backendSubscription)
+    ) {
+        void backendConfigComponent.refresh();
     }
 
     if (changes.unsubmittedSegments) {

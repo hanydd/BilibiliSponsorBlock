@@ -1557,5 +1557,98 @@
     },
     "copyPageLogsFailed": {
         "message": "复制页面日志失败"
+    },
+    "optionsTabBackendConfig": {
+        "message": "Backend Config"
+    },
+    "backendConfigTitle": {
+        "message": "Multiple Backends"
+    },
+    "backendConfigDescription": {
+        "message": "Configure multiple backends in priority order. Subscription sync replaces the configuration without changing per-backend enabled states."
+    },
+    "backendSubscriptionTitle": {
+        "message": "Backend Subscription"
+    },
+    "backendSubscriptionUrl": {
+        "message": "Subscription URL"
+    },
+    "backendSubscriptionInterval": {
+        "message": "Sync interval"
+    },
+    "backendSubscriptionMinutes": {
+        "message": "minutes"
+    },
+    "backendSubscriptionEnabled": {
+        "message": "Enable scheduled sync"
+    },
+    "backendSubscriptionSyncNow": {
+        "message": "Sync now"
+    },
+    "backendSubscriptionSyncing": {
+        "message": "Syncing..."
+    },
+    "backendSubscriptionUrlRequired": {
+        "message": "Enter a subscription URL first."
+    },
+    "backendConfigJsonLabel": {
+        "message": "Backend configuration JSON"
+    },
+    "backendConfigSave": {
+        "message": "Save JSON"
+    },
+    "backendConfigRestoreDefault": {
+        "message": "Restore default"
+    },
+    "backendConfigSaved": {
+        "message": "Backend configuration saved."
+    },
+    "backendConfigRestored": {
+        "message": "Default backend configuration restored."
+    },
+    "backendConfigSynced": {
+        "message": "Backend configuration synced."
+    },
+    "backendConfigInvalidJson": {
+        "message": "The JSON is not valid."
+    },
+    "backendConfigInvalidShape": {
+        "message": "The configuration must be an object containing a backends array."
+    },
+    "backendConfigInvalidBackend": {
+        "message": "A backend entry is missing a valid name."
+    },
+    "backendConfigInvalidId": {
+        "message": "Backend IDs may contain only lowercase letters, numbers, underscores, and hyphens, and must be unique."
+    },
+    "backendConfigInvalidUrl": {
+        "message": "Backend addresses must be http:// or https:// URLs."
+    },
+    "backendConfigInvalidMirrors": {
+        "message": "mirrors must be an array of URLs."
+    },
+    "backendConfigInvalidCapabilities": {
+        "message": "capabilities must be an array."
+    },
+    "backendConfigInvalidConflicts": {
+        "message": "conflicts must be an array of existing backend IDs."
+    },
+    "backendConfigId": {
+        "message": "ID"
+    },
+    "backendConfigName": {
+        "message": "Name"
+    },
+    "backendConfigDescriptionColumn": {
+        "message": "Description"
+    },
+    "backendConfigApiUrl": {
+        "message": "API URL"
+    },
+    "backendConfigEnabled": {
+        "message": "Enabled"
+    },
+    "backendConfigEmpty": {
+        "message": "No backend configuration."
     }
 }

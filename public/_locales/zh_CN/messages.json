@@ -1557,5 +1557,98 @@
     },
     "copyPageLogsFailed": {
         "message": "复制页面日志失败"
+    },
+    "optionsTabBackendConfig": {
+        "message": "后端配置"
+    },
+    "backendConfigTitle": {
+        "message": "多后端配置"
+    },
+    "backendConfigDescription": {
+        "message": "配置多个后端并按顺序参与匹配。订阅同步只会替换配置，不会改变各后端的独立启用状态。"
+    },
+    "backendSubscriptionTitle": {
+        "message": "后端配置订阅"
+    },
+    "backendSubscriptionUrl": {
+        "message": "订阅 URL"
+    },
+    "backendSubscriptionInterval": {
+        "message": "同步间隔"
+    },
+    "backendSubscriptionMinutes": {
+        "message": "分钟"
+    },
+    "backendSubscriptionEnabled": {
+        "message": "启用定时同步"
+    },
+    "backendSubscriptionSyncNow": {
+        "message": "立即同步一次"
+    },
+    "backendSubscriptionSyncing": {
+        "message": "同步中..."
+    },
+    "backendSubscriptionUrlRequired": {
+        "message": "请先填写订阅 URL。"
+    },
+    "backendConfigJsonLabel": {
+        "message": "后端配置 JSON"
+    },
+    "backendConfigSave": {
+        "message": "保存 JSON"
+    },
+    "backendConfigRestoreDefault": {
+        "message": "恢复默认配置"
+    },
+    "backendConfigSaved": {
+        "message": "后端配置已保存。"
+    },
+    "backendConfigRestored": {
+        "message": "已恢复默认后端配置。"
+    },
+    "backendConfigSynced": {
+        "message": "后端配置同步成功。"
+    },
+    "backendConfigInvalidJson": {
+        "message": "JSON 格式不正确。"
+    },
+    "backendConfigInvalidShape": {
+        "message": "配置必须是包含 backends 数组的对象。"
+    },
+    "backendConfigInvalidBackend": {
+        "message": "后端配置项缺少有效的 name。"
+    },
+    "backendConfigInvalidId": {
+        "message": "后端 id 只能包含小写字母、数字、下划线和短横线，且不能重复。"
+    },
+    "backendConfigInvalidUrl": {
+        "message": "后端地址必须是 http:// 或 https:// URL。"
+    },
+    "backendConfigInvalidMirrors": {
+        "message": "mirrors 必须是 URL 数组。"
+    },
+    "backendConfigInvalidCapabilities": {
+        "message": "capabilities 必须是数组。"
+    },
+    "backendConfigInvalidConflicts": {
+        "message": "conflicts 必须是存在的后端 id 数组。"
+    },
+    "backendConfigId": {
+        "message": "ID"
+    },
+    "backendConfigName": {
+        "message": "名称"
+    },
+    "backendConfigDescriptionColumn": {
+        "message": "说明"
+    },
+    "backendConfigApiUrl": {
+        "message": "API 地址"
+    },
+    "backendConfigEnabled": {
+        "message": "启用"
+    },
+    "backendConfigEmpty": {
+        "message": "暂无后端配置。"
     }
 }

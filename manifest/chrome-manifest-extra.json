@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "permissions": [
     "storage",
-    "scripting"
+    "scripting",
+    "alarms"
   ],
   "optional_permissions": [
     "webNavigation"
