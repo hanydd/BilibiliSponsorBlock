@@ -1,5 +1,4 @@
 import Config from "../config";
-import { asyncRequestToServer } from "../requests/requests";
 import {
     ActionType,
     CategorySkipOption,
@@ -25,6 +24,7 @@ import {
     getVideoID,
 } from "../utils/video";
 import { getContentApp } from "./app";
+import { getBackendIdFromSegment, requestWithBackendId } from "./backendService";
 import { CONTENT_EVENTS } from "./app/events";
 import {
     contentState,
@@ -908,7 +908,14 @@ function sendTelemetryAndCount(skippingSegments: SponsorTime[], secondsSkipped: 
                 counted = true;
             }
 
-            if (fullSkip) asyncRequestToServer("POST", "/api/viewedVideoSponsorTime?UUID=" + segment.UUID);
+            if (fullSkip) {
+                void requestWithBackendId(
+                    "POST",
+                    "/api/viewedVideoSponsorTime?UUID=" + segment.UUID,
+                    {},
+                    getBackendIdFromSegment(segment)
+                );
+            }
         }
     }
 }

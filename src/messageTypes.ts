@@ -41,6 +41,7 @@ interface SubmitVoteMessage {
     message: "submitVote";
     type: number;
     UUID: SegmentUUID;
+    backendId?: string;
 }
 
 interface HideSegmentMessage {

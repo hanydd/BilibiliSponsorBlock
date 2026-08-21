@@ -42,7 +42,7 @@ import { parseBvidAndCidFromVideoId } from "../utils/videoIdUtils";
 import { openWarningDialog } from "../utils/warnings";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
-import { getBackendIdFromSegment, requestWithBackendId } from "./backendService";
+import { getBackendIdFromSegment, getVideoMatchContext, requestWithBackendId } from "./backendService";
 import { seekFrameByKeyPressListener } from "./hotkeyHandler";
 import { waitForPlayerUiReady } from "./playerUi";
 import { getSkipNoticeContentContainer } from "./skipNoticeContentContainer";
@@ -496,8 +496,9 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
         return;
     }
 
-    const hashPrefix = (await getVideoIDHash(videoID)).slice(0, 4) as BVID & HashedValue;
-    const segmentResponse = await getSegmentsByVideoID(videoID, ignoreServerCache);
+    const matchContext = await getVideoMatchContext();
+    matchContext.bvid = bvId;
+    const segmentResponse = await getSegmentsByVideoID(videoID, ignoreServerCache, matchContext);
 
     if (videoID !== getVideoID()) return;
 
@@ -987,7 +988,11 @@ export async function sendSubmitMessage(backendId?: string): Promise<boolean> {
         videoID: getBvID(),
         cid: getCid(),
         userID: Config.config.userID,
-        segments: contentState.sponsorTimesSubmitting,
+        segments: contentState.sponsorTimesSubmitting.map((segment) => {
+            const payload = { ...segment };
+            delete payload.backendId;
+            return payload;
+        }),
         videoDuration: getVideo()?.duration,
         userAgent: `${chrome.runtime.id}/v${chrome.runtime.getManifest().version}`,
     }, backendId);

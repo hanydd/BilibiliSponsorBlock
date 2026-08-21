@@ -1,10 +1,14 @@
 import "content-scripts-register-polyfill";
 import Config from "./config";
-import { callAPI, serverRouter } from "./requests/background-request-proxy";
+import { callAPIWithOptions, sendRealRequestToCustomServer } from "./requests/background-request-proxy";
 import { clearAllCacheBackground, segmentsCache, videoLabelCache } from "./requests/background/backgroundCache";
 import { getSegmentsBackground } from "./requests/background/segmentRequest";
 import { getVideoLabelBackground } from "./requests/background/videoLabelRequest";
 import { submitVote } from "./requests/background/voteRequest";
+import { BackendConfigService } from "./config/backendConfigService";
+import { BackendConfig, selectMatchedBackends } from "./backends";
+import { getDefaultBackendConfig } from "./backends/runtime";
+import { getConfiguredSnapshot } from "./requests/backendRouter";
 import { CacheStats, NewVideoID, Registration } from "./types";
 import { chromeP } from "./utils/browserApi";
 import { getHash } from "./utils/hash";
@@ -18,6 +22,14 @@ const contentScriptRegistrations = {};
 
 setupBackgroundRequestProxy();
 setupTabUpdates(Config);
+
+if (chrome.alarms?.onAlarm) {
+    chrome.alarms.onAlarm.addListener((alarm) => {
+        if (alarm.name === "backend-config-sync") {
+            void BackendConfigService.syncFromUrl();
+        }
+    });
+}
 
 chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     switch (request.message) {
@@ -180,7 +192,16 @@ async function unregisterFirefoxContentScript(id: string) {
 function setupBackgroundRequestProxy() {
     chrome.runtime.onMessage.addListener((request, sender, callback) => {
         if (request.message === "sendRequest") {
-            callAPI(request.type, request.endpoint, request.data, false, request.headers)
+            const requestPromise = request.endpoint
+                ? callAPIWithOptions(
+                      request.type,
+                      request.endpoint,
+                      request.data,
+                      { backendId: request.backendId, skipServerCache: Boolean(request.skipServerCache) },
+                      request.headers
+                  )
+                : sendRealRequestToCustomServer(request.type, request.url, request.data, request.headers);
+            requestPromise
                 .then(callback)
                 .catch(() => {
                     callback({ responseText: "", status: -1, ok: false });
@@ -197,30 +218,6 @@ function setupBackgroundRequestProxy() {
             return true;
         }
 
-        if (request.message === "getServerStatus") {
-            serverRouter
-                .getStatus()
-                .then(callback)
-                .catch(() => callback({ activeAddress: "", nodes: [] }));
-            return true;
-        }
-
-        if (request.message === "probeServerNode") {
-            serverRouter
-                .probe(request.address)
-                .then(callback)
-                .catch(() => callback({ activeAddress: "", nodes: [] }));
-            return true;
-        }
-
-        if (request.message === "checkServerAddress") {
-            serverRouter
-                .checkAddress(request.address)
-                .then(callback)
-                .catch(() => callback({ address: request.address, healthState: "open" }));
-            return true;
-        }
-
         // ============ Request Handlers ============
         if (request.message === "getVideoLabel") {
             getVideoLabelBackground(request.videoID as NewVideoID, Boolean(request.refreshCache))
@@ -232,7 +229,8 @@ function setupBackgroundRequestProxy() {
         if (request.message === "getSegments") {
             getSegmentsBackground(
                 request.videoID as NewVideoID,
-                Boolean(request.ignoreCache)
+                Boolean(request.ignoreCache),
+                (request.videoContext as Record<string, string>) || undefined
             )
                 .then((response) => callback({ response }))
                 .catch(() => callback({ response: { segments: null, status: -1 } }));
@@ -240,8 +238,41 @@ function setupBackgroundRequestProxy() {
         }
 
         if (request.message === "submitVote") {
-            submitVote(request.type, request.UUID, request.category).then(callback);
+            submitVote(request.type, request.UUID, request.category, request.backendId).then(callback);
             return true;
+        }
+
+        if (request.message === "getVideoMatchContext") {
+            callback(request.context ?? null);
+            return false;
+        }
+
+        if (request.message === "getSubmissionBackends") {
+            const context = request.context ?? { bvid: "", title: "", description: "", up_mid: "", up_name: "" };
+            const document = (getConfiguredSnapshot() ?? getDefaultBackendConfig()) as { backends: BackendConfig[] };
+            const enabledMap = (Config.local?.backendEnabledMap ?? {}) as Record<string, boolean>;
+            const backends = selectMatchedBackends(document.backends, context, enabledMap)
+                .filter((backend) => backend.capabilities.includes("/api/skipSegments"))
+                .map((backend) => ({
+                    id: backend.id,
+                    name: backend.name,
+                    desc: backend.desc,
+                    capabilities: backend.capabilities,
+                    enabled: true,
+                }));
+            callback(backends);
+            return false;
+        }
+
+        if (request.message === "getLastSubmissionBackendId") {
+            callback({ backendId: Config.local?.lastSubmissionBackendId ?? null });
+            return false;
+        }
+
+        if (request.message === "setLastSubmissionBackendId") {
+            BackendConfigService.setLastSubmissionBackendId(request.backendId ?? null);
+            callback({});
+            return false;
         }
 
         // ============ Cache Management Handlers ============

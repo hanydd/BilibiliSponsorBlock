@@ -565,6 +565,12 @@
     "confirmNoticeTitle": {
         "message": "Submit Segment"
     },
+    "backend": {
+        "message": "Backend"
+    },
+    "backendNoSubmissionBackend": {
+        "message": "No backend is available for this video submission. Check backend matching, capabilities, and enabled states."
+    },
     "submit": {
         "message": "Submit"
     },
@@ -1810,6 +1816,9 @@
     "backendSubscriptionUrlRequired": {
         "message": "Enter a subscription URL first."
     },
+    "backendSubscriptionPermissionDenied": {
+        "message": "Permission to access the subscription address was not granted."
+    },
     "backendConfigJsonLabel": {
         "message": "Backend configuration JSON"
     },
@@ -1838,7 +1847,7 @@
         "message": "A backend entry is missing a valid name."
     },
     "backendConfigInvalidId": {
-        "message": "Backend IDs may contain only lowercase letters, numbers, underscores, and hyphens, and must be unique."
+        "message": "Backend IDs may contain only lowercase letters, underscores, and hyphens, and must be unique."
     },
     "backendConfigInvalidUrl": {
         "message": "Backend addresses must be http:// or https:// URLs."

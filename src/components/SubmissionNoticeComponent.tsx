@@ -247,6 +247,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                                         )})`,
                                     })}
                                     onClick={this.submit.bind(this)}
+                                    disabled={this.state.submissionBackends.length === 0}
                                 >
                                     {chrome.i18n.getMessage("submit")}
                                 </button>
@@ -311,6 +312,11 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
     }
 
     submit(): void {
+        if (this.state.submissionBackends.length === 0) {
+            showMessage(chrome.i18n.getMessage("backendNoSubmissionBackend"), "warning");
+            return;
+        }
+
         // save all items
         for (const ref of this.timeEditRefs) {
             ref.current.saveEditTimes();

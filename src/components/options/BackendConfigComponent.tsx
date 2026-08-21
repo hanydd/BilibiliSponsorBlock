@@ -108,6 +108,18 @@ function normalizeInterval(value: unknown): number {
     return Number.isFinite(interval) && interval >= 1 ? interval : DEFAULT_SUBSCRIPTION.intervalMinutes;
 }
 
+async function requestSubscriptionHostPermission(value: string): Promise<boolean> {
+    if (!chrome.permissions?.request) return true;
+    try {
+        const url = new URL(value);
+        return await new Promise<boolean>((resolve) => {
+            chrome.permissions.request({ origins: [`${url.protocol}//${url.host}/*`] }, resolve);
+        });
+    } catch {
+        return false;
+    }
+}
+
 function reconcileEnabledMap(config: BackendConfigDocument, enabledMap: Record<string, boolean>): Record<string, boolean> {
     return config.backends.reduce<Record<string, boolean>>((result, backend) => {
         result[backend.id] = enabledMap[backend.id] !== false;
@@ -315,6 +327,11 @@ export default class BackendConfigComponent extends React.Component<
             return;
         }
 
+        if (!(await requestSubscriptionHostPermission(url))) {
+            this.setState({ error: chrome.i18n.getMessage("backendSubscriptionPermissionDenied"), status: "" });
+            return;
+        }
+
         this.setState({ syncing: true, error: "", status: "" });
         try {
             const synced = await this.service.syncNow(url);
@@ -344,6 +361,10 @@ export default class BackendConfigComponent extends React.Component<
             ...changes,
             intervalMinutes: normalizeInterval(changes.intervalMinutes ?? this.state.backendSubscription.intervalMinutes),
         };
+        if (changes.enabled && subscription.url && !(await requestSubscriptionHostPermission(subscription.url))) {
+            this.setState({ error: chrome.i18n.getMessage("backendSubscriptionPermissionDenied"), status: "" });
+            return;
+        }
         this.setState({ backendSubscription: subscription });
         try {
             await saveSubscription(this.service, subscription);

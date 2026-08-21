@@ -1,4 +1,5 @@
 import * as CompileConfig from "../config.json";
+import * as DefaultBackendConfig from "../backends.json";
 import {
     Category,
     CategorySelection,
@@ -17,6 +18,29 @@ import {
 import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
 import { getMigratedMirrorServerAddresses } from "./config/serverConfig";
 import { HashedValue } from "./utils/hash";
+
+export interface BackendConfigStorageDefinition {
+    id: string;
+    name: string;
+    desc?: string;
+    api_url: string;
+    capabilities: string[];
+    match?: unknown[];
+    mirrors?: string[];
+    conflicts?: string[];
+}
+
+export interface BackendConfigStorageDocument {
+    backends: BackendConfigStorageDefinition[];
+}
+
+export interface BackendSubscriptionStorage {
+    url: string;
+    intervalMinutes: number;
+    enabled: boolean;
+    lastSyncAt: number | null;
+    lastError: string | null;
+}
 
 export interface Permission {
     canSubmit: boolean;
@@ -181,6 +205,11 @@ interface SBStorage {
 
     // 未提交片段对应稿件的 CID 映射集合，用于跨上下文共享
     videoPageCidMap: Record<BVID, Record<string, CID>>;
+
+    backendConfig: BackendConfigStorageDocument;
+    backendEnabledMap: Record<string, boolean>;
+    backendSubscription: BackendSubscriptionStorage;
+    lastSubmissionBackendId: string | null;
 }
 
 class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
@@ -586,6 +615,18 @@ const localDefaults = {
     alreadyInstalled: false,
     unsubmittedSegments: {},
     videoPageCidMap: {},
+    backendConfig: JSON.parse(JSON.stringify(DefaultBackendConfig)) as BackendConfigStorageDocument,
+    backendEnabledMap: Object.fromEntries(
+        (DefaultBackendConfig.backends ?? []).map((backend) => [backend.id, true])
+    ) as Record<string, boolean>,
+    backendSubscription: {
+        url: "",
+        intervalMinutes: 60,
+        enabled: false,
+        lastSyncAt: null,
+        lastError: null,
+    },
+    lastSubmissionBackendId: null,
 };
 
 const Config = new ConfigClass(syncDefaults, localDefaults, migrateOldSyncFormats);

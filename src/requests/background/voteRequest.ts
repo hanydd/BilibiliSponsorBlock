@@ -1,8 +1,8 @@
 import Config from "../../config";
 import { generateUserID } from "../../utils/setup";
-import { callAPI } from "../background-request-proxy";
+import { callAPIWithOptions } from "../background-request-proxy";
 
-export async function submitVote(type: number, UUID: string, category: string) {
+export async function submitVote(type: number, UUID: string, category: string, backendId?: string) {
     let userID = Config.config.userID;
 
     if (userID == undefined || userID === "undefined") {
@@ -14,9 +14,11 @@ export async function submitVote(type: number, UUID: string, category: string) {
     const typeSection = type !== undefined ? "&type=" + type : "&category=" + category;
 
     try {
-        const response = await callAPI(
+        const response = await callAPIWithOptions(
             "POST",
-            "/api/voteOnSponsorTime?UUID=" + UUID + "&userID=" + userID + typeSection
+            "/api/voteOnSponsorTime?UUID=" + UUID + "&userID=" + userID + typeSection,
+            {},
+            { backendId }
         );
 
         if (response.ok) {
