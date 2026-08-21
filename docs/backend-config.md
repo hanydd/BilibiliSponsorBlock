@@ -12,7 +12,21 @@
             "name": "小电视空降助手",
             "desc": "BilibiliSponsorBlock 默认后端",
             "api_url": "https://www.bsbsb.top",
-            "capabilities": ["/api/skipSegments"]
+            "capabilities": [
+                "/api/skipSegments",
+                "/api/voteOnSponsorTime",
+                "/api/viewedVideoSponsorTime",
+                "/api/lockCategories",
+                "/api/videoLabels",
+                "/api/portVideo",
+                "/api/votePort",
+                "/api/updatePortedSegments",
+                "/api/chapterNames",
+                "/api/userInfo",
+                "/api/setUsername",
+                "/api/getUsername",
+                "/api/warnUser"
+            ]
         }
     ]
 }
@@ -37,7 +51,7 @@
 
 ## 能力
 
-目前支持的能力路径为：
+`capabilities` 是扩展实际依赖的 API 家族列表，不是后端服务完整 API 的目录。当前允许的能力路径为：
 
 ```text
 /api/skipSegments
@@ -55,7 +69,11 @@
 /api/warnUser
 ```
 
-后端只有声明对应能力时，依赖该 API 的功能才会把它作为候选后端。`/api/skipSegments` 是 BVID 片段查询能力；读取片段时所有匹配、启用且声明该能力的后端都可以参与，结果随后合并。
+其中 `/api/videoLabels` 和 `/api/chapterNames` 是扩展实际使用的后端扩展接口，当前 Wiki 页面未列出，但后端若要支持对应功能仍需声明它们。`/api/warnUser` 位于官方文档的管理员操作章节，但扩展实现了用户确认警告的调用，因此也属于实际能力。
+
+扩展没有实现的官方接口，例如 `/api/segmentInfo`、`/api/lockReason`、`/api/userStats`、排行榜、服务器状态和其他管理员操作，不应加入 capabilities。
+
+后端只有声明对应能力时，依赖该 API 的功能才会把它作为候选后端。能力按 API 家族归一化，不区分 HTTP 方法或参数：GET 查询和 POST 提交共用同一个能力；哈希变体也共用根路径能力，例如 `/api/portVideo/:sha256HashPrefix` 使用 `/api/portVideo`。`/api/skipSegments` 是 BVID 片段查询和提交能力；读取片段时所有匹配、启用且声明该能力的后端都可以参与，结果随后合并。
 
 ## 匹配规则
 

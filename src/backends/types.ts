@@ -1,20 +1,23 @@
 import { SponsorTime } from "../types";
 
-/** API paths understood by the extension's backend request layer. */
-export type BackendRequestCapability =
-    | "/api/skipSegments"
-    | "/api/voteOnSponsorTime"
-    | "/api/viewedVideoSponsorTime"
-    | "/api/lockCategories"
-    | "/api/videoLabels"
-    | "/api/portVideo"
-    | "/api/votePort"
-    | "/api/updatePortedSegments"
-    | "/api/chapterNames"
-    | "/api/userInfo"
-    | "/api/setUsername"
-    | "/api/getUsername"
-    | "/api/warnUser";
+/** API families actually called by the extension. */
+export const BACKEND_REQUEST_CAPABILITIES = [
+    "/api/skipSegments",
+    "/api/voteOnSponsorTime",
+    "/api/viewedVideoSponsorTime",
+    "/api/lockCategories",
+    "/api/videoLabels",
+    "/api/portVideo",
+    "/api/votePort",
+    "/api/updatePortedSegments",
+    "/api/chapterNames",
+    "/api/userInfo",
+    "/api/setUsername",
+    "/api/getUsername",
+    "/api/warnUser",
+] as const;
+
+export type BackendRequestCapability = (typeof BACKEND_REQUEST_CAPABILITIES)[number];
 
 /** Alias retained for callers that use the shorter name. */
 export type BackendCapability = BackendRequestCapability;

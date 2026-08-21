@@ -28,7 +28,6 @@ const PATH_CAPABILITY_ALIASES: Array<[RegExp, string]> = [
     [/^\/api\/userInfo(?:\/|\?|$)/, "/api/userInfo"],
     [/^\/api\/setUsername(?:\/|\?|$)/, "/api/setUsername"],
     [/^\/api\/warnUser(?:\/|\?|$)/, "/api/warnUser"],
-    [/^\/api\/(votePort|updatePortedSegments|chapterNames|userInfo|setUsername|warnUser)(?:\/|\?|$)/, ""],
 ];
 
 export function getCapabilityForEndpoint(endpoint: string): string {

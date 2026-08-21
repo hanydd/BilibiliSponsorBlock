@@ -1,5 +1,6 @@
 import {
     BackendConfig,
+    BACKEND_REQUEST_CAPABILITIES,
     BackendConfigDocument,
     BackendMatchField,
     BackendRequestCapability,
@@ -12,22 +13,6 @@ export interface BackendConfigValidationResult {
 
 const ID_PATTERN = /^[a-z_-]+$/;
 const MATCH_FIELDS: readonly BackendMatchField[] = ["title", "description", "up_mid", "up_name"];
-const CAPABILITIES: readonly BackendRequestCapability[] = [
-    "/api/skipSegments",
-    "/api/voteOnSponsorTime",
-    "/api/viewedVideoSponsorTime",
-    "/api/lockCategories",
-    "/api/videoLabels",
-    "/api/portVideo",
-    "/api/votePort",
-    "/api/updatePortedSegments",
-    "/api/chapterNames",
-    "/api/userInfo",
-    "/api/setUsername",
-    "/api/getUsername",
-    "/api/warnUser",
-];
-
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -150,7 +135,7 @@ function validateBackend(value: unknown, index: number, allIds: Set<string>, err
     } else {
         const seen = new Set<string>();
         value.capabilities.forEach((capability, capabilityIndex) => {
-            if (!CAPABILITIES.includes(capability as BackendRequestCapability)) {
+            if (!BACKEND_REQUEST_CAPABILITIES.includes(capability as BackendRequestCapability)) {
                 errors.push(`${path}.capabilities[${capabilityIndex}] is not a supported capability`);
             } else if (seen.has(capability as string)) {
                 errors.push(`${path}.capabilities must not contain duplicates`);

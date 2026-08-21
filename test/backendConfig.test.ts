@@ -1,6 +1,7 @@
 import {
     BackendConfig,
     BackendConfigDocument,
+    BACKEND_REQUEST_CAPABILITIES,
     BackendRequestCapability,
     getDefaultBackendConfig,
     normalizeBackendEnabledMap,
@@ -23,6 +24,7 @@ describe("backend configuration contract", () => {
     test("accepts the default root configuration and deep clones it", () => {
         const document = getDefaultBackendConfig();
         expect(document.backends[0].api_url).toBe("https://www.bsbsb.top");
+        expect(document.backends[0].capabilities).toEqual([...BACKEND_REQUEST_CAPABILITIES]);
         expect(document.backends[0].capabilities).toContain(skipCapability);
 
         document.backends[0].name = "changed";
@@ -55,6 +57,23 @@ describe("backend configuration contract", () => {
     test("does not allow enabled map fields inside JSON", () => {
         const document = { backends: [backend()], backendEnabledMap: { primary: false } };
         expect(validateBackendConfigDocument(document).valid).toBe(false);
+    });
+
+    test("rejects API families that the extension does not call", () => {
+        const unsupported = [
+            "/api/segmentInfo",
+            "/api/lockReason",
+            "/api/userStats",
+            "/api/clearCache",
+            "/api/purgeAllSegments",
+        ];
+
+        for (const capability of unsupported) {
+            const result = validateBackendConfigDocument({
+                backends: [backend({ capabilities: [capability as BackendRequestCapability] })],
+            });
+            expect(result.valid).toBe(false);
+        }
     });
 
     test("normalizes the independent enabled map without changing the document", () => {
