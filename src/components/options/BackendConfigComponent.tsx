@@ -394,6 +394,77 @@ export default class BackendConfigComponent extends React.Component<
         }
     }
 
+    private renderBackendTable(
+        backendConfig: BackendConfigDocument,
+        backendEnabledMap: Record<string, boolean>
+    ): React.ReactElement {
+        return (
+            <div className="backend-config-table-wrapper">
+                <table className="backend-config-table">
+                    <thead>
+                        <tr>
+                            <th>{chrome.i18n.getMessage("backendConfigId")}</th>
+                            <th>{chrome.i18n.getMessage("backendConfigName")}</th>
+                            <th>{chrome.i18n.getMessage("backendConfigDescriptionColumn")}</th>
+                            <th>{chrome.i18n.getMessage("backendConfigApiUrl")}</th>
+                            <th>{chrome.i18n.getMessage("backendConfigMirrors")}</th>
+                            <th>{chrome.i18n.getMessage("backendConfigEnabled")}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {backendConfig.backends.map((backend) => (
+                            <tr key={backend.id}>
+                                <td>{backend.id}</td>
+                                <td>{backend.name}</td>
+                                <td>{backend.desc || ""}</td>
+                                <td className="backend-config-api-url">{backend.api_url}</td>
+                                <td>{backend.mirrors?.length ?? 0}</td>
+                                <td>
+                                    <select
+                                        className="backend-config-enabled-select"
+                                        value={
+                                            Object.prototype.hasOwnProperty.call(backendEnabledMap, backend.id)
+                                                ? backendEnabledMap[backend.id]
+                                                    ? "enabled"
+                                                    : "disabled"
+                                                : "default"
+                                        }
+                                        onChange={(event) => {
+                                            const value = event.target.value;
+                                            void this.handleBackendEnabled(
+                                                backend.id,
+                                                value === "default" ? undefined : value === "enabled"
+                                            );
+                                        }}
+                                    >
+                                        <option value="default">
+                                            {`${chrome.i18n.getMessage("backendConfigDefault")}(${backend.enabled === false
+                                                ? chrome.i18n.getMessage("backendConfigDisabledValue")
+                                                : chrome.i18n.getMessage("backendConfigEnabledValue")})`}
+                                        </option>
+                                        <option value="enabled">
+                                            {chrome.i18n.getMessage("backendConfigEnabledValue")}
+                                        </option>
+                                        <option value="disabled">
+                                            {chrome.i18n.getMessage("backendConfigDisabledValue")}
+                                        </option>
+                                    </select>
+                                </td>
+                            </tr>
+                        ))}
+                        {backendConfig.backends.length === 0 && (
+                            <tr>
+                                <td className="backend-config-empty" colSpan={6}>
+                                    {chrome.i18n.getMessage("backendConfigEmpty")}
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        );
+    }
+
     render(): React.ReactElement {
         const { backendConfig, backendEnabledMap, backendSubscription } = this.state;
         return (
@@ -453,6 +524,8 @@ export default class BackendConfigComponent extends React.Component<
                     </button>
                 </div>
 
+                {this.renderBackendTable(backendConfig, backendEnabledMap)}
+
                 <div className="backend-json-editor">
                     <label htmlFor="backendConfigJson">{chrome.i18n.getMessage("backendConfigJsonLabel")}</label>
                     <textarea
@@ -488,59 +561,6 @@ export default class BackendConfigComponent extends React.Component<
                     </div>
                 )}
 
-                <div className="backend-config-table-wrapper">
-                    <table className="backend-config-table">
-                        <thead>
-                            <tr>
-                                <th>{chrome.i18n.getMessage("backendConfigId")}</th>
-                                <th>{chrome.i18n.getMessage("backendConfigName")}</th>
-                                <th>{chrome.i18n.getMessage("backendConfigDescriptionColumn")}</th>
-                                <th>{chrome.i18n.getMessage("backendConfigApiUrl")}</th>
-                                <th>{chrome.i18n.getMessage("backendConfigEnabled")}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {backendConfig.backends.map((backend) => (
-                                <tr key={backend.id}>
-                                    <td>{backend.id}</td>
-                                    <td>{backend.name}</td>
-                                    <td>{backend.desc || ""}</td>
-                                    <td className="backend-config-api-url">{backend.api_url}</td>
-                                    <td>
-                                        <select
-                                            className="backend-config-enabled-select"
-                                            value={
-                                                Object.prototype.hasOwnProperty.call(backendEnabledMap, backend.id)
-                                                    ? backendEnabledMap[backend.id]
-                                                        ? "enabled"
-                                                        : "disabled"
-                                                    : "default"
-                                            }
-                                            onChange={(event) => {
-                                                const value = event.target.value;
-                                                void this.handleBackendEnabled(
-                                                    backend.id,
-                                                    value === "default" ? undefined : value === "enabled"
-                                                );
-                                            }}
-                                        >
-                                            <option value="default">{chrome.i18n.getMessage("backendConfigDefault")}</option>
-                                            <option value="enabled">{chrome.i18n.getMessage("backendConfigEnabledValue")}</option>
-                                            <option value="disabled">{chrome.i18n.getMessage("backendConfigDisabledValue")}</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            ))}
-                            {backendConfig.backends.length === 0 && (
-                                <tr>
-                                    <td className="backend-config-empty" colSpan={5}>
-                                        {chrome.i18n.getMessage("backendConfigEmpty")}
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
             </div>
         );
     }

@@ -1766,10 +1766,10 @@
         "description": "Appears when voting for the original thumbnail for the first time in DeArrow"
     },
     "optionsTabBackendConfig": {
-        "message": "Backend Config"
+        "message": "Backend"
     },
     "backendConfigTitle": {
-        "message": "Multiple Backends"
+        "message": "Backend"
     },
     "backendConfigDescription": {
         "message": "Configure multiple backends in priority order. Subscription sync replaces the configuration without changing per-backend enabled states."
@@ -1854,6 +1854,9 @@
     },
     "backendConfigApiUrl": {
         "message": "API URL"
+    },
+    "backendConfigMirrors": {
+        "message": "Mirror URLs"
     },
     "backendConfigEnabled": {
         "message": "Enabled"

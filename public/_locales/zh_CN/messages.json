@@ -1553,10 +1553,10 @@
         "message": "复制页面日志失败"
     },
     "optionsTabBackendConfig": {
-        "message": "后端配置"
+        "message": "后端"
     },
     "backendConfigTitle": {
-        "message": "多后端配置"
+        "message": "后端"
     },
     "backendConfigDescription": {
         "message": "配置多个后端并按顺序参与匹配。订阅同步只会替换配置，不会改变各后端的独立启用状态。"
@@ -1641,6 +1641,9 @@
     },
     "backendConfigApiUrl": {
         "message": "API 地址"
+    },
+    "backendConfigMirrors": {
+        "message": "镜像地址数"
     },
     "backendConfigEnabled": {
         "message": "启用"
