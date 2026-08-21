@@ -1,0 +1,27 @@
+{
+    "backends": [
+        {
+            "id": "bsbsb",
+            "name": "小电视空降助手",
+            "desc": "BilibiliSponsorBlock 默认后端",
+            "api_url": "https://www.bsbsb.top",
+            "capabilities": [
+                "/api/skipSegments",
+                "/api/voteOnSponsorTime",
+                "/api/viewedVideoSponsorTime",
+                "/api/lockCategories",
+                "/api/videoLabels",
+                "/api/portVideo",
+                "/api/votePort",
+                "/api/updatePortedSegments",
+                "/api/chapterNames",
+                "/api/userInfo",
+                "/api/setUsername",
+                "/api/getUsername",
+                "/api/warnUser"
+            ],
+            "mirrors": [],
+            "conflicts": []
+        }
+    ]
+}
