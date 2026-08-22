@@ -1,20 +1,29 @@
 import { SponsorTime } from "../types";
 
-/** API families actually called by the extension. */
+/** HTTP methods represented in backend capabilities. */
+export type BackendHttpMethod = "GET" | "POST";
+
+/** Exact HTTP method and API path pairs actually called by the extension. */
 export const BACKEND_REQUEST_CAPABILITIES = [
-    "/api/skipSegments",
-    "/api/voteOnSponsorTime",
-    "/api/viewedVideoSponsorTime",
-    "/api/lockCategories",
-    "/api/videoLabels",
-    "/api/portVideo",
-    "/api/votePort",
-    "/api/updatePortedSegments",
-    "/api/chapterNames",
-    "/api/userInfo",
-    "/api/setUsername",
-    "/api/getUsername",
-    "/api/warnUser",
+    "GET /api/skipSegments",
+    "GET /api/skipSegments/:sha256HashPrefix",
+    "POST /api/skipSegments",
+    "POST /api/voteOnSponsorTime",
+    "POST /api/viewedVideoSponsorTime",
+    "GET /api/lockCategories",
+    "GET /api/lockCategories/:sha256HashPrefix",
+    "GET /api/videoLabels",
+    "GET /api/videoLabels/:sha256HashPrefix",
+    "GET /api/portVideo",
+    "GET /api/portVideo/:sha256HashPrefix",
+    "POST /api/portVideo",
+    "POST /api/votePort",
+    "POST /api/updatePortedSegments",
+    "GET /api/chapterNames",
+    "GET /api/userInfo",
+    "POST /api/setUsername",
+    "GET /api/getUsername",
+    "POST /api/warnUser",
 ] as const;
 
 export type BackendRequestCapability = (typeof BACKEND_REQUEST_CAPABILITIES)[number];

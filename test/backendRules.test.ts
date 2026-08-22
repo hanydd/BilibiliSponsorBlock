@@ -19,7 +19,7 @@ function backend(id: string, overrides: Partial<BackendConfig> = {}): BackendCon
         id,
         name: id,
         api_url: `https://${id}.example`,
-        capabilities: ["/api/skipSegments"],
+        capabilities: ["GET /api/skipSegments"],
         ...overrides,
     };
 }

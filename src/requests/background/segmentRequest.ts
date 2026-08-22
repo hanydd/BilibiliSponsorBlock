@@ -1,6 +1,13 @@
 import Config from "../../config";
 import { ActionType, NewVideoID, SponsorSourceType, SponsorTime, SponsorTimeHashedID } from "../../types";
-import { BackendConfig, BackendSegmentResult, VideoMatchContext, mergeBackendSegments, selectMatchedBackends } from "../../backends";
+import {
+    BackendConfig,
+    BackendSegmentResult,
+    VideoMatchContext,
+    mergeBackendSegments,
+    selectMatchedBackends,
+    supportsBackendOperation,
+} from "../../backends";
 import { getVideoIDHash } from "../../utils/hash";
 import { parseBvidAndCidFromVideoId } from "../../utils/videoIdUtils";
 import { getConfiguredSnapshot, requestFromBackend } from "../backendRouter";
@@ -98,7 +105,7 @@ export async function getSegmentsBackground(
     const configuredBackends = (getConfiguredSnapshot()?.backends ?? []) as unknown as BackendConfig[];
     const enabledMap = (Config.local?.backendEnabledMap ?? {}) as Record<string, boolean>;
     const matchedBackends = selectMatchedBackends(configuredBackends, context, enabledMap).filter((backend) =>
-        backend.capabilities.includes("/api/skipSegments")
+        supportsBackendOperation(backend, "querySegments")
     );
     const response = await fetchSegmentsByBackends(bvId, cid, matchedBackends, context, ignoreCache);
 

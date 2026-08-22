@@ -8,7 +8,7 @@ import {
     validateBackendConfigDocument,
 } from "../src/backends";
 
-const skipCapability: BackendRequestCapability = "/api/skipSegments";
+const skipCapability: BackendRequestCapability = "GET /api/skipSegments";
 
 function backend(overrides: Partial<BackendConfig> = {}): BackendConfig {
     return {

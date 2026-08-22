@@ -1,37 +1,39 @@
-import { BackendConfig, BackendConfigDocument, VideoMatchContext, isBackendEnabled, selectMatchedBackends } from "../backends";
+import {
+    BackendConfig,
+    BackendConfigDocument,
+    BackendOperation,
+    BackendRequestCapability,
+    VideoMatchContext,
+    getBackendCapability,
+    getBackendOperation,
+    isBackendEnabled,
+    selectMatchedBackends,
+    supportsBackendOperation,
+} from "../backends";
 import Config from "../config";
 import { FetchResponse } from "./type/requestType";
 import { sendRealRequestToCustomServer } from "./backendTransport";
 
 export type BackendRequestDefinition = BackendConfig;
-
 export type BackendConfigSnapshot = BackendConfigDocument;
 
 export interface BackendRequestOptions {
     backendId?: string;
+    operation?: BackendOperation;
     skipServerCache?: boolean;
     videoContext?: VideoMatchContext;
 }
 
-const PATH_CAPABILITY_ALIASES: Array<[RegExp, string]> = [
-    [/^\/api\/skipSegments(?:\/|$)/, "/api/skipSegments"],
-    [/^\/api\/lockCategories(?:\/|$)/, "/api/lockCategories"],
-    [/^\/api\/videoLabels(?:\/|$)/, "/api/videoLabels"],
-    [/^\/api\/portVideo(?:\/|$)/, "/api/portVideo"],
-    [/^\/api\/voteOnSponsorTime(?:\?|$)/, "/api/voteOnSponsorTime"],
-    [/^\/api\/viewedVideoSponsorTime(?:\?|$)/, "/api/viewedVideoSponsorTime"],
-    [/^\/api\/getUsername(?:\?|$)/, "/api/getUsername"],
-    [/^\/api\/votePort(?:\/|\?|$)/, "/api/votePort"],
-    [/^\/api\/updatePortedSegments(?:\/|\?|$)/, "/api/updatePortedSegments"],
-    [/^\/api\/chapterNames(?:\/|\?|$)/, "/api/chapterNames"],
-    [/^\/api\/userInfo(?:\/|\?|$)/, "/api/userInfo"],
-    [/^\/api\/setUsername(?:\/|\?|$)/, "/api/setUsername"],
-    [/^\/api\/warnUser(?:\/|\?|$)/, "/api/warnUser"],
-];
+export interface BackendRequestResult {
+    backend: BackendRequestDefinition;
+    backendId: string;
+    priority: number;
+    response: FetchResponse;
+}
 
-export function getCapabilityForEndpoint(endpoint: string): string {
-    const alias = PATH_CAPABILITY_ALIASES.find(([pattern]) => pattern.test(endpoint));
-    return alias?.[1] || endpoint.split("?")[0];
+export function getCapabilityForEndpoint(endpoint: string, type = "GET"): BackendRequestCapability | null {
+    const operation = getBackendOperation(type, endpoint);
+    return operation ? getBackendCapability(operation) : null;
 }
 
 export function getConfiguredSnapshot(): BackendConfigSnapshot | null {
@@ -40,22 +42,38 @@ export function getConfiguredSnapshot(): BackendConfigSnapshot | null {
     return JSON.parse(JSON.stringify(snapshot)) as BackendConfigSnapshot;
 }
 
-function isConfiguredBackendEnabled(backend: BackendConfig): boolean {
-    const map = (Config.local?.backendEnabledMap ?? {}) as Record<string, boolean>;
-    return isBackendEnabled(backend, map);
+function getEnabledMap(): Record<string, boolean> {
+    return (Config.local?.backendEnabledMap ?? {}) as Record<string, boolean>;
 }
 
 export function getConfiguredBackends(): BackendRequestDefinition[] {
-    return getConfiguredSnapshot()?.backends.filter((backend) => isConfiguredBackendEnabled(backend)) ?? [];
+    return getConfiguredSnapshot()?.backends.filter((backend) => isBackendEnabled(backend, getEnabledMap())) ?? [];
 }
 
-export function getBackendById(id: string): BackendRequestDefinition | null {
-    return getConfiguredBackends().find((backend) => backend.id === id) ?? null;
+export function getEligibleBackends(
+    operation?: BackendOperation,
+    videoContext?: VideoMatchContext
+): BackendRequestDefinition[] {
+    const configured = getConfiguredSnapshot();
+    if (!configured) return [];
+
+    const matched = videoContext
+        ? selectMatchedBackends(configured, videoContext, getEnabledMap())
+        : configured.backends.filter((backend) => isBackendEnabled(backend, getEnabledMap()));
+
+    return operation ? matched.filter((backend) => supportsBackendOperation(backend, operation)) : matched;
+}
+
+export function getBackendById(
+    id: string,
+    operation?: BackendOperation,
+    videoContext?: VideoMatchContext
+): BackendRequestDefinition | null {
+    return getEligibleBackends(operation, videoContext).find((backend) => backend.id === id) ?? null;
 }
 
 function getBaseUrl(backend: BackendRequestDefinition): string {
-    const configured = backend.api_url.replace(/\/+$/, "");
-    return configured;
+    return backend.api_url.replace(/\/+$/, "");
 }
 
 function requestHeaders(skipServerCache: boolean, headers: Record<string, string>): Record<string, string> {
@@ -104,6 +122,42 @@ export async function requestFromBackend(
     return lastResponse;
 }
 
+function resolveOperation(type: string, endpoint: string, options: BackendRequestOptions): BackendOperation | null {
+    return options.operation ?? getBackendOperation(type, endpoint);
+}
+
+export async function requestFromBackends(
+    type: string,
+    endpoint: string,
+    data: Record<string, unknown> = {},
+    options: BackendRequestOptions = {},
+    headers: Record<string, string> = {}
+): Promise<BackendRequestResult[]> {
+    const operation = resolveOperation(type, endpoint, options);
+    if (!operation) return [];
+
+    const backends = options.backendId
+        ? [getBackendById(options.backendId, operation, options.videoContext)].filter(
+              (backend): backend is BackendRequestDefinition => backend !== null
+          )
+        : getEligibleBackends(operation, options.videoContext);
+    return Promise.all(
+        backends.map(async (backend, priority) => ({
+            backend,
+            backendId: backend.id,
+            priority,
+            response: await requestFromBackend(
+                backend,
+                type,
+                endpoint,
+                data,
+                Boolean(options.skipServerCache),
+                headers
+            ),
+        }))
+    );
+}
+
 export async function requestToBackend(
     type: string,
     endpoint: string,
@@ -111,29 +165,13 @@ export async function requestToBackend(
     options: BackendRequestOptions = {},
     headers: Record<string, string> = {}
 ): Promise<FetchResponse> {
-    const capability = getCapabilityForEndpoint(endpoint);
-    const configuredBackends = options.videoContext
-        ? selectMatchedBackends(
-              getConfiguredSnapshot() ?? { backends: [] },
-              options.videoContext,
-              (Config.local?.backendEnabledMap ?? {}) as Record<string, boolean>
-          )
-        : getConfiguredBackends();
+    const operation = resolveOperation(type, endpoint, options);
+    if (!operation) return { responseText: "", status: 404, ok: false };
+
     const backend = options.backendId
-        ? getBackendById(options.backendId)
-        : configuredBackends.find((candidate) =>
-              candidate.capabilities.includes(capability as BackendConfig["capabilities"][number])
-          );
-    if (backend) {
-        if (!backend.capabilities.includes(capability as BackendConfig["capabilities"][number])) {
-            return { responseText: "", status: 404, ok: false };
-        }
-        return requestFromBackend(backend, type, endpoint, data, Boolean(options.skipServerCache), headers);
-    }
+        ? getBackendById(options.backendId, operation, options.videoContext)
+        : getEligibleBackends(operation, options.videoContext)[0];
+    if (!backend) return { responseText: "", status: 404, ok: false };
 
-    if (options.backendId || getConfiguredSnapshot()) {
-        return { responseText: "", status: 404, ok: false };
-    }
-
-    return { responseText: "", status: 404, ok: false };
+    return requestFromBackend(backend, type, endpoint, data, Boolean(options.skipServerCache), headers);
 }

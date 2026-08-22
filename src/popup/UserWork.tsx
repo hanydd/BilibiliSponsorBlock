@@ -3,7 +3,7 @@ import { Spin } from "antd";
 import { MessageInstance } from "antd/es/message/interface";
 import * as React from "react";
 import Config from "../config";
-import { getUserInfo, setUsername } from "../requests/user";
+import { getUserWorkStats, setUsername } from "../requests/user";
 import { getErrorMessage, getFormattedHours } from "../utils/formating";
 import { getHash } from "../utils/hash";
 
@@ -40,20 +40,22 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
         this.userNameInputRef = React.createRef<HTMLInputElement>();
 
         getHash(Config.config.userID)
-            .then((hash) => getUserInfo(hash))
+            .then((hash) => getUserWorkStats(hash))
             .then((res) => {
-                if (res.status === 200) {
-                    const userInfo = JSON.parse(res.responseText);
-                    this.setState({
-                        userName: userInfo.userName,
-                        viewCount: userInfo.viewCount,
-                        minutesSaved: userInfo.minutesSaved,
-                        segmentCount: userInfo.segmentCount,
-                    });
+                if (res.ok && res.stats) {
+                    const userInfo = res.stats;
+                    const nextState: Partial<UserWorkState> = {};
+                    if (typeof userInfo.userName === "string") nextState.userName = userInfo.userName;
+                    if (typeof userInfo.viewCount === "number") nextState.viewCount = userInfo.viewCount;
+                    if (typeof userInfo.minutesSaved === "number") nextState.minutesSaved = userInfo.minutesSaved;
+                    if (typeof userInfo.segmentCount === "number") nextState.segmentCount = userInfo.segmentCount;
+                    this.setState((previous) => ({ ...previous, ...nextState }));
 
-                    Config.config.isVip = userInfo.vip;
-                    Config.config.permissions = userInfo.permissions;
-                    Config.config.sponsorTimesContributed = userInfo.segmentCount;
+                    if (typeof userInfo.vip === "boolean") Config.config.isVip = userInfo.vip;
+                    if (userInfo.permissions) Config.config.permissions = userInfo.permissions as never;
+                    if (typeof userInfo.segmentCount === "number") {
+                        Config.config.sponsorTimesContributed = userInfo.segmentCount;
+                    }
                 }
             })
             .finally(() => {

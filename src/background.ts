@@ -4,11 +4,10 @@ import { callAPIWithOptions, sendRealRequestToCustomServer } from "./requests/ba
 import { clearAllCacheBackground, segmentsCache, videoLabelCache } from "./requests/background/backgroundCache";
 import { getSegmentsBackground } from "./requests/background/segmentRequest";
 import { getVideoLabelBackground } from "./requests/background/videoLabelRequest";
+import { getUserWorkStatsBackground } from "./requests/background/userStatsRequest";
 import { submitVote } from "./requests/background/voteRequest";
 import { BackendConfigService } from "./config/backendConfigService";
-import { BackendConfig, selectMatchedBackends } from "./backends";
-import { getDefaultBackendConfig } from "./backends/runtime";
-import { getConfiguredSnapshot } from "./requests/backendRouter";
+import { getEligibleBackends } from "./requests/backendRouter";
 import { CacheStats, NewVideoID, Registration } from "./types";
 import { chromeP } from "./utils/browserApi";
 import { getHash } from "./utils/hash";
@@ -286,19 +285,29 @@ function setupBackgroundRequestProxy() {
 
         if (request.message === "getSubmissionBackends") {
             const context = request.context ?? { bvid: "", title: "", description: "", up_mid: "", up_name: "" };
-            const document = (getConfiguredSnapshot() ?? getDefaultBackendConfig()) as { backends: BackendConfig[] };
-            const enabledMap = (Config.local?.backendEnabledMap ?? {}) as Record<string, boolean>;
-            const backends = selectMatchedBackends(document.backends, context, enabledMap)
-                .filter((backend) => backend.capabilities.includes("/api/skipSegments"))
+            const backends = getEligibleBackends("submitSegments", context)
                 .map((backend) => ({
                     id: backend.id,
                     name: backend.name,
                     desc: backend.desc,
-                    capabilities: backend.capabilities,
                     enabled: true,
                 }));
             callback(backends);
             return false;
+        }
+
+        if (request.message === "getUserWorkStats") {
+            getUserWorkStatsBackground(request.publicUserID, Boolean(request.skipServerCache))
+                .then(callback)
+                .catch(() =>
+                    callback({
+                        ok: false,
+                        partial: false,
+                        successfulBackendIds: [],
+                        failedBackendIds: [],
+                    })
+                );
+            return true;
         }
 
         if (request.message === "getLastSubmissionBackendId") {

@@ -188,6 +188,23 @@ export interface RefreshSegmentsResponse {
     hasVideo: boolean;
 }
 
+export interface UserWorkStats {
+    userName?: string;
+    viewCount?: number;
+    minutesSaved?: number;
+    segmentCount?: number;
+    vip?: boolean;
+    permissions?: Record<string, unknown>;
+}
+
+export interface UserWorkStatsResponse {
+    ok: boolean;
+    partial: boolean;
+    stats?: UserWorkStats;
+    successfulBackendIds: string[];
+    failedBackendIds: string[];
+}
+
 export interface TimeUpdateMessage {
     message: "time";
     time: number;
