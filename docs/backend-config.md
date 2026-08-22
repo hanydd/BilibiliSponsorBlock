@@ -52,7 +52,7 @@
 | `enabled` | boolean | 否 | 默认开关，省略时默认启用。 |
 | `capabilities` | string[] | 是 | 后端支持的、插件实际会调用的 HTTP 接口。 |
 | `match` | expression[] | 否 | 视频匹配规则；省略或为空表示匹配全部视频。 |
-| `mirrors` | string[] | 否 | API 根地址镜像；主地址失败时只在当前请求内尝试。 |
+| `mirrors` | string[] | 否 | API 根地址的只读镜像；GET 主地址失败时只在当前请求内尝试。 |
 | `conflicts` | string[] | 否 | 当前后端被采用后，临时抑制其后出现的指定后端 ID。 |
 
 所有 URL 必须是 `http` 或 `https` URL。能力值不能重复，镜像地址不能重复，`conflicts` 不能引用自身或不存在的后端。
@@ -86,6 +86,8 @@ POST /api/warnUser
 同一 API 的 GET 查询和 POST 提交是不同能力。例如，只有声明 `GET /api/skipSegments` 的后端才参与片段读取，只有声明 `POST /api/skipSegments` 的后端才参与片段提交。BVID 根路径和 SHA-256 前缀路径也是不同能力：`GET /api/skipSegments/:sha256HashPrefix` 不会被 `GET /api/skipSegments` 自动替代。
 
 插件会根据当前功能块、HTTP 方法、实际路径、后端启用状态和视频 `match` 结果筛选候选后端。查询片段时，所有符合条件的后端都可以并行参与；提交、投票和其他单结果操作只选择符合条件的后端。显式指定 `backendId` 时仍会重新检查这些条件。
+
+`mirrors` 只用于主 `api_url` 的只读故障转移。镜像地址不需要单独配置 capabilities，只需要提供主后端所声明并实际使用的 GET 接口；插件不会要求镜像实现 POST 写接口。主地址的 GET 请求失败时，插件会在当前请求内随机尝试镜像地址；POST 请求（包括片段提交、投票、观看统计、用户名设置和用户警告）始终只发送到主 `api_url`，不会发送到 mirrors。镜像失败状态也不会被长期记忆。
 
 `/api/videoLabels` 和 `/api/chapterNames` 是插件实际调用的扩展接口，虽然当前 Wiki 页面没有列出，也必须在支持对应功能的后端中声明。`/api/warnUser` 位于官方文档的管理员操作章节，但插件实现了用户确认警告流程，因此保留该能力。
 

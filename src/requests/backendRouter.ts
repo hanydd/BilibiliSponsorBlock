@@ -98,7 +98,7 @@ export async function requestFromBackend(
     skipServerCache = false,
     headers: Record<string, string> = {}
 ): Promise<FetchResponse> {
-    const addresses = [getBaseUrl(backend), ...(backend.mirrors ?? [])]
+    const addresses = [getBaseUrl(backend), ...(type.toUpperCase() === "GET" ? backend.mirrors ?? [] : [])]
         .map((address) => address.replace(/\/+$/, ""))
         .filter((address, index, all) => Boolean(address) && all.indexOf(address) === index);
     let lastResponse: FetchResponse = { responseText: "", status: -1, ok: false };
