@@ -139,6 +139,8 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                 {chrome.i18n.getMessage("backend") || "Backend"}
                 <select
                     id="sponsorSubmissionBackend"
+                    className="sponsorTimeEditSelector sponsorSubmissionBackendSelector"
+                    style={{ color: "inherit", backgroundColor: "inherit" }}
                     value={this.state.selectedBackendId ?? this.state.submissionBackends[0].id}
                     onChange={(event) => this.selectSubmissionBackend(event.target.value)}
                 >

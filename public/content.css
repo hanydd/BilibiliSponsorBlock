@@ -622,6 +622,10 @@ input::-webkit-inner-spin-button {
 	color: white;
 }
 
+.sponsorSubmissionBackendSelector {
+	max-width: 220px;
+}
+
 /* Start SelectorComponent */
 
 .sbSelector {
