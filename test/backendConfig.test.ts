@@ -7,6 +7,7 @@ import {
     normalizeBackendEnabledMap,
     validateBackendConfigDocument,
 } from "../src/backends";
+import * as DefaultBackends from "../backends.json";
 
 const skipCapability: BackendRequestCapability = "GET /api/skipSegments";
 
@@ -28,6 +29,9 @@ describe("backend configuration contract", () => {
         expect(document.backends.find((backend) => backend.id === "beta")?.enabled).toBe(false);
         expect(document.backends[0].capabilities).toEqual([...BACKEND_REQUEST_CAPABILITIES]);
         expect(document.backends[0].capabilities).toContain(skipCapability);
+        for (const backend of DefaultBackends.backends) {
+            expect(backend.capabilities).toEqual([...BACKEND_REQUEST_CAPABILITIES]);
+        }
 
         document.backends[0].name = "changed";
         expect(getDefaultBackendConfig().backends[0].name).not.toBe("changed");
@@ -39,7 +43,7 @@ describe("backend configuration contract", () => {
                 backend({
                     id: "Primary-1",
                     api_url: "ftp://primary.example",
-                    capabilities: ["/api/nope" as BackendRequestCapability],
+                    capabilities: ["GET /api/nope" as BackendRequestCapability],
                     mirrors: ["https://mirror.example", "https://mirror.example"],
                     conflicts: ["missing"],
                     match: [{ field: "title", regexp: "[" }],
@@ -63,11 +67,11 @@ describe("backend configuration contract", () => {
 
     test("rejects API families that the extension does not call", () => {
         const unsupported = [
-            "/api/segmentInfo",
-            "/api/lockReason",
-            "/api/userStats",
-            "/api/clearCache",
-            "/api/purgeAllSegments",
+            "GET /api/segmentInfo",
+            "GET /api/lockReason",
+            "GET /api/userStats",
+            "POST /api/clearCache",
+            "POST /api/purgeAllSegments",
         ];
 
         for (const capability of unsupported) {

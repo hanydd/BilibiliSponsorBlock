@@ -25,7 +25,7 @@ interface BackendRequestResponse<T> {
 }
 
 function hasSkipSegmentsCapability(backend: SubmissionBackend): boolean {
-    return !backend.capabilities || backend.capabilities.includes("/api/skipSegments");
+    return !backend.capabilities || backend.capabilities.includes("POST /api/skipSegments");
 }
 
 function sendBackendServiceMessage<T>(message: string, payload: Record<string, unknown> = {}): Promise<T | null> {

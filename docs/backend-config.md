@@ -1,6 +1,6 @@
 # 多后端配置
 
-扩展的默认多后端配置位于仓库根目录的 `backends.json`。运行时可以从本地编辑器或订阅 URL 加载同样格式的 JSON。配置文档只描述后端定义；每个后端的启用状态保存在浏览器本地的独立 `enabled map` 中，不会写回 JSON。编译配置中的 `backendSubscriptionUrl` 是默认订阅地址，`backendTestSubscriptionUrl` 是测试订阅地址；二者只用于预填设置，不要求订阅文件在本地存在。
+扩展默认使用仓库根目录的 `backends.json`。用户可以在设置页编辑配置，或者从订阅 URL 加载同样格式的 JSON。后端定义与运行时开关分开保存：JSON 中的 `enabled` 是默认状态，用户对单个后端的显式开关保存在独立的 `backendEnabledMap` 中。
 
 ## 顶层结构
 
@@ -14,145 +14,132 @@
             "api_url": "https://www.bsbsb.top",
             "enabled": true,
             "capabilities": [
-                "/api/skipSegments",
-                "/api/voteOnSponsorTime",
-                "/api/viewedVideoSponsorTime",
-                "/api/lockCategories",
-                "/api/videoLabels",
-                "/api/portVideo",
-                "/api/votePort",
-                "/api/updatePortedSegments",
-                "/api/chapterNames",
-                "/api/userInfo",
-                "/api/setUsername",
-                "/api/getUsername",
-                "/api/warnUser"
+                "GET /api/skipSegments",
+                "GET /api/skipSegments/:sha256HashPrefix",
+                "POST /api/skipSegments",
+                "POST /api/voteOnSponsorTime",
+                "POST /api/viewedVideoSponsorTime",
+                "GET /api/lockCategories",
+                "GET /api/lockCategories/:sha256HashPrefix",
+                "GET /api/videoLabels",
+                "GET /api/videoLabels/:sha256HashPrefix",
+                "GET /api/portVideo",
+                "GET /api/portVideo/:sha256HashPrefix",
+                "POST /api/portVideo",
+                "POST /api/votePort",
+                "POST /api/updatePortedSegments",
+                "GET /api/chapterNames",
+                "GET /api/userInfo",
+                "POST /api/setUsername",
+                "GET /api/getUsername",
+                "POST /api/warnUser"
             ]
         }
     ]
 }
 ```
 
-`backends` 必须是数组，可以为空。数组顺序就是匹配优先级：越靠前的后端优先级越高。后端 ID 必须唯一，并且只能包含小写 ASCII 字母、下划线和短横线。
+`backends` 必须是数组，可以为空。数组顺序决定匹配优先级，越靠前优先级越高。后端 `id` 必须唯一，并且只能包含小写 ASCII 字母、下划线和短横线。
 
 ## 后端字段
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `id` | string | 是 | 后端唯一标识，只能使用 `[a-z_-]`。 |
-| `name` | string | 是 | 设置面板中显示的名称。 |
+| `id` | string | 是 | 后端唯一标识。 |
+| `name` | string | 是 | 设置面板显示名称。 |
 | `desc` | string | 否 | 后端介绍。 |
-| `api_url` | string | 是 | API 根地址，必须为 `http` 或 `https` URL；接口路径由扩展追加。 |
-| `enabled` | boolean | 否 | 该后端的默认开关状态。省略时默认为启用；用户的独立开关覆盖此值。 |
-| `capabilities` | string[] | 是 | 后端支持的 API 路径。至少应包含 `/api/skipSegments` 才能提供跳过片段。 |
-| `match` | expression[] | 否 | 视频匹配规则。缺省或空数组表示匹配全部视频。 |
-| `mirrors` | string[] | 否 | API 根地址镜像。主地址请求失败时，在本次请求中尝试镜像。 |
-| `conflicts` | string[] | 否 | 该后端被选中后，屏蔽配置数组中位于它后面的指定 ID。 |
+| `api_url` | string | 是 | API 根地址，必须是 `http` 或 `https` URL。 |
+| `enabled` | boolean | 否 | 默认开关，省略时默认启用。 |
+| `capabilities` | string[] | 是 | 后端支持的、插件实际会调用的 HTTP 接口。 |
+| `match` | expression[] | 否 | 视频匹配规则；省略或为空表示匹配全部视频。 |
+| `mirrors` | string[] | 否 | API 根地址镜像；主地址失败时只在当前请求内尝试。 |
+| `conflicts` | string[] | 否 | 当前后端被采用后，临时抑制其后出现的指定后端 ID。 |
 
-所有 URL 必须是 `http` 或 `https` URL。`mirrors` 和 `conflicts` 不能有重复值；`conflicts` 不能引用自身。能力值不能重复。
+所有 URL 必须是 `http` 或 `https` URL。能力值不能重复，镜像地址不能重复，`conflicts` 不能引用自身或不存在的后端。
 
-## 能力
+## Capabilities
 
-`capabilities` 是扩展实际依赖的 API 家族列表，不是后端服务完整 API 的目录。当前允许的能力路径为：
+Capabilities 表示插件实际依赖的 API 接口，不是服务端完整 API 清单。能力值包含 HTTP 方法和实际路径：
 
 ```text
-/api/skipSegments
-/api/voteOnSponsorTime
-/api/viewedVideoSponsorTime
-/api/lockCategories
-/api/videoLabels
-/api/portVideo
-/api/votePort
-/api/updatePortedSegments
-/api/chapterNames
-/api/userInfo
-/api/setUsername
-/api/getUsername
-/api/warnUser
+GET /api/skipSegments
+GET /api/skipSegments/:sha256HashPrefix
+POST /api/skipSegments
+POST /api/voteOnSponsorTime
+POST /api/viewedVideoSponsorTime
+GET /api/lockCategories
+GET /api/lockCategories/:sha256HashPrefix
+GET /api/videoLabels
+GET /api/videoLabels/:sha256HashPrefix
+GET /api/portVideo
+GET /api/portVideo/:sha256HashPrefix
+POST /api/portVideo
+POST /api/votePort
+POST /api/updatePortedSegments
+GET /api/chapterNames
+GET /api/userInfo
+POST /api/setUsername
+GET /api/getUsername
+POST /api/warnUser
 ```
 
-其中 `/api/videoLabels` 和 `/api/chapterNames` 是扩展实际使用的后端扩展接口，当前 Wiki 页面未列出，但后端若要支持对应功能仍需声明它们。`/api/warnUser` 位于官方文档的管理员操作章节，但扩展实现了用户确认警告的调用，因此也属于实际能力。
+同一 API 的 GET 查询和 POST 提交是不同能力。例如，只有声明 `GET /api/skipSegments` 的后端才参与片段读取，只有声明 `POST /api/skipSegments` 的后端才参与片段提交。BVID 根路径和 SHA-256 前缀路径也是不同能力：`GET /api/skipSegments/:sha256HashPrefix` 不会被 `GET /api/skipSegments` 自动替代。
 
-扩展没有实现的官方接口，例如 `/api/segmentInfo`、`/api/lockReason`、`/api/userStats`、排行榜、服务器状态和其他管理员操作，不应加入 capabilities。
+插件会根据当前功能块、HTTP 方法、实际路径、后端启用状态和视频 `match` 结果筛选候选后端。查询片段时，所有符合条件的后端都可以并行参与；提交、投票和其他单结果操作只选择符合条件的后端。显式指定 `backendId` 时仍会重新检查这些条件。
 
-后端只有声明对应能力时，依赖该 API 的功能才会把它作为候选后端。能力按 API 家族归一化，不区分 HTTP 方法或参数：GET 查询和 POST 提交共用同一个能力；哈希变体也共用根路径能力，例如 `/api/portVideo/:sha256HashPrefix` 使用 `/api/portVideo`。`/api/skipSegments` 是 BVID 片段查询和提交能力；读取片段时所有匹配、启用且声明该能力的后端都可以参与，结果随后合并。
+`/api/videoLabels` 和 `/api/chapterNames` 是插件实际调用的扩展接口，虽然当前 Wiki 页面没有列出，也必须在支持对应功能的后端中声明。`/api/warnUser` 位于官方文档的管理员操作章节，但插件实现了用户确认警告流程，因此保留该能力。
+
+插件没有实现的接口不应加入 capabilities，包括 `/api/segmentInfo`、`/api/lockReason`、`/api/userStats`、排行榜、服务器状态以及其他管理员操作接口。官方 API 文档中列出的接口并不代表插件会自动支持它们。
+
+官方接口路径与 HTTP 方法以 [BilibiliSponsorBlock API 文档](https://github.com/hanydd/BilibiliSponsorBlock/wiki/API) 为准。当前配置中的能力只覆盖插件实际调用的接口；新增插件功能时，应先增加对应能力注册和实现，再更新本文档与默认 JSON。
 
 ## 匹配规则
 
-`match` 是表达式数组，数组元素之间隐式执行 `and`。每个叶子表达式必须包含一个 `field`，以及 `exact` 或 `regexp` 之一：
+`match` 是表达式数组，顶层元素之间隐式执行 `and`。叶子表达式必须包含一个字段，以及 `exact` 或 `regexp` 之一：
 
 ```json
 {
     "match": [
-        { "field": "title", "exact": ["示例视频", "另一个标题"] },
+        { "field": "title", "exact": ["示例视频"] },
         { "field": "up_mid", "regexp": "^123" }
     ]
 }
 ```
 
-支持的字段：
+支持的字段为 `title`、`description`、`up_mid`、`up_name`。其中 `up_mid` 按字符串处理，以避免 B 站 bigint ID 的精度丢失。`exact` 是完全相等匹配；`regexp` 使用 JavaScript 正则表达式。
 
-| 字段 | 运行时类型 | 来源含义 |
-| --- | --- | --- |
-| `title` | string | 视频标题 |
-| `description` | string | 视频简介 |
-| `up_mid` | string | UP 主 MID；即使 B 站原始值是 bigint，也按字符串匹配 |
-| `up_name` | string | UP 主名字 |
-
-`exact` 是完全相等匹配，值必须是字符串数组；数组中任意一个值相等即命中。`regexp` 是 JavaScript 正则表达式字符串。
-
-逻辑表达式可以嵌套：
-
-```json
-{
-    "match": [
-        {
-            "or": [
-                { "field": "up_name", "exact": ["作者甲"] },
-                {
-                    "and": [
-                        { "field": "title", "regexp": "教程$" },
-                        { "not": { "field": "description", "exact": ["不使用空降"] } }
-                    ]
-                }
-            ]
-        }
-    ]
-}
-```
-
-逻辑空数组遵循布尔逻辑：`and: []` 为真，`or: []` 为假。非法正则、未知字段或混合多个操作符的表达式会使整个配置校验失败。
+支持嵌套的 `and`、`or`、`not` 表达式。`and: []` 为真，`or: []` 为假。非法正则、未知字段或混合多个操作符会使整个配置校验失败。
 
 ## 优先级与冲突
 
-匹配器按 `backends` 顺序从上到下扫描。禁用、未匹配或已被冲突屏蔽的后端不会参与本次视频匹配。选中某个后端后，它的 `conflicts` 中列出的后端 ID 会被临时屏蔽，但只影响位于当前后端后面的项目；后项的冲突声明不会反过来取消已经选中的前项。
+后端按 JSON 数组顺序匹配。禁用、未匹配或已被冲突抑制的后端不会参与当前视频的匹配。被采用的后端只会抑制位于其后的 `conflicts` ID；后置后端的冲突声明不会反向改变已采用后端的优先级。
 
-冲突只对当前视频、当前匹配过程生效，不修改 JSON，也不永久关闭后端。
+冲突只作用于当前视频和当前匹配过程，不修改 JSON，也不会永久关闭后端。
 
 ## 合并片段
 
-多个 `/api/skipSegments` 结果会在同一视频上合并：
+多个片段查询结果会合并到同一个视频：
 
-- 相同 `UUID` 只保留优先级最高的条目。
-- 同一个 `cid` 上时间区间重叠时，只保留优先级最高的条目。
-- 不重叠的条目全部保留。
-- 返回给扩展内部的条目带有 `backendId`，用于投票、统计或提交时定位来源后端。
-- `backendId` 是内部元数据，不属于 SponsorBlock API 的片段 JSON；发送请求前必须移除。
+- 相同 UUID 只保留优先级最高的片段。
+- 同一 CID 上时间区间重叠时只保留优先级最高的片段。
+- 不冲突的片段全部保留。
+- 内部片段会附带 `backendId`，用于投票、观看统计和提交后端选择。
+- `backendId` 是扩展内部元数据，发送 API 请求前会移除。
 
-合并函数接收按优先级排列的结果。若结果提供显式 `priority`，较小数字优先；否则使用结果数组下标。
+## 独立启用状态
 
-## 运行时 enabled map
-
-后端定义与运行时开关分离保存。例如，下面只表示用户明确覆盖了 `testing`；没有 `main` 项，因此 `main` 跟随 JSON 内的 `enabled`：
+`backendEnabledMap` 不属于 `backends.json`，只保存用户明确覆盖过的后端状态：
 
 ```json
 {
     "backendEnabledMap": {
-        "testing": true
+        "beta": true
     }
 }
 ```
 
-`backendEnabledMap` 不是 `backends.json` 的一部分。它只保存用户明确设置过的 `id -> enabled`，不会改变 JSON，也不会关闭订阅更新。新 ID 没有 map 项时跟随该后端的 `enabled`，省略 `enabled` 时默认启用；配置更新会清理已经删除的 ID。设置面板中的“默认”选项会删除对应 map 项，使开关重新跟随 JSON。匹配时只有解析后的最终状态为启用的后端参与。
+没有 map 项的后端跟随 JSON 内的 `enabled`，省略 `enabled` 时默认启用。配置更新会清理已删除 ID 的 map 项，并保留仍存在 ID 的显式状态。设置页选择“默认”会删除该 ID 的 map 项，恢复跟随 JSON 默认值。
 
-根目录默认文件包含主后端和一个 `enabled: false` 的 `beta` 后端；该后端对应旧的“启用 Beta 测试服务器”选项。`backends.test.json` 只包含本地 `testing` 后端，测试地址直接由其中的 `api_url` 定义，适合在测试订阅中使用。根配置不包含本地测试后端。
+根目录 `backends.json` 包含主后端和默认关闭的 Beta 后端；不包含本地测试后端。`backends.test.json` 仅包含本地测试后端，测试地址直接由其 `api_url` 定义。
+
+设置页的“后端”区域中，JSON 配置和订阅设置属于用户选项；缓存、同步错误、最后同步时间和最后提交后端记忆属于其他本地数据。

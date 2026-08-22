@@ -15,9 +15,9 @@ describe("content backend service adapter", () => {
             if (request.method === "getSubmissionBackends") {
                 callback({
                     backends: [
-                        { id: "primary", name: "Primary", capabilities: ["/api/skipSegments"] },
-                        { id: "disabled", name: "Disabled", capabilities: ["/api/skipSegments"], enabled: false },
-                        { id: "vote-only", name: "Vote only", capabilities: ["/api/voteOnSponsorTime"] },
+                        { id: "primary", name: "Primary", capabilities: ["POST /api/skipSegments"] },
+                        { id: "disabled", name: "Disabled", capabilities: ["POST /api/skipSegments"], enabled: false },
+                        { id: "vote-only", name: "Vote only", capabilities: ["POST /api/voteOnSponsorTime"] },
                     ],
                 });
             }
