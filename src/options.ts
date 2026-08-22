@@ -8,6 +8,12 @@ window.SB = Config;
 
 import KeybindComponent from "./components/options/KeybindComponent";
 import BackendConfigComponent from "./components/options/BackendConfigComponent";
+import {
+    createOptionsBackup,
+    createOtherDataBackup,
+    parseOptionsBackup,
+    parseOtherDataBackup,
+} from "./config/backup";
 import { StorageChangesObject } from "./config/config";
 import { showDonationLink } from "./config/configUtils";
 import { CategoryChooser, DynamicSponsorChooser } from "./render/CategoryChooser";
@@ -460,9 +466,9 @@ function activatePrivateTextChange(element: HTMLElement) {
     switch (option) {
         case "*": {
             if (optionType === "local") {
-                result = JSON.stringify(Config.cachedLocalStorage);
+                result = JSON.stringify(createOtherDataBackup(Config.cachedLocalStorage));
             } else {
-                result = JSON.stringify(Config.cachedSyncConfig);
+                result = JSON.stringify(createOptionsBackup(Config.cachedSyncConfig, Config.cachedLocalStorage));
             }
             break;
         }
@@ -513,12 +519,35 @@ async function setTextOption(option: string, element: HTMLElement, value: string
         switch (option) {
             case "*":
                 try {
-                    const newConfig = JSON.parse(value);
-                    for (const key in newConfig) {
-                        if (optionType === "local") {
-                            Config.local[key] = newConfig[key];
-                        } else {
-                            Config.config[key] = newConfig[key];
+                    if (optionType === "local") {
+                        const backup = parseOtherDataBackup(value);
+                        const localValues = { ...backup.local };
+                        if (backup.backendRuntime) {
+                            localValues.backendSubscription = {
+                                ...Config.cachedLocalStorage.backendSubscription,
+                                lastSyncAt: backup.backendRuntime.lastSyncAt,
+                                lastError: backup.backendRuntime.lastError,
+                            };
+                            localValues.lastSubmissionBackendId = backup.backendRuntime.lastSubmissionBackendId;
+                        }
+                        Object.assign(Config.cachedLocalStorage, localValues);
+                        void chrome.storage.local.set(localValues);
+                    } else {
+                        const backup = parseOptionsBackup(value);
+                        Object.assign(Config.cachedSyncConfig, backup.sync);
+                        void chrome.storage.sync.set(backup.sync);
+
+                        if (backup.backendSettings) {
+                            const localValues = {
+                                backendConfig: backup.backendSettings.backendConfig,
+                                backendEnabledMap: backup.backendSettings.backendEnabledMap,
+                                backendSubscription: {
+                                    ...Config.cachedLocalStorage.backendSubscription,
+                                    ...backup.backendSettings.backendSubscription,
+                                },
+                            };
+                            Object.assign(Config.cachedLocalStorage, localValues);
+                            void chrome.storage.local.set(localValues);
                         }
                     }
 
@@ -540,9 +569,10 @@ function downloadConfig(element: Element) {
     const optionType = element.getAttribute("data-sync-type");
 
     const file = document.createElement("a");
-    const jsonData = JSON.parse(
-        JSON.stringify(optionType === "local" ? Config.cachedLocalStorage : Config.cachedSyncConfig)
-    );
+    const jsonData =
+        optionType === "local"
+            ? createOtherDataBackup(Config.cachedLocalStorage)
+            : createOptionsBackup(Config.cachedSyncConfig, Config.cachedLocalStorage);
     const dateTimeString = new Date().toJSON().replace("T", "_").replace(/:/g, ".").replace(/.\d+Z/g, "");
     file.setAttribute("href", `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(jsonData))}`);
     file.setAttribute(

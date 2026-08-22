@@ -99,8 +99,11 @@ body {
 	flex-direction: column;
 	gap: 20px;
 	flex-basis: 20%;
+	height: calc(100vh - 30px);
+	max-height: calc(100vh - 30px);
 	min-width: 300px;
 	max-width: 600px;
+	min-height: 0;
 	border-radius: 15px;
 	margin: 15px;
 	z-index: 10;
@@ -111,7 +114,17 @@ body {
 #navigation {
 	display: flex;
 	flex-direction: column;
+	flex: 1 1 auto;
 	gap: 20px;
+	min-height: 0;
+	max-height: 100%;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+#title,
+#createdBy {
+	flex-shrink: 0;
 }
 
 .tab-heading {
@@ -1197,16 +1210,22 @@ svg {
 
 	#menubar {
 		gap: 8px;
+		height: auto;
+		max-height: none;
 		min-width: unset;
 		max-width: unset;
+		min-height: unset;
 		padding: 8px;
 	}
 
 	#navigation {
 		gap: 8px;
+		flex: 0 0 auto;
 		flex-direction: row;
 		flex-wrap: wrap;
 		justify-content: center;
+		max-height: none;
+		overflow: visible;
 	}
 
 	#options {
