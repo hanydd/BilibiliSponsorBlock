@@ -1,5 +1,5 @@
 import * as CompileBackends from "../../backends.json";
-import { BackendConfig, BackendConfigDocument, BackendEnabledMap } from "./types";
+import { BackendConfig, BackendConfigDocument, BackendEnabledMap, BackendInfoMap } from "./types";
 import { assertValidBackendConfigDocument } from "./validator";
 
 const compileDefaultDocument = CompileBackends as unknown as BackendConfigDocument;
@@ -26,4 +26,14 @@ export function isBackendEnabled(
     return Object.prototype.hasOwnProperty.call(enabledMap, backend.id)
         ? enabledMap[backend.id]
         : backend.enabled !== false;
+}
+
+export function createBackendInfoMap(backends: readonly BackendConfig[]): BackendInfoMap {
+    return Object.fromEntries(
+        backends.map((backend) => [backend.id, {
+            backendId: backend.id,
+            name: backend.name,
+            capabilities: [...backend.capabilities],
+        }])
+    );
 }

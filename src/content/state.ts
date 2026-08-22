@@ -8,6 +8,7 @@ import {
     ToggleSkippable,
     VideoInfo,
 } from "../types";
+import type { BackendInfoMap } from "../backends/types";
 import { sourceId } from "../utils/injectedScriptMessageUtils";
 import { logDebug, logUiLifecycle } from "../utils/logger";
 import { getContentApp } from "./app";
@@ -20,6 +21,7 @@ export const manualSkipPercentCount = 0.5;
 
 let sponsorDataFound = false;
 let sponsorTimes: SponsorTime[] = [];
+let backendInfo: BackendInfoMap = {};
 const skipNotices: SkipNotice[] = [];
 let advanceSkipNoticesVar: advanceSkipNotice | null = null;
 let activeSkipKeybindElement: ToggleSkippable = null;
@@ -46,6 +48,7 @@ function buildContentStateSnapshot(): ContentAppState {
     return {
         sponsorDataFound,
         sponsorTimes,
+        backendInfo,
         skipNotices,
         advanceSkipNotices: advanceSkipNoticesVar,
         activeSkipKeybindElement,
@@ -90,6 +93,12 @@ export const contentState = {
     set sponsorTimes(v: SponsorTime[]) {
         sponsorTimes = v;
         syncContentStateStore("contentState.sponsorTimes");
+    },
+
+    get backendInfo() { return backendInfo; },
+    set backendInfo(v: BackendInfoMap) {
+        backendInfo = v ?? {};
+        syncContentStateStore("contentState.backendInfo");
     },
 
     get skipNotices() { return skipNotices; },

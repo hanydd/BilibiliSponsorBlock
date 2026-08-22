@@ -4,6 +4,7 @@ import {
     BACKEND_REQUEST_CAPABILITIES,
     BackendRequestCapability,
     getDefaultBackendConfig,
+    createBackendInfoMap,
     normalizeBackendEnabledMap,
     validateBackendConfigDocument,
 } from "../src/backends";
@@ -35,6 +36,20 @@ describe("backend configuration contract", () => {
 
         document.backends[0].name = "changed";
         expect(getDefaultBackendConfig().backends[0].name).not.toBe("changed");
+    });
+
+    test("creates current popup metadata from matched backends", () => {
+        const metadata = createBackendInfoMap([
+            backend({ id: "main", name: "Main", capabilities: [skipCapability] }),
+        ]);
+
+        expect(metadata).toEqual({
+            main: {
+                backendId: "main",
+                name: "Main",
+                capabilities: [skipCapability],
+            },
+        });
     });
 
     test("rejects invalid IDs, URLs, capabilities, regexps, conflicts, and duplicate mirrors", () => {

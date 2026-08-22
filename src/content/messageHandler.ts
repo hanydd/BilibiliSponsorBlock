@@ -46,6 +46,7 @@ export function handleContentMessage(
                 found: contentState.sponsorDataFound,
                 status: contentState.lastResponseStatus,
                 sponsorTimes: contentState.sponsorTimes,
+                backendInfo: contentState.backendInfo,
                 portVideo: contentState.portVideo,
                 time: getVideo()?.currentTime ?? 0,
             });

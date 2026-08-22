@@ -274,7 +274,7 @@ function setupBackgroundRequestProxy() {
         }
 
         if (request.message === "submitVote") {
-            submitVote(request.type, request.UUID, request.category, request.backendId).then(callback);
+            submitVote(request.type, request.UUID, request.category, request.backendId, request.videoContext).then(callback);
             return true;
         }
 

@@ -1182,6 +1182,21 @@
     "upvote": {
         "message": "点赞"
     },
+    "popupSegmentBackend": {
+        "message": "{0} ({1})"
+    },
+    "popupSegmentLocal": {
+        "message": "本地"
+    },
+    "popupSegmentDanmaku": {
+        "message": "弹幕"
+    },
+    "popupSegmentYouTube": {
+        "message": "YouTube"
+    },
+    "popupSegmentUnknown": {
+        "message": "未知来源"
+    },
     "hideSegment": {
         "message": "隐藏片段"
     },

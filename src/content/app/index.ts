@@ -9,6 +9,7 @@ import { PageType } from "../../types";
 const initialContentState: ContentAppState = {
     sponsorDataFound: false,
     sponsorTimes: [],
+    backendInfo: {},
     skipNotices: [],
     advanceSkipNotices: null,
     activeSkipKeybindElement: null,

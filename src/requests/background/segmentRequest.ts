@@ -7,6 +7,8 @@ import {
     mergeBackendSegments,
     selectMatchedBackends,
     supportsBackendOperation,
+    createBackendInfoMap,
+    createBackendInfoMap,
 } from "../../backends";
 import { getVideoIDHash } from "../../utils/hash";
 import { parseBvidAndCidFromVideoId } from "../../utils/videoIdUtils";
@@ -112,6 +114,7 @@ export async function getSegmentsBackground(
     const responseSegments: SegmentResponse = { segments: null, status: response.status };
     if (!response.ok) return responseSegments;
 
+    responseSegments.backendInfo = createBackendInfoMap(matchedBackends);
     const mergedSegments = parseSegments(response.responseText, bvId) ?? [];
     responseSegments.segments = mergedSegments
         .filter((segment) => getEnabledActionTypes().includes(segment.actionType) && categories.includes(segment.category))

@@ -1,8 +1,15 @@
 import Config from "../../config";
 import { generateUserID } from "../../utils/setup";
 import { callAPIWithOptions } from "../background-request-proxy";
+import type { VideoMatchContext } from "../../backends/types";
 
-export async function submitVote(type: number, UUID: string, category: string, backendId?: string) {
+export async function submitVote(
+    type: number,
+    UUID: string,
+    category: string,
+    backendId?: string,
+    videoContext?: VideoMatchContext
+) {
     let userID = Config.config.userID;
 
     if (userID == undefined || userID === "undefined") {
@@ -18,7 +25,7 @@ export async function submitVote(type: number, UUID: string, category: string, b
             "POST",
             "/api/voteOnSponsorTime?UUID=" + UUID + "&userID=" + userID + typeSection,
             {},
-            { backendId }
+            { backendId, videoContext }
         );
 
         if (response.ok) {

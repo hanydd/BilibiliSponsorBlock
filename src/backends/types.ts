@@ -79,6 +79,15 @@ export interface BackendConfigDocument {
     backends: BackendConfig[];
 }
 
+/** Runtime metadata exposed to the popup for the current video's matched backends. */
+export interface BackendInfo {
+    backendId: string;
+    name: string;
+    capabilities: BackendRequestCapability[];
+}
+
+export type BackendInfoMap = Record<string, BackendInfo>;
+
 export interface VideoMatchContext {
     bvid: string;
     title: string;

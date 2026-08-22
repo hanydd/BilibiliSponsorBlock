@@ -253,6 +253,7 @@ function sendInfoUpdatedMessage(portVideo = contentState.portVideo): void {
         found: contentState.sponsorDataFound,
         status: contentState.lastResponseStatus,
         sponsorTimes: contentState.sponsorTimes,
+        backendInfo: contentState.backendInfo,
         portVideo,
         time: getVideo()?.currentTime ?? 0,
     });
@@ -503,6 +504,7 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
     if (videoID !== getVideoID()) return;
 
     contentState.lastResponseStatus = segmentResponse?.status;
+    contentState.backendInfo = segmentResponse?.backendInfo ?? {};
 
     if (segmentResponse.status === 200) {
         let receivedSegments: SponsorTime[] = segmentResponse.segments?.filter(segment => segment.cid === cid);
@@ -837,6 +839,10 @@ export async function voteAsync(
     }
 
     const segmentBackendId = backendId ?? getBackendIdFromSegment(contentState.sponsorTimes[sponsorIndex]);
+    const videoContext = segmentBackendId ? await getVideoMatchContext() : undefined;
+    if (videoContext && !videoContext.bvid) {
+        videoContext.bvid = getBvID() ?? "";
+    }
 
     return new Promise((resolve) => {
         chrome.runtime.sendMessage(
@@ -846,6 +852,7 @@ export async function voteAsync(
                 UUID: UUID,
                 category: category,
                 backendId: segmentBackendId,
+                videoContext,
             },
             (response) => {
                 if (response.successType === 1) {

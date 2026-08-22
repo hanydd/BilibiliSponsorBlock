@@ -8,6 +8,7 @@ import { DescriptionPortPill } from "../../render/DescriptionPortPill";
 import { PlayerButton } from "../../render/PlayerButton";
 import SkipNotice from "../../render/SkipNotice";
 import { StorageChangesObject } from "../../config/config";
+import type { BackendInfoMap } from "../../backends/types";
 import { VoteResponse } from "../../messageTypes";
 import { FetchResponse } from "../../requests/type/requestType";
 import {
@@ -29,6 +30,7 @@ import { CONTENT_EVENTS } from "./events";
 export interface ContentAppState {
     sponsorDataFound: boolean;
     sponsorTimes: SponsorTime[];
+    backendInfo: BackendInfoMap;
     skipNotices: SkipNotice[];
     advanceSkipNotices: advanceSkipNotice | null;
     activeSkipKeybindElement: ToggleSkippable;
