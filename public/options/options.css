@@ -115,7 +115,7 @@ body {
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 auto;
-	gap: 20px;
+	gap: 10px;
 	min-height: 0;
 	max-height: 100%;
 	overflow-x: hidden;
@@ -1066,6 +1066,10 @@ input:checked + .slider:before {
 	font-size: 40px;
 	padding: 40px 20px;
 	text-decoration: none;
+}
+
+#title .title-text {
+	font-size: 30px;
 }
 
 .subtitle {
