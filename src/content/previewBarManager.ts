@@ -7,7 +7,6 @@ import Utils from "../utils";
 import { findValidElement } from "../utils/dom";
 import { getFormattedTime } from "../utils/formating";
 import { logUiLifecycle } from "../utils/logger";
-import { getHashParams } from "../utils/pageUtils";
 import { getVideo, getVideoID } from "../utils/video";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
@@ -132,8 +131,6 @@ export function updatePreviewBar(): void {
     if (previewBar === null) return;
     if (getVideo() === null) return;
 
-    const hashParams = getHashParams();
-    const requiredSegment = (hashParams?.requiredSegment as SegmentUUID) || undefined;
     const previewBarSegments: PreviewBarSegment[] = [];
     if (contentState.sponsorTimes) {
         contentState.sponsorTimes.forEach((segment) => {
@@ -146,8 +143,6 @@ export function updatePreviewBar(): void {
                 unsubmitted: false,
                 showLarger: segment.actionType === ActionType.Poi,
                 source: segment.source,
-                requiredSegment:
-                    requiredSegment && (segment.UUID === requiredSegment || segment.UUID?.startsWith(requiredSegment)),
                 selectedSegment: selectedSegment && segment.UUID === selectedSegment,
             });
         });

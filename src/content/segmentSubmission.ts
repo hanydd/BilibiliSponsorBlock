@@ -492,12 +492,8 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
         return;
     }
 
-    const extraRequestData: Record<string, unknown> = {};
-    const hashParams = getHashParams();
-    if (hashParams.requiredSegment) extraRequestData.requiredSegment = hashParams.requiredSegment;
-
     const hashPrefix = (await getVideoIDHash(videoID)).slice(0, 4) as BVID & HashedValue;
-    const segmentResponse = await getSegmentsByVideoID(videoID, extraRequestData, ignoreServerCache);
+    const segmentResponse = await getSegmentsByVideoID(videoID, ignoreServerCache);
 
     if (videoID !== getVideoID()) return;
 

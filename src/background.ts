@@ -208,7 +208,6 @@ function setupBackgroundRequestProxy() {
         if (request.message === "getSegments") {
             getSegmentsBackground(
                 request.videoID as NewVideoID,
-                (request.extraRequestData as Record<string, unknown>) || {},
                 Boolean(request.ignoreCache)
             )
                 .then((response) => callback({ response }))

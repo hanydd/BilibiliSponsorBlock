@@ -6,12 +6,11 @@ import { SegmentResponse } from "./type/requestType";
  */
 export async function getSegmentsByVideoID(
     videoID: NewVideoID,
-    extraRequestData: Record<string, unknown> = {},
     ignoreCache: boolean = false
 ): Promise<SegmentResponse> {
     return await new Promise<SegmentResponse>((resolve) => {
         chrome.runtime.sendMessage(
-            { message: "getSegments", videoID, extraRequestData, ignoreCache },
+            { message: "getSegments", videoID, ignoreCache },
             (response: { response?: SegmentResponse }) => resolve(response?.response ?? { segments: null, status: -1 })
         );
     });

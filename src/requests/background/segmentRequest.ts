@@ -19,7 +19,6 @@ function getEnabledActionTypes(forceFullVideo = false): ActionType[] {
 
 async function fetchSegmentsByHash(
     hashPrefix: string,
-    extraRequestData: Record<string, unknown>,
     ignoreCache: boolean
 ): Promise<FetchResponse> {
     if (ignoreCache) {
@@ -31,7 +30,7 @@ async function fetchSegmentsByHash(
         }
     }
 
-    const response = await callAPI("GET", `/api/skipSegments/${hashPrefix}`, extraRequestData, ignoreCache);
+    const response = await callAPI("GET", `/api/skipSegments/${hashPrefix}`, {}, ignoreCache);
     if (response.status == 200 || response.status == 404) {
         await segmentsCache.set(hashPrefix, response);
     }
@@ -40,7 +39,6 @@ async function fetchSegmentsByHash(
 
 export async function getSegmentsBackground(
     videoID: NewVideoID,
-    extraRequestData: Record<string, unknown> = {},
     ignoreCache: boolean = false
 ): Promise<SegmentResponse> {
     const { bvId } = parseBvidAndCidFromVideoId(videoID);
@@ -50,7 +48,7 @@ export async function getSegmentsBackground(
 
     const categories: string[] = Config.config.categorySelections.map((category) => category.name);
     const hashPrefix = (await getVideoIDHash(bvId)).slice(0, 4);
-    const response = await fetchSegmentsByHash(hashPrefix, extraRequestData, ignoreCache);
+    const response = await fetchSegmentsByHash(hashPrefix, ignoreCache);
 
     const responseSegments: SegmentResponse = { segments: null, status: response.status };
     if (!response?.ok) {
