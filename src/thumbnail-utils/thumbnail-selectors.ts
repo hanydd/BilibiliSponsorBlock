@@ -46,7 +46,7 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
     "playerListPod": {
         // 播放页播放列表，文字形式
         containerSelector: "div.video-pod",
-        thumbnailSelector: "div.pod-item",
+        thumbnailSelector: "div.pod-item.simple",
         customLinkSelector: ".pod-item.simple",
         customLinkAttribute: "data-key",
         labelAnchorSelector: "div.single-p .stats",
@@ -54,7 +54,7 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
     "playerListPodVideo": {
         // 播放页播放列表，视频图形式
         containerSelector: "div.video-pod",
-        thumbnailSelector: "div.pod-item",
+        thumbnailSelector: "div.pod-item.normal",
         customLinkSelector: ".pod-item.normal",
         customLinkAttribute: "data-key",
         labelAnchorSelector: "div.single-p img",

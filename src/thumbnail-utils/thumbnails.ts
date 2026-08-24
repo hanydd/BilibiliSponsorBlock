@@ -12,10 +12,10 @@ export async function labelThumbnails(thumbnails: HTMLElement[], containerType: 
 }
 
 const labelingThumbnails = new Set<HTMLElement>();
-const thumbnailsNeedingRerun = new WeakSet<HTMLElement>();
+const thumbnailsNeedingRerun = new WeakMap<HTMLElement, string>();
 export async function labelThumbnail(thumbnail: HTMLElement, containerType: string): Promise<HTMLElement | null> {
     if (labelingThumbnails.has(thumbnail)) {
-        thumbnailsNeedingRerun.add(thumbnail);
+        thumbnailsNeedingRerun.set(thumbnail, containerType);
         return null;
     }
     labelingThumbnails.add(thumbnail);
@@ -24,8 +24,10 @@ export async function labelThumbnail(thumbnail: HTMLElement, containerType: stri
         return await labelThumbnailProcess(thumbnail, containerType);
     } finally {
         labelingThumbnails.delete(thumbnail);
-        if (thumbnailsNeedingRerun.delete(thumbnail) && thumbnail.isConnected) {
-            void labelThumbnail(thumbnail, containerType).catch(() => undefined);
+        const rerunContainerType = thumbnailsNeedingRerun.get(thumbnail);
+        thumbnailsNeedingRerun.delete(thumbnail);
+        if (rerunContainerType && thumbnail.isConnected) {
+            void labelThumbnail(thumbnail, rerunContainerType).catch(() => undefined);
         }
     }
 }
