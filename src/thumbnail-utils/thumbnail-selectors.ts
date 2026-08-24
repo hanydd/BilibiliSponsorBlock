@@ -6,7 +6,6 @@ interface ThumbnailSelector {
     customLinkSelector?: string;
     customLinkAttribute?: string;
     labelAnchorSelector?: string;
-    waitForPageLoad?: boolean;
     inShadowRoot?: boolean;
     parentElement?: string;
 }
@@ -51,7 +50,6 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         customLinkSelector: ".pod-item.simple",
         customLinkAttribute: "data-key",
         labelAnchorSelector: "div.single-p .stats",
-        waitForPageLoad: true,
     },
     "playerListPodVideo": {
         // 播放页播放列表，视频图形式
@@ -225,10 +223,6 @@ export function getLabelAnchorSelector(containerType: string) {
         thumbnailSelectors[containerType].labelAnchorSelector ??
         "div:not(.b-img--face) > picture img:not(.bili-avatar-img), div.bili-cover-card__thumbnail > img"
     );
-}
-
-export function shouldWaitForPageLoad(containerType: string): boolean {
-    return thumbnailSelectors[containerType].waitForPageLoad ?? false;
 }
 
 export function isShadowRoot(containerType: string): boolean {

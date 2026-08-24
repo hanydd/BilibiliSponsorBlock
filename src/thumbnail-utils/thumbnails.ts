@@ -12,13 +12,22 @@ export async function labelThumbnails(thumbnails: HTMLElement[], containerType: 
 }
 
 const labelingThumbnails = new Set<HTMLElement>();
+const thumbnailsNeedingRerun = new WeakSet<HTMLElement>();
 export async function labelThumbnail(thumbnail: HTMLElement, containerType: string): Promise<HTMLElement | null> {
-    if (labelingThumbnails.has(thumbnail)) return null;
+    if (labelingThumbnails.has(thumbnail)) {
+        thumbnailsNeedingRerun.add(thumbnail);
+        return null;
+    }
     labelingThumbnails.add(thumbnail);
 
-    const label = await labelThumbnailProcess(thumbnail, containerType);
-    labelingThumbnails.delete(thumbnail);
-    return label;
+    try {
+        return await labelThumbnailProcess(thumbnail, containerType);
+    } finally {
+        labelingThumbnails.delete(thumbnail);
+        if (thumbnailsNeedingRerun.delete(thumbnail) && thumbnail.isConnected) {
+            void labelThumbnail(thumbnail, containerType).catch(() => undefined);
+        }
+    }
 }
 
 export async function labelThumbnailProcess(
@@ -58,9 +67,12 @@ export async function labelThumbnailProcess(
     const [videoID] = videoIDs;
 
     // 获取或创建缩略图标签
-    const { overlay, text } = await createOrGetThumbnail(thumbnail, containerType, videoID);
+    const thumbnailElements = await createOrGetThumbnail(thumbnail, containerType, videoID);
+    if (!thumbnailElements) return null;
+    const { overlay, text } = thumbnailElements;
 
     const category = await getVideoLabel(videoID);
+    if (!thumbnail.isConnected || thumbnail.getAttribute("data-bsb-bvid") !== videoID) return null;
     if (!category) {
         await hideThumbnailLabel(thumbnail);
         return null;
@@ -107,15 +119,15 @@ async function hideThumbnailLabel(thumbnail: HTMLElement): Promise<void> {
 }
 
 const preloadSegments = (e: MouseEvent) => {
-    const bvID = (e.target as HTMLElement).getAttribute("data-bsb-bvid") as BVID;
-    getSegmentsByVideoID((bvID + "+") as NewVideoID);
+    const bvID = (e.currentTarget as HTMLElement).getAttribute("data-bsb-bvid") as BVID | null;
+    if (bvID) getSegmentsByVideoID((bvID + "+") as NewVideoID);
 };
 
 async function createOrGetThumbnail(
     thumbnail: HTMLElement,
     containerType: string,
     videoID: BVID
-): Promise<{ overlay: HTMLElement; text: HTMLElement }> {
+): Promise<{ overlay: HTMLElement; text: HTMLElement } | null> {
     // only add evnet listener once, add preloadSegments to thumbnail when pointerenter
     if (thumbnail.getAttribute("data-bsb-bvid") != videoID) {
         thumbnail.setAttribute("data-bsb-bvid", videoID);
@@ -125,10 +137,14 @@ async function createOrGetThumbnail(
 
     const oldLabelElement = await getOldThumbnailLabel(thumbnail);
     if (oldLabelElement) {
-        return {
-            overlay: oldLabelElement as HTMLElement,
-            text: oldLabelElement.querySelector("span") as HTMLElement,
-        };
+        const oldTextElement = oldLabelElement.querySelector("span") as HTMLElement | null;
+        if (oldTextElement) {
+            return {
+                overlay: oldLabelElement as HTMLElement,
+                text: oldTextElement,
+            };
+        }
+        oldLabelElement.remove();
     }
 
     const overlay = document.createElement("div") as HTMLElement;
@@ -152,7 +168,8 @@ async function createOrGetThumbnail(
     // wait until there is an anchor point, or the label might get inserted elsewhere and break the header
     const labelAnchor =
         (await waitFor(() => thumbnail.querySelector(getLabelAnchorSelector(containerType)), 10000, 100).catch(() => null)) ??
-        thumbnail.lastChild;
+        thumbnail.lastElementChild;
+    if (!labelAnchor?.parentNode || !thumbnail.isConnected) return null;
     labelAnchor.after(overlay);
 
     return {
@@ -171,8 +188,11 @@ function createSBIconElement(): SVGSVGElement {
 }
 
 // Inserts the icon svg definition, so it can be used elsewhere
-export function insertSBIconDefinition(element: HTMLElement = document.body) {
+export function insertSBIconDefinition(element: HTMLElement | ShadowRoot = document.body) {
+    if (!element || element.querySelector("[data-bsb-icon-definition]")) return;
+
     const container = document.createElement("span");
+    container.setAttribute("data-bsb-icon-definition", "");
 
     // svg from /public/icons/PlayerStartIconSponsorBlocker.svg, with useless stuff removed
     container.innerHTML = `

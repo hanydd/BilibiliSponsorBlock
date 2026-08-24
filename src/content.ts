@@ -154,7 +154,7 @@ function init(): void {
 
     setupVideoModule();
 
-    waitFor(() => getPageLoaded(), 10000, 100).then(setupThumbnailListener);
+    setupThumbnailListener();
 
     setMessageNotice(false, getPageLoaded);
 

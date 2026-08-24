@@ -14,7 +14,7 @@
 
 ## 当前覆盖
 
-`npm run test:e2e` 当前运行 20 条稳定用例：
+`npm run test:e2e` 当前运行 24 条稳定用例：
 
 | 区域 | 覆盖的常规场景 |
 | --- | --- |
@@ -24,6 +24,7 @@
 | 视频跳过 | 赞助片段自动跳过、撤销/重做、自我推广手动跳过、全局禁用跳过、高光点前后 seek 时按钮显示/隐藏 |
 | 内容与提交 | manifest 内容脚本注入、BV/CID 识别、提交编辑器的动作类型切换 |
 | Vue hydration | hydration 前不挂载插件、Vue3 mount 信号、SSR 控件被 hydration 替换后挂载到新控件、`pageReady → playerUI → playerButtons` 顺序 |
+| 首页缩略图 | hydration 前不写入 DOM、无 Bewly 时原生标签、延迟 Shadow Root、容器替换及卡片复用恢复 |
 
 这些用例验证构建后的真实扩展包和真实 Chrome 扩展 API，不是对页面函数的直接单元调用。
 
