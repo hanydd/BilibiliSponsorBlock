@@ -1349,6 +1349,12 @@
     "dynamicAndCommentSponsorRegexPatternDescription": {
         "message": "默认正则表达式偏保守，建议根据您关注的UP主动态内容自行修改(如果您会编写正则表达式)\n例如您关注的UP主们经常发某一个产品的广告，您可以将该产品的名称添加到正则表达式中"
     },
+    "dynamicAndCommentSponsorRegexPatternKeywordNumber": {
+        "message": "当匹配到多少个关键词时才隐藏:"
+    },
+    "dynamicAndCommentSponsorRegexPatternKeywordNumberDescription": {
+        "message": "当匹配到的关键词到一定数量后才执行隐藏操作否则仅添加标签\n默认为1，即匹配到任意关键字就隐藏"
+    },
     "category_dynamicSponsor_sponsor": {
         "message": "商品链接"
     },
