@@ -14,7 +14,7 @@
 
 ## 当前覆盖
 
-`npm run test:e2e` 当前运行 24 条稳定用例：
+`npm run test:e2e` 当前运行 26 条稳定用例：
 
 | 区域 | 覆盖的常规场景 |
 | --- | --- |
@@ -24,17 +24,18 @@
 | 视频跳过 | 赞助片段自动跳过、撤销/重做、自我推广手动跳过、全局禁用跳过、高光点前后 seek 时按钮显示/隐藏 |
 | 内容与提交 | manifest 内容脚本注入、BV/CID 识别、提交编辑器的动作类型切换 |
 | Vue hydration | hydration 前不挂载插件、Vue3 mount 信号、SSR 控件被 hydration 替换后挂载到新控件、`pageReady → playerUI → playerButtons` 顺序 |
-| 首页缩略图 | hydration 前不写入 DOM、无 Bewly 时原生标签、延迟 Shadow Root、容器替换及卡片复用恢复 |
+| 缩略图标签 | hydration 前不写入 DOM、原生页面与顶部弹层、Bewly 各页面、延迟 Shadow Root、容器替换及卡片复用恢复 |
 
 这些用例验证构建后的真实扩展包和真实 Chrome 扩展 API，不是对页面函数的直接单元调用。
 
-`npm run test:e2e:real` 当前运行 4 条真实 Bilibili 冒烟用例：
+`npm run test:e2e:real` 当前运行 8 条真实 Bilibili 冒烟用例：
 
 - 检查真实页面发出 Vue mount 信号（兼容 Bilibili 灰度期间的 Vue2/Vue3），且没有走 30 秒超时 fallback。
 - 检查扩展按钮只在 `pageReady` 和播放器 UI ready 之后挂载到真实的 `.bpx-player-control-bottom-right`，并实际打开内嵌弹窗。
 - 在真实播放器上导入片段、打开提交编辑器并切换动作类型。
 - 在 `BV1hUvpewEYD` 的真实播放器上验证 34.8 秒高光标记，以及 seek 到高光之后隐藏、seek 回高光之前恢复的按钮状态。
 - 点击真实推荐视频完成同一 document 的 SPA 路由切换，验证离开时清空高光，浏览器返回时恢复高光，并且扩展控件没有重复挂载。
+- 在真实首页、视频推荐、搜索和空间页 mock videoLabel 返回，验证现网缩略图选择器、BV 提取和标签渲染。
 
 真实用例会把完整扩展生命周期保存到 `bilibili-extension-lifecycle` 或 `highlight-spa-diagnostics` 附件，方便区分 hydration、播放器未就绪、控件选择器变化和 SPA 状态覆盖。
 
