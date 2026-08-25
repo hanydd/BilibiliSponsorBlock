@@ -114,6 +114,10 @@ API文档：https://github.com/hanydd/BilibiliSponsorBlock/wiki/API
 
 详见 [CONTRIBUTING.md](CONTRIBUTING.md)
 
+## 维护者发布
+
+Chrome、Firefox 和 Edge 商店可以通过 GitHub Actions 一次提交，首次使用前需要配置商店 API 凭据。参见 [发布浏览器扩展](docs/publishing.md)。
+
 # 致谢
 
 感谢[ajayyy](https://github.com/ajayyy)创造的[SponsorBlock](https://github.com/ajayyy/SponsorBlock)给我的启发！

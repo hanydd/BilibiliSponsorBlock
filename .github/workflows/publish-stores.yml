@@ -1,0 +1,273 @@
+name: Publish extension stores
+
+run-name: Publish extension stores from ${{ github.ref_name }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      chrome:
+        description: Publish to Chrome Web Store
+        required: true
+        type: boolean
+        default: true
+      firefox:
+        description: Publish to Firefox Add-ons
+        required: true
+        type: boolean
+        default: true
+      edge:
+        description: Publish to Microsoft Edge Add-ons
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-extension-stores
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Test and package
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Copy configuration
+        run: cp config.json.example config.json
+
+      - name: Read extension version
+        id: version
+        shell: bash
+        run: |
+          version="$(node -p "require('./manifest/manifest.json').version")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Publishing extension version $version"
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Prepare artifact directory
+        run: mkdir -p artifacts
+
+      - name: Package Chrome extension
+        shell: bash
+        run: |
+          npm run clean
+          npm run build:chrome
+          npx web-ext build \
+            --source-dir dist \
+            --artifacts-dir artifacts \
+            --filename chrome-extension.zip \
+            --overwrite-dest
+
+      - name: Package Firefox extension
+        shell: bash
+        run: |
+          npm run clean
+          npm run build:firefox
+          npx web-ext build \
+            --source-dir dist \
+            --artifacts-dir artifacts \
+            --filename firefox-extension.zip \
+            --overwrite-dest
+          git archive --format=zip --output=artifacts/firefox-source.zip HEAD
+
+      - name: Package Edge extension
+        shell: bash
+        run: |
+          npm run clean
+          npm run build:edge
+          npx web-ext build \
+            --source-dir dist \
+            --artifacts-dir artifacts \
+            --filename edge-extension.zip \
+            --overwrite-dest
+
+      - name: Validate packages
+        shell: bash
+        run: |
+          expected_version="${{ steps.version.outputs.version }}"
+          for package in artifacts/chrome-extension.zip artifacts/firefox-extension.zip artifacts/edge-extension.zip; do
+            packaged_version="$(unzip -p "$package" manifest.json | node -e 'let input = ""; process.stdin.on("data", chunk => input += chunk); process.stdin.on("end", () => process.stdout.write(JSON.parse(input).version));')"
+            if [[ "$packaged_version" != "$expected_version" ]]; then
+              echo "::error file=$package::Expected version $expected_version, found $packaged_version"
+              exit 1
+            fi
+          done
+
+      - name: Create certification notes
+        shell: bash
+        run: |
+          {
+            echo "Version ${{ steps.version.outputs.version }}"
+            echo
+            echo "Source commit: $GITHUB_SHA"
+            echo
+            git log -1 --pretty=format:'%B'
+            echo
+          } > artifacts/certification-notes.txt
+
+      - name: Upload store packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-store-packages-${{ steps.version.outputs.version }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14
+
+  chrome:
+    name: Publish Chrome ${{ needs.build.outputs.version }}
+    if: ${{ inputs.chrome }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: browser-stores
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-store-packages-${{ needs.build.outputs.version }}
+          path: artifacts
+
+      - name: Check Chrome credentials
+        shell: bash
+        env:
+          WEPUB_CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
+          WEPUB_CHROME_ITEM_ID: ${{ vars.CHROME_ITEM_ID || 'eaoelafamejbnggahofapllmfhlhajdd' }}
+          WEPUB_CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          WEPUB_CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          WEPUB_CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        run: |
+          missing=0
+          for name in WEPUB_CHROME_PUBLISHER_ID WEPUB_CHROME_ITEM_ID WEPUB_CHROME_CLIENT_ID WEPUB_CHROME_CLIENT_SECRET WEPUB_CHROME_REFRESH_TOKEN; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::$name is not configured"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Install wepub
+        uses: iorate/wepub/setup@d1065b044ceec042925bddc1c8b7db6884b80c26 # v1.0.3
+
+      - name: Publish to Chrome Web Store
+        env:
+          WEPUB_CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
+          WEPUB_CHROME_ITEM_ID: ${{ vars.CHROME_ITEM_ID || 'eaoelafamejbnggahofapllmfhlhajdd' }}
+          WEPUB_CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          WEPUB_CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          WEPUB_CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        run: wepub chrome artifacts/chrome-extension.zip --publish-type default
+
+  firefox:
+    name: Publish Firefox ${{ needs.build.outputs.version }}
+    if: ${{ inputs.firefox }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: browser-stores
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-store-packages-${{ needs.build.outputs.version }}
+          path: artifacts
+
+      - name: Check Firefox credentials
+        shell: bash
+        env:
+          WEPUB_FIREFOX_ADDON_ID: ${{ vars.FIREFOX_ADDON_ID || '{f10c197e-c2a4-43b6-a982-7e186f7c63d9}' }}
+          WEPUB_FIREFOX_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
+          WEPUB_FIREFOX_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
+        run: |
+          missing=0
+          for name in WEPUB_FIREFOX_ADDON_ID WEPUB_FIREFOX_API_KEY WEPUB_FIREFOX_API_SECRET; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::$name is not configured"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Install wepub
+        uses: iorate/wepub/setup@d1065b044ceec042925bddc1c8b7db6884b80c26 # v1.0.3
+
+      - name: Publish to Firefox Add-ons
+        env:
+          WEPUB_FIREFOX_ADDON_ID: ${{ vars.FIREFOX_ADDON_ID || '{f10c197e-c2a4-43b6-a982-7e186f7c63d9}' }}
+          WEPUB_FIREFOX_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
+          WEPUB_FIREFOX_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
+        run: |
+          wepub firefox artifacts/firefox-extension.zip \
+            --channel listed \
+            --compatibility firefox,android \
+            --source artifacts/firefox-source.zip
+
+  edge:
+    name: Publish Edge ${{ needs.build.outputs.version }}
+    if: ${{ inputs.edge }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: browser-stores
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-store-packages-${{ needs.build.outputs.version }}
+          path: artifacts
+
+      - name: Check Edge credentials
+        shell: bash
+        env:
+          WEPUB_EDGE_PRODUCT_ID: ${{ vars.EDGE_PRODUCT_ID }}
+          WEPUB_EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          WEPUB_EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+        run: |
+          missing=0
+          for name in WEPUB_EDGE_PRODUCT_ID WEPUB_EDGE_CLIENT_ID WEPUB_EDGE_API_KEY; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::$name is not configured"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Install wepub
+        uses: iorate/wepub/setup@d1065b044ceec042925bddc1c8b7db6884b80c26 # v1.0.3
+
+      - name: Publish to Microsoft Edge Add-ons
+        env:
+          WEPUB_EDGE_PRODUCT_ID: ${{ vars.EDGE_PRODUCT_ID }}
+          WEPUB_EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          WEPUB_EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+        run: |
+          wepub edge artifacts/edge-extension.zip \
+            --notes-file artifacts/certification-notes.txt
