@@ -1,0 +1,4 @@
+interface:
+  display_name: "浏览器扩展发版"
+  short_description: "按仓库规范发布 GitHub Release 与三家浏览器商店"
+  default_prompt: "使用 $browser-extension-release 完成一次可验证的浏览器扩展发版。"
