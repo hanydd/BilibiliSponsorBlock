@@ -45,6 +45,13 @@ git add manifest/manifest.json
 git commit -m 'Bump Version X.Y.Z'
 ```
 
+仓库惯例是让 Release tag 直接指向这个 bump commit。为保持这个关系，通常先完成代码、CI 和文档修改，最后再创建 bump commit。需要创建 Release 时可记录其 SHA：
+
+```bash
+version='X.Y.Z'
+bump_commit="$(git rev-parse HEAD)"
+```
+
 提交前运行 `git diff --check`。如果远端 `master` 已前进，fetch 后审查新增提交并 rebase；解决冲突时同时保留远端的新行为和目标版本号。
 
 ## 本地与 GitHub CI 验证
@@ -105,14 +112,24 @@ done
 先推送版本 commit 并等待 CI 通过，再创建同名 Release：
 
 ```bash
+version='X.Y.Z'
+bump_commit="$(git rev-parse HEAD)"
 git push origin master
-gh release create X.Y.Z \
-  --target master \
-  --title X.Y.Z \
+gh release create "$version" \
+  --target "$bump_commit" \
+  --title "$version" \
   --notes-file /path/to/release-notes.md
 ```
 
 `gh release create` 会在 tag 不存在时创建同名 tag。创建前确认 tag 和 Release 均不存在；不要移动已公开 tag。
+
+创建后可以核对 tag 与 bump commit 的 SHA：
+
+```bash
+git fetch origin "tag" "$version"
+tag_commit="$(git rev-parse "$version^{commit}")"
+echo "bump=$bump_commit tag=$tag_commit"
+```
 
 发布 Release 会触发 `.github/workflows/release.yml` 的 `Upload Release Build`，该 workflow 应上传：
 
@@ -130,4 +147,4 @@ gh run list --workflow release.yml --limit 3
 gh run watch RUN_ID --exit-status
 ```
 
-最后通过 Releases API 核对正文、tag、目标 commit、附件名称和大小。若 Release 已创建但文案需要修正，使用 `gh release edit X.Y.Z --notes-file ...`；修改正文不会重新触发附件构建。
+最后通过 Releases API 核对正文、tag、目标 commit、附件名称和大小。按仓库惯例同时看一眼 tag SHA 是否等于 bump commit SHA。若 Release 已创建但文案需要修正，使用 `gh release edit X.Y.Z --notes-file ...`；修改正文不会重新触发附件构建。

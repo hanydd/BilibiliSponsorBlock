@@ -13,6 +13,8 @@ description: Release a new version of BilibiliSponsorBlock. Use when you are ask
 - 涉及商店凭据、Chrome/Firefox/Edge 提交、审核状态或失败排查时，读取 [references/store-publishing.md](references/store-publishing.md)。
 - 完整发版需要依次读取两份 reference。只做状态查询时，仅读取相关 reference。
 
+仓库发版惯例：版本 tag 应直接指向对应的 `Bump Version X.Y.Z` commit。安排提交顺序时，把普通代码、CI 和文档变更放在前面，再做 bump commit 和 tag。
+
 ## 不可破坏的约束
 
 1. 先确认工作仓库是 `BilibiliSponsorBlock`，读取 `AGENTS.md`，检查 `git status`、远端分支和最新 tag。
@@ -27,7 +29,7 @@ description: Release a new version of BilibiliSponsorBlock. Use when you are ask
 
 一次完整发版需要留下可核验结果：
 
-- `manifest/manifest.json` 是目标版本，版本 commit 已推送。
+- `manifest/manifest.json` 是目标版本，版本 commit 已推送；按仓库惯例，版本 tag 指向该 bump commit。
 - 普通 CI、单元测试和 Playwright 测试通过。
 - 同名 GitHub Release 已发布，中文说明符合历史风格。
 - Release 的 Chrome、Firefox、Edge、Safari 四个附件上传成功。
