@@ -112,7 +112,7 @@ function createAdvanceSkipNotice(
     contentState.activeSkipKeybindElement = contentState.advanceSkipNotices;
 }
 
-function applySkipButtonState(enabled: boolean, segment: SponsorTime | null, duration?: number): void {
+function applySkipButtonState(enabled: boolean, segment: SponsorTime | null): void {
     if (!enabled || !segment) {
         const skipButtonControlBar = getSkipButtonControlBar();
         skipButtonControlBar?.disable();
@@ -129,8 +129,15 @@ function applySkipButtonState(enabled: boolean, segment: SponsorTime | null, dur
             }
 
             await skipButtonControlBar.attachToPage();
-            skipButtonControlBar.enable(segment, duration);
-            skipButtonControlBar.setShowKeybindHint(Config.config.skipKeybind != null);
+            skipButtonControlBar.enable(segment);
+            if (!skipButtonControlBar.isEnabled()) {
+                if (contentState.activeSkipKeybindElement === skipButtonControlBar) {
+                    contentState.activeSkipKeybindElement = null;
+                }
+                return;
+            }
+
+            skipButtonControlBar.setShowKeybindHint(Config.config.skipToHighlightKeybind != null);
 
             contentState.activeSkipKeybindElement?.setShowKeybindHint(false);
             contentState.activeSkipKeybindElement = skipButtonControlBar;
@@ -153,7 +160,7 @@ export function registerSkipUIManager(): void {
         createSkipNotice(skippingSegments, autoSkip, unskipTime, startReskip);
     });
 
-    app.bus.on(CONTENT_EVENTS.SKIP_BUTTON_STATE_CHANGED, ({ enabled, segment, duration }) => {
-        applySkipButtonState(enabled, segment, duration);
+    app.bus.on(CONTENT_EVENTS.SKIP_BUTTON_STATE_CHANGED, ({ enabled, segment }) => {
+        applySkipButtonState(enabled, segment);
     });
 }

@@ -141,10 +141,6 @@
 	}
 }
 
-.autoHiding.sbhidden.autoHideLeft {
-	transform: translateX(-100%);
-}
-
 .sponsorSkipObject {
 	margin-left: var(--skip-notice-margin);
 	margin-right: var(--skip-notice-margin);

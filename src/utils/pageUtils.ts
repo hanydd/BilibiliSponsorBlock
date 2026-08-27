@@ -1,22 +1,17 @@
+function getPlayerControls(selector: string): HTMLElement {
+    const controls = Array.from(document.querySelectorAll<HTMLElement>(selector)).filter(
+        (element) => !isInPreviewPlayer(element)
+    );
+
+    return controls[controls.length - 1] ?? null;
+}
+
 export function getControls(): HTMLElement {
-    const controlsSelectors = [
-        // Bilibili
-        ".bpx-player-control-bottom-right",
-    ];
-
-    for (const controlsSelector of controlsSelectors) {
-        const controls = Array.from(document.querySelectorAll(controlsSelector)).filter((el) => !isInPreviewPlayer(el));
-
-        if (controls.length > 0) {
-            return <HTMLElement>controls[controls.length - 1];
-        }
-    }
-
-    return null;
+    return getPlayerControls(".bpx-player-control-bottom-right");
 }
 
 export function getLeftControls(): HTMLElement {
-    return document.querySelector(".bpx-player-control-bottom-left");
+    return getPlayerControls(".bpx-player-control-bottom-left");
 }
 
 export function getProgressBar(): HTMLElement {

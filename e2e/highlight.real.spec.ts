@@ -123,7 +123,7 @@ test.describe("@real highlight rendering on Bilibili", () => {
         await writeSyncStorage(extensionServiceWorker, {
             autoHideInfoButton: false,
             hideSkipButtonPlayerControls: false,
-            skipNoticeDuration: 60,
+            skipNoticeDuration: 1,
         });
         await routeMockSponsorSegments(extensionContext, highlightBvid, [
             {
@@ -152,6 +152,56 @@ test.describe("@real highlight rendering on Bilibili", () => {
 
         await seekVideo(extensionPage, 5);
         await expectHighlightVisible(extensionPage, sendContentMessage);
+    });
+
+    test("keeps the highlight button stable after the time control", async ({
+        extensionPage,
+        sendContentMessage,
+    }) => {
+        await waitForBilibiliContentScript(extensionPage, sendContentMessage);
+        await expectHighlightVisible(extensionPage, sendContentMessage);
+
+        const leftControls = extensionPage.locator(".bpx-player-control-bottom-left");
+        const playButton = leftControls.locator(".bpx-player-ctrl-play");
+        const timeControl = leftControls.locator(".bpx-player-ctrl-time");
+        const highlightButton = leftControls.locator(highlightButtonSelector);
+
+        await expect
+            .poll(() =>
+                highlightButton.evaluate((element) =>
+                    element.previousElementSibling?.classList.contains("bpx-player-ctrl-time")
+                )
+            )
+            .toBe(true);
+
+        const timeBox = await timeControl.boundingBox();
+        const highlightBox = await highlightButton.boundingBox();
+        expect(timeBox).not.toBeNull();
+        expect(highlightBox).not.toBeNull();
+        expect(highlightBox!.x).toBeGreaterThanOrEqual(timeBox!.x + timeBox!.width - 1);
+
+        await extensionPage.waitForTimeout(1200);
+        await expect(highlightButton).toBeVisible();
+
+        await extensionPage.mouse.move(0, 0);
+        const playButtonBeforeHover = await playButton.boundingBox();
+        await playButton.hover();
+        const playButtonAfterHover = await playButton.boundingBox();
+        expect(playButtonBeforeHover).not.toBeNull();
+        expect(playButtonAfterHover).not.toBeNull();
+        expect(playButtonAfterHover!.x).toBeCloseTo(playButtonBeforeHover!.x, 3);
+        await expect(highlightButton).toBeVisible();
+
+        await highlightButton.click();
+        await expect
+            .poll(() =>
+                extensionPage
+                    .locator("#bilibili-player video")
+                    .first()
+                    .evaluate((video: HTMLVideoElement) => video.currentTime)
+            )
+            .toBeGreaterThanOrEqual(highlightTime);
+        await expect(highlightButton).toHaveClass(/sbhidden/);
     });
 
     test("clears and restores the highlight across real SPA video routes", async ({

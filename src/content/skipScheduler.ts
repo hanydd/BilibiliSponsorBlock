@@ -113,13 +113,12 @@ function emitSkipNoticeRequested(
     );
 }
 
-function emitSkipButtonStateChanged(enabled: boolean, segment: SponsorTime | null, duration: number | undefined, source: string): void {
+function emitSkipButtonStateChanged(enabled: boolean, segment: SponsorTime | null, source: string): void {
     getContentApp().bus.emit(
         CONTENT_EVENTS.SKIP_BUTTON_STATE_CHANGED,
         {
             enabled,
             segment,
-            duration,
         },
         { source }
     );
@@ -179,6 +178,17 @@ export function registerSkipScheduler(): void {
         }
 
         startSkipScheduleCheckingForStartSponsors();
+    });
+    app.bus.on(CONTENT_EVENTS.CONFIG_CHANGED, ({ changes }) => {
+        if ("hideSkipButtonPlayerControls" in changes) {
+            updatePoiSkipButtonForCurrentTime();
+        }
+    });
+    app.bus.on(CONTENT_EVENTS.PLAYER_TIME_UPDATED, ({ time }) => {
+        const skipButtonControlBar = getContentApp().ui.getState().skipButtonControlBar;
+        if (skipButtonControlBar?.isEnabled() && skipButtonControlBar.segment?.segment[1] <= time) {
+            updatePoiSkipButtonForCurrentTime();
+        }
     });
     app.bus.on(CONTENT_EVENTS.SEGMENTS_SUBMITTING_CHANGED, ({ videoID }) => {
         if (videoID !== getVideoID() || getVideo() === null) {
@@ -981,7 +991,7 @@ export function startSkipScheduleCheckingForStartSponsors(): void {
 function updatePoiSkipButtonForCurrentTime(): void {
     const video = getVideo();
     if (!video || !contentState.sponsorTimes) {
-        emitSkipButtonStateChanged(false, null, undefined, "skipScheduler.updatePoiButton.missingState");
+        emitSkipButtonStateChanged(false, null, "skipScheduler.updatePoiButton.missingState");
         return;
     }
 
@@ -1019,7 +1029,7 @@ function updatePoiSkipButtonForCurrentTime(): void {
     }
 
     if (!manualPoiEnabled) {
-        emitSkipButtonStateChanged(false, null, undefined, "skipScheduler.updatePoiButton.noFuturePoi");
+        emitSkipButtonStateChanged(false, null, "skipScheduler.updatePoiButton.noFuturePoi");
     }
     logUiLifecycle("skipButton", "state", {
         action: "poiResult",
@@ -1136,7 +1146,7 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
     }
 
     if (!autoSkip && skippingSegments.length === 1 && skippingSegments[0].actionType === ActionType.Poi) {
-        emitSkipButtonStateChanged(true, skippingSegments[0], undefined, "skipScheduler.skipToTime.poi");
+        emitSkipButtonStateChanged(true, skippingSegments[0], "skipScheduler.skipToTime.poi");
     } else {
         if (openNotice) {
             if (!Config.config.dontShowNotice || !autoSkip) {

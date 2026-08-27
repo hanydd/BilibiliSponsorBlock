@@ -137,7 +137,10 @@ function createMockBilibiliVideoPageHtml(options: MockBilibiliPageOptions): stri
                         <div class="bpx-player-progress-schedule"></div>
                     </div>
                     <div class="bpx-player-shadow-progress-area"></div>
-                    <div class="bpx-player-control-bottom-left"></div>
+                    <div class="bpx-player-control-bottom-left">
+                        <button class="bpx-player-ctrl-btn bpx-player-ctrl-play" aria-label="播放/暂停"></button>
+                        <div class="bpx-player-ctrl-btn bpx-player-ctrl-time">00:00 / 02:00</div>
+                    </div>
                     <div class="bpx-player-control-bottom-right" data-e2e-generation="ssr">
                         <button>1</button>
                         <button>2</button>
@@ -145,7 +148,6 @@ function createMockBilibiliVideoPageHtml(options: MockBilibiliPageOptions): stri
                         <button>4</button>
                         <button>5</button>
                     </div>
-                    <div class="bpx-player-ctrl-time-label">00:00 / 02:00</div>
                 </div>
             </div>
         </div>

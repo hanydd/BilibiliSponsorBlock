@@ -29,13 +29,11 @@ function applyLoadingAnimation(element: HTMLElement, time: number, callback?: ()
 function setupCustomHideAnimation(
     element: Element,
     container: Element,
-    enabled = true,
-    rightSlide = true
+    enabled = true
 ): { hide: () => void; show: () => void } {
     if (enabled) element.classList.add("autoHiding");
     element.classList.add("sbhidden");
     element.classList.add("animationDone");
-    if (!rightSlide) element.classList.add("autoHideLeft");
 
     let mouseEntered = false;
 
@@ -58,8 +56,8 @@ function setupCustomHideAnimation(
     };
 }
 
-function setupAutoHideAnimation(element: Element, container: Element, enabled = true, rightSlide = true): void {
-    const { hide, show } = this.setupCustomHideAnimation(element, container, enabled, rightSlide);
+function setupAutoHideAnimation(element: Element, container: Element, enabled = true): void {
+    const { hide, show } = this.setupCustomHideAnimation(element, container, enabled);
 
     container.addEventListener("mouseleave", () => hide());
     container.addEventListener("mouseenter", () => show());

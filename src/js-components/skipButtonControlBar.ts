@@ -3,7 +3,6 @@ import { keybindToString } from "../config/config";
 import { waitForPlayerUiReady } from "../content/playerUi";
 import { getPageLoaded } from "../content/state";
 import { SegmentUUID, SponsorTime } from "../types";
-import { AnimationUtils } from "../utils/animationUtils";
 import { getSkippingText } from "../utils/categoryUtils";
 import { waitFor } from "../utils/index";
 import { logUiLifecycle } from "../utils/logger";
@@ -27,9 +26,6 @@ export class SkipButtonControlBar {
     showKeybindHint = true;
 
     enabled = false;
-
-    timeout: NodeJS.Timeout;
-    duration = 0;
 
     skip: (segment: SponsorTime) => void;
 
@@ -60,15 +56,11 @@ export class SkipButtonControlBar {
         // this.container.appendChild(this.textContainer);
         this.container.addEventListener("click", () => this.toggleSkip());
         this.container.addEventListener("mouseenter", () => {
-            this.stopTimer();
-
-            if (this.segment) {
+            if (this.segment && this.enabled) {
                 props.selectSegment(this.segment.UUID);
             }
         });
         this.container.addEventListener("mouseleave", () => {
-            this.startTimer();
-
             props.selectSegment(null);
         });
     }
@@ -84,7 +76,12 @@ export class SkipButtonControlBar {
         });
         await waitFor(getPageLoaded, 10000, 10);
         const { leftControls } = await waitForPlayerUiReady();
-        const mountingContainer = leftControls;
+        const timeControl = await waitFor(
+            () => leftControls.querySelector<HTMLElement>(".bpx-player-ctrl-time"),
+            10000,
+            50
+        );
+        const mountingContainer = timeControl.parentElement;
         // this.chapterText = document.querySelector(".ytp-chapter-container");
 
         document.querySelectorAll(".skipButtonControlBarContainer").forEach((container) => {
@@ -93,12 +90,11 @@ export class SkipButtonControlBar {
             }
         });
 
-        if (mountingContainer && !mountingContainer.contains(this.container)) {
-            mountingContainer.append(this.container);
-            AnimationUtils.setupAutoHideAnimation(this.skipButton, mountingContainer, false, false);
-            if (this.enabled) {
-                AnimationUtils.disableAutoHideAnimation(this.skipButton);
-            }
+        if (
+            mountingContainer &&
+            (this.container.parentElement !== mountingContainer || this.container.previousElementSibling !== timeControl)
+        ) {
+            timeControl.after(this.container);
             logUiLifecycle("skipButton", "attach", {
                 action: "mount",
                 debugId: this.debugId,
@@ -107,23 +103,26 @@ export class SkipButtonControlBar {
         }
     }
 
-    enable(segment: SponsorTime, duration?: number): void {
-        if (duration) this.duration = duration;
+    enable(segment: SponsorTime): void {
         this.segment = segment;
+
+        if (Config.config.hideSkipButtonPlayerControls) {
+            this.disable();
+            return;
+        }
+
         this.enabled = true;
 
         this.refreshText();
-        this.container?.classList?.remove("textDisabled");
         // this.textContainer?.classList?.remove("sbhidden");
-        AnimationUtils.disableAutoHideAnimation(this.skipButton);
-
-        this.startTimer();
     }
 
     refreshText(): void {
         if (this.segment) {
             // this.chapterText?.classList?.add("sbhidden");
-            this.container.classList.remove("sbhidden");
+            if (this.enabled) {
+                this.container.classList.remove("sbhidden");
+            }
             // this.textContainer.innerText = this.getTitle();
             this.skipButton.setAttribute("title", this.getTitle());
         }
@@ -133,18 +132,6 @@ export class SkipButtonControlBar {
         this.showKeybindHint = show;
 
         this.refreshText();
-    }
-
-    stopTimer(): void {
-        if (this.timeout) clearTimeout(this.timeout);
-    }
-
-    startTimer(): void {
-        this.stopTimer();
-        this.timeout = setTimeout(
-            () => this.disableText(),
-            Math.max(Config.config.skipNoticeDuration, this.duration) * 1000
-        );
     }
 
     disable(): void {
@@ -163,23 +150,7 @@ export class SkipButtonControlBar {
     toggleSkip(): void {
         if (this.segment && this.enabled) {
             this.skip(this.segment);
-            this.disableText();
         }
-    }
-
-    disableText(): void {
-        if (Config.config.hideSkipButtonPlayerControls) {
-            this.disable();
-            return;
-        }
-
-        this.container.classList.add("textDisabled");
-        // this.textContainer?.classList?.add("sbhidden");
-        // this.chapterText?.classList?.remove("sbhidden");
-
-        this.getChapterPrefix()?.classList?.add("sbhidden");
-
-        AnimationUtils.enableAutoHideAnimation(this.skipButton);
     }
 
     private getTitle(): string {
@@ -187,9 +158,5 @@ export class SkipButtonControlBar {
             getSkippingText([this.segment], false) +
             (this.showKeybindHint ? " (" + keybindToString(Config.config.skipToHighlightKeybind) + ")" : "")
         );
-    }
-
-    private getChapterPrefix(): HTMLElement {
-        return document.querySelector(".ytp-chapter-title-prefix");
     }
 }

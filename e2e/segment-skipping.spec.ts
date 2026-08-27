@@ -105,7 +105,7 @@ test("does not schedule skips when skipping is disabled", async ({
     await expect(extensionPage.locator("[id^='sponsorSkipNoticeContainer']")).toHaveCount(0);
 });
 
-test("updates a manual highlight button when seeking across the highlight", async ({
+test("keeps a manual highlight button stable and updates its availability", async ({
     extensionContext,
     extensionPage,
     extensionServiceWorker,
@@ -113,7 +113,7 @@ test("updates a manual highlight button when seeking across the highlight", asyn
 }) => {
     await writeSyncStorage(extensionServiceWorker, {
         hideSkipButtonPlayerControls: false,
-        skipNoticeDuration: 60,
+        skipNoticeDuration: 1,
     });
     await routeMockSponsorSegments(extensionContext, defaultMockBvid, [
         {
@@ -131,8 +131,33 @@ test("updates a manual highlight button when seeking across the highlight", asyn
 
     const highlightButton = extensionPage.locator(".skipButtonControlBarContainer");
     await expect(highlightButton).toBeVisible();
+    await expect
+        .poll(() =>
+            highlightButton.evaluate((element) =>
+                element.previousElementSibling?.classList.contains("bpx-player-ctrl-time")
+            )
+        )
+        .toBe(true);
 
-    await setMockVideoTime(extensionPage, 60, true);
+    await extensionPage.waitForTimeout(1200);
+    await expect(highlightButton).toBeVisible();
+
+    const playButton = extensionPage.locator(".bpx-player-control-bottom-left .bpx-player-ctrl-play");
+    const playButtonBeforeHover = await playButton.boundingBox();
+    await extensionPage.locator(".bpx-player-control-bottom-left").hover({ position: { x: 1, y: 1 } });
+    const playButtonAfterHover = await playButton.boundingBox();
+    expect(playButtonBeforeHover).not.toBeNull();
+    expect(playButtonAfterHover).not.toBeNull();
+    expect(playButtonAfterHover!.x).toBeCloseTo(playButtonBeforeHover!.x, 3);
+
+    await writeSyncStorage(extensionServiceWorker, { hideSkipButtonPlayerControls: true });
+    await expect(highlightButton).toHaveClass(/sbhidden/);
+
+    await writeSyncStorage(extensionServiceWorker, { hideSkipButtonPlayerControls: false });
+    await expect(highlightButton).toBeVisible();
+
+    await setMockVideoTime(extensionPage, 60);
+    await extensionPage.locator("#bilibili-player video").dispatchEvent("timeupdate");
     await expect(highlightButton).toHaveClass(/sbhidden/);
 
     await setMockVideoTime(extensionPage, 5, true);

@@ -115,7 +115,7 @@ export interface ContentEventMap {
         unskipTime?: number | null;
         startReskip: boolean;
     };
-    [CONTENT_EVENTS.SKIP_BUTTON_STATE_CHANGED]: { enabled: boolean; segment: SponsorTime | null; duration?: number };
+    [CONTENT_EVENTS.SKIP_BUTTON_STATE_CHANGED]: { enabled: boolean; segment: SponsorTime | null };
     [CONTENT_EVENTS.PLAYER_TIME_UPDATED]: { time: number };
     [CONTENT_EVENTS.PLAYER_VIDEO_READY]: { video: HTMLVideoElement };
     [CONTENT_EVENTS.PLAYER_DURATION_CHANGED]: { video: HTMLVideoElement };
