@@ -1,4 +1,5 @@
 import { isFirefox } from "../utils/";
+import { SERVER_ROUTER_STORAGE_KEY } from "./serverConfig";
 
 export interface SyncStorage {
     invidiousInstances: string[];
@@ -32,14 +33,20 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
     cachedLocalStorage: U | null = null;
     config: T | null = null;
     local: U | null = null;
+    readonly ready: Promise<void>;
     inDeArrow = false;
 
-    constructor(syncDefaults: T, localDefaults: U, migrateOldSyncFormats: (config: T) => void, inDeArrow = false) {
+    constructor(
+        syncDefaults: T,
+        localDefaults: U,
+        migrateOldSyncFormats: (config: T, initialSyncKeys: ReadonlySet<string>) => void,
+        inDeArrow = false
+    ) {
         this.syncDefaults = syncDefaults;
         this.localDefaults = localDefaults;
         this.inDeArrow = inDeArrow;
 
-        void this.setupConfig(migrateOldSyncFormats).then((result) => {
+        this.ready = this.setupConfig(migrateOldSyncFormats).then((result) => {
             this.config = result?.sync;
             this.local = result?.local;
         });
@@ -58,7 +65,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             } else if (areaName === "local") {
                 for (const key in changes) {
                     // skip bsb_cache
-                    if (key.startsWith("bsb_cache")) {
+                    if (key.startsWith("bsb_cache") || key === SERVER_ROUTER_STORAGE_KEY) {
                         continue;
                     }
                     this.cachedLocalStorage![key] = changes[key].newValue;
@@ -199,13 +206,16 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
         ]);
     }
 
-    async setupConfig(migrateOldSyncFormats: (config: T) => void): Promise<StorageObjects<T, U>> {
+    async setupConfig(
+        migrateOldSyncFormats: (config: T, initialSyncKeys: ReadonlySet<string>) => void
+    ): Promise<StorageObjects<T, U>> {
         if (typeof chrome === "undefined") return null as unknown as StorageObjects<T, U>;
 
         await this.fetchConfig();
+        const initialSyncKeys = new Set(Object.keys(this.cachedSyncConfig ?? {}));
         this.addDefaults();
         const result = this.configProxy();
-        migrateOldSyncFormats(result.sync);
+        migrateOldSyncFormats(result.sync, initialSyncKeys);
 
         return result;
     }

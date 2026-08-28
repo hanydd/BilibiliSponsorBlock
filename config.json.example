@@ -1,5 +1,6 @@
 {
     "serverAddress": "https://www.bsbsb.top",
+    "mirrorServerAddresses": ["https://www.bsbsb.xyz", "http://103.236.70.57:9876"],
     "testingServerAddress": "http://127.0.0.1:9876",
     "serverAddressComment": "This specifies the default SponsorBlock server to connect to",
     "categoryList": ["sponsor", "selfpromo", "exclusive_access", "interaction", "poi_highlight", "intro", "outro", "preview", "padding", "filler", "music_offtopic"],

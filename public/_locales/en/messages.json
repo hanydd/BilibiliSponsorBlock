@@ -503,6 +503,85 @@
     "customServerAddressDescription": {
         "message": "小电视空降助手的服务器地址。\n不建议更改，除非您有自己的服务器。"
     },
+    "mirrorServerAddresses": {
+        "message": "镜像站"
+    },
+    "officialMirrorServer": {
+        "message": "官方镜像"
+    },
+    "communityMirrorServer": {
+        "message": "社区镜像"
+    },
+    "expandMirrorServers": {
+        "message": "展开"
+    },
+    "collapseMirrorServers": {
+        "message": "收起"
+    },
+    "mirrorServerAddressesDescription": {
+        "message": "节点状态来自实际请求或手动检测；新增镜像时检测一次，不会定时请求 ready 接口。"
+    },
+    "serverNodeStatus": {
+        "message": "服务器连接"
+    },
+    "serverNodeStatusDescription": {
+        "message": "请求优先使用主站，必要时自动切换到可用镜像。"
+    },
+    "refreshServerStatus": {
+        "message": "刷新节点状态"
+    },
+    "checkServerStatus": {
+        "message": "检测"
+    },
+    "addAndCheckServer": {
+        "message": "添加并检测"
+    },
+    "removeServer": {
+        "message": "移除"
+    },
+    "mirrorServerAddressPlaceholder": {
+        "message": "输入镜像地址，例如 http://127.0.0.1:9876"
+    },
+    "serverNodeCount": {
+        "message": "$COUNT$ 个节点",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "serverNodeEmpty": {
+        "message": "尚未配置镜像站"
+    },
+    "serverNodePreferred": {
+        "message": "主站"
+    },
+    "serverNodeFallback": {
+        "message": "镜像"
+    },
+    "serverNodeAvailable": {
+        "message": "可用"
+    },
+    "serverNodeOpen": {
+        "message": "不可用"
+    },
+    "serverNodeRecovering": {
+        "message": "等待探活"
+    },
+    "serverNodeChecking": {
+        "message": "检测中"
+    },
+    "serverNodeUnknown": {
+        "message": "状态未知"
+    },
+    "serverNodeRetryAt": {
+        "message": "下次探活：$TIME$",
+        "placeholders": {
+            "time": {
+                "content": "$1"
+            }
+        }
+    },
     "cacheManagement": {
         "message": "缓存管理"
     },

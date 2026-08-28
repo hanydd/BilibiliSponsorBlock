@@ -6,10 +6,10 @@ import { callAPI } from "../background-request-proxy";
 import { LabelBlock } from "../type/requestType";
 import { videoLabelCache } from "./backgroundCache";
 
-async function fetchLabelBlock(prefix: string, skipServerCache: boolean): Promise<LabelBlock> {
+async function fetchLabelBlock(prefix: string, skipServerCache: boolean): Promise<LabelBlock | null> {
     const response = await callAPI("GET", `/api/videoLabels/${prefix}`, {}, skipServerCache);
 
-    if (!response.ok || response.status !== 200) return {} as LabelBlock;
+    if (!response.ok || response.status !== 200) return null;
 
     const data = JSON.parse(response.responseText) as Array<{ videoID: BVID; segments: Array<{ category: Category }> }>;
     const block: LabelBlock = Object.fromEntries(
@@ -23,8 +23,11 @@ async function getOrFetchLabelBlock(prefix: string, refreshCache: boolean): Prom
     if (cached && !refreshCache) return cached;
 
     const block = await fetchLabelBlock(prefix, refreshCache);
-    await videoLabelCache.set(prefix, block);
-    return block;
+    if (block) {
+        await videoLabelCache.set(prefix, block);
+        return block;
+    }
+    return {} as LabelBlock;
 }
 
 function isCategoryEnabled(category: Category): boolean {
