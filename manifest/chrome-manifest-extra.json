@@ -9,7 +9,10 @@
   ],
   "host_permissions": [
     "https://*.bilibili.com/*",
-    "http://*.bsbsb.top/*"
+    "http://*.bsbsb.top/*",
+    "https://*.bsbsb.top/*",
+    "https://www.bsbsb.xyz/*",
+    "http://103.236.70.57/*"
   ],
   "optional_host_permissions": [
     "*://*/*"

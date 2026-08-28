@@ -99,6 +99,267 @@ test("edits and persists a player keyboard shortcut", async ({
     await expect(extensionPage.locator("[data-sync='startSponsorKeybind'] .keyBase")).toHaveText("K");
 });
 
+test("shows mirror servers as individual rows and removes one", async ({
+    extensionId,
+    extensionPage,
+    extensionServiceWorker,
+}) => {
+    await writeSyncStorage(extensionServiceWorker, {
+        mirrorServerAddresses: [
+            "https://www.bsbsb.xyz",
+            "http://103.236.70.57:9876",
+            "http://mirror-community.test:9876/",
+        ],
+    });
+    await openOptions(extensionPage, extensionId, "#advanced");
+
+    const settings = extensionPage.locator(".server-settings");
+    const mirrorContent = settings.locator("#serverMirrorContent");
+    const mirrorToggle = settings.locator("#serverMirrorToggle");
+    await expect(settings).toBeVisible();
+    await expect(mirrorContent).toBeHidden();
+    await expect(mirrorToggle.locator(".server-mirror-caret")).toHaveText("▶");
+    await mirrorToggle.click();
+    await expect(mirrorContent).toBeVisible();
+    await expect(mirrorToggle.locator(".server-mirror-caret")).toHaveText("▼");
+    const actionRightEdges = await Promise.all([
+        settings.locator(".server-primary-row .text-change-reset").evaluate((element) => element.getBoundingClientRect().right),
+        settings.locator(".server-list-reset").evaluate((element) => element.getBoundingClientRect().right),
+        settings.locator(".server-node-row").first().locator("[data-server-action='remove']").evaluate(
+            (element) => element.getBoundingClientRect().right
+        ),
+    ]);
+    expect(Math.max(...actionRightEdges) - Math.min(...actionRightEdges)).toBeLessThanOrEqual(1);
+    await expect(settings.locator("textarea")).toHaveCount(0);
+    await expect(settings.locator(".server-node-row")).toHaveCount(3);
+    await expect(settings.locator("#serverNodeCount")).toContainText("3");
+    await expect(settings.locator(".server-node-badge.official")).toHaveCount(2);
+    await expect(settings.locator(".server-node-badge.community")).toHaveCount(1);
+
+    const communityMirror = settings.locator(".server-node-row").filter({ hasText: "mirror-community.test" });
+    await communityMirror.locator("[data-server-action='remove']").click();
+
+    await expectSyncStorage(extensionServiceWorker, "mirrorServerAddresses", [
+        "https://www.bsbsb.xyz",
+        "http://103.236.70.57:9876",
+    ]);
+    await expect(settings.locator(".server-node-row")).toHaveCount(2);
+});
+
+test("checks an edited primary server before saving it", async ({
+    extensionContext,
+    extensionId,
+    extensionPage,
+    extensionServiceWorker,
+}) => {
+    await openOptions(extensionPage, extensionId, "#advanced");
+
+    const primaryRow = extensionPage.locator("#primaryServerRow");
+    const input = primaryRow.locator(".server-address-input");
+    const checkButton = primaryRow.locator("#refreshPrimaryServerStatus");
+    const saveButton = primaryRow.locator(".text-change-set");
+    const health = primaryRow.locator("#primaryServerHealth");
+    const currentAddress = (await input.inputValue()).replace(/\/+$/, "");
+    const draftAddress = `${currentAddress}/draft`;
+    let readyRequests = 0;
+
+    await extensionContext.route(`${draftAddress}/api/ready`, async (route) => {
+        readyRequests += 1;
+        await route.fulfill({ status: 200, body: "OK" });
+    });
+
+    await expect(saveButton).toBeDisabled();
+    await input.fill(`${draftAddress}/`);
+    await expect(saveButton).toBeEnabled();
+    await expect(health).toHaveText("状态未知");
+    await expect(primaryRow).not.toHaveClass(/available/);
+
+    await checkButton.click();
+
+    await expect(health).toHaveText("可用");
+    await expect(primaryRow).toHaveCSS("border-left-color", "rgb(82, 199, 122)");
+    await expect(primaryRow).toHaveCSS("border-image-source", "none");
+    await expect(input).toHaveValue(draftAddress);
+    expect(readyRequests).toBe(1);
+    expect(await readSyncStorage<string>(extensionServiceWorker, "serverAddress")).not.toBe(draftAddress);
+
+    await saveButton.click();
+    await expectSyncStorage(extensionServiceWorker, "serverAddress", draftAddress);
+    await expectSyncStorage(extensionServiceWorker, "mirrorServerAddresses", []);
+    await expect(saveButton).toBeDisabled();
+});
+
+test("updates the primary server state bar while checking", async ({
+    extensionContext,
+    extensionId,
+    extensionPage,
+}) => {
+    await openOptions(extensionPage, extensionId, "#advanced");
+
+    const primaryRow = extensionPage.locator("#primaryServerRow");
+    const health = primaryRow.locator("#primaryServerHealth");
+    const address = (await primaryRow.locator(".server-address-input").inputValue()).replace(/\/+$/, "");
+    let releaseReadyRequest: () => void;
+    const readyRequestGate = new Promise<void>((resolve) => {
+        releaseReadyRequest = resolve;
+    });
+
+    await expect(primaryRow).toHaveCSS("border-left-color", "rgb(82, 199, 122)");
+    await extensionContext.unroute("https://www.bsbsb.top/**");
+    await extensionContext.route(`${address}/api/ready`, async (route) => {
+        await readyRequestGate;
+        await route.fulfill({ status: 503, body: "Unavailable" });
+    });
+
+    await primaryRow.locator("#refreshPrimaryServerStatus").click();
+    await expect(health).toHaveText("检测中");
+    await expect(primaryRow).toHaveCSS("border-left-color", "rgb(214, 168, 75)");
+    await expect(primaryRow).toHaveCSS("border-image-source", "none");
+
+    releaseReadyRequest();
+    await expect(health).toHaveText("不可用");
+    await expect(primaryRow).toHaveCSS("border-left-color", "rgb(224, 108, 117)");
+    await expect(primaryRow).toHaveCSS("border-image-source", "none");
+});
+
+test("highlights the active node without a current-node marker", async ({ extensionId, extensionPage }) => {
+    await openOptions(extensionPage, extensionId, "#advanced");
+    await expect(extensionPage.locator("#primaryServerRow")).toHaveClass(/active/);
+    await expect(extensionPage.locator(".server-current-node")).toHaveCount(0);
+});
+
+test("updates node status when a background request opens the circuit", async ({
+    extensionContext,
+    extensionId,
+    extensionPage,
+}) => {
+    await openOptions(extensionPage, extensionId, "#advanced");
+
+    const primaryRow = extensionPage.locator("#primaryServerRow");
+    await expect(primaryRow.locator("#primaryServerHealth")).toHaveText("可用");
+
+    const endpoint = "/api/voteOnSponsorTime";
+    await extensionContext.unroute("https://www.bsbsb.top/**");
+    await extensionContext.route(`https://www.bsbsb.top${endpoint}`, async (route) => {
+        await route.fulfill({ status: 503, body: "Unavailable" });
+    });
+
+    const response = await extensionPage.evaluate(
+        (requestEndpoint) =>
+            new Promise<{ status: number }>((resolve) => {
+                chrome.runtime.sendMessage(
+                    {
+                        message: "sendRequest",
+                        type: "POST",
+                        endpoint: requestEndpoint,
+                        data: { UUID: "test" },
+                        headers: {},
+                    },
+                    resolve
+                );
+            }),
+        endpoint
+    );
+    expect(response.status).toBe(503);
+
+    await expect(primaryRow.locator("#primaryServerHealth")).toHaveText("不可用");
+    await expect(primaryRow).toHaveCSS("border-left-color", "rgb(224, 108, 117)");
+    await expect(primaryRow).not.toHaveClass(/active/);
+
+    await extensionPage.locator("#serverMirrorToggle").click();
+    await expect(
+        extensionPage.locator(".server-node-row").filter({ hasText: "https://www.bsbsb.xyz" })
+    ).toHaveClass(/active/);
+});
+
+test("uses a later mirror when earlier nodes fail a hash request", async ({
+    extensionContext,
+    extensionId,
+    extensionPage,
+}) => {
+    await openOptions(extensionPage, extensionId, "#advanced");
+
+    const endpoint = "/api/skipSegments/abcd";
+    const requestedAddresses: string[] = [];
+    const responses = [
+        ["https://www.bsbsb.top", 503, "Unavailable"],
+        ["https://www.bsbsb.xyz", 503, "Unavailable"],
+        ["http://103.236.70.57:9876", 200, "[]"],
+    ] as const;
+
+    await extensionContext.unroute("https://www.bsbsb.top/**");
+    for (const [address, status, body] of responses) {
+        await extensionContext.route(`${address}${endpoint}`, async (route) => {
+            requestedAddresses.push(address);
+            await route.fulfill({ status, contentType: "application/json", body });
+        });
+    }
+
+    const response = await extensionPage.evaluate(
+        (requestEndpoint) =>
+            new Promise<{ status: number }>((resolve) => {
+                chrome.runtime.sendMessage(
+                    {
+                        message: "sendRequest",
+                        type: "GET",
+                        endpoint: requestEndpoint,
+                        data: {},
+                        headers: {},
+                    },
+                    resolve
+                );
+            }),
+        endpoint
+    );
+
+    expect(response.status).toBe(200);
+    expect(requestedAddresses).toEqual(responses.map(([address]) => address));
+
+    await extensionPage.locator("#serverMirrorToggle").click();
+    await expect(
+        extensionPage.locator(".server-node-row").filter({ hasText: "103.236.70.57:9876" })
+    ).toHaveClass(/active/);
+});
+
+test("retries a safe read on only one mirror", async ({ extensionContext, extensionId, extensionPage }) => {
+    await openOptions(extensionPage, extensionId, "#advanced");
+
+    const endpoint = "/api/chapterNames";
+    const requestedAddresses: string[] = [];
+    const responses = [
+        ["https://www.bsbsb.top", 503],
+        ["https://www.bsbsb.xyz", 200],
+    ] as const;
+
+    await extensionContext.unroute("https://www.bsbsb.top/**");
+    for (const [address, status] of responses) {
+        await extensionContext.route(`${address}${endpoint}**`, async (route) => {
+            requestedAddresses.push(address);
+            await route.fulfill({ status, contentType: "application/json", body: "[]" });
+        });
+    }
+
+    const response = await extensionPage.evaluate(
+        (requestEndpoint) =>
+            new Promise<{ status: number }>((resolve) => {
+                chrome.runtime.sendMessage(
+                    {
+                        message: "sendRequest",
+                        type: "GET",
+                        endpoint: requestEndpoint,
+                        data: { description: "test", channelID: "1" },
+                        headers: {},
+                    },
+                    resolve
+                );
+            }),
+        endpoint
+    );
+
+    expect(response.status).toBe(200);
+    expect(requestedAddresses).toEqual(responses.map(([address]) => address));
+});
+
 test("removes individual channels and clears the whitelist", async ({
     extensionId,
     extensionPage,

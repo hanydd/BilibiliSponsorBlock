@@ -1,5 +1,3 @@
-import * as CompileConfig from "../../config.json";
-import Config from "../config";
 import { FetchResponse } from "./type/requestType";
 
 /**
@@ -9,10 +7,10 @@ import { FetchResponse } from "./type/requestType";
  * @param address The address to add to the SponsorBlock server address
  * @param callback
  */
-function asyncRequestToCustomServer(type: string, url: string, data = {}, headers = {}): Promise<FetchResponse> {
+function asyncRequestToCustomServer(type: string, endpoint: string, data = {}, headers = {}): Promise<FetchResponse> {
     return new Promise((resolve, reject) => {
         // Ask the background script to do the work
-        chrome.runtime.sendMessage({ message: "sendRequest", type, url, data, headers }, (response) => {
+        chrome.runtime.sendMessage({ message: "sendRequest", type, endpoint, data, headers }, (response) => {
             if (response.status !== -1) {
                 resolve(response);
             } else {
@@ -36,10 +34,6 @@ export async function asyncRequestToServer(
     ignoreServerCache = false,
     customHeaders = {}
 ): Promise<FetchResponse> {
-    const serverAddress = Config.config.testingServer
-        ? CompileConfig.testingServerAddress
-        : Config.config.serverAddress;
-
     // Only add cache-related headers when explicitly skipping cache to avoid CORS preflight
     const headers = ignoreServerCache
         ? {
@@ -48,7 +42,7 @@ export async function asyncRequestToServer(
           }
         : customHeaders;
 
-    return await asyncRequestToCustomServer(type, serverAddress + address, data, headers);
+    return await asyncRequestToCustomServer(type, address, data, headers);
 }
 
 /**
@@ -59,16 +53,12 @@ export async function asyncRequestToServer(
  * @param callback
  */
 export function sendRequestToServer(type: string, address: string, callback?: (response: FetchResponse) => void): void {
-    const serverAddress = Config.config.testingServer
-        ? CompileConfig.testingServerAddress
-        : Config.config.serverAddress;
-
     // Ask the background script to do the work
     chrome.runtime.sendMessage(
         {
             message: "sendRequest",
             type,
-            url: serverAddress + address,
+            endpoint: address,
         },
         (response) => {
             callback(response);

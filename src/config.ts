@@ -15,6 +15,7 @@ import {
     WhitelistedChannel,
 } from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
+import { getMigratedMirrorServerAddresses } from "./config/serverConfig";
 import { HashedValue } from "./utils/hash";
 
 export interface Permission {
@@ -59,6 +60,7 @@ interface SBConfig {
     hideDiscordLink: boolean;
     invidiousInstances: string[];
     serverAddress: string;
+    mirrorServerAddresses: string[];
     minDuration: number;
     skipNoticeDuration: number;
     skipNoticeDurationBefore: number;
@@ -205,7 +207,7 @@ class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
     }
 }
 
-function migrateOldSyncFormats(config: SBConfig) {
+function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<string>) {
     // Unbind key if it matches a previous one set by the user (should be ordered oldest to newest)
     const keybinds = ["skipKeybind", "startSponsorKeybind", "submitKeybind"];
     for (let i = keybinds.length - 1; i >= 0; i--) {
@@ -223,6 +225,15 @@ function migrateOldSyncFormats(config: SBConfig) {
     // move back to the server endpoint v0.8.2
     if (config["serverAddress"].includes("115.190.32.254")) {
         config["serverAddress"] = CompileConfig.serverAddress;
+    }
+
+    const migratedMirrorServerAddresses = getMigratedMirrorServerAddresses(
+        config["serverAddress"],
+        config["mirrorServerAddresses"],
+        initialSyncKeys.has("mirrorServerAddresses")
+    );
+    if (migratedMirrorServerAddresses !== config["mirrorServerAddresses"]) {
+        config["mirrorServerAddresses"] = migratedMirrorServerAddresses;
     }
 
     // "danmakuRegexPattern" 在 0.6.0 版本中被移除，
@@ -327,6 +338,7 @@ const syncDefaults = {
     hideDiscordLink: false,
     invidiousInstances: ["invidious.snopyta.org"], // leave as default
     serverAddress: CompileConfig.serverAddress,
+    mirrorServerAddresses: CompileConfig.mirrorServerAddresses,
     minDuration: 0,
     skipNoticeDuration: 4,
     skipNoticeDurationBefore: 3,

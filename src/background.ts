@@ -1,6 +1,6 @@
 import "content-scripts-register-polyfill";
 import Config from "./config";
-import { sendRealRequestToCustomServer } from "./requests/background-request-proxy";
+import { callAPI, serverRouter } from "./requests/background-request-proxy";
 import { clearAllCacheBackground, segmentsCache, videoLabelCache } from "./requests/background/backgroundCache";
 import { getSegmentsBackground } from "./requests/background/segmentRequest";
 import { getVideoLabelBackground } from "./requests/background/videoLabelRequest";
@@ -180,7 +180,7 @@ async function unregisterFirefoxContentScript(id: string) {
 function setupBackgroundRequestProxy() {
     chrome.runtime.onMessage.addListener((request, sender, callback) => {
         if (request.message === "sendRequest") {
-            sendRealRequestToCustomServer(request.type, request.url, request.data, request.headers)
+            callAPI(request.type, request.endpoint, request.data, false, request.headers)
                 .then(callback)
                 .catch(() => {
                     callback({ responseText: "", status: -1, ok: false });
@@ -194,6 +194,30 @@ function setupBackgroundRequestProxy() {
                 .catch((e) => {
                     callback({ error: e?.message });
                 });
+            return true;
+        }
+
+        if (request.message === "getServerStatus") {
+            serverRouter
+                .getStatus()
+                .then(callback)
+                .catch(() => callback({ activeAddress: "", nodes: [] }));
+            return true;
+        }
+
+        if (request.message === "probeServerNode") {
+            serverRouter
+                .probe(request.address)
+                .then(callback)
+                .catch(() => callback({ activeAddress: "", nodes: [] }));
+            return true;
+        }
+
+        if (request.message === "checkServerAddress") {
+            serverRouter
+                .checkAddress(request.address)
+                .then(callback)
+                .catch(() => callback({ address: request.address, healthState: "open" }));
             return true;
         }
 
