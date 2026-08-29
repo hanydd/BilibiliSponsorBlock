@@ -105,18 +105,6 @@ select {
 }
 
 /*
- * Container when popup displayed in-page (content.ts)
- */
-#sponsorBlockPopupContainer {
-	position: relative;
-	margin-bottom: 16px;
-}
-
-#sponsorBlockPopupContainer iframe {
-	width: 100%;
-}
-
-/*
  * Disable popup max height when displayed in-page (content.ts)
  */
 #sponsorBlockPopupContainer #sponsorBlockPopupHTML {

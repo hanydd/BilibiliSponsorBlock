@@ -28,6 +28,28 @@ test("opens and closes the embedded popup from the player info button", async ({
     await expect(extensionPage.locator("#infoButton")).toBeVisible();
 });
 
+test("fits the embedded popup within a narrow sidebar", async ({ extensionPage }) => {
+    await extensionPage.locator("#danmukuBox").evaluate((element) => {
+        (element as HTMLElement).style.width = "320px";
+    });
+
+    const popup = await openEmbeddedPopup(extensionPage);
+    const popupContainer = extensionPage.locator("#sponsorBlockPopupContainer");
+    const frame = popupContainer.locator("iframe");
+
+    await expect
+        .poll(() =>
+            frame.evaluate((iframe) => ({
+                containerWidth: iframe.parentElement.clientWidth,
+                frameWidth: iframe.offsetWidth,
+            }))
+        )
+        .toEqual({ containerWidth: 320, frameWidth: 320 });
+    await expect
+        .poll(() => popup.locator("html").evaluate((html) => html.scrollWidth === html.clientWidth))
+        .toBe(true);
+});
+
 test("toggles skipping from the popup and persists the setting", async ({
     extensionPage,
     extensionServiceWorker,

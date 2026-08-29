@@ -9,6 +9,16 @@
 	--sb-brand-blue-rgb: 0, 174, 236;
 }
 
+#sponsorBlockPopupContainer {
+	position: relative;
+	margin-bottom: 16px;
+}
+
+#sponsorBlockPopupContainer iframe {
+	box-sizing: border-box;
+	width: 100%;
+}
+
 .sbhidden {
 	display: none;
 }
