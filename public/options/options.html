@@ -274,6 +274,33 @@
 					<div class="small-description">__MSG_whatForceChannelCheck__</div>
 				</div>
 
+				<div data-type="toggle" data-sync="enableSpeedUp">
+					<div class="switch-container">
+						<label class="switch">
+							<input id="enableSpeedUp" type="checkbox" />
+							<span class="slider round"></span>
+						</label>
+						<label class="switch-label" for="enableSpeedUp"> __MSG_enableSpeedUp__ </label>
+					</div>
+
+					<div class="small-description">__MSG_whatEnableSpeedUp__</div>
+
+					<div data-type="selector" data-sync="speedUpPlaybackRate" data-dependent-on="enableSpeedUp">
+						<br />
+						<label class="optionLabel" for="speedUpPlaybackRate">__MSG_speedUpPlaybackRate__:</label>
+						<select id="speedUpPlaybackRate" class="selector-element optionsSelector">
+							<option value="2">2x</option>
+							<option value="3">3x</option>
+							<option value="4">4x</option>
+							<option value="6">6x</option>
+							<option value="8">8x</option>
+							<option value="16">16x</option>
+						</select>
+
+						<div class="small-description">__MSG_speedUpPlaybackRateDescription__</div>
+					</div>
+				</div>
+
 				<div data-type="toggle" data-sync="showCategoryWithoutPermission">
 					<div class="switch-container">
 						<label class="switch">
