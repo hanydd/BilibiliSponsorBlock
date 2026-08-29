@@ -2,6 +2,9 @@ import type { Page, Worker } from "@playwright/test";
 import { expect, test } from "./fixtures/extension";
 import { readSyncStorage, writeSyncStorage } from "./support/extensionStorage";
 
+// Health-check UI tests should not open Chrome's optional host-permission prompt.
+const permittedTestServerAddress = "http://server-e2e.bsbsb.top";
+
 async function openOptions(page: Page, extensionId: string, hash = ""): Promise<void> {
     await page.goto(`chrome-extension://${extensionId}/options/options.html${hash}`);
     await expect(page.locator("#options-container")).toBeVisible();
@@ -159,8 +162,7 @@ test("checks an edited primary server before saving it", async ({
     const checkButton = primaryRow.locator("#refreshPrimaryServerStatus");
     const saveButton = primaryRow.locator(".text-change-set");
     const health = primaryRow.locator("#primaryServerHealth");
-    const currentAddress = (await input.inputValue()).replace(/\/+$/, "");
-    const draftAddress = `${currentAddress}/draft`;
+    const draftAddress = `${permittedTestServerAddress}/draft`;
     let readyRequests = 0;
 
     await extensionContext.route(`${draftAddress}/api/ready`, async (route) => {
@@ -193,19 +195,23 @@ test("updates the primary server state bar while checking", async ({
     extensionContext,
     extensionId,
     extensionPage,
+    extensionServiceWorker,
 }) => {
+    const address = permittedTestServerAddress;
+    await writeSyncStorage(extensionServiceWorker, {
+        serverAddress: address,
+        mirrorServerAddresses: [],
+    });
     await openOptions(extensionPage, extensionId, "#advanced");
 
     const primaryRow = extensionPage.locator("#primaryServerRow");
     const health = primaryRow.locator("#primaryServerHealth");
-    const address = (await primaryRow.locator(".server-address-input").inputValue()).replace(/\/+$/, "");
     let releaseReadyRequest: () => void;
     const readyRequestGate = new Promise<void>((resolve) => {
         releaseReadyRequest = resolve;
     });
 
     await expect(primaryRow).toHaveCSS("border-left-color", "rgb(82, 199, 122)");
-    await extensionContext.unroute("https://www.bsbsb.top/**");
     await extensionContext.route(`${address}/api/ready`, async (route) => {
         await readyRequestGate;
         await route.fulfill({ status: 503, body: "Unavailable" });
