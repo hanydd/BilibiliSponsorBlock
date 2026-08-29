@@ -59,6 +59,19 @@
             ],
             "mirrors": [],
             "conflicts": []
+        },
+        {
+            "id": "fastcap",
+            "name": "FastCap Show",
+            "desc": "提供非官方番剧视频无关片段跳过功能",
+            "api_url": "https://fastcap.rinne.in",
+            "enabled": true,
+            "capabilities": [
+                "GET /api/skipSegments",
+                "GET /api/skipSegments/:sha256HashPrefix"
+            ],
+            "mirrors": [],
+            "conflicts": []
         }
     ]
 }
