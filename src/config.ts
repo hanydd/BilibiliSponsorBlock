@@ -132,14 +132,6 @@ interface SBConfig {
     // What categories should be skipped
     categorySelections: CategorySelection[];
 
-    payments: {
-        licenseKey: string;
-        lastCheck: number;
-        lastFreeCheck: number;
-        freeAccess: boolean;
-        chaptersAllowed: boolean;
-    };
-
     // Preview bar
     barTypes: {
         "preview-chooseACategory": PreviewBarOption;
@@ -458,14 +450,6 @@ const syncDefaults = {
             option: CategorySkipOption.ShowOverlay,
         },
     ],
-
-    payments: {
-        licenseKey: null,
-        lastCheck: 0,
-        lastFreeCheck: 0,
-        freeAccess: false,
-        chaptersAllowed: false,
-    },
 
     colorPalette: {
         red: "#780303",
