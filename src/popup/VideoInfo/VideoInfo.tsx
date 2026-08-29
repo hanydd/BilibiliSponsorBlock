@@ -6,6 +6,7 @@ import Config from "../../config";
 import { Message, RefreshSegmentsResponse } from "../../messageTypes";
 import { SponsorTime } from "../../types";
 import { exportTimes } from "../../utils/exporter";
+import { assetUrl } from "../assetUrl";
 import PopupSegment from "./PopupSegment";
 
 const BUTTON_REFRESH_DURATION = 349;
@@ -172,14 +173,14 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
                                 title={chrome.i18n.getMessage("importSegments")}
                                 onClick={this.toggleImportInput.bind(this)}
                             >
-                                <img src="/icons/import.svg" alt="Import icon" />
+                                <img src={assetUrl("/icons/import.svg")} alt="Import icon" />
                             </button>
                             {this.showExport() && (
                                 <button
                                     title={chrome.i18n.getMessage("exportSegments")}
                                     onClick={this.exportSegments.bind(this)}
                                 >
-                                    <img src="/icons/export.svg" alt="Export icon" />
+                                    <img src={assetUrl("/icons/export.svg")} alt="Export icon" />
                                 </button>
                             )}
                         </div>

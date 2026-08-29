@@ -26,7 +26,7 @@ import {
     YTID,
 } from "../types";
 import Utils from "../utils";
-import { waitFor } from "../utils/";
+import { isSafari, waitFor } from "../utils/";
 import { AnimationUtils } from "../utils/animationUtils";
 import { defaultPreviewTime } from "../utils/constants";
 import { durationEquals } from "../utils/duraionUtils";
@@ -40,17 +40,22 @@ import { generateUserID } from "../utils/setup";
 import { getBvID, getCid, getVideo, getVideoID, waitForVideo } from "../utils/video";
 import { parseBvidAndCidFromVideoId } from "../utils/videoIdUtils";
 import { openWarningDialog } from "../utils/warnings";
+import { handleContentMessage } from "./messageHandler";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
 import { seekFrameByKeyPressListener } from "./hotkeyHandler";
 import { waitForPlayerUiReady } from "./playerUi";
 import { getSkipNoticeContentContainer } from "./skipNoticeContentContainer";
 import { contentState, syncContentStateStore } from "./state";
+import * as React from "react";
+import { createRoot, Root } from "react-dom/client";
 
 const utils = new Utils();
 
 let lookupWaiting = false;
 let loadedPreloadedSegment = false;
+let safariPopupRoot: Root = null;
+
 function getUIState() {
     return getContentApp().ui.getState();
 }
@@ -702,6 +707,47 @@ export function openInfoMenu(): void {
     const popup = document.createElement("div");
     popup.id = "sponsorBlockPopupContainer";
 
+    if (isSafari()) {
+        setupSafariPopupHost(popup);
+        const shadowRoot = popup.attachShadow({ mode: "open" });
+        appendSafariPopupShadowStyles(shadowRoot);
+
+        const popupHtml = document.createElement("div");
+        popupHtml.id = "sponsorBlockPopupHTML";
+
+        const popupBody = document.createElement("div");
+        popupBody.id = "sponsorBlockPopupBody";
+
+        const rootElement = document.createElement("div");
+        popupBody.appendChild(rootElement);
+        popupHtml.appendChild(popupBody);
+        shadowRoot.appendChild(popupHtml);
+
+        const container = document.querySelector("#danmukuBox") as HTMLElement;
+        container.prepend(popup);
+
+        void import("../popup/app").then(({ default: App }) => {
+            if (!document.getElementById("sponsorBlockPopupContainer")) {
+                return;
+            }
+
+            safariPopupRoot = createRoot(rootElement);
+            safariPopupRoot.render(
+                React.createElement(App, {
+                    embedded: true,
+                    styleContainer: shadowRoot,
+                    keyboardEventTarget: shadowRoot,
+                    messageListener: (request, sender, sendResponse) =>
+                        handleContentMessage(request, sender, sendResponse),
+                })
+            );
+            setTimeout(() => {
+                shadowRoot.getElementById("sponsorblockPopup")?.classList.remove("sb-preload");
+            }, 10);
+        });
+        return;
+    }
+
     const frame = document.createElement("iframe");
     frame.width = "374";
     frame.height = "500";
@@ -732,10 +778,64 @@ export function closeInfoMenu(): void {
     const popup = document.getElementById("sponsorBlockPopupContainer");
     if (popup === null) return;
 
+    safariPopupRoot?.unmount();
+    safariPopupRoot = null;
+
     popup.remove();
 
     window.dispatchEvent(new Event("closePopupMenu"));
     getContentApp().bus.emit(CONTENT_EVENTS.UI_POPUP_CLOSED, {}, { source: "segmentSubmission.closeInfoMenu" });
+}
+
+function setupSafariPopupHost(popup: HTMLElement): void {
+    popup.style.position = "relative";
+    popup.style.width = "374px";
+    popup.style.maxWidth = "100%";
+    popup.style.margin = "0 auto 16px";
+    popup.style.overflow = "hidden";
+    popup.style.borderRadius = "6px";
+    popup.style.backgroundColor = "#222";
+}
+
+function appendSafariPopupShadowStyles(shadowRoot: ShadowRoot): void {
+    const variables = document.createElement("style");
+    variables.textContent = `
+        :host,
+        #sponsorBlockPopupBody {
+            --sb-main-font-family: PingFang SC, HarmonyOS_Regular, Helvetica Neue, Microsoft YaHei, sans-serif;
+            --sb-main-bg-color: #222;
+            --sb-main-fg-color: #fff;
+            --sb-grey-bg-color: #333;
+            --sb-grey-fg-color: #999;
+            --sb-red-bg-color: #00a1d6;
+            color-scheme: dark;
+        }
+
+        #sponsorBlockPopupHTML {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        #sponsorBlockPopupBody {
+            position: relative;
+            width: 100%;
+        }
+    `;
+    shadowRoot.appendChild(variables);
+
+    for (const href of ["popup.css", "shared.css"]) {
+        const styleSheet = document.createElement("link");
+        styleSheet.rel = "stylesheet";
+        styleSheet.href = chrome.runtime.getURL(href);
+        shadowRoot.appendChild(styleSheet);
+    }
+
+    const stylusStyle = document.querySelector(".stylus");
+    if (stylusStyle?.textContent) {
+        const style = document.createElement("style");
+        style.textContent = stylusStyle.textContent;
+        shadowRoot.appendChild(style);
+    }
 }
 
 export function clearSponsorTimes(): void {
