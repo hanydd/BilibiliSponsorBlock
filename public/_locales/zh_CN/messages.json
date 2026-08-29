@@ -985,6 +985,18 @@
     "forceChannelCheckPopup": {
         "message": "请考虑启用“跳过前强制进行频道检查”"
     },
+    "enableSpeedUp": {
+        "message": "将跳过替换为倍速快进"
+    },
+    "whatEnableSpeedUp": {
+        "message": "启用后，自动跳过的片段将不会被直接跳过，而是以设定的倍速快速播放。快进过程中可照常观看内容，适合不想完全错过但希望快速略过的场景。"
+    },
+    "speedUpPlaybackRate": {
+        "message": "快进倍速"
+    },
+    "speedUpPlaybackRateDescription": {
+        "message": "设置快进时的播放倍速，范围 2x ~ 16x。例如 3x 表示以 3 倍速播放广告片段，结束后自动恢复原速。拖动进度条或手动调整倍速会立即退出快进状态。"
+    },
     "downvoteDescription": {
         "message": "不正确/错误的时间"
     },

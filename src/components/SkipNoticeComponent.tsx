@@ -17,6 +17,7 @@ import { getFormattedTime } from "../utils/formating";
 import { downvoteButtonColor, SkipNoticeAction } from "../utils/noticeUtils";
 import { generateUserID } from "../utils/setup";
 import { getCid, getVideo } from "../utils/video";
+import { getActiveSpeedUpInfo } from "../content/speedUpManager";
 
 enum SkipButtonState {
     Undo, // Unskip
@@ -780,8 +781,18 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     getFullDurationCountdown(index: number): () => number {
         return () => {
             const sponsorTime = this.segments[index];
+            const video = getVideo();
+            if (!video) return Config.config.skipNoticeDuration;
+            // 如果该片段正处于倍速快进中，则按快进速率计算墙钟剩余时间，避免与实际快进时长对不上
+            const activeInfo = getActiveSpeedUpInfo();
+            const isSpeedUpForThisSegment = !!activeInfo && activeInfo.segments.some((s) => s.UUID === sponsorTime.UUID);
+            if (isSpeedUpForThisSegment) {
+                const wallClock = (sponsorTime.segment[1] - video.currentTime) / activeInfo.rate;
+                // 快进时不强制与 skipNoticeDuration 取 max，否则短片段会显示 4s 而实际仅 0.5s，对不上
+                return Math.max(1, Math.ceil(wallClock));
+            }
             const duration = Math.round(
-                (sponsorTime.segment[1] - getVideo().currentTime) * (1 / getVideo().playbackRate)
+                (sponsorTime.segment[1] - video.currentTime) * (1 / video.playbackRate)
             );
 
             return Math.max(duration, Config.config.skipNoticeDuration);

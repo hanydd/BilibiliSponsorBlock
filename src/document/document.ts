@@ -86,6 +86,32 @@ async function windowMessageListener(message: MessageEvent) {
             sendMessageToContent(data, await getCidMap(data.payload as BVID));
         } else if (data.type === "getVideoInfoOnplayer") {
             sendMessageToContent(data, await getPlayerManifest());
+        } else if (data.type === "getPlaybackRate") {
+            let rate: number | null = null;
+            const player = window?.player;
+
+            if (player?.getPlaybackRate) {
+                rate = player.getPlaybackRate();
+            } else {
+                const video = document.querySelector("#bilibili-player video") as HTMLVideoElement | null;
+                if (video) rate = video.playbackRate;
+            }
+            sendMessageToContent(data, rate ?? 1);
+        } else if (data.type === "setPlaybackRate") {
+            let success = false;
+            const targetRate = data.payload as number;
+            const player = window?.player;
+            
+            if (player?.setPlaybackRate) {
+                player.setPlaybackRate(targetRate);
+                success = true;
+            }
+            const video = document.querySelector("#bilibili-player video") as HTMLVideoElement | null;
+            if (video) {
+                video.playbackRate = targetRate;
+                success = true;
+            }
+            sendMessageToContent(data, success);
         }
     }
 }

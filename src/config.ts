@@ -35,6 +35,8 @@ interface SBConfig {
     submissionCountSinceCategories: number; // New count used to show the "Read The Guidelines!!" message
     showTimeWithSkips: boolean;
     disableSkipping: boolean;
+    enableSpeedUp: boolean;
+    speedUpPlaybackRate: number;
     enableDanmakuSkip: boolean;
     enableAutoSkipDanmakuSkip: boolean;
     enableMenuDanmakuSkip: boolean;
@@ -300,6 +302,8 @@ const syncDefaults = {
     submissionCountSinceCategories: 0,
     showTimeWithSkips: true,
     disableSkipping: false,
+    enableSpeedUp: false,
+    speedUpPlaybackRate: 2,
 
     // danmaku skip
     enableDanmakuSkip: false,

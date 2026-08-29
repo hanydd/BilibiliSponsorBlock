@@ -25,6 +25,7 @@ import {
     resetSchedulerState,
     resetSponsorSkipped,
 } from "./content/skipScheduler";
+import { registerSpeedUpManager, resetSpeedUpState } from "./content/speedUpManager";
 import { setupMessageListener } from "./content/messageHandler";
 import { addHotkeyListener } from "./content/hotkeyHandler";
 import { setupVideoListeners } from "./content/videoListeners";
@@ -112,6 +113,7 @@ function init(): void {
     registerSegmentSubmission();
     registerSkipUIManager();
     registerSkipScheduler();
+    registerSpeedUpManager();
     app.commands.register("config/applyCategoryColors", () => setCategoryColorCSSVariables());
 
     waitFor(() => Config.isReady(), 5000, 10).then(() => {
@@ -164,6 +166,7 @@ function init(): void {
 
 function resetValues() {
     resetSchedulerState();
+    resetSpeedUpState();
     resetSubmissionState();
 
     contentState.previewedSegment = false;
