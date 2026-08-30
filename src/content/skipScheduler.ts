@@ -32,7 +32,7 @@ import {
     manualSkipPercentCount,
     skipBuffer,
 } from "./state";
-import { cancelSpeedUp, isSpeedUpActive, shouldUseSpeedUp, startSpeedUp } from "./speedUpManager";
+import { cancelSpeedUp, getSpeedUpOriginalRate, isSpeedUpActive, shouldUseSpeedUp, startSpeedUp } from "./speedUpManager";
 
 const utils = new Utils();
 
@@ -474,7 +474,10 @@ export async function startSponsorSchedule(
     if (timeUntilSponsor < skipBuffer) {
         await skippingFunction(currentTime);
     } else {
-        let delayTime = (timeUntilSponsor * 1000) / getVideo().playbackRate;
+        // 快进激活时，下一个片段的跳过会在倍速恢复为原始值后进行，
+        // 因此 delayTime 应使用原始倍速计算，避免用快进倍速导致提前 notice 过早弹出
+        const effectiveRate = isSpeedUpActive() ? getSpeedUpOriginalRate() : getVideo().playbackRate;
+        let delayTime = (timeUntilSponsor * 1000) / effectiveRate;
         if (delayTime < (isFirefox() ? 750 : 300) && shouldAutoSkip(skippingSegments[0])) {
             let forceStartIntervalTime: number | null = null;
             if (isFirefox() && delayTime > 300) {

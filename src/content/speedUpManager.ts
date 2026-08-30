@@ -64,6 +64,15 @@ export function isSpeedUpActive(): boolean {
     return isActive;
 }
 
+/**
+ * 返回快进前的原始倍速（用于调度计算）。
+ * 当快进激活时，下一个片段的跳过会在倍速恢复为原始值后进行，
+ * 因此调度 delayTime 应使用原始倍速而非当前快进倍速。
+ */
+export function getSpeedUpOriginalRate(): number {
+    return isActive ? originalRate : 1;
+}
+
 export function getActiveSpeedUpInfo(): { segments: SponsorTime[]; start: number; end: number; rate: number } | null {
     if (!isActive) return null;
     return { segments: [...activeSegments], start: activeStartTime, end: activeEndTime, rate: activeRate };
