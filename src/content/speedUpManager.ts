@@ -2,7 +2,6 @@ import Config from "../config";
 import { ActionType, SponsorTime } from "../types";
 import { asyncRequestToServer } from "../requests/requests";
 import { getVideo } from "../utils/video";
-import { getPlaybackRateFromPlayer, setPlaybackRateViaPlayer } from "../utils/injectedScriptMessageUtils";
 import { logDebug } from "../utils/logger";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
@@ -15,8 +14,6 @@ let activeSegments: SponsorTime[] = [];
 let activeStartTime = 0;
 let activeEndTime = 0;
 let activeRate = 2;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let lastSetRate: number | null = null;
 let checkInterval: NodeJS.Timeout | null = null;
 const manuallyCancelledMap = new Map<string, [number, number]>();
 let manuallyCancelledTimeout: NodeJS.Timeout | null = null;
@@ -52,7 +49,7 @@ export function clearManuallyCancelled(segment: SponsorTime): void {
 }
 
 function parseSpeedUpRate(): number {
-    const raw = Config.config.speedUpPlaybackRate as unknown as number | string;
+    const raw = Config.config.speedUpPlaybackRate;
     let rate = typeof raw === "string" ? parseFloat(raw) : raw;
     if (isNaN(rate) || !isFinite(rate)) rate = 2;
     // clamp to reasonable range 1.1 ~ 16
@@ -107,43 +104,6 @@ export function shouldUseSpeedUp(segment: SponsorTime): boolean {
     return true;
 }
 
-// 保留异步获取用于兼容旧逻辑，当前 startSpeedUp 已改为同步捕获，不再依赖此函数
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function getCurrentRate(): Promise<number> {
-    try {
-        const fetched = await getPlaybackRateFromPlayer();
-        if (typeof fetched === "number" && isFinite(fetched) && fetched > 0) return fetched;
-    } catch (error) {
-        logDebug("[SB SpeedUp] error: " + String(error));
-    }
-    const v = getVideo();
-    return v?.playbackRate ?? 1;
-}
-
-async function setRate(rate: number): Promise<boolean> {
-    let success = false;
-    try {
-        const result = await setPlaybackRateViaPlayer(rate);
-        if (result) success = true;
-    } catch (error) {
-        logDebug("[SB SpeedUp] error: " + String(error));
-    }
-    const v = getVideo();
-    if (v) {
-        try {
-            // Always sync video element as fallback; window.player handler already does this,
-            // but ensure in case player call failed.
-            if (v.playbackRate !== rate) v.playbackRate = rate;
-            success = true;
-        } catch (error) {
-            logDebug("[SB SpeedUp] error: " + String(error));
-        }
-    }
-    lastSetRate = rate;
-    logDebug(`[SB SpeedUp] setPlaybackRate ${rate} success=${success}`);
-    return success;
-}
-
 function clearCheckInterval(): void {
     if (checkInterval) {
         clearInterval(checkInterval);
@@ -175,18 +135,6 @@ function scheduleManualCancelCooldown(segments: SponsorTime[]): void {
             manuallyCancelledTimeout = null;
         }
     }, MANUAL_CANCEL_COOLDOWN_MS);
-}
-
-// Helper retained for potential external use but currently unused
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function scheduleManualCancelCooldownByUUIDs(uuids: string[]): void {
-    const segs: SponsorTime[] = [];
-    for (const uuid of uuids) {
-        const found = activeSegments.find(s => s.UUID === uuid) || contentState.sponsorTimes?.find(s => s.UUID === uuid);
-        if (found) segs.push(found);
-        else segs.push({ UUID: uuid as unknown as string, segment: [0, Number.MAX_SAFE_INTEGER], category: "" as unknown as string, actionType: ActionType.Skip, source: 0 } as SponsorTime);
-    }
-    scheduleManualCancelCooldown(segs);
 }
 
 function sendTelemetryForSpeedUp(segments: SponsorTime[], rate: number): void {
@@ -241,15 +189,9 @@ async function checkCompletion(): Promise<void> {
         detachTimeUpdateListener(video);
         isActive = false;
         activeSegments = [];
-        // 同步恢复确保及时生效，再异步校正 window.player
+        // 同步恢复确保及时生效
         try {
             if (video.playbackRate !== restoreTo) video.playbackRate = restoreTo;
-        } catch (error) {
-            logDebug("[SB SpeedUp] error: " + String(error));
-        }
-        lastSetRate = null;
-        try {
-            await setRate(restoreTo);
         } catch (error) {
             logDebug("[SB SpeedUp] error: " + String(error));
         }
@@ -400,15 +342,12 @@ export async function startSpeedUp(skippingSegments: SponsorTime[], skipTime: nu
 
     isActive = true;
 
-    // 先同步设置 video 速率，确保后续 timeupdate 立即以新速率推进；再异步通过 window.player 校正
+    // 同步设置 video 速率，确保后续 timeupdate 立即以新速率推进
     try {
         if (video.playbackRate !== rate) video.playbackRate = rate;
-        lastSetRate = rate;
     } catch (error) {
         logDebug("[SB SpeedUp] error: " + String(error));
     }
-    // 异步通过 window.player 设置，失败不影响已同步的 video 速率
-    void setRate(rate).catch((error) => { logDebug("[SB SpeedUp] promise rejected: " + String(error)); });
 
     clearCheckInterval();
     checkInterval = setInterval(() => {
@@ -449,14 +388,6 @@ export async function cancelSpeedUp(restoreRate = true, isManual = false): Promi
                 logDebug("[SB SpeedUp] error: " + String(error));
             }
         }
-        try {
-            await setRate(restoreTo);
-        } catch {
-            if (v) try { v.playbackRate = restoreTo; } catch (error) {
-                logDebug("[SB SpeedUp] error: " + String(error));
-            }
-        }
-        lastSetRate = null;
     }
     if (isManual && cancelledSegments.length > 0) {
         scheduleManualCancelCooldown(cancelledSegments);
@@ -495,11 +426,10 @@ export function resetSpeedUpState(): void {
     const v = getVideo();
     if (isActive && v) {
         const restoreTo = originalRate || 1;
-        // Try synchronous restore first, then async via player
+        // 同步恢复
         try { if (v.playbackRate !== restoreTo) v.playbackRate = restoreTo; } catch (error) {
             logDebug("[SB SpeedUp] error: " + String(error));
         }
-        void setRate(restoreTo).catch((error) => { logDebug("[SB SpeedUp] setRate failed: " + String(error)); });
         detachTimeUpdateListener(v);
     } else if (v) {
         detachTimeUpdateListener(v);
@@ -510,7 +440,6 @@ export function resetSpeedUpState(): void {
     activeStartTime = 0;
     activeEndTime = 0;
     originalRate = 1;
-    lastSetRate = null;
     manuallyCancelledMap.clear();
     if (manuallyCancelledTimeout) {
         clearTimeout(manuallyCancelledTimeout);
@@ -553,7 +482,6 @@ export function registerSpeedUpManager(): void {
             activeSegments = [];
             // Update originalRate to user's new choice so future restores use it
             originalRate = playbackRate;
-            lastSetRate = null;
             if (cancelled.length > 0) scheduleManualCancelCooldown(cancelled);
             // Don't restore originalRate
         }
@@ -578,7 +506,12 @@ export function registerSpeedUpManager(): void {
                 const newRate = parseSpeedUpRate();
                 if (Math.abs(newRate - activeRate) > 0.05) {
                     activeRate = newRate;
-                    void setRate(newRate).catch((error) => { logDebug("[SB SpeedUp] setRate failed: " + String(error)); });
+                    const v = getVideo();
+                    try {
+                        if (v && v.playbackRate !== newRate) v.playbackRate = newRate;
+                    } catch (error) {
+                        logDebug("[SB SpeedUp] error: " + String(error));
+                    }
                 }
             }
         }
