@@ -2,6 +2,12 @@
 
 扩展默认使用仓库根目录的 `backends.json`。用户可以在设置页编辑配置，或者从订阅 URL 加载同样格式的 JSON。后端定义与运行时开关分开保存：JSON 中的 `enabled` 是默认状态，用户对单个后端的显式开关保存在独立的 `backendEnabledMap` 中。
 
+## 配置 Schema
+
+配置结构由仓库根目录的 [`backends.schema.json`](../backends.schema.json) 定义，采用 JSON Schema Draft 2020-12。它适合供编辑器和外部工具检查字段类型、必填字段、能力枚举、URL、数组去重以及递归的 `match` 表达式。
+
+Schema 不替代扩展运行时的业务校验。后端 ID 唯一、`conflicts` 是否引用已存在的后端或自身、JavaScript 正则表达式是否合法，以及冲突关系的对称格式化仍由 TypeScript validator 和 normalizer 处理。
+
 ## 顶层结构
 
 ```json
