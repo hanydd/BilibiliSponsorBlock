@@ -344,6 +344,12 @@
     "skip": {
         "message": "跳過"
     },
+    "pauseSpeedUp": {
+        "message": "暫停快進"
+    },
+    "resumeSpeedUp": {
+        "message": "恢復快進"
+    },
     "mute": {
         "message": "靜音"
     },
@@ -1062,6 +1068,18 @@
     },
     "forceChannelCheckPopup": {
         "message": "請考慮啟用「跳過前強制進行頻道檢查」"
+    },
+    "enableSpeedUp": {
+        "message": "將跳過替換為倍速快進"
+    },
+    "whatEnableSpeedUp": {
+        "message": "啟用後，自動跳過的片段將不會被直接跳過，而是以設定的倍速快速播放。快進過程中可照常觀看內容，適合不想完全錯過但希望快速略過的場景。"
+    },
+    "speedUpPlaybackRate": {
+        "message": "快進倍速"
+    },
+    "speedUpPlaybackRateDescription": {
+        "message": "設定快進時的播放倍速，範圍 2x ~ 16x。例如 3x 表示以 3 倍速播放廣告片段，結束後自動恢復原速。拖動進度條或手動調整倍速會立即退出快進狀態。"
     },
     "downvoteDescription": {
         "message": "不正確/錯誤的時間"

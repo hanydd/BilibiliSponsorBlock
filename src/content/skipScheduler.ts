@@ -32,6 +32,7 @@ import {
     manualSkipPercentCount,
     skipBuffer,
 } from "./state";
+import { cancelSpeedUp, getSpeedUpOriginalRate, isSpeedUpActive, shouldUseSpeedUp, startSpeedUp } from "./speedUpManager";
 
 const utils = new Utils();
 
@@ -421,6 +422,7 @@ export async function startSponsorSchedule(
             contentState.sponsorTimesSubmitting?.some((segment) => segment.segment === currentSkip.segment)
         ) {
             if (forceVideoTime >= skipTime[0] - skipBuffer && forceVideoTime < skipTime[1]) {
+                const wasSpeedUpBefore = isSpeedUpActive();
                 skipToTime({
                     v: getVideo(),
                     skipTime,
@@ -428,15 +430,27 @@ export async function startSponsorSchedule(
                     openNotice: skipInfo.openNotice,
                 });
 
+                // If speedUp was triggered, don't treat as instant skip – let speedUpManager handle progression
+                const isNowSpeedUp = isSpeedUpActive();
+                if (isNowSpeedUp && !wasSpeedUpBefore) {
+                    logDebug(`[SB] SpeedUp started for ${skipTime[0]} -> ${skipTime[1]}, deferring next schedule to speedUpManager`);
+                    return;
+                }
+
                 for (const extra of skipInfo.extraIndexes) {
                     const extraSkip = skipInfo.array[extra];
                     if (shouldSkip(extraSkip)) {
+                        const extraWasSpeedUp = isSpeedUpActive();
                         skipToTime({
                             v: getVideo(),
                             skipTime: [extraSkip.scheduledTime, extraSkip.segment[1]],
                             skippingSegments: [extraSkip],
                             openNotice: skipInfo.openNotice,
                         });
+                        if (isSpeedUpActive() && !extraWasSpeedUp) {
+                            logDebug(`[SB] SpeedUp started for extra ${extraSkip.scheduledTime} -> ${extraSkip.segment[1]}`);
+                            return;
+                        }
                     }
                 }
 
@@ -470,7 +484,10 @@ export async function startSponsorSchedule(
     if (timeUntilSponsor < skipBuffer) {
         await skippingFunction(currentTime);
     } else {
-        let delayTime = (timeUntilSponsor * 1000) / getVideo().playbackRate;
+        // 快进激活时，下一个片段的跳过会在倍速恢复为原始值后进行，
+        // 因此 delayTime 应使用原始倍速计算，避免用快进倍速导致提前 notice 过早弹出
+        const effectiveRate = isSpeedUpActive() ? getSpeedUpOriginalRate() : getVideo().playbackRate;
+        let delayTime = (timeUntilSponsor * 1000) / effectiveRate;
         if (delayTime < (isFirefox() ? 750 : 300) && shouldAutoSkip(skippingSegments[0])) {
             let forceStartIntervalTime: number | null = null;
             if (isFirefox() && delayTime > 300) {
@@ -1091,6 +1108,29 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
 
     const isSubmittingSegment = contentState.sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment);
 
+    // SpeedUp handling: delegate to speedUpManager and reuse existing manual skip notice path
+    let speedUpDelegated = false;
+    if (autoSkip && !isSubmittingSegment && skippingSegments[0].actionType === ActionType.Skip && shouldUseSpeedUp(skippingSegments[0])) {
+        logDebug(`[SB] skipToTime delegating to SpeedUp ${skipTime[0]} -> ${skipTime[1]}`);
+        let capturedOriginalRate: number | undefined;
+        try {
+            capturedOriginalRate = v?.playbackRate;
+        } catch {
+            capturedOriginalRate = undefined;
+        }
+
+        const rawRate = Config.config.speedUpPlaybackRate;
+        const parsedRate = typeof rawRate === "string" ? parseFloat(rawRate) : rawRate;
+        if (parsedRate > 1 && parsedRate <= 16 && v && v.playbackRate !== parsedRate) {
+            v.playbackRate = parsedRate;
+        }
+
+        void startSpeedUp(skippingSegments, skipTime as [number, number], capturedOriginalRate);
+        // 复用下方已有的手动跳过 notice 逻辑（autoSkip=false 时的 createSkipNotice 去重路径），避免在此手动 emit 造成重复创建
+        speedUpDelegated = true;
+        autoSkip = false;
+    }
+
     if ((autoSkip || isSubmittingSegment) && v.currentTime !== skipTime[1]) {
         switch (skippingSegments[0].actionType) {
             case ActionType.Poi:
@@ -1131,7 +1171,7 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
         }
     }
 
-    if (autoSkip && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
+    if ((autoSkip || speedUpDelegated) && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
         const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
         beep.volume = getVideo().volume * 0.1;
         const oldMetadata = navigator.mediaSession.metadata;
@@ -1179,12 +1219,17 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
         }
     }
 
-    emitSkipExecuted(skipTime as [number, number], skippingSegments, autoSkip, openNotice, unskipTime, "skipScheduler.skipToTime");
+    emitSkipExecuted(skipTime as [number, number], skippingSegments, speedUpDelegated ? true : autoSkip, openNotice, unskipTime, "skipScheduler.skipToTime");
 
-    if (autoSkip || isSubmittingSegment) sendTelemetryAndCount(skippingSegments, skipTime[1] - skipTime[0], true);
+    if ((autoSkip && !speedUpDelegated) || isSubmittingSegment) sendTelemetryAndCount(skippingSegments, skipTime[1] - skipTime[0], true);
 }
 
 export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = null, forceSeek = false): void {
+    // If currently speeding up this segment, cancel speedUp as manual interaction
+    if (isSpeedUpActive()) {
+        void cancelSpeedUp(true, true);
+    }
+
     if (segment.actionType === ActionType.Mute) {
         getVideo().muted = false;
         videoMuted = false;
@@ -1196,6 +1241,11 @@ export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = nul
 }
 
 export function reskipSponsorTime(segment: SponsorTime, forceSeek = false): void {
+    // If speeding, cancel first (reskip means instant skip, not speedUp)
+    if (isSpeedUpActive()) {
+        void cancelSpeedUp(true, false);
+    }
+
     if (segment.actionType === ActionType.Mute && !forceSeek) {
         getVideo().muted = true;
         videoMuted = true;
