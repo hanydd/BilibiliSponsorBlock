@@ -1,10 +1,19 @@
 import "content-scripts-register-polyfill";
 import Config from "./config";
-import { callAPI, serverRouter } from "./requests/background-request-proxy";
+import { callAPIWithOptions, sendRealRequestToCustomServer } from "./requests/background-request-proxy";
 import { clearAllCacheBackground, segmentsCache, videoLabelCache } from "./requests/background/backgroundCache";
 import { getSegmentsBackground } from "./requests/background/segmentRequest";
 import { getVideoLabelBackground } from "./requests/background/videoLabelRequest";
+import { getUserWorkStatsBackground } from "./requests/background/userStatsRequest";
 import { submitVote } from "./requests/background/voteRequest";
+import { BackendConfigService } from "./config/backendConfigService";
+import type { VideoMatchContext } from "./backends";
+import {
+    checkBackendAddress,
+    getBackendStatus,
+    getEligibleBackends,
+    probeBackendNode,
+} from "./requests/backendRouter";
 import { CacheStats, NewVideoID, Registration } from "./types";
 import { chromeP } from "./utils/browserApi";
 import { getHash } from "./utils/hash";
@@ -18,6 +27,38 @@ const contentScriptRegistrations = {};
 
 setupBackgroundRequestProxy();
 setupTabUpdates(Config);
+
+if (chrome.alarms?.onAlarm) {
+    chrome.alarms.onAlarm.addListener((alarm) => {
+        if (alarm.name === "backend-config-sync") {
+            void BackendConfigService.syncFromUrl();
+        }
+    });
+}
+
+function whenBackendConfigReady(callback: () => void, attempt = 0): void {
+    if (Config.local?.backendSubscription || attempt >= 100) {
+        callback();
+        return;
+    }
+    setTimeout(() => whenBackendConfigReady(callback, attempt + 1), 10);
+}
+
+function initializeBackendSubscriptionAlarm(): void {
+    whenBackendConfigReady(() => BackendConfigService.ensureSubscriptionAlarm());
+}
+
+function syncBackendSubscriptionOnLifecycleEvent(): void {
+    whenBackendConfigReady(() => {
+        if (Config.local?.backendSubscription?.enabled) void BackendConfigService.syncFromUrl();
+    });
+}
+
+initializeBackendSubscriptionAlarm();
+chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === "install" || details.reason === "update") syncBackendSubscriptionOnLifecycleEvent();
+});
+chrome.runtime.onStartup.addListener(syncBackendSubscriptionOnLifecycleEvent);
 
 chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     switch (request.message) {
@@ -180,7 +221,16 @@ async function unregisterFirefoxContentScript(id: string) {
 function setupBackgroundRequestProxy() {
     chrome.runtime.onMessage.addListener((request, sender, callback) => {
         if (request.message === "sendRequest") {
-            callAPI(request.type, request.endpoint, request.data, false, request.headers)
+            const requestPromise = request.endpoint
+                ? callAPIWithOptions(
+                      request.type,
+                      request.endpoint,
+                      request.data,
+                      { backendId: request.backendId, skipServerCache: Boolean(request.skipServerCache) },
+                      request.headers
+                  )
+                : sendRealRequestToCustomServer(request.type, request.url, request.data, request.headers);
+            requestPromise
                 .then(callback)
                 .catch(() => {
                     callback({ responseText: "", status: -1, ok: false });
@@ -197,27 +247,24 @@ function setupBackgroundRequestProxy() {
             return true;
         }
 
-        if (request.message === "getServerStatus") {
-            serverRouter
-                .getStatus()
+        if (request.message === "getBackendStatus") {
+            getBackendStatus(String(request.backendId ?? ""))
                 .then(callback)
-                .catch(() => callback({ activeAddress: "", nodes: [] }));
+                .catch(() => callback({ backendId: request.backendId, activeAddress: "", nodes: [] }));
             return true;
         }
 
-        if (request.message === "probeServerNode") {
-            serverRouter
-                .probe(request.address)
+        if (request.message === "probeBackendNode") {
+            probeBackendNode(String(request.backendId ?? ""), String(request.address ?? ""))
                 .then(callback)
-                .catch(() => callback({ activeAddress: "", nodes: [] }));
+                .catch(() => callback({ backendId: request.backendId, activeAddress: "", nodes: [] }));
             return true;
         }
 
-        if (request.message === "checkServerAddress") {
-            serverRouter
-                .checkAddress(request.address)
+        if (request.message === "checkBackendAddress") {
+            checkBackendAddress(String(request.backendId ?? ""), String(request.address ?? ""))
                 .then(callback)
-                .catch(() => callback({ address: request.address, healthState: "open" }));
+                .catch(() => callback({ backendId: request.backendId, address: request.address, healthState: "open" }));
             return true;
         }
 
@@ -232,7 +279,8 @@ function setupBackgroundRequestProxy() {
         if (request.message === "getSegments") {
             getSegmentsBackground(
                 request.videoID as NewVideoID,
-                Boolean(request.ignoreCache)
+                Boolean(request.ignoreCache),
+                (request.videoContext as VideoMatchContext) || undefined
             )
                 .then((response) => callback({ response }))
                 .catch(() => callback({ response: { segments: null, status: -1 } }));
@@ -240,8 +288,51 @@ function setupBackgroundRequestProxy() {
         }
 
         if (request.message === "submitVote") {
-            submitVote(request.type, request.UUID, request.category).then(callback);
+            submitVote(request.type, request.UUID, request.category, request.backendId, request.videoContext).then(callback);
             return true;
+        }
+
+        if (request.message === "getVideoMatchContext") {
+            callback(request.context ?? null);
+            return false;
+        }
+
+        if (request.message === "getSubmissionBackends") {
+            const context = request.context ?? { bvid: "", title: "", description: "", up_mid: "", up_name: "" };
+            const backends = getEligibleBackends("submitSegments", context)
+                .map((backend) => ({
+                    id: backend.id,
+                    name: backend.name,
+                    desc: backend.desc,
+                    enabled: true,
+                }));
+            callback(backends);
+            return false;
+        }
+
+        if (request.message === "getUserWorkStats") {
+            getUserWorkStatsBackground(request.publicUserID, Boolean(request.skipServerCache))
+                .then(callback)
+                .catch(() =>
+                    callback({
+                        ok: false,
+                        partial: false,
+                        successfulBackendIds: [],
+                        failedBackendIds: [],
+                    })
+                );
+            return true;
+        }
+
+        if (request.message === "getLastSubmissionBackendId") {
+            callback({ backendId: Config.local?.lastSubmissionBackendId ?? null });
+            return false;
+        }
+
+        if (request.message === "setLastSubmissionBackendId") {
+            BackendConfigService.setLastSubmissionBackendId(request.backendId ?? null);
+            callback({});
+            return false;
         }
 
         // ============ Cache Management Handlers ============

@@ -497,91 +497,6 @@
     "shortCheck": {
         "message": "以下的提交短于您的最小持续时间选项。这代表它们可能已经被提交，只是由于该选项被忽略了。您确定要提交吗？"
     },
-    "customServerAddress": {
-        "message": "空降助手服务器地址"
-    },
-    "customServerAddressDescription": {
-        "message": "小电视空降助手的服务器地址。\n不建议更改，除非您有自己的服务器。"
-    },
-    "mirrorServerAddresses": {
-        "message": "镜像站"
-    },
-    "officialMirrorServer": {
-        "message": "官方镜像"
-    },
-    "communityMirrorServer": {
-        "message": "社区镜像"
-    },
-    "expandMirrorServers": {
-        "message": "展开"
-    },
-    "collapseMirrorServers": {
-        "message": "收起"
-    },
-    "mirrorServerAddressesDescription": {
-        "message": "节点状态来自实际请求或手动检测；新增镜像时检测一次，不会定时请求 ready 接口。"
-    },
-    "serverNodeStatus": {
-        "message": "服务器连接"
-    },
-    "serverNodeStatusDescription": {
-        "message": "请求优先使用主站，必要时自动切换到可用镜像。"
-    },
-    "refreshServerStatus": {
-        "message": "刷新节点状态"
-    },
-    "checkServerStatus": {
-        "message": "检测"
-    },
-    "addAndCheckServer": {
-        "message": "添加并检测"
-    },
-    "removeServer": {
-        "message": "移除"
-    },
-    "mirrorServerAddressPlaceholder": {
-        "message": "输入镜像地址，例如 http://127.0.0.1:9876"
-    },
-    "serverNodeCount": {
-        "message": "$COUNT$ 个节点",
-        "placeholders": {
-            "count": {
-                "content": "$1"
-            }
-        }
-    },
-    "serverNodeEmpty": {
-        "message": "尚未配置镜像站"
-    },
-    "serverNodePreferred": {
-        "message": "主站"
-    },
-    "serverNodeFallback": {
-        "message": "镜像"
-    },
-    "serverNodeAvailable": {
-        "message": "可用"
-    },
-    "serverNodeOpen": {
-        "message": "不可用"
-    },
-    "serverNodeRecovering": {
-        "message": "等待探活"
-    },
-    "serverNodeChecking": {
-        "message": "检测中"
-    },
-    "serverNodeUnknown": {
-        "message": "状态未知"
-    },
-    "serverNodeRetryAt": {
-        "message": "下次探活：$TIME$",
-        "placeholders": {
-            "time": {
-                "content": "$1"
-            }
-        }
-    },
     "cacheManagement": {
         "message": "缓存管理"
     },
@@ -674,6 +589,12 @@
     },
     "confirmNoticeTitle": {
         "message": "提交片段"
+    },
+    "backend": {
+        "message": "后端"
+    },
+    "backendNoSubmissionBackend": {
+        "message": "当前视频没有可提交的后端。请检查后端匹配、能力和启用状态。"
     },
     "submit": {
         "message": "提交"
@@ -992,15 +913,6 @@
         "message": "跳过选项",
         "description": "Used on the options page to describe the ways to skip the segment (auto skip, manual, etc.)"
     },
-    "enableTestingServer": {
-        "message": "启用Beta测试服务器"
-    },
-    "whatEnableTestingServer": {
-        "message": "您的提交和投票将不会计入主服务器。它只被用于测试。"
-    },
-    "testingServerWarning": {
-        "message": "当连接到测试服务器时，所有的提交和投票将不会计入主服务器。当您想要进行真实提交时，请确保禁用了此选项。"
-    },
     "bracketNow": {
         "message": "[设为当前]"
     },
@@ -1185,6 +1097,21 @@
     "upvote": {
         "message": "点赞"
     },
+    "popupSegmentBackend": {
+        "message": "{0} ({1})"
+    },
+    "popupSegmentLocal": {
+        "message": "本地"
+    },
+    "popupSegmentDanmaku": {
+        "message": "弹幕"
+    },
+    "popupSegmentYouTube": {
+        "message": "YouTube"
+    },
+    "popupSegmentUnknown": {
+        "message": "未知来源"
+    },
     "hideSegment": {
         "message": "隐藏片段"
     },
@@ -1251,9 +1178,6 @@
     },
     "bilibiliKeybindWarning": {
         "message": "这是网站内置的快捷方式。您确定要使用吗？"
-    },
-    "betaServerWarning": {
-        "message": "测试服务器已启用！"
     },
     "openOptionsPage": {
         "message": "打开选项页面"
@@ -1557,5 +1481,161 @@
     },
     "copyPageLogsFailed": {
         "message": "复制页面日志失败"
+    },
+    "optionsTabBackendConfig": {
+        "message": "后端"
+    },
+    "backendConfigTitle": {
+        "message": "后端"
+    },
+    "backendConfigDescription": {
+        "message": "配置多个后端并按顺序参与匹配。订阅同步只会替换配置，不会改变各后端的独立启用状态。"
+    },
+    "backendSubscriptionTitle": {
+        "message": "后端配置订阅"
+    },
+    "backendSubscriptionUrl": {
+        "message": "订阅 URL"
+    },
+    "backendSubscriptionInterval": {
+        "message": "同步间隔"
+    },
+    "backendSubscriptionMinutes": {
+        "message": "分钟"
+    },
+    "backendSubscriptionEnabled": {
+        "message": "启用定时同步"
+    },
+    "backendSubscriptionSyncNow": {
+        "message": "立即同步一次"
+    },
+    "backendSubscriptionSyncing": {
+        "message": "同步中..."
+    },
+    "backendSubscriptionUrlRequired": {
+        "message": "请先填写订阅 URL。"
+    },
+    "backendSubscriptionPermissionDenied": {
+        "message": "未授予订阅地址的访问权限。"
+    },
+    "backendConfigJsonLabel": {
+        "message": "后端配置 JSON"
+    },
+    "backendConfigFormat": {
+        "message": "格式化并规范冲突"
+    },
+    "backendConfigFormatted": {
+        "message": "后端配置已格式化，冲突关系已补全。"
+    },
+    "backendConfigSave": {
+        "message": "保存 JSON"
+    },
+    "backendConfigRestoreDefault": {
+        "message": "恢复默认配置"
+    },
+    "backendConfigSaved": {
+        "message": "后端配置已保存。"
+    },
+    "backendConfigRestored": {
+        "message": "已恢复默认后端配置。"
+    },
+    "backendConfigSynced": {
+        "message": "后端配置同步成功。"
+    },
+    "backendConfigInvalidJson": {
+        "message": "JSON 格式不正确。"
+    },
+    "backendConfigInvalidShape": {
+        "message": "配置必须是包含 backends 数组的对象。"
+    },
+    "backendConfigInvalidBackend": {
+        "message": "后端配置项缺少有效的 name。"
+    },
+    "backendConfigInvalidId": {
+        "message": "后端 id 只能包含小写字母、下划线和短横线，且不能重复。"
+    },
+    "backendConfigInvalidUrl": {
+        "message": "后端地址必须是 http:// 或 https:// URL。"
+    },
+    "backendConfigInvalidMirrors": {
+        "message": "mirrors 必须是 URL 数组。"
+    },
+    "backendConfigInvalidCapabilities": {
+        "message": "capabilities 必须是数组。"
+    },
+    "backendConfigInvalidConflicts": {
+        "message": "conflicts 必须是存在的后端 id 数组。"
+    },
+    "backendConfigId": {
+        "message": "ID"
+    },
+    "backendConfigName": {
+        "message": "名称"
+    },
+    "backendConfigDescriptionColumn": {
+        "message": "说明"
+    },
+    "backendConfigApiUrl": {
+        "message": "API 地址"
+    },
+    "backendConfigNodes": {
+        "message": "后端节点"
+    },
+    "backendNodeAvailable": {
+        "message": "可用"
+    },
+    "backendNodeOpen": {
+        "message": "不可用"
+    },
+    "backendNodeRecovering": {
+        "message": "等待恢复"
+    },
+    "backendNodeChecking": {
+        "message": "检测中"
+    },
+    "backendNodeUnknown": {
+        "message": "状态未知"
+    },
+    "backendConfigPrimary": {
+        "message": "主地址"
+    },
+    "backendConfigMirror": {
+        "message": "镜像地址"
+    },
+    "backendConfigCheck": {
+        "message": "检测"
+    },
+    "backendConfigRemove": {
+        "message": "移除"
+    },
+    "backendConfigAddMirror": {
+        "message": "添加并检测"
+    },
+    "backendConfigMirrorPlaceholder": {
+        "message": "镜像 URL"
+    },
+    "backendConfigPermissionDenied": {
+        "message": "未授予访问此后端地址的权限。"
+    },
+    "backendConfigNodeUnavailable": {
+        "message": "后端地址不可用。"
+    },
+    "backendConfigDuplicateAddress": {
+        "message": "此后端地址已经配置。"
+    },
+    "backendConfigEnabled": {
+        "message": "启用"
+    },
+    "backendConfigDefault": {
+        "message": "默认"
+    },
+    "backendConfigEnabledValue": {
+        "message": "启用"
+    },
+    "backendConfigDisabledValue": {
+        "message": "禁用"
+    },
+    "backendConfigEmpty": {
+        "message": "暂无后端配置。"
     }
 }

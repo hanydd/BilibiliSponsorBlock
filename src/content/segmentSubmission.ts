@@ -32,7 +32,7 @@ import { defaultPreviewTime } from "../utils/constants";
 import { durationEquals } from "../utils/duraionUtils";
 import { removePageCidMap } from "../utils/exporter";
 import { getErrorMessage, getFormattedTime } from "../utils/formating";
-import { getHash, getVideoIDHash, HashedValue } from "../utils/hash";
+import { getHash } from "../utils/hash";
 import { getCidMapFromWindow } from "../utils/injectedScriptMessageUtils";
 import { logUiLifecycle } from "../utils/logger";
 import { getHashParams } from "../utils/pageUtils";
@@ -42,6 +42,7 @@ import { parseBvidAndCidFromVideoId } from "../utils/videoIdUtils";
 import { openWarningDialog } from "../utils/warnings";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
+import { getBackendIdFromSegment, getVideoMatchContext, requestWithBackendId } from "./backendService";
 import { seekFrameByKeyPressListener } from "./hotkeyHandler";
 import { waitForPlayerUiReady } from "./playerUi";
 import { getSkipNoticeContentContainer } from "./skipNoticeContentContainer";
@@ -252,6 +253,7 @@ function sendInfoUpdatedMessage(portVideo = contentState.portVideo): void {
         found: contentState.sponsorDataFound,
         status: contentState.lastResponseStatus,
         sponsorTimes: contentState.sponsorTimes,
+        backendInfo: contentState.backendInfo,
         portVideo,
         time: getVideo()?.currentTime ?? 0,
     });
@@ -302,7 +304,10 @@ export function registerSegmentSubmission(): void {
     app.commands.register("segment/isCreationInProgress", () => isSegmentCreationInProgress());
     app.commands.register("segment/getRealCurrentTime", () => getRealCurrentTime());
     app.commands.register("segment/resetSubmissionNotice", ({ callRef }) => resetSponsorSubmissionNotice(callRef));
-    app.commands.register("segment/vote", ({ type, UUID, category, skipNotice }) => vote(type, UUID, category, skipNotice));
+    app.commands.register("segment/vote", (payload) => {
+        const backendId = (payload as unknown as { backendId?: string }).backendId;
+        return vote(payload.type, payload.UUID, payload.category, payload.skipNotice, backendId);
+    });
     app.commands.register("segment/voteAsync", ({ type, UUID, category }) => voteAsync(type, UUID, category));
     app.commands.register("segments/lookup", ({ keepOldSubmissions, ignoreServerCache, forceUpdatePreviewBar }) =>
         sponsorsLookup(keepOldSubmissions, ignoreServerCache, forceUpdatePreviewBar)
@@ -492,12 +497,14 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
         return;
     }
 
-    const hashPrefix = (await getVideoIDHash(videoID)).slice(0, 4) as BVID & HashedValue;
-    const segmentResponse = await getSegmentsByVideoID(videoID, ignoreServerCache);
+    const matchContext = await getVideoMatchContext();
+    matchContext.bvid = bvId;
+    const segmentResponse = await getSegmentsByVideoID(videoID, ignoreServerCache, matchContext);
 
     if (videoID !== getVideoID()) return;
 
     contentState.lastResponseStatus = segmentResponse?.status;
+    contentState.backendInfo = segmentResponse?.backendInfo ?? {};
 
     if (segmentResponse.status === 200) {
         let receivedSegments: SponsorTime[] = segmentResponse.segments?.filter(segment => segment.cid === cid);
@@ -545,6 +552,7 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
                 }
             }
 
+            const hashPrefix = (await getHash(bvId, 1)).slice(0, 4);
             const downvotedData = Config.local.downvotedSegments[hashPrefix];
             if (downvotedData) {
                 for (const segment of contentState.sponsorTimes) {
@@ -771,14 +779,15 @@ export async function vote(
     type: number,
     UUID: SegmentUUID,
     category?: Category,
-    skipNotice?: SkipNoticeComponent
+    skipNotice?: SkipNoticeComponent,
+    backendId?: string
 ): Promise<VoteResponse> {
     if (skipNotice !== null && skipNotice !== undefined) {
         skipNotice.addVoteButtonInfo.bind(skipNotice)(chrome.i18n.getMessage("Loading"));
         skipNotice.setNoticeInfoMessage.bind(skipNotice)();
     }
 
-    const response = await voteAsync(type, UUID, category);
+    const response = await voteAsync(type, UUID, category, backendId);
         if (response != undefined) {
             if (skipNotice != null) {
                 if (response.successType == 1 || (response.successType == -1 && response.statusCode == 429)) {
@@ -803,7 +812,12 @@ export async function vote(
     return response;
 }
 
-export async function voteAsync(type: number, UUID: SegmentUUID, category?: Category): Promise<VoteResponse | undefined> {
+export async function voteAsync(
+    type: number,
+    UUID: SegmentUUID,
+    category?: Category,
+    backendId?: string
+): Promise<VoteResponse | undefined> {
     const sponsorIndex = utils.getSponsorIndexFromUUID(contentState.sponsorTimes, UUID);
 
     if (sponsorIndex == -1 || contentState.sponsorTimes[sponsorIndex].source !== SponsorSourceType.Server)
@@ -825,6 +839,12 @@ export async function voteAsync(type: number, UUID: SegmentUUID, category?: Cate
         Config.config.skipCount = Config.config.skipCount + factor;
     }
 
+    const segmentBackendId = backendId ?? getBackendIdFromSegment(contentState.sponsorTimes[sponsorIndex]);
+    const videoContext = segmentBackendId ? await getVideoMatchContext() : undefined;
+    if (videoContext && !videoContext.bvid) {
+        videoContext.bvid = getBvID() ?? "";
+    }
+
     return new Promise((resolve) => {
         chrome.runtime.sendMessage(
             {
@@ -832,6 +852,8 @@ export async function voteAsync(type: number, UUID: SegmentUUID, category?: Cate
                 type: type,
                 UUID: UUID,
                 category: category,
+                backendId: segmentBackendId,
+                videoContext,
             },
             (response) => {
                 if (response.successType === 1) {
@@ -916,7 +938,7 @@ export function submitSegments(): void {
     }
 }
 
-export async function sendSubmitMessage(): Promise<boolean> {
+export async function sendSubmitMessage(backendId?: string): Promise<boolean> {
     if (
         !contentState.previewedSegment &&
         !contentState.sponsorTimesSubmitting.every(
@@ -970,19 +992,29 @@ export async function sendSubmitMessage(): Promise<boolean> {
         }
     }
 
-    const response = await asyncRequestToServer("POST", "/api/skipSegments", {
+    const response = await requestWithBackendId("POST", "/api/skipSegments", {
         videoID: getBvID(),
         cid: getCid(),
         userID: Config.config.userID,
-        segments: contentState.sponsorTimesSubmitting,
+        segments: contentState.sponsorTimesSubmitting.map((segment) => {
+            const payload = { ...segment };
+            delete payload.backendId;
+            return payload;
+        }),
         videoDuration: getVideo()?.duration,
         userAgent: `${chrome.runtime.id}/v${chrome.runtime.getManifest().version}`,
-    });
+    }, backendId);
 
     if (response.status === 200) {
         stopAnimation();
 
-        const newSegments = contentState.sponsorTimesSubmitting.map(cloneSubmittingSegment);
+        const newSegments = contentState.sponsorTimesSubmitting.map((segment) => {
+            const newSegment = cloneSubmittingSegment(segment);
+            if (backendId) {
+                (newSegment as SponsorTime & { backendId?: string }).backendId = backendId;
+            }
+            return newSegment;
+        });
         try {
             const receivedNewSegments = JSON.parse(response.responseText);
             if (receivedNewSegments?.length === newSegments.length) {

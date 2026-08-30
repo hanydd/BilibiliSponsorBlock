@@ -205,4 +205,28 @@ describe("content message handler", () => {
             throw new Error(error instanceof Error ? `${error.name}: ${error.message}` : String(error));
         }
     });
+
+    test("isInfoFound returns current backend metadata with loaded segments", async () => {
+        const { createContentApp } = await import("../src/content/app");
+        const { handleContentMessage } = await import("../src/content/messageHandler");
+        const { contentState } = await import("../src/content/state");
+        createContentApp();
+
+        contentState.lastResponseStatus = 200;
+        contentState.sponsorDataFound = true;
+        contentState.backendInfo = {
+            main: {
+                backendId: "main",
+                name: "Main backend",
+                capabilities: ["GET /api/skipSegments"],
+            },
+        };
+        const sendResponse = jest.fn();
+
+        handleContentMessage({ message: "isInfoFound", updating: true }, null, sendResponse);
+
+        expect(sendResponse).toHaveBeenCalledWith(expect.objectContaining({
+            backendInfo: contentState.backendInfo,
+        }));
+    });
 });

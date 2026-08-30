@@ -22,3 +22,10 @@ export async function writeSyncStorage(serviceWorker: Worker, values: Record<str
         await chromeApi.storage.sync.set(storageValues);
     }, values);
 }
+
+export async function writeLocalStorage(serviceWorker: Worker, values: Record<string, unknown>): Promise<void> {
+    await serviceWorker.evaluate(async (storageValues) => {
+        const chromeApi = (globalThis as { chrome: typeof chrome }).chrome;
+        await chromeApi.storage.local.set(storageValues);
+    }, values);
+}

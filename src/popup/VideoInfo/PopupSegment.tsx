@@ -6,9 +6,12 @@ import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "../../typ
 import { shortCategoryName } from "../../utils/categoryUtils";
 import { getErrorMessage, getFormattedTime } from "../../utils/formating";
 import { MessageInstance } from "antd/es/message/interface";
+import type { BackendInfoMap } from "../../backends/types";
+import { getPopupSegmentSource, getPopupVoteBackendId } from "./backendInfo";
 
 interface PopupSegmentProps {
     segment: SponsorTime;
+    backendInfo: BackendInfoMap;
     time: number;
 
     messageApi: MessageInstance;
@@ -71,6 +74,34 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
         return this.props.segment.actionType !== ActionType.Full;
     }
 
+    private sourceInfo() {
+        return getPopupSegmentSource(this.props.segment, this.props.backendInfo);
+    }
+
+    private sourceText(): string {
+        const source = this.sourceInfo();
+        switch (source.kind) {
+            case "backend":
+                return chrome.i18n
+                    .getMessage("popupSegmentBackend")
+                    .replace("{0}", source.name)
+                    .replace("{1}", source.backendId);
+            case "local":
+                return chrome.i18n.getMessage("popupSegmentLocal");
+            case "danmaku":
+                return chrome.i18n.getMessage("popupSegmentDanmaku");
+            case "youtube":
+                return chrome.i18n.getMessage("popupSegmentYouTube");
+            default:
+                return chrome.i18n.getMessage("popupSegmentUnknown");
+        }
+    }
+
+    private showVoteButtons(): boolean {
+        const source = this.sourceInfo();
+        return source.kind === "backend" && source.canVote;
+    }
+
     startVoting() {
         this.setState({ isVoting: true });
     }
@@ -93,6 +124,7 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
             message: "submitVote",
             type: type,
             UUID: UUID,
+            backendId: getPopupVoteBackendId(this.props.segment, this.props.backendInfo),
         })) as VoteResponse;
         this.stopVoting();
 
@@ -151,26 +183,31 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                                 style={{ backgroundColor: Config.config.barTypes[category]?.color }}
                             ></span>
                             <span className="summaryLabel">{shortCategoryName(category) + this.extraInfo()}</span>
+                            <span className="segmentSource">{this.sourceText()}</span>
                         </div>
                         <div style={{ margin: "5px" }}>{this.segmentFromToTime()}</div>
                     </summary>
 
                     <div className="sbVoteButtonsContainer">
-                        <img
-                            className="voteButton"
-                            title={chrome.i18n.getMessage("upvote")}
-                            src="/icons/thumbs_up.svg"
-                            onClick={() => this.vote.bind(this)(1, UUID)}
-                        ></img>
+                        {this.showVoteButtons() && (
+                            <>
+                                <img
+                                    className="voteButton"
+                                    title={chrome.i18n.getMessage("upvote")}
+                                    src="/icons/thumbs_up.svg"
+                                    onClick={() => this.vote.bind(this)(1, UUID)}
+                                ></img>
 
-                        <img
-                            className="voteButton"
-                            title={chrome.i18n.getMessage("downvote")}
-                            src={
-                                locked && Config.config.isVip ? "icons/thumbs_down_locked.svg" : "icons/thumbs_down.svg"
-                            }
-                            onClick={() => this.vote.bind(this)(0, UUID)}
-                        ></img>
+                                <img
+                                    className="voteButton"
+                                    title={chrome.i18n.getMessage("downvote")}
+                                    src={
+                                        locked && Config.config.isVip ? "icons/thumbs_down_locked.svg" : "icons/thumbs_down.svg"
+                                    }
+                                    onClick={() => this.vote.bind(this)(0, UUID)}
+                                ></img>
+                            </>
+                        )}
 
                         <img
                             className="voteButton"

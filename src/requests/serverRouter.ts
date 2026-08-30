@@ -1,10 +1,29 @@
 import { FetchResponse } from "./type/requestType";
-import {
-    isMergeableHashRequest,
-    isRetryableReadRequest,
-    normalizeServerAddress,
-    SERVER_ROUTER_CONFIG,
-} from "../config/serverConfig";
+
+export const BACKEND_ROUTER_CONFIG = {
+    backoffMs: [15 * 60 * 1000, 60 * 60 * 1000, 6 * 60 * 60 * 1000, 24 * 60 * 60 * 1000],
+    recoveryProbeIntervalMs: 5 * 60 * 1000,
+    hashRequestTimeoutMs: 6000,
+    otherRequestTimeoutMs: 15000,
+    healthCheckEndpoint: "/api/ready",
+} as const;
+
+function normalizeAddress(address: string): string {
+    return typeof address === "string" ? address.trim().replace(/\/+$/, "") : "";
+}
+
+function isMergeableHashRequest(type: string, endpoint: string): boolean {
+    return type === "GET" && /^\/api\/(skipSegments|videoLabels)(?:\/|$)/.test(endpoint);
+}
+
+function isRetryableReadRequest(type: string, endpoint: string): boolean {
+    return type === "GET" && (
+        isMergeableHashRequest(type, endpoint) ||
+        /^\/api\/(userInfo|getUsername|chapterNames)(?:\/|\?|$)/.test(endpoint) ||
+        /^\/api\/lockCategories\//.test(endpoint) ||
+        /^\/api\/portVideo\//.test(endpoint)
+    );
+}
 
 interface NodeHealth {
     openUntil: number;
@@ -14,8 +33,9 @@ interface NodeHealth {
     lastFailureAt: number;
 }
 
-export interface ServerRouterState {
+export interface BackendRouterState {
     version: 1;
+    backendId: string;
     nodeSignature: string;
     activeAddress: string;
     lastUnavailableProbeAddress: string;
@@ -32,12 +52,14 @@ export interface ServerNodeStatus {
     recoverySuccesses: number;
 }
 
-export interface ServerRouterStatus {
+export interface BackendRouterStatus {
+    backendId: string;
     activeAddress: string;
     nodes: ServerNodeStatus[];
 }
 
-export interface ServerAddressCheckResult {
+export interface BackendAddressCheckResult {
+    backendId: string;
     address: string;
     healthState: "available" | "open";
 }
@@ -46,6 +68,7 @@ type RequestData = Record<string, unknown> | null;
 type RetryMode = "none" | "single" | "all";
 
 interface ServerRouterOptions {
+    backendId: string;
     getServerAddresses: () => string[] | Promise<string[]>;
     executeRequest: (
         type: string,
@@ -54,8 +77,8 @@ interface ServerRouterOptions {
         headers: Record<string, string>,
         signal: AbortSignal
     ) => Promise<FetchResponse>;
-    loadState: () => Promise<ServerRouterState | null>;
-    saveState: (state: ServerRouterState) => Promise<void>;
+    loadState: () => Promise<BackendRouterState | null>;
+    saveState: (state: BackendRouterState) => Promise<void>;
     now?: () => number;
     random?: () => number;
     hashRequestTimeoutMs?: number;
@@ -67,9 +90,10 @@ interface RequestSelection {
     recoveryProbe: boolean;
 }
 
-function emptyState(): ServerRouterState {
+function emptyState(backendId: string): BackendRouterState {
     return {
         version: 1,
+        backendId,
         nodeSignature: "",
         activeAddress: "",
         lastUnavailableProbeAddress: "",
@@ -87,13 +111,14 @@ export class ServerRouter {
     private readonly random: () => number;
     private readonly inFlightHashRequests = new Map<string, Promise<FetchResponse>>();
     private readonly recoveryProbesInFlight = new Set<string>();
-    private state = emptyState();
+    private state: BackendRouterState;
     private loadPromise: Promise<void> | null = null;
 
     constructor(options: ServerRouterOptions) {
         this.options = options;
         this.now = options.now ?? Date.now;
         this.random = options.random ?? Math.random;
+        this.state = emptyState(options.backendId ?? "");
     }
 
     async request(
@@ -108,7 +133,9 @@ export class ServerRouter {
             ? "all"
             : isRetryableReadRequest(normalizedType, endpoint)
               ? "single"
-              : "none";
+              : normalizedType === "GET"
+                ? "none"
+                : "single";
 
         if (!mergeHashRequest) {
             return this.routeRequest(normalizedType, endpoint, data, headers, retryMode);
@@ -130,11 +157,12 @@ export class ServerRouter {
         }
     }
 
-    async getStatus(): Promise<ServerRouterStatus> {
+    async getStatus(): Promise<BackendRouterStatus> {
         const addresses = await this.getAddresses();
         const now = this.now();
 
         return {
+            backendId: this.state.backendId,
             activeAddress: this.state.activeAddress,
             nodes: addresses.map((address) => {
                 const health = this.state.health[address];
@@ -160,9 +188,9 @@ export class ServerRouter {
         };
     }
 
-    async probe(address: string): Promise<ServerRouterStatus> {
+    async probe(address: string): Promise<BackendRouterStatus> {
         const addresses = await this.getAddresses();
-        const normalizedAddress = normalizeServerAddress(address);
+        const normalizedAddress = normalizeAddress(address);
         if (!addresses.includes(normalizedAddress)) return this.getStatus();
 
         const result = await this.checkAddress(normalizedAddress);
@@ -175,17 +203,18 @@ export class ServerRouter {
         return this.getStatus();
     }
 
-    async checkAddress(address: string): Promise<ServerAddressCheckResult> {
-        const normalizedAddress = normalizeServerAddress(address);
+    async checkAddress(address: string): Promise<BackendAddressCheckResult> {
+        const normalizedAddress = normalizeAddress(address);
         const response = await this.execute(
             "GET",
-            normalizedAddress + SERVER_ROUTER_CONFIG.healthCheckEndpoint,
+            normalizedAddress + BACKEND_ROUTER_CONFIG.healthCheckEndpoint,
             {},
             {},
             true
         );
 
         return {
+            backendId: this.state.backendId,
             address: normalizedAddress,
             healthState: this.isProbeFailure(response) ? "open" : "available",
         };
@@ -203,7 +232,7 @@ export class ServerRouter {
 
         const retryRequest = retryMode !== "none";
         const validateHashResponse = retryMode === "all";
-        const selection = await this.selectRequestNode(addresses, retryRequest);
+        const selection = await this.selectRequestNode(addresses, type === "GET" && retryRequest);
         const response = await this.execute(type, selection.address + endpoint, data, headers, validateHashResponse);
 
         if (!retryRequest) {
@@ -309,8 +338,8 @@ export class ServerRouter {
     ): Promise<FetchResponse> {
         const controller = new AbortController();
         const timeoutMs = hashRequest
-            ? (this.options.hashRequestTimeoutMs ?? SERVER_ROUTER_CONFIG.hashRequestTimeoutMs)
-            : (this.options.otherRequestTimeoutMs ?? SERVER_ROUTER_CONFIG.otherRequestTimeoutMs);
+            ? (this.options.hashRequestTimeoutMs ?? BACKEND_ROUTER_CONFIG.hashRequestTimeoutMs)
+            : (this.options.otherRequestTimeoutMs ?? BACKEND_ROUTER_CONFIG.otherRequestTimeoutMs);
         const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
         try {
@@ -322,7 +351,10 @@ export class ServerRouter {
         }
     }
 
-    private async selectRequestNode(addresses: string[], allowRecoveryProbe: boolean): Promise<RequestSelection> {
+    private async selectRequestNode(
+        addresses: string[],
+        allowRecoveryProbe: boolean
+    ): Promise<RequestSelection> {
         const activeIndex = addresses.indexOf(this.state.activeAddress);
         const normalizedActiveIndex = activeIndex >= 0 ? activeIndex : 0;
 
@@ -385,11 +417,11 @@ export class ServerRouter {
         let changed = false;
 
         if (health.openUntil <= now) {
-            const level = Math.min(health.backoffLevel, SERVER_ROUTER_CONFIG.backoffMs.length - 1);
+            const level = Math.min(health.backoffLevel, BACKEND_ROUTER_CONFIG.backoffMs.length - 1);
             const jitter = 0.9 + this.random() * 0.2;
 
-            health.openUntil = now + Math.round(SERVER_ROUTER_CONFIG.backoffMs[level] * jitter);
-            health.backoffLevel = Math.min(level + 1, SERVER_ROUTER_CONFIG.backoffMs.length - 1);
+            health.openUntil = now + Math.round(BACKEND_ROUTER_CONFIG.backoffMs[level] * jitter);
+            health.backoffLevel = Math.min(level + 1, BACKEND_ROUTER_CONFIG.backoffMs.length - 1);
             health.recoverySuccesses = 0;
             health.nextRecoveryProbeAt = health.openUntil;
             health.lastFailureAt = now;
@@ -413,7 +445,7 @@ export class ServerRouter {
         health.recoverySuccesses += 1;
 
         if (health.recoverySuccesses < 2) {
-            health.nextRecoveryProbeAt = this.now() + SERVER_ROUTER_CONFIG.recoveryProbeIntervalMs;
+            health.nextRecoveryProbeAt = this.now() + BACKEND_ROUTER_CONFIG.recoveryProbeIntervalMs;
         } else {
             this.state.health[address] = this.createNodeHealth();
             this.state.activeAddress = address;
@@ -424,7 +456,7 @@ export class ServerRouter {
 
     private async postponeRecoveryProbe(address: string): Promise<void> {
         const health = this.getNodeHealth(address);
-        health.nextRecoveryProbeAt = this.now() + SERVER_ROUTER_CONFIG.recoveryProbeIntervalMs;
+        health.nextRecoveryProbeAt = this.now() + BACKEND_ROUTER_CONFIG.recoveryProbeIntervalMs;
         await this.persistState();
     }
 
@@ -474,7 +506,7 @@ export class ServerRouter {
     }
 
     private isProbeFailure(response: FetchResponse): boolean {
-        return !response.ok;
+        return this.isNodeFailure(response);
     }
 
     private isNodeFailure(response: FetchResponse): boolean {
@@ -506,7 +538,7 @@ export class ServerRouter {
     private async getAddresses(): Promise<string[]> {
         await this.ensureLoaded();
         const configuredAddresses = await this.options.getServerAddresses();
-        const addresses = [...new Set(configuredAddresses.map(normalizeServerAddress).filter(Boolean))];
+        const addresses = [...new Set(configuredAddresses.map(normalizeAddress).filter(Boolean))];
         const signature = addresses.join("\n");
 
         if (signature !== this.state.nodeSignature) {
@@ -517,7 +549,7 @@ export class ServerRouter {
                     .map((address) => [address, this.state.health[address]])
             );
             this.state = {
-                ...emptyState(),
+                ...emptyState(this.state.backendId),
                 nodeSignature: signature,
                 activeAddress: addresses.includes(previousActiveAddress) ? previousActiveAddress : "",
                 health,
@@ -538,7 +570,9 @@ export class ServerRouter {
         if (this.loadPromise) return this.loadPromise;
 
         this.loadPromise = this.options.loadState().then((state) => {
-            if (state?.version === 1) this.state = { ...emptyState(), ...state };
+            if (state?.version === 1 && state.backendId === this.state.backendId) {
+                this.state = { ...emptyState(this.state.backendId), ...state, backendId: this.state.backendId };
+            }
         });
         return this.loadPromise;
     }

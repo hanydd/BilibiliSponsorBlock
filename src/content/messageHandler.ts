@@ -46,6 +46,7 @@ export function handleContentMessage(
                 found: contentState.sponsorDataFound,
                 status: contentState.lastResponseStatus,
                 sponsorTimes: contentState.sponsorTimes,
+                backendInfo: contentState.backendInfo,
                 portVideo: contentState.portVideo,
                 time: getVideo()?.currentTime ?? 0,
             });
@@ -170,7 +171,16 @@ export function handleContentMessage(
             void app.commands.execute("segments/select", { UUID: request.UUID });
             break;
         case "submitVote":
-            Promise.resolve(app.commands.execute("segment/vote", { type: request.type, UUID: request.UUID })).then(sendResponse);
+            {
+                const backendId = (request as unknown as { backendId?: string }).backendId;
+                Promise.resolve(
+                    app.commands.execute("segment/vote", {
+                        type: request.type,
+                        UUID: request.UUID,
+                        backendId,
+                    } as unknown as { type: number; UUID: typeof request.UUID; backendId?: string })
+                ).then(sendResponse);
+            }
             return true;
         case "hideSegment":
             {

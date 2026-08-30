@@ -36,7 +36,7 @@ declare global {
             toBvid: BVID;
             aid: AID;
             cid: CID;
-            upData: { mid: string };
+            upData: { mid: string; name?: string; uname?: string };
             videoData: BiliVideoDetail;
             videoInfo: BiliVideoDetailForEvent;
         };

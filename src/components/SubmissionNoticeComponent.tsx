@@ -7,6 +7,7 @@ import { Category } from "../types";
 import { ConfigProvider, Popover, theme } from "antd";
 import { keybindToString } from "../config/config";
 import { ContentContainer } from "../ContentContainerTypes";
+import { SubmissionBackend } from "../content/backendService";
 import { showMessage } from "../render/MessageNotice";
 import { getGuidelineInfo } from "../utils/constants";
 import { exportTimes } from "../utils/exporter";
@@ -19,7 +20,7 @@ export interface SubmissionNoticeProps {
     // Contains functions and variables from the content script needed by the skip notice
     contentContainer: ContentContainer;
 
-    callback: () => Promise<boolean>;
+    callback: (backendId?: string) => Promise<boolean>;
 
     closeListener: () => void;
 }
@@ -29,13 +30,15 @@ export interface SubmissionNoticeState {
     messages: string[];
     idSuffix: string;
     popoverOpen: boolean;
+    submissionBackends: SubmissionBackend[];
+    selectedBackendId: string | null;
 }
 
 class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, SubmissionNoticeState> {
     // Contains functions and variables from the content script needed by the skip notice
     contentContainer: ContentContainer;
 
-    callback: () => unknown;
+    callback: (backendId?: string) => unknown;
 
     noticeRef: React.MutableRefObject<NoticeComponent>;
     timeEditRefs: React.RefObject<SponsorTimeEditComponent>[];
@@ -63,6 +66,8 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
             messages: [],
             idSuffix: "SubmissionNotice",
             popoverOpen: Config.config.showShortcutPopover,
+            submissionBackends: [],
+            selectedBackendId: null,
         };
     }
 
@@ -76,6 +81,8 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
         this.videoObserver.observe(getVideo(), {
             attributes: true,
         });
+
+        void this.loadSubmissionBackends();
 
         // Prevent zooming while changing times
         document.getElementById("sponsorSkipNoticeMiddleRow" + this.state.idSuffix).addEventListener(
@@ -93,6 +100,58 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
         if (this.videoObserver) {
             this.videoObserver.disconnect();
         }
+    }
+
+    async loadSubmissionBackends(): Promise<void> {
+        const container = this.contentContainer();
+        if (!container.getVideoMatchContext || !container.getSubmissionBackends) return;
+
+        try {
+            const context = await container.getVideoMatchContext();
+            const backends = await container.getSubmissionBackends(context);
+            const lastBackendId = container.getLastSubmissionBackendId
+                ? await container.getLastSubmissionBackendId()
+                : null;
+            const selectedBackendId =
+                (lastBackendId && backends.some((backend) => backend.id === lastBackendId) ? lastBackendId : null) ??
+                backends[0]?.id ??
+                null;
+
+            this.setState({ submissionBackends: backends, selectedBackendId });
+        } catch (error) {
+            this.setState({ submissionBackends: [], selectedBackendId: null });
+        }
+    }
+
+    selectSubmissionBackend(backendId: string): void {
+        this.setState({ selectedBackendId: backendId });
+        const setLastBackendId = this.contentContainer().setLastSubmissionBackendId;
+        if (setLastBackendId) {
+            void setLastBackendId(backendId);
+        }
+    }
+
+    getSubmissionBackendSelector(): JSX.Element | null {
+        if (this.state.submissionBackends.length === 0) return null;
+
+        return (
+            <label className="sponsorSkipObject" htmlFor="sponsorSubmissionBackend">
+                {chrome.i18n.getMessage("backend") || "Backend"}
+                <select
+                    id="sponsorSubmissionBackend"
+                    className="sponsorTimeEditSelector sponsorSubmissionBackendSelector"
+                    style={{ color: "inherit", backgroundColor: "inherit" }}
+                    value={this.state.selectedBackendId ?? this.state.submissionBackends[0].id}
+                    onChange={(event) => this.selectSubmissionBackend(event.target.value)}
+                >
+                    {this.state.submissionBackends.map((backend) => (
+                        <option value={backend.id} key={backend.id}>
+                            {backend.name || backend.id}
+                        </option>
+                    ))}
+                </select>
+            </label>
+        );
     }
 
     componentDidUpdate() {
@@ -167,6 +226,8 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                         {/* Last Row */}
                         <tr id={"sponsorSkipNoticeSecondRow" + this.state.idSuffix}>
                             <td className="sponsorSkipNoticeRightSection" style={{ position: "relative" }}>
+                                {this.getSubmissionBackendSelector()}
+
                                 {/* Guidelines button */}
                                 <button
                                     className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
@@ -188,6 +249,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                                         )})`,
                                     })}
                                     onClick={this.submit.bind(this)}
+                                    disabled={this.state.submissionBackends.length === 0}
                                 >
                                     {chrome.i18n.getMessage("submit")}
                                 </button>
@@ -252,6 +314,11 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
     }
 
     submit(): void {
+        if (this.state.submissionBackends.length === 0) {
+            showMessage(chrome.i18n.getMessage("backendNoSubmissionBackend"), "warning");
+            return;
+        }
+
         // save all items
         for (const ref of this.timeEditRefs) {
             ref.current.saveEditTimes();
@@ -276,7 +343,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
             }
         }
 
-        this.props.callback().then((success) => {
+        this.props.callback(this.state.selectedBackendId ?? undefined).then((success) => {
             if (success) {
                 this.cancel();
             }

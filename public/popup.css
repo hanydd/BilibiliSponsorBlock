@@ -93,15 +93,15 @@ select {
 }
 
 /*
- * Alert indicating that Beta server is enabled
+ * Container when popup displayed in-page (content.ts)
  */
-#sbBetaServerWarning {
-	padding: 8px;
-	font-size: 1em;
-	font-weight: 700;
-	color: var(--sb-main-fg-color);
-	background-color: var(--sb-red-bg-color);
-	cursor: pointer;
+#sponsorBlockPopupContainer {
+	position: relative;
+	margin-bottom: 16px;
+}
+
+#sponsorBlockPopupContainer iframe {
+	width: 100%;
 }
 
 /*
@@ -256,6 +256,15 @@ select {
 .summaryLabel {
 	overflow-wrap: break-word;
 	white-space: normal;
+}
+
+.segmentSource {
+	display: block;
+	font-size: 11px;
+	font-weight: normal;
+	color: var(--sb-grey-fg-color);
+	white-space: normal;
+	overflow-wrap: anywhere;
 }
 
 .sbVoteButtonsContainer {

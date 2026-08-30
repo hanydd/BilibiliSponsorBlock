@@ -1,0 +1,34 @@
+{
+    "backends": [
+        {
+            "id": "testing",
+            "name": "测试后端",
+            "desc": "本地测试后端",
+            "api_url": "http://127.0.0.1:9876",
+            "enabled": false,
+            "capabilities": [
+                "GET /api/skipSegments",
+                "GET /api/skipSegments/:sha256HashPrefix",
+                "POST /api/skipSegments",
+                "POST /api/voteOnSponsorTime",
+                "POST /api/viewedVideoSponsorTime",
+                "GET /api/lockCategories",
+                "GET /api/lockCategories/:sha256HashPrefix",
+                "GET /api/videoLabels",
+                "GET /api/videoLabels/:sha256HashPrefix",
+                "GET /api/portVideo",
+                "GET /api/portVideo/:sha256HashPrefix",
+                "POST /api/portVideo",
+                "POST /api/votePort",
+                "POST /api/updatePortedSegments",
+                "GET /api/chapterNames",
+                "GET /api/userInfo",
+                "POST /api/setUsername",
+                "GET /api/getUsername",
+                "POST /api/warnUser"
+            ],
+            "mirrors": [],
+            "conflicts": []
+        }
+    ]
+}

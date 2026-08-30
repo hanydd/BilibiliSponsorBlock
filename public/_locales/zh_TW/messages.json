@@ -497,91 +497,6 @@
     "shortCheck": {
         "message": "以下的提交短於您的最小持續時間選項。這代表它們可能已經被提交，只是由於該選項被忽略了。您確定要提交嗎？"
     },
-    "customServerAddress": {
-        "message": "空降助手伺服器地址"
-    },
-    "customServerAddressDescription": {
-        "message": "小电视空降助手的伺服器地址。\n不建議更改，除非您有自己的伺服器。"
-    },
-    "mirrorServerAddresses": {
-        "message": "鏡像站"
-    },
-    "officialMirrorServer": {
-        "message": "官方鏡像"
-    },
-    "communityMirrorServer": {
-        "message": "社群鏡像"
-    },
-    "expandMirrorServers": {
-        "message": "展開"
-    },
-    "collapseMirrorServers": {
-        "message": "收起"
-    },
-    "mirrorServerAddressesDescription": {
-        "message": "節點狀態來自實際請求或手動檢測；新增鏡像時檢測一次，不會定時請求 ready 介面。"
-    },
-    "serverNodeStatus": {
-        "message": "伺服器連線"
-    },
-    "serverNodeStatusDescription": {
-        "message": "請求優先使用主站，必要時自動切換至可用鏡像。"
-    },
-    "refreshServerStatus": {
-        "message": "重新整理節點狀態"
-    },
-    "checkServerStatus": {
-        "message": "檢測"
-    },
-    "addAndCheckServer": {
-        "message": "新增並檢測"
-    },
-    "removeServer": {
-        "message": "移除"
-    },
-    "mirrorServerAddressPlaceholder": {
-        "message": "輸入鏡像地址，例如 http://127.0.0.1:9876"
-    },
-    "serverNodeCount": {
-        "message": "$COUNT$ 個節點",
-        "placeholders": {
-            "count": {
-                "content": "$1"
-            }
-        }
-    },
-    "serverNodeEmpty": {
-        "message": "尚未設定鏡像站"
-    },
-    "serverNodePreferred": {
-        "message": "主站"
-    },
-    "serverNodeFallback": {
-        "message": "鏡像"
-    },
-    "serverNodeAvailable": {
-        "message": "可用"
-    },
-    "serverNodeOpen": {
-        "message": "不可用"
-    },
-    "serverNodeRecovering": {
-        "message": "等待探活"
-    },
-    "serverNodeChecking": {
-        "message": "檢測中"
-    },
-    "serverNodeUnknown": {
-        "message": "狀態未知"
-    },
-    "serverNodeRetryAt": {
-        "message": "下次探活：$TIME$",
-        "placeholders": {
-            "time": {
-                "content": "$1"
-            }
-        }
-    },
     "cacheManagement": {
         "message": "緩存管理"
     },
@@ -991,15 +906,6 @@
         "message": "跳過選項",
         "description": "Used on the options page to describe the ways to skip the segment (auto skip, manual, etc.)"
     },
-    "enableTestingServer": {
-        "message": "啟用Beta測試伺服器"
-    },
-    "whatEnableTestingServer": {
-        "message": "您的提交和投票將不會計入主伺服器。它只被用於測試。"
-    },
-    "testingServerWarning": {
-        "message": "當連接到測試伺服器時，所有的提交和投票將不會計入主伺服器。當您想要進行真實提交時，請確保停用了此選項。"
-    },
     "bracketNow": {
         "message": "[設為目前]"
     },
@@ -1250,9 +1156,6 @@
     },
     "bilibiliKeybindWarning": {
         "message": "這是网站內建的捷徑。您確定要使用嗎？"
-    },
-    "betaServerWarning": {
-        "message": "測試伺服器已啟用！"
     },
     "openOptionsPage": {
         "message": "打開選項頁面"
@@ -1556,5 +1459,161 @@
     },
     "copyPageLogsFailed": {
         "message": "複製頁面日誌失敗"
+    },
+    "optionsTabBackendConfig": {
+        "message": "後端"
+    },
+    "backendConfigTitle": {
+        "message": "後端"
+    },
+    "backendConfigDescription": {
+        "message": "配置多個後端並按順序參與匹配。訂閱同步只會替換配置，不會改變各後端的獨立啟用狀態。"
+    },
+    "backendSubscriptionTitle": {
+        "message": "後端配置訂閱"
+    },
+    "backendSubscriptionUrl": {
+        "message": "訂閱 URL"
+    },
+    "backendSubscriptionInterval": {
+        "message": "同步間隔"
+    },
+    "backendSubscriptionMinutes": {
+        "message": "分鐘"
+    },
+    "backendSubscriptionEnabled": {
+        "message": "啟用定時同步"
+    },
+    "backendSubscriptionSyncNow": {
+        "message": "立即同步一次"
+    },
+    "backendSubscriptionSyncing": {
+        "message": "同步中..."
+    },
+    "backendSubscriptionUrlRequired": {
+        "message": "請先填寫訂閱 URL。"
+    },
+    "backendSubscriptionPermissionDenied": {
+        "message": "未授予訂閱地址的存取權限。"
+    },
+    "backendConfigJsonLabel": {
+        "message": "後端配置 JSON"
+    },
+    "backendConfigFormat": {
+        "message": "格式化並規範衝突"
+    },
+    "backendConfigFormatted": {
+        "message": "後端配置已格式化，衝突關係已補全。"
+    },
+    "backendConfigSave": {
+        "message": "儲存 JSON"
+    },
+    "backendConfigRestoreDefault": {
+        "message": "恢復預設配置"
+    },
+    "backendConfigSaved": {
+        "message": "後端配置已儲存。"
+    },
+    "backendConfigRestored": {
+        "message": "已恢復預設後端配置。"
+    },
+    "backendConfigSynced": {
+        "message": "後端配置同步成功。"
+    },
+    "backendConfigInvalidJson": {
+        "message": "JSON 格式不正確。"
+    },
+    "backendConfigInvalidShape": {
+        "message": "配置必須是包含 backends 陣列的物件。"
+    },
+    "backendConfigInvalidBackend": {
+        "message": "後端配置項缺少有效的 name。"
+    },
+    "backendConfigInvalidId": {
+        "message": "後端 id 只能包含小寫字母、底線和短橫線，且不能重複。"
+    },
+    "backendConfigInvalidUrl": {
+        "message": "後端地址必須是 http:// 或 https:// URL。"
+    },
+    "backendConfigInvalidMirrors": {
+        "message": "mirrors 必須是 URL 陣列。"
+    },
+    "backendConfigInvalidCapabilities": {
+        "message": "capabilities 必須是陣列。"
+    },
+    "backendConfigInvalidConflicts": {
+        "message": "conflicts 必須是現有後端 id 的陣列。"
+    },
+    "backendConfigId": {
+        "message": "ID"
+    },
+    "backendConfigName": {
+        "message": "名稱"
+    },
+    "backendConfigDescriptionColumn": {
+        "message": "說明"
+    },
+    "backendConfigApiUrl": {
+        "message": "API 地址"
+    },
+    "backendConfigNodes": {
+        "message": "後端節點"
+    },
+    "backendNodeAvailable": {
+        "message": "可用"
+    },
+    "backendNodeOpen": {
+        "message": "不可用"
+    },
+    "backendNodeRecovering": {
+        "message": "等待恢復"
+    },
+    "backendNodeChecking": {
+        "message": "檢測中"
+    },
+    "backendNodeUnknown": {
+        "message": "狀態未知"
+    },
+    "backendConfigPrimary": {
+        "message": "主地址"
+    },
+    "backendConfigMirror": {
+        "message": "鏡像地址"
+    },
+    "backendConfigCheck": {
+        "message": "檢測"
+    },
+    "backendConfigRemove": {
+        "message": "移除"
+    },
+    "backendConfigAddMirror": {
+        "message": "新增並檢測"
+    },
+    "backendConfigMirrorPlaceholder": {
+        "message": "鏡像 URL"
+    },
+    "backendConfigPermissionDenied": {
+        "message": "未授予存取此後端地址的權限。"
+    },
+    "backendConfigNodeUnavailable": {
+        "message": "後端地址不可用。"
+    },
+    "backendConfigDuplicateAddress": {
+        "message": "此後端地址已經配置。"
+    },
+    "backendConfigEnabled": {
+        "message": "啟用"
+    },
+    "backendConfigDefault": {
+        "message": "預設"
+    },
+    "backendConfigEnabledValue": {
+        "message": "啟用"
+    },
+    "backendConfigDisabledValue": {
+        "message": "停用"
+    },
+    "backendConfigEmpty": {
+        "message": "暫無後端配置。"
     }
 }
