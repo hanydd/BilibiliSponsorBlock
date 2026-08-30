@@ -114,10 +114,8 @@ async function getCurrentRate(): Promise<number> {
         const fetched = await getPlaybackRateFromPlayer();
         if (typeof fetched === "number" && isFinite(fetched) && fetched > 0) return fetched;
     } catch (error) {
-
-                    logDebug("[SB SpeedUp] error: " + String(error));
-
-                }
+        logDebug("[SB SpeedUp] error: " + String(error));
+    }
     const v = getVideo();
     return v?.playbackRate ?? 1;
 }
@@ -128,10 +126,8 @@ async function setRate(rate: number): Promise<boolean> {
         const result = await setPlaybackRateViaPlayer(rate);
         if (result) success = true;
     } catch (error) {
-
-                    logDebug("[SB SpeedUp] error: " + String(error));
-
-                }
+        logDebug("[SB SpeedUp] error: " + String(error));
+    }
     const v = getVideo();
     if (v) {
         try {
@@ -140,10 +136,8 @@ async function setRate(rate: number): Promise<boolean> {
             if (v.playbackRate !== rate) v.playbackRate = rate;
             success = true;
         } catch (error) {
-
-                        logDebug("[SB SpeedUp] error: " + String(error));
-
-                    }
+            logDebug("[SB SpeedUp] error: " + String(error));
+        }
     }
     lastSetRate = rate;
     logDebug(`[SB SpeedUp] setPlaybackRate ${rate} success=${success}`);
@@ -219,10 +213,8 @@ function sendTelemetryForSpeedUp(segments: SponsorTime[], rate: number): void {
             try {
                 void asyncRequestToServer("POST", "/api/viewedVideoSponsorTime?UUID=" + segment.UUID);
             } catch (error) {
-
-                            logDebug("[SB SpeedUp] error: " + String(error));
-
-                        }
+                logDebug("[SB SpeedUp] error: " + String(error));
+            }
         }
     }
 }
@@ -253,18 +245,14 @@ async function checkCompletion(): Promise<void> {
         try {
             if (video.playbackRate !== restoreTo) video.playbackRate = restoreTo;
         } catch (error) {
-
-                        logDebug("[SB SpeedUp] error: " + String(error));
-
-                    }
+            logDebug("[SB SpeedUp] error: " + String(error));
+        }
         lastSetRate = null;
         try {
             await setRate(restoreTo);
         } catch (error) {
-
-                        logDebug("[SB SpeedUp] error: " + String(error));
-
-                    }
+            logDebug("[SB SpeedUp] error: " + String(error));
+        }
 
         // Telemetry
         sendTelemetryForSpeedUp(completedSegments, completedRate);
@@ -277,10 +265,8 @@ async function checkCompletion(): Promise<void> {
                 }
             }
         } catch (error) {
-
-                        logDebug("[SB SpeedUp] error: " + String(error));
-
-                    }
+            logDebug("[SB SpeedUp] error: " + String(error));
+        }
 
         // Emit completion events for UI (reuse skip executed semantics but as speedUp)
         try {
@@ -291,10 +277,8 @@ async function checkCompletion(): Promise<void> {
                 openNotice: false,
             }, { source: "speedUpManager.checkCompletion" });
         } catch (error) {
-
-                        logDebug("[SB SpeedUp] error: " + String(error));
-
-                    }
+            logDebug("[SB SpeedUp] error: " + String(error));
+        }
 
         // Schedule next segments
         try {
@@ -310,10 +294,8 @@ async function checkCompletion(): Promise<void> {
                 void app.commands.execute("skip/startSchedule", {});
             }, 200);
         } catch (error) {
-
-                        logDebug("[SB SpeedUp] error: " + String(error));
-
-                    }
+            logDebug("[SB SpeedUp] error: " + String(error));
+        }
         return;
     }
 
@@ -354,10 +336,8 @@ function detachTimeUpdateListener(video: HTMLVideoElement | null): void {
         video.removeEventListener("timeupdate", boundTimeUpdateHandler);
         video.removeEventListener("seeked", boundTimeUpdateHandler);
     } catch (error) {
-
-                    logDebug("[SB SpeedUp] error: " + String(error));
-
-                }
+        logDebug("[SB SpeedUp] error: " + String(error));
+    }
     boundTimeUpdateHandler = null;
 }
 
@@ -425,10 +405,8 @@ export async function startSpeedUp(skippingSegments: SponsorTime[], skipTime: nu
         if (video.playbackRate !== rate) video.playbackRate = rate;
         lastSetRate = rate;
     } catch (error) {
-
-                    logDebug("[SB SpeedUp] error: " + String(error));
-
-                }
+        logDebug("[SB SpeedUp] error: " + String(error));
+    }
     // 异步通过 window.player 设置，失败不影响已同步的 video 速率
     void setRate(rate).catch((error) => { logDebug("[SB SpeedUp] promise rejected: " + String(error)); });
 
@@ -468,17 +446,15 @@ export async function cancelSpeedUp(restoreRate = true, isManual = false): Promi
             try {
                 if (v.playbackRate !== restoreTo) v.playbackRate = restoreTo;
             } catch (error) {
-
-                            logDebug("[SB SpeedUp] error: " + String(error));
-
-                        }
+                logDebug("[SB SpeedUp] error: " + String(error));
+            }
         }
         try {
             await setRate(restoreTo);
         } catch {
             if (v) try { v.playbackRate = restoreTo; } catch (error) {
-                 logDebug("[SB SpeedUp] error: " + String(error));
-             }
+                logDebug("[SB SpeedUp] error: " + String(error));
+            }
         }
         lastSetRate = null;
     }
@@ -493,10 +469,8 @@ export async function cancelSpeedUp(restoreRate = true, isManual = false): Promi
                 void app.commands.execute("skip/startSchedule", {});
             }, 150);
         } catch (error) {
-
-                        logDebug("[SB SpeedUp] error: " + String(error));
-
-                    }
+            logDebug("[SB SpeedUp] error: " + String(error));
+        }
     } else if (wasActive && isManual) {
         // For manual cancel, we should still schedule but shouldUseSpeedUp will block re-entry for same UUID
         try {
@@ -511,10 +485,8 @@ export async function cancelSpeedUp(restoreRate = true, isManual = false): Promi
                 });
             }, 200);
         } catch (error) {
-
-                        logDebug("[SB SpeedUp] error: " + String(error));
-
-                    }
+            logDebug("[SB SpeedUp] error: " + String(error));
+        }
     }
 }
 
@@ -525,8 +497,8 @@ export function resetSpeedUpState(): void {
         const restoreTo = originalRate || 1;
         // Try synchronous restore first, then async via player
         try { if (v.playbackRate !== restoreTo) v.playbackRate = restoreTo; } catch (error) {
-                 logDebug("[SB SpeedUp] error: " + String(error));
-             }
+            logDebug("[SB SpeedUp] error: " + String(error));
+        }
         void setRate(restoreTo).catch((error) => { logDebug("[SB SpeedUp] setRate failed: " + String(error)); });
         detachTimeUpdateListener(v);
     } else if (v) {
