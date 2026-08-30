@@ -1100,7 +1100,6 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
 
     // SpeedUp handling: delegate to speedUpManager and reuse existing manual skip notice path
     let speedUpDelegated = false;
-    let originalAutoSkipForExecuted = autoSkip;
     if (autoSkip && !isSubmittingSegment && skippingSegments[0].actionType === ActionType.Skip && shouldUseSpeedUp(skippingSegments[0])) {
         logDebug(`[SB] skipToTime delegating to SpeedUp ${skipTime[0]} -> ${skipTime[1]}`);
         let capturedOriginalRate: number | undefined;
@@ -1121,7 +1120,6 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
         void startSpeedUp(skippingSegments, skipTime as [number, number], capturedOriginalRate);
         // 复用下方已有的手动跳过 notice 逻辑（autoSkip=false 时的 createSkipNotice 去重路径），避免在此手动 emit 造成重复创建
         speedUpDelegated = true;
-        originalAutoSkipForExecuted = true;
         autoSkip = false;
     }
 
