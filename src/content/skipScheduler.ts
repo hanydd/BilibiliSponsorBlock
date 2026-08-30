@@ -1095,11 +1095,11 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
 
     const isSubmittingSegment = contentState.sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment);
 
-    // SpeedUp handling: replace instant skip with fast-forward
-    // 优化：启用快进时，notice 改为与手动跳过一致（autoSkip=false），提供显眼的“跳过”按钮供用户一键立即跳过
+    // SpeedUp handling: delegate to speedUpManager and reuse existing manual skip notice path
+    let speedUpDelegated = false;
+    let originalAutoSkipForExecuted = autoSkip;
     if (autoSkip && !isSubmittingSegment && skippingSegments[0].actionType === ActionType.Skip && shouldUseSpeedUp(skippingSegments[0])) {
         logDebug(`[SB] skipToTime delegating to SpeedUp ${skipTime[0]} -> ${skipTime[1]}`);
-        // 捕获进入片段前的原始速率，用于结束后恢复；同步预设为快进速率以便 notice 倒计时按快进速率计算
         let capturedOriginalRate: number | undefined;
         try {
             capturedOriginalRate = v?.playbackRate;
@@ -1116,36 +1116,10 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
             // ignore
         }
         void startSpeedUp(skippingSegments, skipTime as [number, number], capturedOriginalRate);
-
-        // 发出与手动跳过一致的 notice（autoSkip=false），即显示“跳过”按钮，点击可立即 seek 到片段末尾并取消快进
-        if (openNotice) {
-            emitSkipNoticeRequested(
-                "skip",
-                skippingSegments,
-                false,
-                unskipTime,
-                false,
-                "skipScheduler.skipToTime.speedUpManualNotice"
-            );
-        }
-
-        emitSkipExecuted(skipTime as [number, number], skippingSegments, true, openNotice, unskipTime, "skipScheduler.skipToTime.speedUp");
-
-        if (Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
-            const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
-            beep.volume = getVideo().volume * 0.1;
-            const oldMetadata = navigator.mediaSession.metadata;
-            beep.play();
-            beep.addEventListener("ended", () => {
-                navigator.mediaSession.metadata = null;
-                setTimeout(() => {
-                    navigator.mediaSession.metadata = oldMetadata;
-                    beep.remove();
-                });
-            });
-        }
-
-        return;
+        // 复用下方已有的手动跳过 notice 逻辑（autoSkip=false 时的 createSkipNotice 去重路径），避免在此手动 emit 造成重复创建
+        speedUpDelegated = true;
+        originalAutoSkipForExecuted = true;
+        autoSkip = false;
     }
 
     if ((autoSkip || isSubmittingSegment) && v.currentTime !== skipTime[1]) {
@@ -1188,7 +1162,7 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
         }
     }
 
-    if (autoSkip && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
+    if ((autoSkip || speedUpDelegated) && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
         const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
         beep.volume = getVideo().volume * 0.1;
         const oldMetadata = navigator.mediaSession.metadata;
@@ -1236,9 +1210,9 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
         }
     }
 
-    emitSkipExecuted(skipTime as [number, number], skippingSegments, autoSkip, openNotice, unskipTime, "skipScheduler.skipToTime");
+    emitSkipExecuted(skipTime as [number, number], skippingSegments, speedUpDelegated ? true : autoSkip, openNotice, unskipTime, "skipScheduler.skipToTime");
 
-    if (autoSkip || isSubmittingSegment) sendTelemetryAndCount(skippingSegments, skipTime[1] - skipTime[0], true);
+    if ((autoSkip && !speedUpDelegated) || isSubmittingSegment) sendTelemetryAndCount(skippingSegments, skipTime[1] - skipTime[0], true);
 }
 
 export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = null, forceSeek = false): void {
