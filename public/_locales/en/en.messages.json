@@ -1804,6 +1804,12 @@
     "backendConfigJsonLabel": {
         "message": "Backend configuration JSON"
     },
+    "backendConfigFormat": {
+        "message": "Format and normalize conflicts"
+    },
+    "backendConfigFormatted": {
+        "message": "Backend configuration formatted and conflicts normalized."
+    },
     "backendConfigSave": {
         "message": "Save JSON"
     },

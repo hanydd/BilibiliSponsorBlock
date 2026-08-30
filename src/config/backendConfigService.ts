@@ -4,6 +4,7 @@ import Config, {
 } from "../config";
 import { getDefaultBackendConfig, normalizeBackendEnabledMap } from "../backends/runtime";
 import { BackendConfigDocument } from "../backends/types";
+import { normalizeBackendConflicts } from "../backends/normalizer";
 import { validateBackendConfigDocument as validateCanonicalBackendConfigDocument } from "../backends/validator";
 
 export type BackendConfigSource = "default" | "manual" | "subscription";
@@ -25,6 +26,10 @@ function reconcileEnabledMap(document: BackendConfigStorageDocument, existing: R
     return normalizeBackendEnabledMap(document as unknown as BackendConfigDocument, existing);
 }
 
+function isBackendConfigDocument(value: unknown): value is BackendConfigDocument {
+    return typeof value === "object" && value !== null && Array.isArray((value as { backends?: unknown }).backends);
+}
+
 export const BackendConfigService = {
     async getState() {
         return {
@@ -36,9 +41,10 @@ export const BackendConfigService = {
 
     validateAndNormalize(value: string | unknown): BackendConfigStorageDocument {
         const parsed = typeof value === "string" ? JSON.parse(value) : value;
-        const validation = validateBackendConfigDocument(parsed);
+        const normalized = isBackendConfigDocument(parsed) ? normalizeBackendConflicts(parsed) : parsed;
+        const validation = validateBackendConfigDocument(normalized);
         if (!validation.valid) throw new Error(validation.errors.join("; "));
-        return cloneDocument(parsed as BackendConfigStorageDocument);
+        return cloneDocument(normalized as BackendConfigStorageDocument);
     },
 
     getDocument(): BackendConfigStorageDocument {
@@ -50,10 +56,11 @@ export const BackendConfigService = {
     },
 
     applyDocument(document: unknown, source: BackendConfigSource): BackendConfigValidationResult {
-        const validation = validateBackendConfigDocument(document);
+        const normalized = isBackendConfigDocument(document) ? normalizeBackendConflicts(document) : document;
+        const validation = validateBackendConfigDocument(normalized);
         if (!validation.valid) return validation;
 
-        const next = cloneDocument(document as BackendConfigStorageDocument);
+        const next = cloneDocument(normalized as BackendConfigStorageDocument);
         Config.local.backendConfig = next;
         Config.local.backendEnabledMap = reconcileEnabledMap(next, Config.local.backendEnabledMap ?? {});
         if (source === "manual") {

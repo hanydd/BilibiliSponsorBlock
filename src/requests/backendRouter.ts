@@ -8,7 +8,6 @@ import {
     getBackendOperation,
     isBackendEnabled,
     selectMatchedBackends,
-    supportsBackendOperation,
 } from "../backends";
 import Config from "../config";
 import { FetchResponse } from "./type/requestType";
@@ -73,13 +72,7 @@ export function getEligibleBackends(
 ): BackendRequestDefinition[] {
     const configured = getConfiguredSnapshot();
     if (!configured) return [];
-
-    if (videoContext) return selectMatchedBackends(configured, videoContext, getEnabledMap(), operation);
-
-    const eligible = operation
-        ? configured.backends.filter((backend) => supportsBackendOperation(backend, operation))
-        : configured.backends;
-    return eligible.filter((backend) => isBackendEnabled(backend, getEnabledMap()));
+    return selectMatchedBackends(configured, videoContext, getEnabledMap(), operation);
 }
 
 export function getBackendById(

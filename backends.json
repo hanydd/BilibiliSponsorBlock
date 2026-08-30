@@ -31,7 +31,9 @@
                 "https://www.bsbsb.xyz",
                 "http://103.236.70.57:9876"
             ],
-            "conflicts": []
+            "conflicts": [
+                "beta"
+            ]
         },
         {
             "id": "beta",
@@ -61,7 +63,9 @@
                 "POST /api/warnUser"
             ],
             "mirrors": [],
-            "conflicts": []
+            "conflicts": [
+                "main"
+            ]
         },
         {
             "id": "fastcap",

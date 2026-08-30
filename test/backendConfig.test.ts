@@ -6,6 +6,7 @@ import {
     getDefaultBackendConfig,
     createBackendInfoMap,
     normalizeBackendEnabledMap,
+    normalizeBackendConflicts,
     validateBackendConfigDocument,
 } from "../src/backends";
 import * as DefaultBackends from "../backends.json";
@@ -111,5 +112,30 @@ describe("backend configuration contract", () => {
         const enabledMap = normalizeBackendEnabledMap(document, { primary: false, removed: false });
         expect(enabledMap).toEqual({ primary: false });
         expect(document.backends).toHaveLength(2);
+    });
+
+    test("deduplicates and makes conflict declarations symmetric without mutating input", () => {
+        const document: BackendConfigDocument = {
+            backends: [
+                backend({ id: "main", conflicts: ["readonly-mirror", "readonly-mirror"] }),
+                backend({ id: "readonly-mirror" }),
+            ],
+        };
+
+        const normalized = normalizeBackendConflicts(document);
+
+        expect(normalized.backends.map(({ id, conflicts }) => ({ id, conflicts }))).toEqual([
+            { id: "main", conflicts: ["readonly-mirror"] },
+            { id: "readonly-mirror", conflicts: ["main"] },
+        ]);
+        expect(document.backends[0].conflicts).toEqual(["readonly-mirror", "readonly-mirror"]);
+        expect(document.backends[1].conflicts).toBeUndefined();
+    });
+
+    test("retains unknown conflicts for validation to report", () => {
+        const document = { backends: [backend({ conflicts: ["missing"] })] };
+        const normalized = normalizeBackendConflicts(document);
+        expect(normalized.backends[0].conflicts).toEqual(["missing"]);
+        expect(validateBackendConfigDocument(normalized).errors.join(" ")).toMatch(/unknown backend ID/);
     });
 });

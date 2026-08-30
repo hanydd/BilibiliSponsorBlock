@@ -6,6 +6,8 @@ import {
     BackendConfigService as ConfigBackendConfigService,
     validateBackendConfigDocument,
 } from "../../config/backendConfigService";
+import { normalizeBackendConflicts } from "../../backends";
+import type { BackendConfigDocument as CanonicalBackendConfigDocument } from "../../backends/types";
 import type { BackendRouterStatus, ServerNodeStatus } from "../../requests/serverRouter";
 
 export interface BackendConfig {
@@ -212,9 +214,12 @@ function createConfigServiceAdapter(): BackendConfigService {
                     throw new Error(chrome.i18n.getMessage("backendConfigInvalidJson"));
                 }
             }
-            const validation = validateBackendConfigDocument(parsed);
+            const normalized = isConfigDocument(parsed)
+                ? (normalizeBackendConflicts(parsed as unknown as CanonicalBackendConfigDocument) as unknown as BackendConfigDocument)
+                : parsed;
+            const validation = validateBackendConfigDocument(normalized);
             if (!validation.valid) throw new Error(validation.errors.join("\n"));
-            return cloneConfig(parsed as BackendConfigDocument);
+            return normalized as BackendConfigDocument;
         },
         saveConfig: (config: BackendConfigDocument) => {
             const result = ConfigBackendConfigService.applyDocument(config, "manual");
@@ -363,6 +368,15 @@ export default class BackendConfigComponent extends React.Component<
                 saving: false,
                 status: "",
             });
+        }
+    }
+
+    async handleFormatConfig(): Promise<void> {
+        try {
+            const config = await this.validate(this.state.configText);
+            this.setState({ configText: formatConfig(config), error: "", status: chrome.i18n.getMessage("backendConfigFormatted") });
+        } catch (error) {
+            this.setState({ error: error instanceof Error ? error.message : String(error), status: "" });
         }
     }
 
@@ -775,7 +789,17 @@ export default class BackendConfigComponent extends React.Component<
                     />
                     <div className="backend-config-actions">
                         <button
+                            className="option-button backend-config-secondary-button"
+                            data-backend-action="format"
+                            type="button"
+                            disabled={this.state.saving}
+                            onClick={() => void this.handleFormatConfig()}
+                        >
+                            {chrome.i18n.getMessage("backendConfigFormat")}
+                        </button>
+                        <button
                             className="option-button"
+                            data-backend-action="save"
                             type="button"
                             disabled={this.state.saving}
                             onClick={() => void this.handleSaveConfig()}

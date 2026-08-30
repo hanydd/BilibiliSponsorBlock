@@ -175,6 +175,67 @@ test("keeps node health controls inside the backend configuration", async ({
     await expectSyncStorage(extensionServiceWorker, "userID", "00000000-0000-4000-8000-000000000001");
 });
 
+test("formats and saves symmetric backend conflicts", async ({
+    extensionId,
+    extensionPage,
+    extensionServiceWorker,
+}) => {
+    await writeLocalStorage(extensionServiceWorker, {
+        backendSubscription: {
+            url: "",
+            intervalMinutes: 60,
+            enabled: false,
+            lastSyncAt: null,
+            lastError: null,
+        },
+    });
+    await openOptions(extensionPage, extensionId, "#backend-config");
+    const config = {
+        backends: [
+            {
+                id: "main",
+                name: "Main",
+                api_url: "https://main.example",
+                capabilities: ["GET /api/skipSegments"],
+                conflicts: ["mirror", "mirror"],
+            },
+            {
+                id: "mirror",
+                name: "Mirror",
+                api_url: "https://mirror.example",
+                capabilities: ["GET /api/skipSegments"],
+            },
+        ],
+    };
+    const editor = extensionPage.locator("#backendConfigJson");
+    await editor.fill(JSON.stringify(config));
+    await extensionPage.locator("[data-backend-action='format']").click();
+
+    await expect.poll(async () => JSON.parse(await editor.inputValue())).toEqual({
+        backends: [
+            {
+                id: "main",
+                name: "Main",
+                api_url: "https://main.example",
+                capabilities: ["GET /api/skipSegments"],
+                conflicts: ["mirror"],
+            },
+            {
+                id: "mirror",
+                name: "Mirror",
+                api_url: "https://mirror.example",
+                capabilities: ["GET /api/skipSegments"],
+                conflicts: ["main"],
+            },
+        ],
+    });
+    await extensionPage.locator("[data-backend-action='save']").click();
+
+    await expect
+        .poll(() => readLocalStorage<typeof config>(extensionServiceWorker, "backendConfig"))
+        .toEqual(JSON.parse(await editor.inputValue()));
+});
+
 test("falls back to a configured mirror for a write request", async ({
     extensionContext,
     extensionId,

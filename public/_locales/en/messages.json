@@ -1527,6 +1527,12 @@
     "backendConfigJsonLabel": {
         "message": "后端配置 JSON"
     },
+    "backendConfigFormat": {
+        "message": "格式化并规范冲突"
+    },
+    "backendConfigFormatted": {
+        "message": "后端配置已格式化，冲突关系已补全。"
+    },
     "backendConfigSave": {
         "message": "保存 JSON"
     },

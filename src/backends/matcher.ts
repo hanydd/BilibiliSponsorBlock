@@ -22,7 +22,7 @@ export function matchesBackend(backend: BackendConfig, context: VideoMatchContex
 
 export function selectMatchedBackends(
     source: BackendConfigDocument | readonly BackendConfig[],
-    context: VideoMatchContext,
+    context: VideoMatchContext | undefined,
     enabledMap: Readonly<Record<string, boolean>> = {},
     operation?: BackendOperation
 ): BackendConfig[] {
@@ -31,11 +31,19 @@ export function selectMatchedBackends(
         ? configuredBackends.filter((backend) => supportsBackendOperation(backend, operation))
         : configuredBackends;
     const selected: BackendConfig[] = [];
+    const selectedIds = new Set<string>();
     const suppressed = new Set<string>();
 
     for (const backend of backends) {
-        if (!isBackendEnabled(backend, enabledMap) || suppressed.has(backend.id) || !matchesBackend(backend, context)) continue;
+        const conflictsWithSelectedBackend = (backend.conflicts ?? []).some((conflictId) => selectedIds.has(conflictId));
+        if (
+            !isBackendEnabled(backend, enabledMap) ||
+            suppressed.has(backend.id) ||
+            conflictsWithSelectedBackend ||
+            (context !== undefined && !matchesBackend(backend, context))
+        ) continue;
         selected.push(backend);
+        selectedIds.add(backend.id);
         for (const conflictId of backend.conflicts ?? []) suppressed.add(conflictId);
     }
     return selected;

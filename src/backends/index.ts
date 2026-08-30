@@ -4,3 +4,4 @@ export * from "./matcher";
 export * from "./merge";
 export * from "./runtime";
 export * from "./operations";
+export * from "./normalizer";

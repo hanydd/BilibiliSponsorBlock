@@ -58,7 +58,7 @@ describe("backend matching", () => {
         expect(matchesBackend(backend("mismatch", { match: [{ field: "up_mid", exact: ["123"] }] }), context)).toBe(false);
     });
 
-    test("selects in order, applies enabled map, and only conflicts with later backends", () => {
+    test("selects in order and applies conflicts in both directions", () => {
         const selected = selectMatchedBackends(
             [
                 backend("first", { conflicts: ["third"] }),
@@ -69,7 +69,7 @@ describe("backend matching", () => {
             context,
             { disabled: false }
         );
-        expect(selected.map((item) => item.id)).toEqual(["first", "second"]);
+        expect(selected.map((item) => item.id)).toEqual(["first"]);
     });
 
     test("uses JSON defaults until an explicit map override exists", () => {
@@ -88,19 +88,47 @@ describe("backend matching", () => {
     });
 
     test("applies conflicts among backends that support the current operation", () => {
+        const writableMain = backend("main", {
+            capabilities: ["GET /api/skipSegments", "POST /api/skipSegments"],
+        });
         const readonlyMirror = backend("readonly-mirror", {
             capabilities: ["GET /api/skipSegments"],
             conflicts: ["main"],
         });
-        const writableMain = backend("main", {
-            capabilities: ["GET /api/skipSegments", "POST /api/skipSegments"],
-        });
 
+        expect(selectMatchedBackends([writableMain, readonlyMirror], context, {}, "querySegments").map((item) => item.id)).toEqual([
+            "main",
+        ]);
+        expect(selectMatchedBackends([writableMain, readonlyMirror], context, {}, "submitSegments").map((item) => item.id)).toEqual([
+            "main",
+        ]);
         expect(selectMatchedBackends([readonlyMirror, writableMain], context, {}, "querySegments").map((item) => item.id)).toEqual([
             "readonly-mirror",
         ]);
         expect(selectMatchedBackends([readonlyMirror, writableMain], context, {}, "submitSegments").map((item) => item.id)).toEqual([
             "main",
         ]);
+    });
+
+    test("does not let disabled or unmatched backends suppress later matches", () => {
+        const main = backend("main", { enabled: false, conflicts: ["readonly-mirror"] });
+        const readonlyMirror = backend("readonly-mirror", { conflicts: ["main"] });
+        const unmatched = backend("unmatched", {
+            conflicts: ["readonly-mirror"],
+            match: [{ field: "title", exact: ["different"] }],
+        });
+
+        expect(selectMatchedBackends([main, readonlyMirror], context).map((item) => item.id)).toEqual(["readonly-mirror"]);
+        expect(selectMatchedBackends([unmatched, readonlyMirror], context).map((item) => item.id)).toEqual(["readonly-mirror"]);
+    });
+
+    test("applies conflicts without evaluating video match rules when context is absent", () => {
+        const main = backend("main", { conflicts: ["mirror"] });
+        const mirror = backend("mirror", {
+            match: [{ field: "title", exact: ["different"] }],
+        });
+
+        expect(selectMatchedBackends([main, mirror], undefined).map((item) => item.id)).toEqual(["main"]);
+        expect(selectMatchedBackends([mirror, main], undefined).map((item) => item.id)).toEqual(["mirror"]);
     });
 });

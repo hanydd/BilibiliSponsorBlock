@@ -57,7 +57,7 @@
 | `capabilities` | string[] | 是 | 后端支持的、插件实际会调用的 HTTP 接口。 |
 | `match` | expression[] | 否 | 视频匹配规则；省略或为空表示匹配全部视频。 |
 | `mirrors` | string[] | 否 | 与主地址提供相同能力的备用节点；节点故障时可接收当前请求的 fallback。 |
-| `conflicts` | string[] | 否 | 当前后端被采用后，临时抑制其后出现的指定后端 ID。 |
+| `conflicts` | string[] | 否 | 与指定后端互斥；按数组顺序优先采用前面的后端，并抑制冲突的后置后端。 |
 
 所有 URL 必须是 `http` 或 `https` URL。能力值不能重复，镜像地址不能重复，`conflicts` 不能引用自身或不存在的后端。
 
@@ -93,11 +93,22 @@ POST /api/warnUser
 
 `mirrors` 是当前 backend 的备用节点，镜像地址不需要单独配置 capabilities，但必须实现该 backend 实际使用的接口。片段和标签等可合并查询会按健康状态尝试节点；其他安全 GET 和写请求在节点故障时最多 fallback 到一个可用节点。网络错误、超时、408 和 5xx 会更新节点健康状态；404 与业务型 4xx 会直接返回，不会被当成节点故障。
 
-如果服务是纯只读镜像，不要把它放入可写 backend 的 `mirrors`。应使用独立的 backend `id`、仅包含 GET 能力，并通过 `conflicts` 与同一数据源的后置 backend 建立冲突关系。冲突按当前操作的候选后端生效，因此只读 backend 不会阻止写请求选择可写 backend：
+如果服务是纯只读镜像，不要把它放入可写 backend 的 `mirrors`。应使用独立的 backend `id`、仅包含 GET 能力，并放在可写 backend 后面。两个 backend 通过 `conflicts` 互相声明冲突；格式化配置时，编辑器会自动补齐缺失的反向声明。冲突按当前操作的候选后端生效，因此只读 backend 不会阻止写请求选择可写 backend：
 
 ```json
 {
     "backends": [
+        {
+            "id": "main",
+            "name": "Main backend",
+            "api_url": "https://www.bsbsb.top",
+            "capabilities": [
+                "GET /api/skipSegments",
+                "GET /api/skipSegments/:sha256HashPrefix",
+                "POST /api/skipSegments"
+            ],
+            "conflicts": ["readonly-mirror"]
+        },
         {
             "id": "readonly-mirror",
             "name": "Read-only mirror",
@@ -107,16 +118,6 @@ POST /api/warnUser
                 "GET /api/skipSegments/:sha256HashPrefix"
             ],
             "conflicts": ["main"]
-        },
-        {
-            "id": "main",
-            "name": "Main backend",
-            "api_url": "https://www.bsbsb.top",
-            "capabilities": [
-                "GET /api/skipSegments",
-                "GET /api/skipSegments/:sha256HashPrefix",
-                "POST /api/skipSegments"
-            ]
         }
     ]
 }
@@ -147,7 +148,7 @@ POST /api/warnUser
 
 ## 优先级与冲突
 
-后端按 JSON 数组顺序匹配。禁用、未匹配或已被冲突抑制的后端不会参与当前视频的匹配。被采用的后端只会抑制位于其后的 `conflicts` ID；后置后端的冲突声明不会反向改变已采用后端的优先级。
+后端按 JSON 数组顺序匹配。禁用、未匹配或已被冲突抑制的后端不会参与当前视频的匹配。当前后端的 `conflicts` 如果包含已经选中的前置后端 ID，则当前后端不会被选中；当前后端被选中后，会直接抑制其冲突列表中位于后面的 ID。因此 `main` 在前、只读镜像在后且双方冲突时，`main` 启用并符合当前操作会抑制只读镜像；禁用或不匹配的 `main` 不会阻止只读镜像参与读取。
 
 冲突只作用于当前视频和当前匹配过程，不修改 JSON，也不会永久关闭后端。
 
