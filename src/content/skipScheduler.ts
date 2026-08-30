@@ -1108,15 +1108,13 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
         } catch {
             capturedOriginalRate = undefined;
         }
-        try {
-            const rawRate = Config.config.speedUpPlaybackRate as unknown as number | string;
-            const parsedRate = typeof rawRate === "string" ? parseFloat(rawRate) : rawRate;
-            if (parsedRate > 1 && parsedRate <= 16 && v && v.playbackRate !== parsedRate) {
-                v.playbackRate = parsedRate;
-            }
-        } catch {
-            // ignore
+
+        const rawRate = Config.config.speedUpPlaybackRate as unknown as number | string;
+        const parsedRate = typeof rawRate === "string" ? parseFloat(rawRate) : rawRate;
+        if (parsedRate > 1 && parsedRate <= 16 && v && v.playbackRate !== parsedRate) {
+            v.playbackRate = parsedRate;
         }
+        
         void startSpeedUp(skippingSegments, skipTime as [number, number], capturedOriginalRate);
         // 复用下方已有的手动跳过 notice 逻辑（autoSkip=false 时的 createSkipNotice 去重路径），避免在此手动 emit 造成重复创建
         speedUpDelegated = true;
