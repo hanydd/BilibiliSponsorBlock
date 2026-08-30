@@ -95,7 +95,7 @@ describe("skipToTime speedUp delegation", () => {
         video = document.createElement("video");
         Object.defineProperty(video, "duration", { configurable: true, value: 100 });
         Object.defineProperty(video, "paused", { configurable: true, value: false });
-        Object.defineProperty(video, "playbackRate", { configurable: true, value: 1 });
+        Object.defineProperty(video, "playbackRate", { configurable: true, writable: true, value: 1 });
         video.currentTime = 5;
     });
 
