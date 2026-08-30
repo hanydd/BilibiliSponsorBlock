@@ -344,6 +344,12 @@
     "skip": {
         "message": "跳過"
     },
+    "pauseSpeedUp": {
+        "message": "暫停快進"
+    },
+    "resumeSpeedUp": {
+        "message": "恢復快進"
+    },
     "mute": {
         "message": "靜音"
     },
