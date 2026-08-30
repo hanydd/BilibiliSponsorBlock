@@ -1855,9 +1855,6 @@
     "backendConfigApiUrl": {
         "message": "API URL"
     },
-    "backendConfigMirrors": {
-        "message": "Mirror URLs"
-    },
     "backendConfigEnabled": {
         "message": "Enabled"
     },

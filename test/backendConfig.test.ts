@@ -30,9 +30,16 @@ describe("backend configuration contract", () => {
         expect(document.backends.find((backend) => backend.id === "beta")?.enabled).toBe(false);
         expect(document.backends[0].capabilities).toEqual([...BACKEND_REQUEST_CAPABILITIES]);
         expect(document.backends[0].capabilities).toContain(skipCapability);
-        for (const backend of DefaultBackends.backends) {
-            expect(backend.capabilities).toEqual([...BACKEND_REQUEST_CAPABILITIES]);
-        }
+        expect(DefaultBackends.backends.find((backend) => backend.id === "main")?.capabilities).toEqual([
+            ...BACKEND_REQUEST_CAPABILITIES,
+        ]);
+        expect(DefaultBackends.backends.find((backend) => backend.id === "beta")?.capabilities).toEqual([
+            ...BACKEND_REQUEST_CAPABILITIES,
+        ]);
+        expect(DefaultBackends.backends.find((backend) => backend.id === "fastcap")?.capabilities).toEqual([
+            "GET /api/skipSegments",
+            "GET /api/skipSegments/:sha256HashPrefix",
+        ]);
 
         document.backends[0].name = "changed";
         expect(getDefaultBackendConfig().backends[0].name).not.toBe("changed");

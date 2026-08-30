@@ -29,10 +29,8 @@ describe("backend capability routing", () => {
         expect(getBackendOperation("GET", "/api/segmentInfo")).toBeNull();
     });
 
-    test("uses mirrors only for read requests", async () => {
+    test("uses mirrors for read requests and write fallback", async () => {
         const request = sendRealRequestToCustomServer as jest.Mock;
-        request.mockResolvedValueOnce({ responseText: "", status: 503, ok: false });
-        request.mockResolvedValueOnce({ responseText: "[]", status: 200, ok: true });
 
         const backend: BackendConfig = {
             id: "primary",
@@ -42,26 +40,25 @@ describe("backend capability routing", () => {
             mirrors: ["https://mirror.example"],
         };
 
-        await requestFromBackend(backend, "GET", "/api/skipSegments");
+        request.mockResolvedValueOnce({ responseText: "", status: 503, ok: false });
+        request.mockResolvedValueOnce({ responseText: "[]", status: 200, ok: true });
+        await requestFromBackend(backend, "POST", "/api/skipSegments");
         expect(request).toHaveBeenNthCalledWith(
             1,
-            "GET",
+            "POST",
             "https://primary.example/api/skipSegments",
             {},
-            {}
+            {},
+            expect.any(AbortSignal)
         );
         expect(request).toHaveBeenNthCalledWith(
             2,
-            "GET",
+            "POST",
             "https://mirror.example/api/skipSegments",
             {},
-            {}
+            {},
+            expect.any(AbortSignal)
         );
 
-        request.mockClear();
-        request.mockResolvedValue({ responseText: "", status: 200, ok: true });
-        await requestFromBackend(backend, "POST", "/api/skipSegments");
-        expect(request).toHaveBeenCalledTimes(1);
-        expect(request).toHaveBeenCalledWith("POST", "https://primary.example/api/skipSegments", {}, {});
     });
 });

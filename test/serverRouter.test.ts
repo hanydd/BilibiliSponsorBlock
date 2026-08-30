@@ -1,4 +1,4 @@
-import { ServerRouter, ServerRouterState } from "../src/requests/serverRouter";
+import { BackendRouterState, ServerRouter } from "../src/requests/serverRouter";
 import { FetchResponse } from "../src/requests/type/requestType";
 
 const PRIMARY = "https://primary.test";
@@ -17,10 +17,11 @@ function response(status: number, responseText = status === 200 ? "[]" : ""): Fe
 describe("ServerRouter", () => {
     let now: number;
     let executeRequest: jest.Mock<Promise<FetchResponse>>;
-    let savedState: ServerRouterState | null;
+    let savedState: BackendRouterState | null;
 
     function createRouter(addresses = [PRIMARY, MIRROR]): ServerRouter {
         return new ServerRouter({
+            backendId: "main",
             getServerAddresses: () => addresses,
             executeRequest,
             loadState: async () => savedState,
@@ -96,6 +97,7 @@ describe("ServerRouter", () => {
         });
         executeRequest.mockResolvedValue(response(200));
         const router = new ServerRouter({
+            backendId: "main",
             getServerAddresses: () => addresses,
             executeRequest,
             loadState: async () => savedState,
@@ -201,7 +203,7 @@ describe("ServerRouter", () => {
         expect((await router.getStatus()).activeAddress).toBe(MIRROR);
     });
 
-    test("records a server error without replaying a side-effect request", async () => {
+    test("falls back once when a write request gets a node error", async () => {
         executeRequest.mockResolvedValue(response(503));
         const router = createRouter();
 
@@ -209,8 +211,8 @@ describe("ServerRouter", () => {
             response(503)
         );
 
-        expect(executeRequest).toHaveBeenCalledTimes(1);
-        expect((await router.getStatus()).activeAddress).toBe(MIRROR);
+        expect(executeRequest).toHaveBeenCalledTimes(2);
+        expect((await router.getStatus()).activeAddress).toBe(PRIMARY);
         expect((await router.getStatus()).nodes[0].healthState).toBe("open");
     });
 
@@ -273,6 +275,7 @@ describe("ServerRouter", () => {
         const router = createRouter();
 
         await expect(router.checkAddress(candidate)).resolves.toEqual({
+            backendId: "main",
             address: candidate,
             healthState: "available",
         });
@@ -285,7 +288,10 @@ describe("ServerRouter", () => {
         executeRequest.mockResolvedValue(response(404));
         const router = createRouter();
 
-        await expect(router.checkAddress("https://candidate.test")).resolves.toMatchObject({ healthState: "open" });
+        await expect(router.checkAddress("https://candidate.test")).resolves.toMatchObject({
+            backendId: "main",
+            healthState: "available",
+        });
     });
 
     test("manual recovery checks still require two spaced successes before switching back", async () => {
@@ -504,20 +510,38 @@ describe("ServerRouter", () => {
         expect(primary.openUntil).toBe(now + 60 * 60 * 1000);
     });
 
-    test("sends later writes to the active mirror without replaying them", async () => {
+    test("falls back from a healthy primary to one mirror for a write", async () => {
+        executeRequest.mockResolvedValueOnce(response(503)).mockResolvedValueOnce(response(200));
+        const router = createRouter();
+
+        await expect(router.request("POST", "/api/voteOnSponsorTime", { UUID: "test" })).resolves.toEqual(response(200));
+
+        expect(executeRequest.mock.calls.map((call) => call[1])).toEqual([
+            PRIMARY + "/api/voteOnSponsorTime",
+            MIRROR + "/api/voteOnSponsorTime",
+        ]);
+    });
+
+    test("does not use a write request as a recovery probe", async () => {
         executeRequest.mockResolvedValueOnce(response(-1)).mockResolvedValueOnce(response(200));
         const router = createRouter();
         await router.request("GET", HASH_ENDPOINT);
 
-        executeRequest.mockResolvedValueOnce(response(503));
-        await expect(router.request("POST", "/api/voteOnSponsorTime", { UUID: "test" })).resolves.toEqual(
-            response(503)
-        );
+        now = 15 * 60 * 1000;
+        executeRequest.mockClear();
+        executeRequest.mockResolvedValue(response(200, "{}"));
+        await router.request("POST", "/api/voteOnSponsorTime", { UUID: "test" });
 
-        expect(executeRequest.mock.calls[executeRequest.mock.calls.length - 1][1]).toBe(
-            MIRROR + "/api/voteOnSponsorTime"
-        );
-        expect(executeRequest).toHaveBeenCalledTimes(3);
+        expect(executeRequest).toHaveBeenCalledTimes(1);
+        expect(executeRequest.mock.calls[0][1]).toBe(MIRROR + "/api/voteOnSponsorTime");
+    });
+
+    test("does not fall back for a business error from a write", async () => {
+        executeRequest.mockResolvedValue(response(400));
+        const router = createRouter();
+
+        await expect(router.request("POST", "/api/voteOnSponsorTime", { UUID: "test" })).resolves.toEqual(response(400));
+        expect(executeRequest).toHaveBeenCalledTimes(1);
     });
 
     test("retries a 200 hash response with invalid JSON", async () => {

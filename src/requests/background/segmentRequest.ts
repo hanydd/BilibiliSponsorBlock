@@ -5,14 +5,11 @@ import {
     BackendSegmentResult,
     VideoMatchContext,
     mergeBackendSegments,
-    selectMatchedBackends,
-    supportsBackendOperation,
-    createBackendInfoMap,
     createBackendInfoMap,
 } from "../../backends";
 import { getVideoIDHash } from "../../utils/hash";
 import { parseBvidAndCidFromVideoId } from "../../utils/videoIdUtils";
-import { getConfiguredSnapshot, requestFromBackend } from "../backendRouter";
+import { getEligibleBackends, requestFromBackend } from "../backendRouter";
 import { FetchResponse, SegmentResponse } from "../type/requestType";
 import { segmentsCache } from "./backgroundCache";
 
@@ -104,11 +101,7 @@ export async function getSegmentsBackground(
         up_mid: videoContext?.up_mid ?? "",
         up_name: videoContext?.up_name ?? "",
     };
-    const configuredBackends = (getConfiguredSnapshot()?.backends ?? []) as unknown as BackendConfig[];
-    const enabledMap = (Config.local?.backendEnabledMap ?? {}) as Record<string, boolean>;
-    const matchedBackends = selectMatchedBackends(configuredBackends, context, enabledMap).filter((backend) =>
-        supportsBackendOperation(backend, "querySegments")
-    );
+    const matchedBackends = getEligibleBackends("querySegments", context) as BackendConfig[];
     const response = await fetchSegmentsByBackends(bvId, cid, matchedBackends, context, ignoreCache);
 
     const responseSegments: SegmentResponse = { segments: null, status: response.status };

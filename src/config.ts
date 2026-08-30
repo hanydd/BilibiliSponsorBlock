@@ -225,7 +225,7 @@ class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
     }
 }
 
-function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<string>) {
+function migrateOldSyncFormats(config: SBConfig) {
     // Unbind key if it matches a previous one set by the user (should be ordered oldest to newest)
     const keybinds = ["skipKeybind", "startSponsorKeybind", "submitKeybind"];
     for (let i = keybinds.length - 1; i >= 0; i--) {

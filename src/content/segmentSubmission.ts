@@ -32,7 +32,7 @@ import { defaultPreviewTime } from "../utils/constants";
 import { durationEquals } from "../utils/duraionUtils";
 import { removePageCidMap } from "../utils/exporter";
 import { getErrorMessage, getFormattedTime } from "../utils/formating";
-import { getHash, getVideoIDHash, HashedValue } from "../utils/hash";
+import { getHash } from "../utils/hash";
 import { getCidMapFromWindow } from "../utils/injectedScriptMessageUtils";
 import { logUiLifecycle } from "../utils/logger";
 import { getHashParams } from "../utils/pageUtils";
@@ -552,6 +552,7 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
                 }
             }
 
+            const hashPrefix = (await getHash(bvId, 1)).slice(0, 4);
             const downvotedData = Config.local.downvotedSegments[hashPrefix];
             if (downvotedData) {
                 for (const segment of contentState.sponsorTimes) {

@@ -86,4 +86,21 @@ describe("backend matching", () => {
             ).map((item) => item.id)
         ).toEqual(["default-off"]);
     });
+
+    test("applies conflicts among backends that support the current operation", () => {
+        const readonlyMirror = backend("readonly-mirror", {
+            capabilities: ["GET /api/skipSegments"],
+            conflicts: ["main"],
+        });
+        const writableMain = backend("main", {
+            capabilities: ["GET /api/skipSegments", "POST /api/skipSegments"],
+        });
+
+        expect(selectMatchedBackends([readonlyMirror, writableMain], context, {}, "querySegments").map((item) => item.id)).toEqual([
+            "readonly-mirror",
+        ]);
+        expect(selectMatchedBackends([readonlyMirror, writableMain], context, {}, "submitSegments").map((item) => item.id)).toEqual([
+            "main",
+        ]);
+    });
 });

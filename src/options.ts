@@ -400,7 +400,7 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
         }
     }
 
-    if (changes.categorySelections || changes.payments) {
+    if (changes.categorySelections) {
         for (const chooser of categoryChoosers) {
             chooser.update();
         }

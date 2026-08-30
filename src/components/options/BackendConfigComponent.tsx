@@ -6,6 +6,7 @@ import {
     BackendConfigService as ConfigBackendConfigService,
     validateBackendConfigDocument,
 } from "../../config/backendConfigService";
+import type { BackendRouterStatus, ServerNodeStatus } from "../../requests/serverRouter";
 
 export interface BackendConfig {
     id: string;
@@ -61,6 +62,9 @@ interface BackendConfigComponentState extends BackendConfigState {
     status: string;
     saving: boolean;
     syncing: boolean;
+    backendStatuses: Record<string, BackendRouterStatus>;
+    checkingNodes: Record<string, boolean>;
+    mirrorDrafts: Record<string, string>;
 }
 
 const DEFAULT_SUBSCRIPTION: BackendSubscription = {
@@ -120,6 +124,57 @@ async function requestSubscriptionHostPermission(value: string): Promise<boolean
     } catch {
         return false;
     }
+}
+
+async function requestBackendHostPermission(value: string): Promise<boolean> {
+    if (!chrome.permissions?.request) return true;
+    try {
+        const url = new URL(value);
+        return await new Promise<boolean>((resolve) => {
+            chrome.permissions.request({ origins: [`${url.protocol}//${url.host}/*`] }, resolve);
+        });
+    } catch {
+        return false;
+    }
+}
+
+function requestBackendMessage<T>(message: string, payload: Record<string, unknown>): Promise<T | null> {
+    return new Promise((resolve) => {
+        let settled = false;
+        const finish = (value: T | null) => {
+            if (settled) return;
+            settled = true;
+            resolve(value);
+        };
+        const timeout = setTimeout(() => finish(null), 5000);
+        try {
+            chrome.runtime.sendMessage({ message, ...payload }, (response: T | undefined) => {
+                clearTimeout(timeout);
+                finish(response ?? null);
+            });
+        } catch {
+            clearTimeout(timeout);
+            finish(null);
+        }
+    });
+}
+
+function statusForNode(status: BackendRouterStatus | undefined, address: string): ServerNodeStatus | null {
+    return status?.nodes.find((node) => node.address === address) ?? null;
+}
+
+function statusLabel(state: ServerNodeStatus["healthState"] | "checking" | "unknown"): string {
+    return chrome.i18n.getMessage({
+        available: "backendNodeAvailable",
+        open: "backendNodeOpen",
+        recovering: "backendNodeRecovering",
+        checking: "backendNodeChecking",
+        unknown: "backendNodeUnknown",
+    }[state]);
+}
+
+function normalizeAddress(address: string): string {
+    return address.trim().replace(/\/+$/, "");
 }
 
 function reconcileEnabledMap(config: BackendConfigDocument, enabledMap: Record<string, boolean>): Record<string, boolean> {
@@ -243,6 +298,9 @@ export default class BackendConfigComponent extends React.Component<
             status: "",
             saving: false,
             syncing: false,
+            backendStatuses: {},
+            checkingNodes: {},
+            mirrorDrafts: {},
         };
     }
 
@@ -257,6 +315,19 @@ export default class BackendConfigComponent extends React.Component<
                 ...loaded,
                 configText: formatConfig(loaded.backendConfig),
                 error: "",
+            });
+            const statuses = await Promise.all(
+                loaded.backendConfig.backends.map(async (backend) => {
+                    const status = await requestBackendMessage<BackendRouterStatus>("getBackendStatus", {
+                        backendId: backend.id,
+                    });
+                    return [backend.id, status] as const;
+                })
+            );
+            this.setState({
+                backendStatuses: Object.fromEntries(
+                    statuses.filter((entry): entry is [string, BackendRouterStatus] => entry[1] !== null)
+                ),
             });
         } catch (error) {
             this.setState({ error: error instanceof Error ? error.message : String(error) });
@@ -394,6 +465,141 @@ export default class BackendConfigComponent extends React.Component<
         }
     }
 
+    private async persistBackendConfig(config: BackendConfigDocument): Promise<void> {
+        await this.service.saveConfig(config);
+        const enabledMap = reconcileEnabledMap(config, this.state.backendEnabledMap);
+        await saveEnabledMap(this.service, config, enabledMap);
+        this.setState({
+            backendConfig: config,
+            backendEnabledMap: enabledMap,
+            configText: formatConfig(config),
+            saving: false,
+        });
+        this.props.onStateChange?.();
+    }
+
+    private async checkNode(backendId: string, address: string): Promise<ServerNodeStatus | null> {
+        const key = `${backendId}:${address}`;
+        this.setState({ checkingNodes: { ...this.state.checkingNodes, [key]: true } });
+        const status = await requestBackendMessage<BackendRouterStatus>("probeBackendNode", { backendId, address });
+        this.setState({
+            backendStatuses: status
+                ? { ...this.state.backendStatuses, [backendId]: status }
+                : this.state.backendStatuses,
+            checkingNodes: { ...this.state.checkingNodes, [key]: false },
+        });
+        return status ? statusForNode(status, address) : null;
+    }
+
+    private async addMirror(backendId: string): Promise<void> {
+        const address = (this.state.mirrorDrafts[backendId] ?? "").trim().replace(/\/+$/, "");
+        if (!/^https?:\/\//i.test(address)) {
+            this.setState({ error: chrome.i18n.getMessage("backendConfigInvalidUrl"), status: "" });
+            return;
+        }
+        if (!(await requestBackendHostPermission(address))) {
+            this.setState({ error: chrome.i18n.getMessage("backendConfigPermissionDenied"), status: "" });
+            return;
+        }
+
+        const check = await requestBackendMessage<{
+            backendId: string;
+            address: string;
+            healthState: "available" | "open";
+        }>("checkBackendAddress", { backendId, address });
+        if (!check || check.healthState !== "available") {
+            this.setState({ error: chrome.i18n.getMessage("backendConfigNodeUnavailable"), status: "" });
+            return;
+        }
+
+        const config = cloneConfig(this.state.backendConfig);
+        const backend = config.backends.find((item) => item.id === backendId);
+        if (!backend) return;
+        const mirrors = backend.mirrors ?? [];
+        if (normalizeAddress(backend.api_url) === address || mirrors.some((item) => normalizeAddress(item) === address)) {
+            this.setState({ error: chrome.i18n.getMessage("backendConfigDuplicateAddress"), status: "" });
+            return;
+        }
+        backend.mirrors = [...mirrors, address];
+        this.setState({
+            mirrorDrafts: { ...this.state.mirrorDrafts, [backendId]: "" },
+            error: "",
+            status: "",
+            saving: true,
+        });
+        try {
+            await this.persistBackendConfig(config);
+        } catch (error) {
+            this.setState({ error: error instanceof Error ? error.message : String(error), saving: false });
+        }
+    }
+
+    private async removeMirror(backendId: string, address: string): Promise<void> {
+        const config = cloneConfig(this.state.backendConfig);
+        const backend = config.backends.find((item) => item.id === backendId);
+        if (!backend) return;
+        backend.mirrors = (backend.mirrors ?? []).filter((mirror) => normalizeAddress(mirror) !== normalizeAddress(address));
+        this.setState({ saving: true, error: "", status: "" });
+        try {
+            await this.persistBackendConfig(config);
+        } catch (error) {
+            this.setState({ error: error instanceof Error ? error.message : String(error), saving: false });
+        }
+    }
+
+    private renderNode(
+        backendId: string,
+        address: string,
+        role: "primary" | "mirror",
+        removable = false
+    ): React.ReactElement {
+        const status = statusForNode(this.state.backendStatuses[backendId], address);
+        const key = `${backendId}:${address}`;
+        const checking = Boolean(this.state.checkingNodes[key]);
+        const health = checking ? "checking" : status?.healthState ?? "unknown";
+        return (
+            <div
+                className={`backend-node-row ${health}`}
+                data-backend-node={backendId}
+                data-address={address}
+                data-role={role}
+                key={`${role}:${address}`}
+            >
+                <div className="backend-node-address">
+                    <span className="backend-node-role">
+                        {chrome.i18n.getMessage(role === "primary" ? "backendConfigPrimary" : "backendConfigMirror")}
+                    </span>
+                    <span>{address}</span>
+                </div>
+                <span className={`backend-node-state ${health}`}>
+                    {statusLabel(health)}
+                </span>
+                <div className="backend-node-actions">
+                    <button
+                        className="backend-node-action"
+                        data-backend-action="check"
+                        type="button"
+                        disabled={checking}
+                        onClick={() => void this.checkNode(backendId, address)}
+                    >
+                        {chrome.i18n.getMessage("backendConfigCheck")}
+                    </button>
+                    {removable && (
+                        <button
+                            className="backend-node-action"
+                            data-backend-action="remove"
+                            type="button"
+                            disabled={this.state.saving}
+                            onClick={() => void this.removeMirror(backendId, address)}
+                        >
+                            {chrome.i18n.getMessage("backendConfigRemove")}
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
     private renderBackendTable(
         backendConfig: BackendConfigDocument,
         backendEnabledMap: Record<string, boolean>
@@ -407,7 +613,7 @@ export default class BackendConfigComponent extends React.Component<
                             <th>{chrome.i18n.getMessage("backendConfigName")}</th>
                             <th>{chrome.i18n.getMessage("backendConfigDescriptionColumn")}</th>
                             <th>{chrome.i18n.getMessage("backendConfigApiUrl")}</th>
-                            <th>{chrome.i18n.getMessage("backendConfigMirrors")}</th>
+                            <th>{chrome.i18n.getMessage("backendConfigNodes")}</th>
                             <th>{chrome.i18n.getMessage("backendConfigEnabled")}</th>
                         </tr>
                     </thead>
@@ -418,7 +624,39 @@ export default class BackendConfigComponent extends React.Component<
                                 <td>{backend.name}</td>
                                 <td>{backend.desc || ""}</td>
                                 <td className="backend-config-api-url">{backend.api_url}</td>
-                                <td>{backend.mirrors?.length ?? 0}</td>
+                                <td>
+                                    <div className="backend-node-list">
+                                        {this.renderNode(backend.id, backend.api_url, "primary")}
+                                        {(backend.mirrors ?? []).map((mirror) =>
+                                            this.renderNode(backend.id, mirror, "mirror", true)
+                                        )}
+                                        <div className="backend-node-add">
+                                            <input
+                                                className="option-text-box"
+                                                type="url"
+                                                value={this.state.mirrorDrafts[backend.id] ?? ""}
+                                                placeholder={chrome.i18n.getMessage("backendConfigMirrorPlaceholder")}
+                                                aria-label={chrome.i18n.getMessage("backendConfigMirrorPlaceholder")}
+                                                onChange={(event) =>
+                                                    this.setState({
+                                                        mirrorDrafts: {
+                                                            ...this.state.mirrorDrafts,
+                                                            [backend.id]: event.target.value,
+                                                        },
+                                                    })
+                                                }
+                                            />
+                                            <button
+                                                className="option-button"
+                                                type="button"
+                                                disabled={this.state.saving}
+                                                onClick={() => void this.addMirror(backend.id)}
+                                            >
+                                                {chrome.i18n.getMessage("backendConfigAddMirror")}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td>
                                     <select
                                         className="backend-config-enabled-select"

@@ -1,4 +1,5 @@
 import { isBackendEnabled } from "./runtime";
+import { BackendOperation, supportsBackendOperation } from "./operations";
 import { BackendConfig, BackendConfigDocument, BackendMatchExpression, VideoMatchContext } from "./types";
 
 function matchesExpression(expression: BackendMatchExpression, context: VideoMatchContext): boolean {
@@ -22,9 +23,13 @@ export function matchesBackend(backend: BackendConfig, context: VideoMatchContex
 export function selectMatchedBackends(
     source: BackendConfigDocument | readonly BackendConfig[],
     context: VideoMatchContext,
-    enabledMap: Readonly<Record<string, boolean>> = {}
+    enabledMap: Readonly<Record<string, boolean>> = {},
+    operation?: BackendOperation
 ): BackendConfig[] {
-    const backends = "backends" in source ? source.backends : source;
+    const configuredBackends = "backends" in source ? source.backends : source;
+    const backends = operation
+        ? configuredBackends.filter((backend) => supportsBackendOperation(backend, operation))
+        : configuredBackends;
     const selected: BackendConfig[] = [];
     const suppressed = new Set<string>();
 

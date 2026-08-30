@@ -27,7 +27,10 @@
                 "GET /api/getUsername",
                 "POST /api/warnUser"
             ],
-            "mirrors": [],
+            "mirrors": [
+                "https://www.bsbsb.xyz",
+                "http://103.236.70.57:9876"
+            ],
             "conflicts": []
         },
         {

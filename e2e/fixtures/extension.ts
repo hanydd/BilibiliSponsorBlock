@@ -79,6 +79,12 @@ export const test = base.extend<ExtensionFixtures>({
                 ]);
             });
             await new Promise((resolve) => setTimeout(resolve, 1800));
+            await serviceWorker.evaluate(async () => {
+                const chromeApi = (globalThis as { chrome: typeof chrome }).chrome;
+                await chromeApi.storage.sync.set({
+                    userID: "00000000-0000-4000-8000-000000000001",
+                });
+            });
             await Promise.all(
                 context
                     .pages()

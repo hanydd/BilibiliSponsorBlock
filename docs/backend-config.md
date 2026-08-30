@@ -12,6 +12,10 @@
             "name": "小电视空降助手",
             "desc": "BilibiliSponsorBlock 默认后端",
             "api_url": "https://www.bsbsb.top",
+            "mirrors": [
+                "https://www.bsbsb.xyz",
+                "http://103.236.70.57:9876"
+            ],
             "enabled": true,
             "capabilities": [
                 "GET /api/skipSegments",
@@ -52,7 +56,7 @@
 | `enabled` | boolean | 否 | 默认开关，省略时默认启用。 |
 | `capabilities` | string[] | 是 | 后端支持的、插件实际会调用的 HTTP 接口。 |
 | `match` | expression[] | 否 | 视频匹配规则；省略或为空表示匹配全部视频。 |
-| `mirrors` | string[] | 否 | API 根地址的只读镜像；GET 主地址失败时只在当前请求内尝试。 |
+| `mirrors` | string[] | 否 | 与主地址提供相同能力的备用节点；节点故障时可接收当前请求的 fallback。 |
 | `conflicts` | string[] | 否 | 当前后端被采用后，临时抑制其后出现的指定后端 ID。 |
 
 所有 URL 必须是 `http` 或 `https` URL。能力值不能重复，镜像地址不能重复，`conflicts` 不能引用自身或不存在的后端。
@@ -87,7 +91,36 @@ POST /api/warnUser
 
 插件会根据当前功能块、HTTP 方法、实际路径、后端启用状态和视频 `match` 结果筛选候选后端。查询片段时，所有符合条件的后端都可以并行参与；提交、投票和其他单结果操作只选择符合条件的后端。显式指定 `backendId` 时仍会重新检查这些条件。
 
-`mirrors` 只用于主 `api_url` 的只读故障转移。镜像地址不需要单独配置 capabilities，只需要提供主后端所声明并实际使用的 GET 接口；插件不会要求镜像实现 POST 写接口。主地址的 GET 请求失败时，插件会在当前请求内随机尝试镜像地址；POST 请求（包括片段提交、投票、观看统计、用户名设置和用户警告）始终只发送到主 `api_url`，不会发送到 mirrors。镜像失败状态也不会被长期记忆。
+`mirrors` 是当前 backend 的备用节点，镜像地址不需要单独配置 capabilities，但必须实现该 backend 实际使用的接口。片段和标签等可合并查询会按健康状态尝试节点；其他安全 GET 和写请求在节点故障时最多 fallback 到一个可用节点。网络错误、超时、408 和 5xx 会更新节点健康状态；404 与业务型 4xx 会直接返回，不会被当成节点故障。
+
+如果服务是纯只读镜像，不要把它放入可写 backend 的 `mirrors`。应使用独立的 backend `id`、仅包含 GET 能力，并通过 `conflicts` 与同一数据源的后置 backend 建立冲突关系。冲突按当前操作的候选后端生效，因此只读 backend 不会阻止写请求选择可写 backend：
+
+```json
+{
+    "backends": [
+        {
+            "id": "readonly-mirror",
+            "name": "Read-only mirror",
+            "api_url": "https://readonly.example",
+            "capabilities": [
+                "GET /api/skipSegments",
+                "GET /api/skipSegments/:sha256HashPrefix"
+            ],
+            "conflicts": ["main"]
+        },
+        {
+            "id": "main",
+            "name": "Main backend",
+            "api_url": "https://www.bsbsb.top",
+            "capabilities": [
+                "GET /api/skipSegments",
+                "GET /api/skipSegments/:sha256HashPrefix",
+                "POST /api/skipSegments"
+            ]
+        }
+    ]
+}
+```
 
 `/api/videoLabels` 和 `/api/chapterNames` 是插件实际调用的扩展接口，虽然当前 Wiki 页面没有列出，也必须在支持对应功能的后端中声明。`/api/warnUser` 位于官方文档的管理员操作章节，但插件实现了用户确认警告流程，因此保留该能力。
 

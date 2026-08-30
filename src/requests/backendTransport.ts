@@ -6,7 +6,8 @@ export async function sendRealRequestToCustomServer(
     type: string,
     url: string,
     data: Record<string, unknown> | null = {},
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
+    signal?: AbortSignal
 ): Promise<FetchResponse> {
     if (type.toLowerCase() === "get") {
         url = objectToURI(url, data, true);
@@ -22,6 +23,7 @@ export async function sendRealRequestToCustomServer(
         headers: requestHeaders,
         redirect: "follow",
         body: data ? JSON.stringify(data) : null,
+        signal,
     });
 
     const responseText = await response.text();

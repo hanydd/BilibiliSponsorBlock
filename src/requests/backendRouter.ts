@@ -13,6 +13,12 @@ import {
 import Config from "../config";
 import { FetchResponse } from "./type/requestType";
 import { sendRealRequestToCustomServer } from "./backendTransport";
+import {
+    BackendAddressCheckResult,
+    BackendRouterState,
+    BackendRouterStatus,
+    ServerRouter,
+} from "./serverRouter";
 
 export type BackendRequestDefinition = BackendConfig;
 export type BackendConfigSnapshot = BackendConfigDocument;
@@ -30,6 +36,17 @@ export interface BackendRequestResult {
     priority: number;
     response: FetchResponse;
 }
+
+export const BACKEND_ROUTER_STORAGE_KEY = "bsb_backend_router_state";
+
+interface BackendRouterStorage {
+    version: 1;
+    backends: Record<string, BackendRouterState>;
+}
+
+const routers = new Map<string, ServerRouter>();
+const persistedStates = new Map<string, BackendRouterState>();
+let persistedStatesLoaded: Promise<void> | null = null;
 
 export function getCapabilityForEndpoint(endpoint: string, type = "GET"): BackendRequestCapability | null {
     const operation = getBackendOperation(type, endpoint);
@@ -57,11 +74,12 @@ export function getEligibleBackends(
     const configured = getConfiguredSnapshot();
     if (!configured) return [];
 
-    const matched = videoContext
-        ? selectMatchedBackends(configured, videoContext, getEnabledMap())
-        : configured.backends.filter((backend) => isBackendEnabled(backend, getEnabledMap()));
+    if (videoContext) return selectMatchedBackends(configured, videoContext, getEnabledMap(), operation);
 
-    return operation ? matched.filter((backend) => supportsBackendOperation(backend, operation)) : matched;
+    const eligible = operation
+        ? configured.backends.filter((backend) => supportsBackendOperation(backend, operation))
+        : configured.backends;
+    return eligible.filter((backend) => isBackendEnabled(backend, getEnabledMap()));
 }
 
 export function getBackendById(
@@ -72,22 +90,87 @@ export function getBackendById(
     return getEligibleBackends(operation, videoContext).find((backend) => backend.id === id) ?? null;
 }
 
-function getBaseUrl(backend: BackendRequestDefinition): string {
-    return backend.api_url.replace(/\/+$/, "");
-}
-
 function requestHeaders(skipServerCache: boolean, headers: Record<string, string>): Record<string, string> {
     if (!skipServerCache) return { ...headers };
     return { "X-SKIP-CACHE": "1", "cache-control": "no-cache", ...headers };
 }
 
-function shuffle<T>(items: T[]): T[] {
-    const result = [...items];
-    for (let i = result.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [result[i], result[j]] = [result[j], result[i]];
-    }
-    return result;
+async function loadPersistedStates(): Promise<void> {
+    if (persistedStatesLoaded) return persistedStatesLoaded;
+    persistedStatesLoaded = new Promise((resolve) => {
+        if (typeof chrome === "undefined" || !chrome.storage?.local) {
+            resolve();
+            return;
+        }
+        chrome.storage.local.get(BACKEND_ROUTER_STORAGE_KEY, (items) => {
+            const storage = items?.[BACKEND_ROUTER_STORAGE_KEY] as BackendRouterStorage | undefined;
+            if (storage?.version === 1 && storage.backends && typeof storage.backends === "object") {
+                for (const [backendId, state] of Object.entries(storage.backends)) {
+                    if (state?.version === 1 && state.backendId === backendId) persistedStates.set(backendId, state);
+                }
+            }
+            resolve();
+        });
+    });
+    return persistedStatesLoaded;
+}
+
+async function savePersistedState(state: BackendRouterState): Promise<void> {
+    persistedStates.set(state.backendId, state);
+    if (typeof chrome === "undefined" || !chrome.storage?.local) return;
+    await new Promise<void>((resolve) => {
+        chrome.storage.local.set(
+            {
+                [BACKEND_ROUTER_STORAGE_KEY]: {
+                    version: 1,
+                    backends: Object.fromEntries(persistedStates),
+                } satisfies BackendRouterStorage,
+            },
+            resolve
+        );
+    });
+}
+
+function getBackendDefinition(id: string, fallback?: BackendRequestDefinition): BackendRequestDefinition | null {
+    return getConfiguredSnapshot()?.backends.find((backend) => backend.id === id) ?? fallback ?? null;
+}
+
+async function getRouter(backend: BackendRequestDefinition): Promise<ServerRouter> {
+    const existing = routers.get(backend.id);
+    if (existing) return existing;
+
+    await loadPersistedStates();
+    const router = new ServerRouter({
+        backendId: backend.id,
+        getServerAddresses: () => {
+            const current = getBackendDefinition(backend.id, backend);
+            return current ? [current.api_url, ...(current.mirrors ?? [])] : [];
+        },
+        executeRequest: (type, url, data, headers, signal) =>
+            sendRealRequestToCustomServer(type, url, data, headers, signal),
+        loadState: () => Promise.resolve(persistedStates.get(backend.id) ?? null),
+        saveState: savePersistedState,
+    });
+    routers.set(backend.id, router);
+    return router;
+}
+
+export async function getBackendStatus(backendId: string): Promise<BackendRouterStatus> {
+    const backend = getBackendDefinition(backendId);
+    if (!backend) return { backendId, activeAddress: "", nodes: [] };
+    return (await getRouter(backend)).getStatus();
+}
+
+export async function probeBackendNode(backendId: string, address: string): Promise<BackendRouterStatus> {
+    const backend = getBackendDefinition(backendId);
+    if (!backend) return { backendId, activeAddress: "", nodes: [] };
+    return (await getRouter(backend)).probe(address);
+}
+
+export async function checkBackendAddress(backendId: string, address: string): Promise<BackendAddressCheckResult> {
+    const backend = getBackendDefinition(backendId);
+    if (!backend) return { backendId, address, healthState: "open" };
+    return (await getRouter(backend)).checkAddress(address);
 }
 
 export async function requestFromBackend(
@@ -98,28 +181,8 @@ export async function requestFromBackend(
     skipServerCache = false,
     headers: Record<string, string> = {}
 ): Promise<FetchResponse> {
-    const addresses = [getBaseUrl(backend), ...(type.toUpperCase() === "GET" ? backend.mirrors ?? [] : [])]
-        .map((address) => address.replace(/\/+$/, ""))
-        .filter((address, index, all) => Boolean(address) && all.indexOf(address) === index);
-    let lastResponse: FetchResponse = { responseText: "", status: -1, ok: false };
-
-    for (const address of [addresses[0], ...shuffle(addresses.slice(1))]) {
-        if (!address) continue;
-        try {
-            const response = await sendRealRequestToCustomServer(
-                type,
-                `${address}${endpoint}`,
-                data,
-                requestHeaders(skipServerCache, headers)
-            );
-            lastResponse = response;
-            if (response.ok) return response;
-        } catch (error) {
-            lastResponse = { responseText: error instanceof Error ? error.message : "", status: -1, ok: false };
-        }
-    }
-
-    return lastResponse;
+    const router = await getRouter(backend);
+    return router.request(type, endpoint, data, requestHeaders(skipServerCache, headers));
 }
 
 function resolveOperation(type: string, endpoint: string, options: BackendRequestOptions): BackendOperation | null {

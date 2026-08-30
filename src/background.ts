@@ -7,7 +7,13 @@ import { getVideoLabelBackground } from "./requests/background/videoLabelRequest
 import { getUserWorkStatsBackground } from "./requests/background/userStatsRequest";
 import { submitVote } from "./requests/background/voteRequest";
 import { BackendConfigService } from "./config/backendConfigService";
-import { getEligibleBackends } from "./requests/backendRouter";
+import type { VideoMatchContext } from "./backends";
+import {
+    checkBackendAddress,
+    getBackendStatus,
+    getEligibleBackends,
+    probeBackendNode,
+} from "./requests/backendRouter";
 import { CacheStats, NewVideoID, Registration } from "./types";
 import { chromeP } from "./utils/browserApi";
 import { getHash } from "./utils/hash";
@@ -30,21 +36,8 @@ if (chrome.alarms?.onAlarm) {
     });
 }
 
-function migrateLegacyTestingServer(): void {
-    const legacyConfig = Config.config as unknown as { testingServer?: boolean };
-    if (!legacyConfig?.testingServer || !Config.local?.backendConfig?.backends.some((backend) => backend.id === "beta")) {
-        return;
-    }
-    const enabledMap = { ...(Config.local.backendEnabledMap ?? {}) };
-    if (Object.prototype.hasOwnProperty.call(enabledMap, "beta")) return;
-    enabledMap.beta = true;
-    Config.local.backendEnabledMap = enabledMap;
-    Config.forceLocalUpdate("backendEnabledMap");
-}
-
 function whenBackendConfigReady(callback: () => void, attempt = 0): void {
     if (Config.local?.backendSubscription || attempt >= 100) {
-        migrateLegacyTestingServer();
         callback();
         return;
     }
@@ -254,6 +247,27 @@ function setupBackgroundRequestProxy() {
             return true;
         }
 
+        if (request.message === "getBackendStatus") {
+            getBackendStatus(String(request.backendId ?? ""))
+                .then(callback)
+                .catch(() => callback({ backendId: request.backendId, activeAddress: "", nodes: [] }));
+            return true;
+        }
+
+        if (request.message === "probeBackendNode") {
+            probeBackendNode(String(request.backendId ?? ""), String(request.address ?? ""))
+                .then(callback)
+                .catch(() => callback({ backendId: request.backendId, activeAddress: "", nodes: [] }));
+            return true;
+        }
+
+        if (request.message === "checkBackendAddress") {
+            checkBackendAddress(String(request.backendId ?? ""), String(request.address ?? ""))
+                .then(callback)
+                .catch(() => callback({ backendId: request.backendId, address: request.address, healthState: "open" }));
+            return true;
+        }
+
         // ============ Request Handlers ============
         if (request.message === "getVideoLabel") {
             getVideoLabelBackground(request.videoID as NewVideoID, Boolean(request.refreshCache))
@@ -266,7 +280,7 @@ function setupBackgroundRequestProxy() {
             getSegmentsBackground(
                 request.videoID as NewVideoID,
                 Boolean(request.ignoreCache),
-                (request.videoContext as Record<string, string>) || undefined
+                (request.videoContext as VideoMatchContext) || undefined
             )
                 .then((response) => callback({ response }))
                 .catch(() => callback({ response: { segments: null, status: -1 } }));
