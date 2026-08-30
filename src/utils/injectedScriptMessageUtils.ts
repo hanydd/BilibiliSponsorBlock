@@ -107,25 +107,3 @@ export async function getVideoInfoFromWindowOnplayerManifest(): Promise<{ aid: A
         3200
     );
 }
-
-export async function getPlaybackRateFromPlayer(): Promise<number | null> {
-    return getPropertyFromWindow<number>(
-        {
-            sendType: "getPlaybackRate",
-            responseType: "returnPlaybackRate",
-        },
-        undefined,
-        400
-    );
-}
-
-export async function setPlaybackRateViaPlayer(rate: number): Promise<boolean | null> {
-    return getPropertyFromWindow<boolean>(
-        {
-            sendType: "setPlaybackRate",
-            responseType: "returnSetPlaybackRate",
-        },
-        rate,
-        400
-    );
-}
