@@ -4,6 +4,7 @@ import { readSyncStorage, writeSyncStorage } from "./support/extensionStorage";
 
 // Health-check UI tests should not open Chrome's optional host-permission prompt.
 const permittedTestServerAddress = "http://server-e2e.bsbsb.top";
+const activeServerAnimationName = "server-node-active-breathe";
 
 async function openOptions(page: Page, extensionId: string, hash = ""): Promise<void> {
     await page.goto(`chrome-extension://${extensionId}/options/options.html${hash}`);
@@ -231,6 +232,8 @@ test("updates the primary server state bar while checking", async ({
 test("highlights the active node without a current-node marker", async ({ extensionId, extensionPage }) => {
     await openOptions(extensionPage, extensionId, "#advanced");
     await expect(extensionPage.locator("#primaryServerRow")).toHaveClass(/active/);
+    await expect(extensionPage.locator("#primaryServerRow")).toHaveCSS("animation-name", activeServerAnimationName);
+    await expect(extensionPage.locator("#primaryServerRow")).toHaveCSS("animation-duration", "2.4s");
     await expect(extensionPage.locator(".server-current-node")).toHaveCount(0);
 });
 
@@ -273,9 +276,9 @@ test("updates node status when a background request opens the circuit", async ({
     await expect(primaryRow).not.toHaveClass(/active/);
 
     await extensionPage.locator("#serverMirrorToggle").click();
-    await expect(
-        extensionPage.locator(".server-node-row").filter({ hasText: "https://www.bsbsb.xyz" })
-    ).toHaveClass(/active/);
+    const activeMirror = extensionPage.locator(".server-node-row").filter({ hasText: "https://www.bsbsb.xyz" });
+    await expect(activeMirror).toHaveClass(/active/);
+    await expect(activeMirror).toHaveCSS("animation-name", activeServerAnimationName);
 });
 
 test("uses a later mirror when earlier nodes fail a hash request", async ({
