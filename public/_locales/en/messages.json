@@ -919,8 +919,11 @@
     "autoSkipOnMusicVideos": {
         "message": "自动跳过所有音乐视频中的非音乐片段"
     },
+    "clickableTimeDanmaku": {
+        "message": "点击弹幕跳转到对应时间"
+    },
     "danmakuSkip": {
-        "message": "从弹幕中匹配空降时间"
+        "message": "匹配弹幕时间显示空降提示"
     },
     "autoSkipDanmakuSkip": {
         "message": "匹配成功后自动跳过"

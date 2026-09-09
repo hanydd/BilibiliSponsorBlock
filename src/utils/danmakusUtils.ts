@@ -11,7 +11,7 @@ export function parseTargetTimeFromDanmaku(text: string, currentTime: number) {
     text = text.replace(/[零一二三四五六七八九两壹贰叁肆伍陆柒捌玖十百千万]+/g, (cnNum) => parseChineseNumber(cnNum));
 
     const directParsedTime = parseTime(text);
-    if (directParsedTime) {
+    if (directParsedTime !== null) {
         return directParsedTime;
     } else {
         const offsetParsedTime = parseOffsetTime(text);
