@@ -35,7 +35,6 @@ export interface SkipNoticeProps {
 
     closeListener: () => void;
     showKeybindHint?: boolean;
-    smaller: boolean;
     fadeIn: boolean;
     fadeOut: boolean;
 
@@ -47,6 +46,7 @@ export interface SkipNoticeProps {
 }
 
 export interface SkipNoticeState {
+    compact?: boolean;
     noticeTitle?: string;
 
     messages?: string[];
@@ -75,6 +75,8 @@ export interface SkipNoticeState {
 }
 
 class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeState> {
+    private playerResizeObserver?: ResizeObserver;
+
     segments: SponsorTime[];
     autoSkip: boolean;
     // Contains functions and variables from the content script needed by the skip notice
@@ -94,7 +96,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     lockedColor: string;
 
     // Used to update on config change
-    configListener: () => void;
+    configListener: (changes: Record<string, unknown>) => void;
 
     constructor(props: SkipNoticeProps) {
         super(props);
@@ -174,7 +176,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
 
             showKeybindHint: this.props.showKeybindHint ?? true,
 
-            smaller: this.props.smaller ?? false,
+            smaller: this.isSmallNotice(),
 
             // Keep track of what segment the user interacted with.
             voted: new Array(this.props.segments.length).fill(SkipNoticeAction.None),
@@ -192,7 +194,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
 
         // If it started out as smaller, always keep the
         // skip button there
-        const showFirstSkipButton = this.props.smaller || this.segments[0].actionType === ActionType.Mute;
+        const showFirstSkipButton = this.isSmallNotice() || this.segments[0].actionType === ActionType.Mute;
         const firstColumn = showFirstSkipButton ? this.getSkipButton(0) : null;
 
         return (
@@ -214,6 +216,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 ref={this.noticeRef}
                 closeListener={() => this.closeListener()}
                 smaller={this.state.smaller}
+                compact={this.state.compact}
                 logoFill={Config.config.barTypes[this.segments[0].category].color}
                 limitWidth={true}
                 firstColumn={firstColumn}
@@ -225,10 +228,43 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         );
     }
 
+    private isSmallNotice(): boolean {
+        return Config.config.noticeVisibilityMode >= NoticeVisibilityMode.MiniForAll ||
+            (Config.config.noticeVisibilityMode >= NoticeVisibilityMode.MiniForAutoSkip && this.autoSkip);
+    }
+
     componentDidMount(): void {
+        this.configListener = (changes) => {
+            if ("noticeVisibilityMode" in changes) {
+                this.setState({ smaller: this.isSmallNotice() });
+                this.noticeRef.current?.setState({
+                    startFaded: Config.config.noticeVisibilityMode >= NoticeVisibilityMode.FadedForAll ||
+                        (Config.config.noticeVisibilityMode >= NoticeVisibilityMode.FadedForAutoSkip && this.autoSkip),
+                });
+            }
+            if ("barTypes" in changes) this.forceUpdate();
+        };
+        Config.configSyncListeners.push(this.configListener);
+        const player = this.noticeRef.current?.getElement().current?.closest(".bpx-player-video-area");
+        if (player) {
+            const updateLayout = () => {
+                const { width, height } = player.getBoundingClientRect();
+                if (width <= 0 || height <= 0) return;
+                const compact = width <= 480 || height <= 270;
+                if (compact !== this.state.compact) this.setState({ compact });
+            };
+            updateLayout();
+            this.playerResizeObserver = new ResizeObserver(updateLayout);
+            this.playerResizeObserver.observe(player);
+        }
         if (this.props.componentDidMount) {
             this.props.componentDidMount();
         }
+    }
+
+    componentWillUnmount(): void {
+        this.playerResizeObserver?.disconnect();
+        this.clearConfigListener();
     }
 
     getBottomRow(): JSX.Element[] {
@@ -320,7 +356,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 )}
 
                 {/* Unskip/Skip Button */}
-                {!this.props.smaller || this.segments[0].actionType === ActionType.Mute ? this.getSkipButton(1) : null}
+                {!this.isSmallNotice() || this.segments[0].actionType === ActionType.Mute ? this.getSkipButton(1) : null}
 
                 {/* Never show button */}
                 {!this.autoSkip || this.props.startReskip ? (
@@ -431,7 +467,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             };
 
             const showSkipButton =
-                buttonIndex !== 0 || this.props.smaller || this.segments[0].actionType === ActionType.Mute;
+                buttonIndex !== 0 || this.isSmallNotice() || this.segments[0].actionType === ActionType.Mute;
 
             return (
                 <span
@@ -447,7 +483,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                         }
                     >
                         {this.getSkipButtonText(buttonIndex, forceSeek ? ActionType.Skip : null) +
-                            (!forceSeek && this.state.showKeybindHint
+                            (!this.state.compact && !forceSeek && this.state.showKeybindHint
                                 ? " (" + keybindToString(Config.config.skipKeybind) + ")"
                                 : "")}
                     </button>

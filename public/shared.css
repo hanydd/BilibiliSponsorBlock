@@ -239,3 +239,82 @@
   -webkit-animation: loadingCircle 0.35s infinite linear;
   animation: loadingCircle 0.35s infinite linear;
 }
+
+/* Keep skip actions usable when the player becomes a floating mini player. */
+.sponsorSkipNoticeParent.sponsorSkipNoticeCompact {
+    box-sizing: border-box;
+    width: calc(100% - 12px);
+    min-width: 0;
+    max-width: 360px;
+    max-height: calc(100% - 44px);
+    overflow: auto;
+    padding: 0;
+    margin: 0;
+    --skip-notice-border-horizontal: 3px;
+    --skip-notice-border-vertical: 3px;
+    --skip-notice-padding: 2px;
+}
+
+.sponsorSkipNoticeCompact .sponsorSkipNotice {
+    box-sizing: border-box;
+    table-layout: fixed;
+    margin: 0;
+    max-width: 100%;
+}
+
+.sponsorSkipNoticeCompact .sponsorSkipNoticeFirstRow {
+    display: flex;
+    align-items: center;
+}
+
+.sponsorSkipNoticeCompact .noticeLeftIcon {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+
+.sponsorSkipNoticeCompact .sponsorSkipLogo {
+    width: 14px;
+    height: 14px;
+    margin: 0 2px 0 0;
+}
+
+.sponsorSkipNoticeCompact .sponsorSkipNoticeTimeLeft {
+    font-size: 10px;
+    margin: 0;
+    padding: 1px 2px;
+}
+
+.sponsorSkipNoticeCompact .sponsorSkipMessage {
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    margin: 0 4px 0 0;
+}
+
+.sponsorSkipNoticeCompact .sponsorSkipNoticeUnskipSection {
+    margin: 0;
+}
+
+.sponsorSkipNoticeCompact .sponsorSkipNoticeButton {
+    font-size: 11px !important;
+    padding: 2px 4px;
+    margin: 0;
+}
+
+.sponsorSkipNoticeCompact .sponsorSkipNoticeRightSection {
+    position: static;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.sponsorSkipNoticeCompact .sponsorSkipNoticeCloseButton {
+    box-sizing: content-box;
+    width: 12px;
+    height: 12px;
+}

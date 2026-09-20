@@ -249,6 +249,7 @@ function contentConfigUpdateListener(changes: StorageChangesObject) {
                 break;
             case "barTypes":
                 void app.commands.execute("config/applyCategoryColors", undefined);
+                void app.commands.execute("ui/updatePreviewBar", undefined);
                 break;
             case "fullVideoSegments":
             case "fullVideoLabelsOnThumbnails":

@@ -35,7 +35,8 @@
 	transition: transform 0.1s cubic-bezier(0, 0, 0.2, 1);
 }
 
-#shadowPreviewbar {
+#shadowPreviewbar,
+#miniPreviewbar {
 	overflow: hidden;
 	padding: 0;
 	margin: 0;
@@ -45,6 +46,12 @@
 	z-index: 1;
 
 	transition: transform 0.1s cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* The mini player's native played/buffered layers must not cover segment colors. */
+#miniPreviewbar {
+    inset: 0;
+    pointer-events: none;
 }
 
 .progress-bar-line > #previewbar {

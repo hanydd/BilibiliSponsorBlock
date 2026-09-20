@@ -522,6 +522,7 @@ export async function startSponsorSchedule(
             currentSkipSchedule = setTimeout(skippingFunction, offsetDelayTime);
 
             if (
+                !Config.config.dontShowNotice &&
                 Config.config.advanceSkipNotice &&
                 Config.config.skipNoticeDurationBefore > 0 &&
                 getVideo().currentTime < skippingSegments[0].segment[0] &&

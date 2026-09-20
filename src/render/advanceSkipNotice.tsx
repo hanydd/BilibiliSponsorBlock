@@ -1,9 +1,8 @@
 import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
-import { NoticeVisibilityMode, SponsorTime } from "../types";
+import { SponsorTime } from "../types";
 
 import SkipNoticeComponent from "../components/SkipNoticeComponent";
-import Config from "../config";
 import { ContentContainer } from "../ContentContainerTypes";
 import Utils from "../utils";
 import { SkipNoticeAction } from "../utils/noticeUtils";
@@ -53,10 +52,6 @@ class advanceSkipNotices {
                 contentContainer={contentContainer}
                 ref={this.advanceSkipNoticeRef}
                 closeListener={() => this.close()}
-                smaller={
-                    Config.config.noticeVisibilityMode >= NoticeVisibilityMode.MiniForAll ||
-                    (Config.config.noticeVisibilityMode >= NoticeVisibilityMode.MiniForAutoSkip && autoSkip)
-                }
                 fadeIn={true}
                 fadeOut={false}
                 unskipTime={unskipTime}

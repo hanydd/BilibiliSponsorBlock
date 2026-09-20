@@ -27,6 +27,7 @@ export interface NoticeProps {
     bottomRow?: React.ReactElement[];
 
     smaller?: boolean;
+    compact?: boolean;
     limitWidth?: boolean;
     extraClass?: string;
     hideLogo?: boolean;
@@ -129,6 +130,11 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
             bottom: this.state.bottom,
             userSelect: this.state.mouseDownInfo && this.state.mouseMoved ? "none" : "auto",
             ...(this.props.style ?? {}),
+            ...(this.props.compact ? {
+                right: 6,
+                bottom: this.props.showInSecondSlot ? 92 : 38,
+                maxHeight: `calc(100% - ${this.props.showInSecondSlot ? 98 : 44}px)`,
+            } : {}),
         };
 
         return (
@@ -137,13 +143,15 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
                 className={
                     "sponsorSkipObject sponsorSkipNoticeParent" +
                     (this.props.showInSecondSlot ? " secondSkipNotice" : "") +
-                    (this.props.extraClass ? ` ${this.props.extraClass}` : "")
+                    (this.props.extraClass ? ` ${this.props.extraClass}` : "") +
+                    (this.props.compact ? " sponsorSkipNoticeCompact" : "")
                 }
                 onMouseEnter={(e) => this.onMouseEnter(e)}
                 onMouseLeave={() => {
                     this.timerMouseLeave();
                 }}
                 onMouseDown={(e) => {
+                    if (this.props.compact) return;
                     document.addEventListener("mousemove", this.handleMouseMoveBinded);
 
                     this.setState({
@@ -243,7 +251,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
                 </div>
 
                 {/* Add as a hidden table to keep the height constant */}
-                {this.props.smaller && this.props.bottomRow ? (
+                {this.props.smaller && !this.props.compact && this.props.bottomRow ? (
                     <table style={{ visibility: "hidden", paddingTop: "14px" }}>
                         <tbody>{this.props.bottomRow}</tbody>
                     </table>
@@ -470,6 +478,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
     }
 
     componentWillUnmount(): void {
+        if (this.countdownInterval !== null) clearInterval(this.countdownInterval);
         document.removeEventListener("mousemove", this.handleMouseMoveBinded);
     }
 

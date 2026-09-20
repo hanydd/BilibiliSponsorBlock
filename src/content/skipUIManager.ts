@@ -152,12 +152,23 @@ export function registerSkipUIManager(): void {
     app.commands.register("skip/dontShowNoticeAgain", () => dontShowNoticeAgain());
 
     app.bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, ({ noticeKind, skippingSegments, autoSkip, unskipTime, startReskip }) => {
+        if (Config.config.dontShowNotice) return;
         if (noticeKind === "advance") {
+            if (!Config.config.advanceSkipNotice || Config.config.skipNoticeDurationBefore <= 0) return;
             createAdvanceSkipNotice(skippingSegments, unskipTime, autoSkip, startReskip);
             return;
         }
 
         createSkipNotice(skippingSegments, autoSkip, unskipTime, startReskip);
+    });
+
+    app.bus.on(CONTENT_EVENTS.CONFIG_CHANGED, ({ changes }) => {
+        if ("dontShowNotice" in changes && Config.config.dontShowNotice) {
+            closeSkipNotices(true);
+        } else if (("advanceSkipNotice" in changes || "skipNoticeDurationBefore" in changes) &&
+            (!Config.config.advanceSkipNotice || Config.config.skipNoticeDurationBefore <= 0)) {
+            closeAdvanceSkipNotice();
+        }
     });
 
     app.bus.on(CONTENT_EVENTS.SKIP_BUTTON_STATE_CHANGED, ({ enabled, segment }) => {

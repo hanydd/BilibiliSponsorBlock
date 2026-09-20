@@ -118,6 +118,11 @@ function createMockBilibiliVideoPageHtml(options: MockBilibiliPageOptions): stri
                 width: 928px;
             }
 
+            .bpx-player-shadow-progress-area {
+                bottom: 0;
+                height: 2px;
+            }
+
             #danmukuBox {
                 width: 374px;
             }

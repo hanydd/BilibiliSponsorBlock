@@ -20,6 +20,9 @@ class PreviewBar {
     container: HTMLUListElement;
     // small progress bar on the bottom of <video />, shown only when not hovering the video
     shadowContainer: HTMLUListElement;
+    // Bilibili creates a separate progress bar when entering its floating mini player.
+    miniContainer: HTMLUListElement;
+    private miniPlayerObserver?: MutationObserver;
     categoryTooltip?: HTMLDivElement;
     categoryTooltipContainer?: HTMLElement;
     lastSmallestSegment: Record<
@@ -45,13 +48,43 @@ class PreviewBar {
         this.container.id = "previewbar";
         this.shadowContainer = document.createElement("ul");
         this.shadowContainer.id = "shadowPreviewbar";
+        this.miniContainer = document.createElement("ul");
+        this.miniContainer.id = "miniPreviewbar";
+        this.miniContainer.setAttribute("aria-hidden", "true");
 
         this.parent = parent;
         this.shadowParent = shadowParent;
         this.chapterVote = chapterVote;
 
         this.createElement();
+        this.observeMiniPlayer();
         this.setupHoverText();
+    }
+
+    private observeMiniPlayer(): void {
+        const player = this.parent.closest(".bpx-player-container");
+        if (!player) return;
+
+        const attach = () => {
+            const progress = player.querySelector(".bpx-player-mini-progress");
+            if (progress) {
+                if (this.miniContainer.parentElement !== progress) progress.appendChild(this.miniContainer);
+            } else {
+                this.miniContainer.remove();
+            }
+        };
+        attach();
+        this.miniPlayerObserver = new MutationObserver((records) => {
+            // Ignore unrelated player mutations, including danmaku and our own segment nodes.
+            const miniProgressChanged = records.some((record) =>
+                [...record.addedNodes, ...record.removedNodes].some((node) =>
+                    node instanceof Element &&
+                    (node.matches(".bpx-player-mini-progress") || node.querySelector(".bpx-player-mini-progress"))
+                )
+            );
+            if (miniProgressChanged) attach();
+        });
+        this.miniPlayerObserver.observe(player, { childList: true, subtree: true });
     }
 
     setupHoverText(): void {
@@ -67,8 +100,8 @@ class PreviewBar {
         this.categoryTooltipContainer = document.querySelector(
             ".bpx-player-progress-area .bpx-player-progress-wrap .bpx-player-progress-popup"
         );
-        const tooltipTextWrapper = this.categoryTooltipContainer.querySelector(".bpx-player-progress-preview");
-        const biliChapterWrapper = this.categoryTooltipContainer.querySelector(".bpx-player-progress-hotspot");
+        const tooltipTextWrapper = this.categoryTooltipContainer?.querySelector(".bpx-player-progress-preview");
+        const biliChapterWrapper = this.categoryTooltipContainer?.querySelector(".bpx-player-progress-hotspot");
         if (!this.categoryTooltipContainer || !tooltipTextWrapper) return;
 
         if (biliChapterWrapper) {
@@ -94,9 +127,9 @@ class PreviewBar {
             if (!mouseOnSeekBar || !this.categoryTooltip || !this.categoryTooltipContainer || !chrome.runtime?.id)
                 return;
 
-            const timeInSeconds = this.decimalToTime(
-                (e.clientX - seekBar.getBoundingClientRect().x) / seekBar.clientWidth
-            );
+            const bounds = seekBar.getBoundingClientRect();
+            if (bounds.width <= 0) return;
+            const timeInSeconds = this.decimalToTime((e.clientX - bounds.x) / bounds.width);
 
             // Find the segment at that location, using the shortest if multiple found
             const mainSegment = this.getSmallestSegment(timeInSeconds, this.segments, "normal");
@@ -138,6 +171,7 @@ class PreviewBar {
             this.shadowContainer.removeChild(this.shadowContainer.firstChild);
         }
 
+        this.miniContainer?.replaceChildren();
         this.chapterVote?.setVisibility(false);
     }
 
@@ -167,6 +201,7 @@ class PreviewBar {
             const shadowBar = bar.cloneNode(true) as HTMLLIElement;
             this.container.appendChild(bar);
             this.shadowContainer?.appendChild(shadowBar);
+            this.miniContainer?.appendChild(bar.cloneNode(true));
         }
     }
 
@@ -308,6 +343,8 @@ class PreviewBar {
     }
 
     remove(): void {
+        this.miniPlayerObserver?.disconnect();
+        this.miniContainer?.remove();
         this.container.remove();
         this.shadowContainer.remove();
 
