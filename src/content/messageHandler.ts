@@ -246,6 +246,7 @@ function contentConfigUpdateListener(changes: StorageChangesObject) {
                 break;
             case "categorySelections":
                 void app.commands.execute("segments/lookup", {});
+                checkPageForNewThumbnails(true);
                 break;
             case "barTypes":
                 void app.commands.execute("config/applyCategoryColors", undefined);
@@ -253,7 +254,8 @@ function contentConfigUpdateListener(changes: StorageChangesObject) {
                 break;
             case "fullVideoSegments":
             case "fullVideoLabelsOnThumbnails":
-                checkPageForNewThumbnails();
+            case "fullVideoLabelsOnThumbnailsMode":
+                checkPageForNewThumbnails(true);
                 break;
         }
     }

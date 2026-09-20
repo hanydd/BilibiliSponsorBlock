@@ -81,7 +81,7 @@ const nativeScenarios: PageScenario[] = [
         body: `
             <div class="right-container"><div class="video-page-card-small"><a href="https://www.bilibili.com/video/${bvids.videoSide}"><div class="b-img">${image()}</div></a></div></div>
             <div class="video-pod">
-                <div class="pod-item simple" data-key="${bvids.videoPodSimple}"><div class="single-p"><div class="stats"></div></div></div>
+                <div class="pod-item simple" data-key="${bvids.videoPodSimple}"><div class="single-p">Episode title<div class="stats"></div></div></div>
                 <div class="pod-item normal" data-key="${bvids.videoPodNormal}"><div class="single-p">${image()}</div></div>
             </div>`,
         expectedBvids: [bvids.videoSide, bvids.videoPodSimple, bvids.videoPodNormal],
