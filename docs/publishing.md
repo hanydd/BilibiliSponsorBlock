@@ -33,6 +33,22 @@
 
 不要把凭据写进仓库文件、Issue、Actions 日志或聊天记录。
 
+## Chrome 凭据定期检查
+
+`Check Chrome credentials` 工作流每周一北京时间 09:23 运行，也可以在 Actions 页面手动选择 `Run workflow`。定时任务使用默认分支上的工作流，GitHub 调度繁忙时可能延迟。
+
+检查复用 `browser-stores` 中的 Chrome 凭据，先用 refresh token 换取临时 access token，再调用只读的 `fetchStatus` 查询当前扩展。它不构建、上传或发布扩展，也不修改 GitHub Secrets。日志和运行摘要只记录检查结果，不输出 token 或完整 API 响应。
+
+失败会使工作流标红。请在个人 GitHub 通知设置中开启 Actions 失败通知。`invalid_grant` 需要重新授权并更新 `CHROME_REFRESH_TOKEN`；`invalid_client` 需要检查 Client ID 和 Client Secret。网络错误、限流或服务端错误可以先手动重试。
+
+定期检查不能保证 refresh token 永不失效。公开仓库连续 60 天没有活动时，GitHub 会自动停用定时工作流，需要到 Actions 页面重新启用。
+
+检查脚本的本地测试不需要真实凭据：
+
+```bash
+node --test scripts/check-chrome-credentials.test.mjs
+```
+
 ## 发布
 
 1. 修改 `manifest/manifest.json` 中的版本号并提交。商店不接受重复或降低的版本号。
