@@ -3,7 +3,7 @@ module.exports = {
         "test"
     ],
     "transform": {
-        "^.+\\.ts$": "ts-jest"
+        "^.+\\.tsx?$": "ts-jest"
     },
     "reporters": ["default", "github-actions"]
 };
