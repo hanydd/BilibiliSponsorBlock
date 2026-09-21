@@ -355,7 +355,7 @@ const syncDefaults = {
     showCategoryWithoutPermission: false,
     showSegmentNameInChapterBar: true,
     useVirtualTime: true,
-    skipOnSeekToSegment: true,
+    skipOnSeekToSegment: false,
     showSegmentFailedToFetchWarning: true,
     allowScrollingToEdit: true,
     showPreviewYoutubeButton: true,
