@@ -14,6 +14,11 @@ import { waitForBilibiliContentScript } from "./support/submissionNotice";
 
 type SendContentMessage = <TResponse = unknown>(message: unknown) => Promise<TResponse>;
 
+test.beforeEach(async ({ extensionServiceWorker }) => {
+    // Notice tests seek directly into a segment instead of playing through its start.
+    await writeSyncStorage(extensionServiceWorker, { skipOnSeekToSegment: true });
+});
+
 async function loadVideoWithSegment(
     context: BrowserContext,
     page: Page,

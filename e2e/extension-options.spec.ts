@@ -34,6 +34,18 @@ test("loads the options page and keeps tab navigation in the URL", async ({ exte
     await expect(extensionPage.locator("#interface")).toBeVisible();
 });
 
+test("disables skipping after seeking by default and preserves an enabled preference", async ({
+    extensionId, extensionPage, extensionServiceWorker,
+}) => {
+    await openOptions(extensionPage, extensionId);
+    await expect(extensionPage.locator("#skipOnSeekToSegment")).not.toBeChecked();
+
+    await writeSyncStorage(extensionServiceWorker, { skipOnSeekToSegment: true });
+    await extensionPage.reload();
+    await expect(extensionPage.locator("#skipOnSeekToSegment")).toBeChecked();
+    await expectSyncStorage(extensionServiceWorker, "skipOnSeekToSegment", true);
+});
+
 test("persists common interface toggles, numeric values, and selectors", async ({
     extensionId,
     extensionPage,
