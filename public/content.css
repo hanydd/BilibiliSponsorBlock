@@ -844,6 +844,24 @@ input::-webkit-inner-spin-button {
 	box-shadow: none;
 }
 
+.pod-item.simple .sponsorThumbnailLabel {
+	flex-shrink: 0;
+	align-items: center;
+	margin: 0 6px;
+	padding: 2px;
+	background-color: transparent;
+}
+
+.pod-item.simple .sponsorThumbnailLabel svg {
+	width: 18px;
+	height: 18px;
+	fill: var(--category-color, #000);
+}
+
+.pod-item.simple .sponsorThumbnailLabel span {
+	color: var(--category-color, #000);
+}
+
 .sponsorblock-chapter-visible {
 	display: inherit !important;
 }
