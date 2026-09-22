@@ -63,6 +63,72 @@ describe("speedUp 核心行为与交互契约", () => {
         expect(getActiveSpeedUpInfo()?.rate).toBe(3);
     });
 
+    test("当前倍速与设置倍速相同时叠加快进（2+2=4）", async () => {
+        installCoreModuleMocks(video, { asyncRequestToServerMock, configOverrides: { speedUpPlaybackRate: 2 } });
+        const { registerSpeedUpManager, startSpeedUp, getActiveSpeedUpInfo } = await import("../src/content/speedUpManager");
+        const { createContentApp } = await import("../src/content/app");
+        createContentApp();
+        registerSpeedUpManager();
+
+        video.playbackRate = 2;
+        video.currentTime = 40;
+        const seg = makeSegment("uuid-stack-1", 40, 80);
+        const ok = await startSpeedUp([seg], [40, 80], 2);
+        expect(ok).toBe(true);
+        expect(video.playbackRate).toBe(4); // 2 + 2
+        expect(getActiveSpeedUpInfo()?.rate).toBe(4);
+
+        // 完成后恢复的仍是叠加前的原始倍速 2x
+        video.currentTime = 80;
+        await jest.advanceTimersByTimeAsync(150);
+        expect(video.playbackRate).toBe(2);
+    });
+
+    test("当前倍速与设置倍速接近但不等时不叠加", async () => {
+        installCoreModuleMocks(video, { asyncRequestToServerMock, configOverrides: { speedUpPlaybackRate: 2 } });
+        const { registerSpeedUpManager, startSpeedUp, getActiveSpeedUpInfo } = await import("../src/content/speedUpManager");
+        const { createContentApp } = await import("../src/content/app");
+        createContentApp();
+        registerSpeedUpManager();
+
+        video.playbackRate = 1.9; // |1.9 - 2| = 0.1 > 0.05 容差
+        video.currentTime = 40;
+        const seg = makeSegment("uuid-stack-2", 40, 80);
+        const ok = await startSpeedUp([seg], [40, 80], 1.9);
+        expect(ok).toBe(true);
+        expect(video.playbackRate).toBe(2); // max(2, 1.9)
+        expect(getActiveSpeedUpInfo()?.rate).toBe(2);
+    });
+
+    test("链式快进以会话原速为基准：不叠加翻倍，恢复不抬高", async () => {
+        installCoreModuleMocks(video, { asyncRequestToServerMock, configOverrides: { speedUpPlaybackRate: 2 } });
+        const { registerSpeedUpManager, startSpeedUp, getActiveSpeedUpInfo } = await import("../src/content/speedUpManager");
+        const { createContentApp } = await import("../src/content/app");
+        createContentApp();
+        registerSpeedUpManager();
+
+        // 用户原速 1x：A 段快进 rate=2（走 video.playbackRate 读取路径）
+        video.playbackRate = 1;
+        video.currentTime = 40;
+        const segA = makeSegment("uuid-chain-A", 40, 60);
+        const okA = await startSpeedUp([segA], [40, 60]);
+        expect(okA).toBe(true);
+        expect(video.playbackRate).toBe(2); // max(2, 1)
+
+        // A 仍激活时 B 启动（无 forced rate）：基准取 A 记录的原速 1，而非 A 的快进倍速 2
+        video.currentTime = 50;
+        const segB = makeSegment("uuid-chain-B", 50, 80);
+        const okB = await startSpeedUp([segB], [50, 80]);
+        expect(okB).toBe(true);
+        expect(video.playbackRate).toBe(2); // max(2, 1)，而非叠加 2+2=4
+        expect(getActiveSpeedUpInfo()?.rate).toBe(2);
+
+        // B 完成后恢复用户原速 1x，而非被抬高的 2x
+        video.currentTime = 80;
+        await jest.advanceTimersByTimeAsync(150);
+        expect(video.playbackRate).toBe(1);
+    });
+
     test("重复播放同一段只计数上报一次", async () => {
         installCoreModuleMocks(video, { asyncRequestToServerMock });
         const { contentState } = await setupFullContent();

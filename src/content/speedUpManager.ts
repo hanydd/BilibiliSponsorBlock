@@ -100,6 +100,18 @@ function parseSpeedUpRate(): number {
     return clampSpeedUpRate(rate);
 }
 
+/**
+ * 快进倍速：当前播放倍速与设置倍速相同时叠加而非原地不动（如当前 2x、设置 2x → 4x，
+ * 否则"快进"不比原速快），不同时取较大值保证快进不变慢。
+ * 等值判定留 0.05 容差，与外部改速判定同级。
+ */
+function computeSpeedUpRate(configuredRate: number, currentRate: number): number {
+    if (Math.abs(currentRate - configuredRate) <= 0.05) {
+        return clampSpeedUpRate(currentRate + configuredRate);
+    }
+    return clampSpeedUpRate(Math.max(configuredRate, currentRate));
+}
+
 export function isSpeedUpActive(): boolean {
     return session !== null;
 }
@@ -365,10 +377,12 @@ export async function startSpeedUp(skippingSegments: SponsorTime[], skipTime: nu
 
     // 配置倍速低于用户当前倍速时不降速（“快进”不应变慢）
     const configuredRate = parseSpeedUpRate();
+    // 链式启动时 video.playbackRate 是上一段的快进倍速，须以会话记录的原速为基准，
+    // 否则叠加规则会翻倍，且结束后把用户原速抬高
     const currentRate = typeof forcedOriginalRate === "number" && isFinite(forcedOriginalRate) && forcedOriginalRate > 0
         ? forcedOriginalRate
-        : video.playbackRate;
-    const rate = clampSpeedUpRate(Math.max(configuredRate, currentRate));
+        : session?.originalRate ?? video.playbackRate;
+    const rate = computeSpeedUpRate(configuredRate, currentRate);
 
     // If already active for same primary UUID, just update end if needed
     if (session && session.segments[0]?.UUID === primary.UUID) {
@@ -548,7 +562,8 @@ export function registerSpeedUpManager(): void {
         if (c["disableSkipping"] !== undefined && Config.config.disableSkipping) return void cancelSpeedUp(true, false);
         // 倍速配置改动：就地更新会话速率，不必重启快进
         if (c["speedUpPlaybackRate"] === undefined) return;
-        const newRate = parseSpeedUpRate();
+        // 就地更新会话速率，不必重启快进；叠加规则以会话记录的原始倍速为基准
+        const newRate = computeSpeedUpRate(parseSpeedUpRate(), active.originalRate);
         if (Math.abs(newRate - active.rate) <= 0.05) return;
         active.rate = newRate;
         setProgrammaticRate(active.video, newRate);
