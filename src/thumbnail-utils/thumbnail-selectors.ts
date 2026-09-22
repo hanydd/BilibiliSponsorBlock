@@ -89,7 +89,7 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
     },
     "dynamic": {
         // 动态首页页面
-        containerSelector: "section:has(.bili-dyn-list)",
+        containerSelector: ".bili-dyn-list",
         thumbnailSelector: ".bili-dyn-content",
     },
     "channelDynamic": {

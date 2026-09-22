@@ -19,6 +19,28 @@ const contentScriptRegistrations = {};
 setupBackgroundRequestProxy();
 setupTabUpdates(Config);
 
+if (chrome.runtime.getManifest().manifest_version === 3) {
+    // Dynamic MAIN-world injection supports Chromium 102+, unlike the static manifest entry (111+).
+    void (async () => {
+        const script: chrome.scripting.RegisteredContentScript = {
+            id: "bsb-document-main",
+            js: ["js/document.js"],
+            matches: ["https://*.bilibili.com/*"],
+            excludeMatches: ["https://live.bilibili.com/*"],
+            allFrames: true,
+            runAt: "document_start",
+            world: "MAIN",
+            persistAcrossSessions: true,
+        };
+        const existing = await chrome.scripting.getRegisteredContentScripts({ ids: [script.id] });
+        if (existing.length) {
+            await chrome.scripting.updateContentScripts([script]);
+        } else {
+            await chrome.scripting.registerContentScripts([script]);
+        }
+    })().catch((error) => console.error("[BSB] Failed to register page script", error));
+}
+
 chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     switch (request.message) {
         case "openConfig":

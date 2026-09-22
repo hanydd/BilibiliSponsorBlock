@@ -208,6 +208,38 @@ test("labels every supported native thumbnail container", async ({ extensionCont
     }
 });
 
+test("labels dynamic cards after insertion and list replacement", async ({ extensionContext, extensionPage }) => {
+    await routeMockVideoLabels(extensionContext, [
+        { videoID: bvids.dynamic, category: "sponsor" },
+        { videoID: bvids.channelDynamic, category: "selfpromo" },
+    ]);
+    await extensionPage.route("https://t.bilibili.com/", (route) => route.fulfill({
+        contentType: "text/html",
+        body: mockPage(`<section><div class="bili-dyn-list"><div class="bili-dyn-list__items"></div>${
+            defaultCard("bili-dyn-content", bvids.dynamic)
+        }</div></section>`),
+    }));
+    await extensionPage.goto("https://t.bilibili.com/");
+    const label = (bvid: string) => extensionPage.locator(
+        `[data-bsb-bvid="${bvid}"] .sponsorThumbnailLabelVisible`
+    );
+    await expect(label(bvids.dynamic)).toHaveCount(1);
+
+    await extensionPage.locator(".bili-dyn-list").evaluate((list, card) => {
+        list.insertAdjacentHTML("beforeend", card);
+    }, defaultCard("bili-dyn-content", bvids.channelDynamic));
+    await expect(label(bvids.channelDynamic)).toHaveCount(1);
+
+    await extensionPage.locator(".bili-dyn-list").evaluate((list, cards) => {
+        const replacement = document.createElement("div");
+        replacement.className = "bili-dyn-list";
+        replacement.innerHTML = `<div class="bili-dyn-list__items"></div>${cards}`;
+        list.replaceWith(replacement);
+    }, defaultCard("bili-dyn-content", bvids.dynamic) + defaultCard("bili-dyn-content", bvids.channelDynamic));
+    await expect(label(bvids.dynamic)).toHaveCount(1);
+    await expect(label(bvids.channelDynamic)).toHaveCount(1);
+});
+
 test("labels every supported Bewly shadow-root container", async ({ extensionContext, extensionPage }) => {
     const allBvids = bewlyScenarios.flatMap(({ expectedBvids }) => expectedBvids);
     await routeMockVideoLabels(

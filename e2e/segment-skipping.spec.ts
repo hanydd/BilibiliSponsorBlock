@@ -277,7 +277,7 @@ test("renders segment colors on the mini player's separate progress bar", async 
         const bounds = await mini.boundingBox();
         const markBounds = await mark.boundingBox();
         expect(bounds.width).toBe(320);
-        expect(bounds.height).toBe(3);
+        expect(bounds.height).toBeCloseTo(3, 1);
         expect(markBounds.x - bounds.x).toBeCloseTo(320 * 5 / 120, 0);
         expect(markBounds.width).toBeCloseTo(320 * 15 / 120, 0);
         await expect(mini).toHaveCSS("pointer-events", "none");

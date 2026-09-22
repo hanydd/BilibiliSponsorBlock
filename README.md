@@ -37,6 +37,8 @@
 
 # 安装
 
+- Chrome、Edge 及其他 Chromium 浏览器需要 102 或更新的内核版本。
+
 - 目前上架了[Chrome 应用商店](https://chromewebstore.google.com/detail/eaoelafamejbnggahofapllmfhlhajdd)，[火狐应用商店](https://addons.mozilla.org/en-US/firefox/addon/bilisponsorblock/)。如果你知道更多流行的浏览器插件商店，欢迎留言~
 
 - 如果你无法打开上面的商店，可以尝试从 [GitHub Release](https://github.com/hanydd/BilibiliSponsorBlock/releases/latest) 页面获取未打包的插件。
