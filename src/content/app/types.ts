@@ -115,7 +115,8 @@ export interface ContentEventMap {
         unskipTime?: number | null;
         startReskip: boolean;
     };
-    [CONTENT_EVENTS.SKIP_BUTTON_STATE_CHANGED]: { enabled: boolean; segment: SponsorTime | null };
+    [CONTENT_EVENTS.SKIP_BUTTON_STATE_CHANGED]: { enabled: boolean; segment: SponsorTime | null; duration?: number };
+    [CONTENT_EVENTS.SPEEDUP_STATE_CHANGED]: { active: boolean; pausedContext: boolean };
     [CONTENT_EVENTS.PLAYER_TIME_UPDATED]: { time: number };
     [CONTENT_EVENTS.PLAYER_VIDEO_READY]: { video: HTMLVideoElement };
     [CONTENT_EVENTS.PLAYER_DURATION_CHANGED]: { video: HTMLVideoElement };
@@ -183,7 +184,8 @@ export interface ContentCommandMap {
     "skip/cancelSchedule": ContentCommandDefinition<void, void>;
     "skip/getVirtualTime": ContentCommandDefinition<void, number>;
     "skip/getLastKnownVideoTime": ContentCommandDefinition<void, LastKnownVideoTimeState>;
-    "skip/getSponsorSkipped": ContentCommandDefinition<void, boolean[]>;
+    "skip/markRangeExecuted": ContentCommandDefinition<{ start: number; end: number }, void>;
+    "skip/recordSkipped": ContentCommandDefinition<{ segments: SponsorTime[]; rate: number }, void>;
     "skip/isSegmentMarkedNearCurrentTime": ContentCommandDefinition<{ currentTime: number; range?: number }, boolean>;
     "ui/createPreviewBar": ContentCommandDefinition<void, void>;
     "ui/updatePreviewBar": ContentCommandDefinition<void, void>;

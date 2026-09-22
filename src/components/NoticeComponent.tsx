@@ -480,6 +480,10 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
     componentWillUnmount(): void {
         if (this.countdownInterval !== null) clearInterval(this.countdownInterval);
         document.removeEventListener("mousemove", this.handleMouseMoveBinded);
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
     }
 
     // For dragging around notice

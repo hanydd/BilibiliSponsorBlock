@@ -45,6 +45,7 @@ import { CONTENT_EVENTS } from "./app/events";
 import { seekFrameByKeyPressListener } from "./hotkeyHandler";
 import { waitForPlayerUiReady } from "./playerUi";
 import { getSkipNoticeContentContainer } from "./skipNoticeContentContainer";
+import { isSponsorCounted, unmarkSponsorCounted } from "./skipScheduler";
 import { contentState, syncContentStateStore } from "./state";
 
 const utils = new Utils();
@@ -809,13 +810,13 @@ export async function voteAsync(type: number, UUID: SegmentUUID, category?: Cate
     if (sponsorIndex == -1 || contentState.sponsorTimes[sponsorIndex].source !== SponsorSourceType.Server)
         return Promise.resolve(undefined);
 
-    const sponsorSkipped = getContentApp().commands.execute("skip/getSponsorSkipped", undefined) as boolean[];
-    if ((type === 0 && sponsorSkipped[sponsorIndex]) || (type === 1 && !sponsorSkipped[sponsorIndex])) {
+    const counted = isSponsorCounted(UUID);
+    if ((type === 0 && counted) || (type === 1 && !counted)) {
         let factor = 1;
         if (type == 0) {
             factor = -1;
 
-            sponsorSkipped[sponsorIndex] = false;
+            unmarkSponsorCounted(UUID);
         }
 
         Config.config.minutesSaved =

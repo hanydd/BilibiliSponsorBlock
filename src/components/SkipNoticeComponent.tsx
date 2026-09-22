@@ -18,6 +18,8 @@ import { downvoteButtonColor, SkipNoticeAction } from "../utils/noticeUtils";
 import { generateUserID } from "../utils/setup";
 import { getCid, getVideo } from "../utils/video";
 import { cancelSpeedUp, clearManuallyCancelled, getActiveSpeedUpInfo, startSpeedUp } from "../content/speedUpManager";
+import { getContentApp } from "../content/app";
+import { CONTENT_EVENTS } from "../content/app/events";
 
 enum SkipButtonState {
     Undo, // Unskip
@@ -201,11 +203,14 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         // If it started out as smaller, always keep the
         // skip button there
         const showFirstSkipButton = this.isSmallNotice() || this.segments[0].actionType === ActionType.Mute;
+        const showSpeedUpControl = this.isSpeedUpForCurrentSegment() || this.state.speedUpPaused;
         const firstColumn = showFirstSkipButton ? (
             <>
                 {this.getSkipButton(0)}
-                {this.isSpeedUpForCurrentSegment() || this.state.speedUpPaused ? this.getSpeedUpControlButton() : null}
+                {showFirstSkipButton && showSpeedUpControl ? this.getSpeedUpControlButton() : null}
             </>
+        ) : showSpeedUpControl ? (
+            <>{this.getSpeedUpControlButton()}</>
         ) : null;
 
         return (
@@ -271,12 +276,26 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         if (this.props.componentDidMount) {
             this.props.componentDidMount();
         }
+
+        // 快进状态变化（外部取消/恢复/结束）时刷新按钮显隐，避免“恢复快进”按钮永久滞留
+        getContentApp().bus.on(CONTENT_EVENTS.SPEEDUP_STATE_CHANGED, this.onSpeedUpStateChanged);
     }
 
     componentWillUnmount(): void {
         this.playerResizeObserver?.disconnect();
         this.clearConfigListener();
+        getContentApp().bus.off(CONTENT_EVENTS.SPEEDUP_STATE_CHANGED, this.onSpeedUpStateChanged);
     }
+
+    onSpeedUpStateChanged = (): void => {
+        if (this.state.speedUpPaused && !this.isSpeedUpForCurrentSegment() && !getActiveSpeedUpInfo()) {
+            // 快进已被外部路径取消（非用户暂停流程），退出“已暂停”显示
+            this.setState({ speedUpPaused: false });
+            return;
+        }
+        // 触发重渲染以重新计算 isSpeedUpForCurrentSegment()（该读取非响应式）
+        this.forceUpdate();
+    };
 
     getBottomRow(): JSX.Element[] {
         return [
@@ -531,20 +550,24 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         void cancelSpeedUp(true, true);
         this.setState({ speedUpPaused: true });
         // 暂停 notice 倒计时，避免 notice 自动关闭
-        this.noticeRef.current.pauseCountdown();
+        this.noticeRef.current?.pauseCountdown();
     }
 
-    /** 恢复快进：重新以快进倍速播放*/
-    resumeSpeedUp(): void {
+    /** 恢复快进：重新以快进倍速播放 */
+    async resumeSpeedUp(): Promise<void> {
         // 清除手动取消标记，允许同一片段重新快进
         for (const seg of this.segments) {
             clearManuallyCancelled(seg);
         }
         const skipTime = [this.segments[0].segment[0], this.segments[this.segments.length - 1].segment[1]];
-        void startSpeedUp(this.segments, skipTime as [number, number]);
+        const resumed = await startSpeedUp(this.segments, skipTime as [number, number]);
+        if (!resumed) {
+            // 启动被拒绝（冷却期/近结尾等）：保持“恢复快进”按钮，不假恢复、不重启倒计时
+            return;
+        }
         this.setState({ speedUpPaused: false });
         // 恢复 notice 倒计时
-        this.noticeRef.current.startCountdown();
+        this.noticeRef.current?.startCountdown();
     }
 
     getSubmissionChooser(): JSX.Element[] {

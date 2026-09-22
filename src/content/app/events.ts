@@ -13,6 +13,7 @@ export const CONTENT_EVENTS = {
     SKIP_EXECUTED: "skip/executed",
     SKIP_NOTICE_REQUESTED: "skip/noticeRequested",
     SKIP_BUTTON_STATE_CHANGED: "skip/buttonStateChanged",
+    SPEEDUP_STATE_CHANGED: "speedup/stateChanged",
     PLAYER_TIME_UPDATED: "player/timeUpdated",
     PLAYER_VIDEO_READY: "player/videoReady",
     PLAYER_DURATION_CHANGED: "player/durationChanged",
