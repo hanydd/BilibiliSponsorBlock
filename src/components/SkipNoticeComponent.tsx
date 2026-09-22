@@ -14,7 +14,7 @@ import PencilSvg from "../svg-icons/pencil_svg";
 import ThumbsDownSvg from "../svg-icons/thumbs_down_svg";
 import ThumbsUpSvg from "../svg-icons/thumbs_up_svg";
 import { getFormattedTime } from "../utils/formating";
-import { downvoteButtonColor, SkipNoticeAction } from "../utils/noticeUtils";
+import { downvoteButtonColor, noticeSegmentsIntersect, SkipNoticeAction } from "../utils/noticeUtils";
 import { generateUserID } from "../utils/setup";
 import { getCid, getVideo } from "../utils/video";
 import { cancelSpeedUp, clearManuallyCancelled, getActiveSpeedUpInfo, startSpeedUp } from "../content/speedUpManager";
@@ -526,7 +526,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     /** 当前 notice 的片段是否正处于倍速快进中 */
     isSpeedUpForCurrentSegment(): boolean {
         const activeInfo = getActiveSpeedUpInfo();
-        return !!activeInfo && activeInfo.segments.some((s) => this.segments.some((seg) => seg.UUID === s.UUID));
+        return !!activeInfo && noticeSegmentsIntersect(activeInfo.segments, this.segments);
     }
 
     /** 顶行快进控制按钮*/

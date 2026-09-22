@@ -4,7 +4,7 @@ import { getVideo } from "../utils/video";
 import { logDebug } from "../utils/logger";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
-import { contentState } from "./state";
+import { contentState, skipBuffer } from "./state";
 
 /** 一次快进的上下文：活跃会话与暂停暂存共用（暂停恢复时倍速由 startSpeedUp 重算，故不含 rate）。 */
 interface SpeedUpContext {
@@ -125,7 +125,7 @@ export function isNearSpeedUpEnd(currentTime: number, endTime: number): boolean 
 
 /** 视频时间是否落在片段内（起点留 3ms 容差，抹平 seek 落点与提交数据的取整误差）。 */
 function isInsideSegment(segment: SponsorTime, time: number): boolean {
-    return segment.segment[0] - 0.003 <= time && time < segment.segment[1];
+    return segment.segment[0] - skipBuffer <= time && time < segment.segment[1];
 }
 
 export function shouldUseSpeedUp(segment: SponsorTime, ignoreManualCancel = false): boolean {
@@ -283,15 +283,9 @@ async function checkCompletion(): Promise<void> {
         }), "recordSkipped");
 
         // 关闭对应的手动快进 notice，避免显示时间与实际快进结束后仍残留对不上
-        try {
-            for (const notice of [...contentState.skipNotices]) {
-                if (notice.segments.some((s) => completedSegments.some((cs) => cs.UUID === s.UUID))) {
-                    notice.close();
-                }
-            }
-        } catch (error) {
-            logDebug("[SB SpeedUp] error: " + String(error));
-        }
+        safeCommand(() => getContentApp().commands.execute("skip/closeNoticesForSegments", {
+            segments: completedSegments,
+        }), "closeNoticesForSegments");
 
         // Emit completion events for UI (reuse skip executed semantics but as speedUp)
         safeCommand(() => getContentApp().bus.emit(CONTENT_EVENTS.SKIP_EXECUTED, {
@@ -515,7 +509,7 @@ export function registerSpeedUpManager(): void {
         pausedSession = null;
         const t = video.currentTime;
         // 落点判定用合并后的 end（而非各段自身终点）：恢复快进时区间可能已被扩展
-        const stillInside = saved.segments.some((s) => s.segment[0] - 0.003 <= t && t < saved.end);
+        const stillInside = saved.segments.some((s) => s.segment[0] - skipBuffer <= t && t < saved.end);
         if (!stillInside || video.paused) return;
         const primary = saved.segments[0];
         if (!shouldUseSpeedUp(primary)) return;

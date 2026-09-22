@@ -451,8 +451,9 @@ describe("倍速控制按钮渲染", () => {
             getFormattedTime: jest.fn((t: number) => String(t)),
         }));
         jest.doMock("../src/utils/noticeUtils", () => ({
+            __esModule: true,
+            ...jest.requireActual("../src/utils/noticeUtils"),
             downvoteButtonColor: jest.fn(() => "#000000"),
-            SkipNoticeAction: { None: 0, Upvote: 1, Downvote: 2, CopyDownvote: 3 },
         }));
         jest.doMock("../src/utils/setup", () => ({
             generateUserID: jest.fn(() => "test-user"),
@@ -611,5 +612,28 @@ describe("合并片段 notice 去重", () => {
         await emitNotice([segA]);
         await emitNotice([segB]);
         expect(createdNotices).toHaveLength(2);
+    });
+
+    test("closeNoticesForSegments 只关闭含对应 UUID 的 notice", async () => {
+        await setup();
+        const segA = makeSeg("uuid-close-a", 10, 20);
+        const segB = makeSeg("uuid-close-b", 40, 50);
+
+        await emitNotice([segA]);
+        await emitNotice([segB]);
+        expect(createdNotices).toHaveLength(2);
+
+        const { getContentApp } = await import("../src/content/app");
+        // 快进完成回调用：A 已完成，B 的 notice 应保留
+        await getContentApp().commands.execute("skip/closeNoticesForSegments", {
+            segments: [makeSeg("uuid-close-a", 10, 20)],
+        });
+        expect(createdNotices).toHaveLength(1);
+        expect(createdNotices[0].segments[0].UUID).toBe("uuid-close-b");
+
+        await getContentApp().commands.execute("skip/closeNoticesForSegments", {
+            segments: [makeSeg("uuid-close-b", 40, 50)],
+        });
+        expect(createdNotices).toHaveLength(0);
     });
 });

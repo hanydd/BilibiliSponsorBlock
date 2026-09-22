@@ -172,6 +172,7 @@ export interface ContentCommandMap {
         includeNonIntersectingSegments?: boolean;
     }, void>;
     "skip/closeNotices": ContentCommandDefinition<{ includeAdvance?: boolean }, void>;
+    "skip/closeNoticesForSegments": ContentCommandDefinition<{ segments: SponsorTime[] }, void>;
     "skip/dontShowNoticeAgain": ContentCommandDefinition<void, void>;
     "skip/checkStartSponsors": ContentCommandDefinition<void, void>;
     "skip/unskip": ContentCommandDefinition<{ segment: SponsorTime; unskipTime?: number; forceSeek?: boolean }, void>;
