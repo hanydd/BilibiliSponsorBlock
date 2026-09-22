@@ -2,8 +2,11 @@ module.exports = {
     "roots": [
         "test"
     ],
+    "setupFiles": [
+        "<rootDir>/test/setupPolyfills.js"
+    ],
     "transform": {
-        "^.+\\.ts$": "ts-jest"
+        "^.+\\.tsx?$": "ts-jest"
     },
     "reporters": ["default", "github-actions"]
 };
