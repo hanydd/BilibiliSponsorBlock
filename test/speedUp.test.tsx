@@ -73,7 +73,8 @@ describe("speedUp 核心行为与交互契约", () => {
         video.playbackRate = 2;
         video.currentTime = 40;
         const seg = makeSegment("uuid-stack-1", 40, 80);
-        const ok = await startSpeedUp([seg], [40, 80], 2);
+        // 不传 forced rate，覆盖 video.playbackRate 读取路径
+        const ok = await startSpeedUp([seg], [40, 80]);
         expect(ok).toBe(true);
         expect(video.playbackRate).toBe(4); // 2 + 2
         expect(getActiveSpeedUpInfo()?.rate).toBe(4);
@@ -94,7 +95,8 @@ describe("speedUp 核心行为与交互契约", () => {
         video.playbackRate = 1.9; // |1.9 - 2| = 0.1 > 0.05 容差
         video.currentTime = 40;
         const seg = makeSegment("uuid-stack-2", 40, 80);
-        const ok = await startSpeedUp([seg], [40, 80], 1.9);
+        // 不传 forced rate，覆盖 video.playbackRate 读取路径
+        const ok = await startSpeedUp([seg], [40, 80]);
         expect(ok).toBe(true);
         expect(video.playbackRate).toBe(2); // max(2, 1.9)
         expect(getActiveSpeedUpInfo()?.rate).toBe(2);
@@ -432,6 +434,34 @@ describe("skipToTime 委托", () => {
         expect(notices).toEqual([{ autoSkip: false }]);
         expect(executed).toEqual([{ autoSkip: true }]);
         expect(asyncRequestToServerMock).not.toHaveBeenCalled();
+    });
+
+    test("快进已激活时委托以会话原速为基准，而非实时快进倍速", async () => {
+        shouldUseSpeedUpMock.mockReturnValue(true);
+        jest.doMock("../src/content/speedUpManager", () => ({
+            cancelSpeedUp: jest.fn(),
+            getSpeedUpOriginalRate: jest.fn(() => 2),
+            isSpeedUpActive: jest.fn(() => true),
+            isNearSpeedUpEnd: jest.fn((current: number, end: number) => current >= end - 0.05),
+            shouldUseSpeedUp: shouldUseSpeedUpMock,
+            startSpeedUp: startSpeedUpMock,
+        }));
+        const { createContentApp } = await import("../src/content/app");
+        const { skipToTime } = await import("../src/content/skipScheduler");
+        createContentApp();
+
+        // 上一段叠加后的实时速率是 4，会话记录的原速是 2：委托须以原速为基准
+        video.playbackRate = 4;
+        const segment = makeSegment("uuid-2", 10, 20);
+        skipToTime({
+            v: video,
+            skipTime: [10, 20],
+            skippingSegments: [segment],
+            openNotice: true,
+        });
+
+        expect(startSpeedUpMock).toHaveBeenCalledWith([segment], [10, 20], 2);
+        expect(video.currentTime).toBe(5);
     });
 
     test("不满足倍速条件时回退瞬时跳过", async () => {

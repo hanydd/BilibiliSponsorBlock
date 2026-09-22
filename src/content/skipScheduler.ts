@@ -1222,7 +1222,9 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
             logDebug(`[SB] skipToTime delegating to SpeedUp ${skipTime[0]} -> ${skipTime[1]}`);
             let capturedOriginalRate: number | undefined;
             try {
-                capturedOriginalRate = v?.playbackRate;
+                // 快进已激活时 v.playbackRate 是快进倍速，须取会话记录的原速作基准，
+                // 否则链式委托会把快进倍速当原速传入，叠加翻倍且恢复倍速被抬高
+                capturedOriginalRate = isSpeedUpActive() ? getSpeedUpOriginalRate() : v?.playbackRate;
             } catch {
                 capturedOriginalRate = undefined;
             }
