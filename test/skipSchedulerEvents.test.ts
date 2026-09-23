@@ -1,4 +1,5 @@
 /** @jest-environment jsdom */
+import { ActionType, SponsorTime } from "../src/types";
 
 describe("skip scheduler player events", () => {
     let video: HTMLVideoElement;
@@ -42,7 +43,7 @@ describe("skip scheduler player events", () => {
             isPlayingPlaylist: jest.fn(() => false),
         }));
         jest.doMock("../src/utils/parseVideoID", () => ({
-            getBilibiliVideoID: jest.fn(),
+            getBilibiliVideoID: jest.fn(async () => "BV1test"),
         }));
         jest.doMock("../src/utils/urlParser", () => ({
             getStartTimeFromUrl: jest.fn(() => null),
@@ -138,5 +139,39 @@ describe("skip scheduler player events", () => {
             videoTime: null,
             preciseTime: null,
         });
+    });
+
+    test("seek into segment 意图在缓冲重启后不丢失", async () => {
+        const { createContentApp } = await import("../src/content/app");
+        const { CONTENT_EVENTS } = await import("../src/content/app/events");
+        const { contentState } = await import("../src/content/state");
+        const { registerSkipScheduler } = await import("../src/content/skipScheduler");
+        const app = createContentApp();
+        const notices: Array<{ autoSkip: boolean }> = [];
+
+        app.commands.register("ui/updateActiveSegment", () => undefined);
+        registerSkipScheduler();
+        app.bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, (payload) => notices.push({ autoSkip: payload.autoSkip }));
+
+        contentState.sponsorTimes = [{
+            segment: [5, 20],
+            UUID: "uuid-seek-in-segment",
+            category: "sponsor",
+            actionType: ActionType.Skip,
+            source: 0,
+        } as SponsorTime];
+        video.currentTime = 6;
+
+        // seek 进段内（登记 intersecting 意图）→ 缓冲打断调度 → PLAYING 重启（不带 intersecting）。
+        // 意图须被继承：否则代际机制作废 seek 调度后，段内跳过/notice 永远不会发生（e2e 回归）。
+        app.bus.emit(CONTENT_EVENTS.PLAYER_SEEKING, { video }, { source: "test" });
+        app.bus.emit(CONTENT_EVENTS.PLAYER_WAITING, { video }, { source: "test" });
+        app.bus.emit(CONTENT_EVENTS.PLAYER_PLAYING, { video }, { source: "test" });
+        for (let i = 0; i < 12; i++) {
+            await Promise.resolve();
+        }
+
+        expect(notices).toEqual([{ autoSkip: false }]);
+        expect(video.currentTime).toBe(6); // 手动跳过类别不 seek，仅弹 notice
     });
 });

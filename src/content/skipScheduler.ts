@@ -62,6 +62,10 @@ let executedSkipRanges: Array<{ start: number; end: number }> = [];
 // 旧调用恢复执行后若代际已过期，其闭包（含 skippingFunction 与迟到赋值的定时器）必须全部失效，
 // 否则两个活调度并存导致重复跳过/重复 notice。
 let scheduleGeneration = 0;
+// 段内 seek（intersecting）意图：代际机制让"最新调用获胜"，而缓冲后的 PLAYING 重启
+// 不带 intersecting 参数，会把 seek 触发的调度作废，段内跳过/notice 永远不会发生。
+// 因此记录未消费的 intersecting 意图，由获胜调用在扫描前继承（仅当自身未显式指定扫描参数）。
+let pendingIncludeIntersecting = false;
 
 export function getLastKnownVideoTime() { return lastKnownVideoTime; }
 export function resetSponsorSkipped() { countedSponsorUuids.clear(); executedSkipRanges = []; }
@@ -130,6 +134,7 @@ export function resetSchedulerState(): void {
     lastKnownVideoTime.fromPause = false;
     lastKnownVideoTime.approximateDelay = null;
     executedSkipRanges = [];
+    pendingIncludeIntersecting = false;
 }
 
 function getCategoryPill() {
@@ -385,6 +390,12 @@ export async function startSponsorSchedule(
     currentTime?: number,
     includeNonIntersectingSegments = true
 ): Promise<void> {
+    // 未显式指定扫描参数的调用（PLAYING 重启等）继承尚未消费的 seek 意图
+    if (includeIntersectingSegments) {
+        pendingIncludeIntersecting = true;
+    } else if (currentTime === undefined && pendingIncludeIntersecting) {
+        includeIntersectingSegments = true;
+    }
     cancelSponsorSchedule();
     const generation = ++scheduleGeneration;
     const stale = () => generation !== scheduleGeneration;
@@ -407,6 +418,8 @@ export async function startSponsorSchedule(
 
     if (video.paused || (video.currentTime >= video.duration - 0.01 && video.duration > 1)) return;
     const skipInfo = getNextSkipIndex(currentTime, includeIntersectingSegments, includeNonIntersectingSegments);
+    // intersecting 意图已由获胜调用（代际机制保证唯一）消费：无论命中与否都不再继承
+    pendingIncludeIntersecting = false;
 
     const currentSkip = skipInfo.array[skipInfo.index];
     const skipTime: number[] = [currentSkip?.scheduledTime, skipInfo.array[skipInfo.endIndex]?.segment[1]];
