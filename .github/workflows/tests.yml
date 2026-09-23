@@ -16,7 +16,6 @@ jobs:
         with:
           node-version: '20'
       - run: npm ci
-      - run: sudo apt-get install chromium-chromedriver
 
       - name: Copy configuration
         run: cp config.json.example config.json
@@ -24,7 +23,7 @@ jobs:
         run: npm run test
 
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps --no-shell chromium
       - name: Run Playwright integration tests
         run: npm run test:e2e
 
