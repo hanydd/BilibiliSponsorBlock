@@ -1,4 +1,7 @@
 {
+    "expandSkipNotices": {
+        "message": "展开堆叠的提示"
+    },
     "fullName": {
         "message": "小电视空降助手",
         "description": "Name of the extension."
