@@ -70,10 +70,12 @@ export interface SkipNoticeState {
 class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeState> {
     private playerResizeObserver?: ResizeObserver;
     private video?: HTMLVideoElement;
-    private expirePending = (): void => {
-        if (this.props.autoSkip || this.props.advanceSkipNotice || this.state.playback[0] !== SegmentPlaybackState.Pending) return;
+    private expirePending = (event: Event): void => {
+        if (this.props.autoSkip || this.isSpeedUpForCurrentSegment() || this.props.advanceSkipNotice || this.state.playback[0] !== SegmentPlaybackState.Pending) return;
         if (this.segments.every((segment) => segment.actionType === ActionType.Skip &&
-            (this.video.currentTime < segment.segment[0] || this.video.currentTime >= segment.segment[1]))) {
+            // The scheduler can hand off slightly before the native media time
+            // reaches this segment. Only an explicit seek cancels that lead-in.
+            ((event.type === "seeking" && this.video.currentTime < segment.segment[0]) || this.video.currentTime >= segment.segment[1]))) {
             this.closeListener();
         }
     };
@@ -153,7 +155,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 ref={this.noticeRef}
                 closeListener={() => this.closeListener()}
                 onInteractionChange={this.props.onInteractionChange}
-                playbackEnd={getSpeedUpNoticeEnd(this.segments)}
+                playbackEnd={this.props.autoSkip ? undefined : getSpeedUpNoticeEnd(this.segments)}
                 dismissalPaused={this.state.speedUpPaused}
                 upcomingStart={this.props.advanceSkipNotice ? this.segments[0].segment[0] : undefined}
                 smaller={this.isSmallNotice()}
@@ -454,7 +456,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     /** 当前 notice 的片段是否正处于倍速快进中 */
     isSpeedUpForCurrentSegment(): boolean {
         const activeInfo = getActiveSpeedUpInfo();
-        return !!activeInfo && noticeSegmentsIntersect(activeInfo.segments, this.segments);
+        return !this.props.autoSkip && !!activeInfo && noticeSegmentsIntersect(activeInfo.segments, this.segments);
     }
 
     /** 顶行快进控制按钮*/
@@ -542,6 +544,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             const mute = this.segments[0].actionType === ActionType.Mute;
             this.setState({
                 playback: initialPlayback(this.props.autoSkip, this.props.startReskip, this.segments[0].actionType),
+                speedUpPaused: false,
                 showSkipButton: [true, true],
                 maxCountdownTime: mute || !this.props.autoSkip ? this.getFullDurationCountdown(0) : () => Config.config.skipNoticeDuration,
                 voted: this.segments.map(segment => previous.voted[previousProps.segments.findIndex(old => old.UUID === segment.UUID)] ?? SkipNoticeAction.None),

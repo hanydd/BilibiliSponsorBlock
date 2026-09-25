@@ -46,7 +46,7 @@ describe("speedUp 核心行为与交互契约", () => {
         expect(isSpeedUpActive()).toBe(true);
         video.currentTime = 48;
         await jest.advanceTimersByTimeAsync(200);
-        expect(notices).toHaveLength(1);
+        expect(notices).toHaveLength(2);
         expect(config.config.skipCount).toBe(1);
         Object.defineProperty(video, "paused", { configurable: true, value: true });
         video.currentTime = 39;
@@ -55,10 +55,36 @@ describe("speedUp 核心行为与交互契约", () => {
         video.currentTime = 40;
         skipToTime({ v: video, skipTime: [40, 48], skippingSegments: [segment], openNotice: true });
         expect(isSpeedUpActive()).toBe(true);
-        expect(notices).toHaveLength(2);
+        expect(notices).toHaveLength(3);
         video.currentTime = 48;
         await jest.advanceTimersByTimeAsync(200);
         expect(config.config.skipCount).toBe(1);
+    });
+
+    test("连续快进在各段边界更新各自卡片，不中断倍速", async () => {
+        installCoreModuleMocks(video, { asyncRequestToServerMock });
+        const { app, contentState, CONTENT_EVENTS } = await setupFullContent();
+        const { startSpeedUp, resetSpeedUpState } = await import("../src/content/speedUpManager");
+        const segments = [makeSegment("first", 0, 8.133), makeSegment("second", 8.133, 20.566)];
+        contentState.sponsorTimes = segments;
+        const states: Array<[string, boolean]> = [];
+        app.bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, payload => {
+            states.push([payload.skippingSegments[0].UUID, payload.autoSkip]);
+        });
+        video.currentTime = 0.2;
+        await startSpeedUp(segments, [0, 20.566]);
+        expect(states).toEqual([["first", false]]);
+        video.currentTime = 8.133;
+        await jest.advanceTimersByTimeAsync(100);
+        expect(states).toEqual([["first", false], ["first", true], ["second", false]]);
+        expect(video.playbackRate).toBe(4);
+        await jest.advanceTimersByTimeAsync(500);
+        expect(states).toHaveLength(3);
+        video.currentTime = 20.566;
+        await jest.advanceTimersByTimeAsync(100);
+        expect(states[3]).toEqual(["second", true]);
+        expect(video.playbackRate).toBe(1);
+        resetSpeedUpState();
     });
 
     test("近尾不启动快进，不残留高倍速", async () => {
@@ -436,7 +462,7 @@ describe("skipToTime 委托", () => {
         }));
     });
 
-    test("委托倍速时不 seek，发手动样式 notice 与 executed", async () => {
+    test("委托倍速时不 seek，由快进管理器负责分段 notice", async () => {
         shouldUseSpeedUpMock.mockReturnValue(true);
         const { createContentApp } = await import("../src/content/app");
         const { CONTENT_EVENTS } = await import("../src/content/app/events");
@@ -460,9 +486,9 @@ describe("skipToTime 委托", () => {
             openNotice: true,
         });
 
-        expect(startSpeedUpMock).toHaveBeenCalledWith([segment], [10, 20], 1);
+        expect(startSpeedUpMock).toHaveBeenCalledWith([segment], [10, 20], 1, true);
         expect(video.currentTime).toBe(5);
-        expect(notices).toEqual([{ autoSkip: false }]);
+        expect(notices).toEqual([]);
         expect(executed).toEqual([{ autoSkip: true }]);
         expect(asyncRequestToServerMock).not.toHaveBeenCalled();
     });
@@ -491,7 +517,7 @@ describe("skipToTime 委托", () => {
             openNotice: true,
         });
 
-        expect(startSpeedUpMock).toHaveBeenCalledWith([segment], [10, 20], 2);
+        expect(startSpeedUpMock).toHaveBeenCalledWith([segment], [10, 20], 2, true);
         expect(video.currentTime).toBe(5);
     });
 
@@ -658,6 +684,7 @@ describe("合并片段 notice 去重", () => {
             __esModule: true,
             default: class {
                 segments;
+                props;
                 closed = false;
                 upcoming = false;
                 actionable = true;
@@ -674,6 +701,7 @@ describe("合并片段 notice 去重", () => {
                 });
                 constructor(update, _container, onClosed) {
                     this.segments = update.segments;
+                    this.props = update;
                     this.onClosed = onClosed;
                     createdNotices.push(this);
                 }
@@ -719,17 +747,32 @@ describe("合并片段 notice 去重", () => {
         }, { source: "test" });
     }
 
-    test("合并体 [A,B] 已弹后，子集 [B] 不再创建第二个 notice", async () => {
+    test("合并播放范围分别显示 A、B，再请求 B 不重复创建", async () => {
         await setup();
         const segA = makeSeg("uuid-merge-a", 10, 20);
         const segB = makeSeg("uuid-merge-b", 20.06, 30);
 
         await emitNotice([segA, segB]);
-        expect(createdNotices).toHaveLength(1);
+        expect(createdNotices).toHaveLength(2);
+        expect(createdNotices.map(notice => notice.segments.map(segment => segment.UUID))).toEqual([[segA.UUID], [segB.UUID]]);
 
         // 倍速穿过第二段起点时调度产生的子区间请求
         await emitNotice([segB]);
-        expect(createdNotices).toHaveLength(1);
+        expect(createdNotices).toHaveLength(2);
+    });
+
+    test("快进完成不会重新打开用户已关闭的卡片", async () => {
+        await setup();
+        const segment = makeSeg("dismissed", 10, 20);
+        await emitNotice([segment]);
+        createdNotices[0].close();
+        const { getContentApp } = await import("../src/content/app");
+        const { CONTENT_EVENTS } = await import("../src/content/app/events");
+        getContentApp().bus.emit(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, {
+            noticeKind: "skip", skippingSegments: [segment], autoSkip: true,
+            startReskip: false, updateOnly: true,
+        }, { source: "test.completion" });
+        expect(createdNotices).toHaveLength(0);
     });
 
     test("不同 UUID 的新请求正常创建，不受去重误伤", async () => {

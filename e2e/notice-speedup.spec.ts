@@ -54,7 +54,7 @@ for (const mode of [0, 2]) {
 test('replay restores the speed-up notice, preserves statistics deduplication and respects hidden notices', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
     await writeSyncStorage(extensionServiceWorker, {
         enableSpeedUp: true, speedUpPlaybackRate: 4, skipOnSeekToSegment: true,
-        advanceSkipNotice: false, skipNoticeDuration: 60, noticeVisibilityMode: 2, skipCount: 0,
+        advanceSkipNotice: false, skipNoticeDuration: 2, noticeVisibilityMode: 2, skipCount: 0,
     });
     await routeMockSponsorSegments(extensionContext, defaultMockBvid, [{
         segment: [5, 13], UUID: 'speedup-replay', category: 'sponsor', actionType: 'skip', cid: defaultMockCid, videoDuration: 120,
@@ -82,4 +82,40 @@ test('replay restores the speed-up notice, preserves statistics deduplication an
     await page.locator('video').evaluate((video: HTMLVideoElement) => video.play());
     await expect.poll(rate).toBe(4);
     await expect(card).toHaveCount(0);
+});
+
+test('adjacent speed-up cards hand off, retain hover countdown and allow immediate skipping', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await writeSyncStorage(extensionServiceWorker, {
+        enableSpeedUp: true, speedUpPlaybackRate: 4, skipNoticeDuration: 2,
+        noticeVisibilityMode: 2, advanceSkipNotice: false, skipOnSeekToSegment: true,
+    });
+    await routeMockSponsorSegments(extensionContext, defaultMockBvid, [
+        { segment: [2, 6], UUID: 'continuous-first', category: 'sponsor', actionType: 'skip', cid: defaultMockCid, videoDuration: 120 },
+        { segment: [6, 60], UUID: 'continuous-second', category: 'sponsor', actionType: 'skip', cid: defaultMockCid, videoDuration: 120 },
+    ]);
+    await routeMockBilibiliVideoPage(page, { currentTime: 0, paused: true });
+    await page.goto(`https://www.bilibili.com/video/${defaultMockBvid}/`);
+    await waitForBilibiliContentScript(page, sendContentMessage);
+    await expect.poll(async () => (await sendContentMessage<{ sponsorTimes?: unknown[] }>({ message: 'isInfoFound', updating: true })).sponsorTimes?.length).toBe(2);
+    await page.locator('video').evaluate((video: HTMLVideoElement) => video.play());
+    const first = page.locator('.sponsorSkipStackCard[id*="continuous-first"]');
+    const second = page.locator('.sponsorSkipStackCard[id*="continuous-second"]');
+    await expect(first).toHaveCount(1);
+    await expect(second).toHaveCount(0);
+    const original = await first.elementHandle();
+    await first.hover();
+    await expect(second).toHaveCount(1);
+    await expect(first.locator('[id^="sponsorSkipPauseSpeedUpButton"]')).toHaveCount(0);
+    await expect(second.locator('[id^="sponsorSkipPauseSpeedUpButton"]')).toBeVisible();
+    expect(await original.evaluate(element => element.isConnected)).toBe(true);
+    await page.waitForTimeout(2500);
+    await expect(first).toHaveCount(1);
+    await page.mouse.move(1200, 700);
+    await expect(first).toHaveCount(0, { timeout: 4000 });
+    await expect(second).toHaveCount(1);
+    await second.locator('[id^="sponsorSkipUnskipButton"]').first().click();
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(60);
+    await expect.poll(() => page.locator('video').evaluate((video: HTMLVideoElement) => video.playbackRate)).toBe(1);
+    await expect(second.locator('[id^="sponsorSkipPauseSpeedUpButton"]')).toHaveCount(0);
+    await expect(second).toHaveCount(1);
 });

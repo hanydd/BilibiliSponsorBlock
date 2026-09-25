@@ -5,7 +5,7 @@ import { routeMockSponsorSegments } from './support/sponsorBlockApi';
 import { waitForBilibiliContentScript } from './support/submissionNotice';
 
 for (const actionType of ['skip', 'mute'] as const) {
-    test(`preview upgrades in place with ${actionType === 'skip' ? 'merged members' : 'separate mute and seek actions'}`, async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    test(`preview upgrades in place with ${actionType === 'skip' ? 'separate cards for merged playback' : 'separate mute and seek actions'}`, async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
         const errors: string[] = [];
         page.on('pageerror', error => errors.push(error.message));
         page.on('console', message => {
@@ -26,18 +26,17 @@ for (const actionType of ['skip', 'mute'] as const) {
         const preview = page.locator('.sponsorSkipUpcomingNotice');
         await expect(preview).toHaveCount(1);
         const original = await preview.elementHandle();
-        const result = page.locator('.sponsorSkipStackCard:not(.sponsorSkipUpcomingNotice)');
-        await expect(result).toHaveCount(1);
+        const results = page.locator('.sponsorSkipStackCard:not(.sponsorSkipUpcomingNotice)');
+        await expect(results).toHaveCount(actionType === 'skip' ? 2 : 1);
+        const result = results.filter({ has: page.locator('[id*="action-0"]') });
         await pauseMockVideo(page);
-        expect(await original.evaluate(el => el === document.querySelector('.sponsorSkipStackCard'))).toBe(true);
+        expect(await original.evaluate(el => el.isConnected)).toBe(true);
         await result.locator('.sponsorSkipStackHeader').hover();
         const primary = result.locator('[id^="sponsorSkipUnskipButton"]').first();
         if (actionType === 'skip') {
             await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(20);
             await primary.click();
-            const choices = result.locator('[id^="sponsorTimesSubmissionOptionsContainer"] button');
-            await expect(choices).toHaveCount(2);
-            await choices.first().click();
+            await expect(result.locator('[id^="sponsorTimesSubmissionOptionsContainer"] button')).toHaveCount(0);
             await expect.poll(() => getMockVideoTime(page)).toBeCloseTo(5.001, 3);
         } else {
             await expect.poll(() => page.locator('video').evaluate((v: HTMLVideoElement) => v.muted)).toBe(true);
@@ -50,6 +49,10 @@ for (const actionType of ['skip', 'mute'] as const) {
         }
         await result.locator('.sponsorSkipNoticeCloseButton').click();
         await expect(result).toHaveCount(0);
+        if (actionType === 'skip') {
+            await results.locator('.sponsorSkipNoticeCloseButton').click();
+            await expect(results).toHaveCount(0);
+        }
         await expect(page.locator('.sponsorSkipNoticeRoot')).toHaveCount(0);
         // A fully removed list must support a new playback session in the same player.
         await setMockVideoTime(page, 0, true);

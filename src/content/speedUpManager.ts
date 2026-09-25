@@ -23,6 +23,8 @@ interface SpeedUpSession extends SpeedUpContext {
     checkInterval: ReturnType<typeof setInterval> | null;
     completionTimeout: ReturnType<typeof setTimeout> | null;
     timeUpdateHandler: (() => void) | null;
+    noticeStates: Map<string, boolean>;
+    showNotices: boolean;
 }
 
 let session: SpeedUpSession | null = null;
@@ -134,7 +136,7 @@ export function getActiveSpeedUpInfo(): { segments: SponsorTime[]; start: number
 export function getSpeedUpNoticeEnd(segments: SponsorTime[]): number | undefined {
     const context = session ?? pausedSession;
     return context && context.segments.some(member => segments.some(segment => segment.UUID === member.UUID))
-        ? context.end : undefined;
+        ? Math.max(...segments.map(segment => segment.segment[1])) : undefined;
 }
 
 /** 是否已进入“距结尾不足 epsilon”的近尾区：startSpeedUp 据此拒绝启动，skipToTime 据此回退瞬时跳过。 */
@@ -190,7 +192,10 @@ function scheduleCompletionCheck(): void {
         clearTimeout(active.completionTimeout);
         active.completionTimeout = null;
     }
-    const remainingVideoTime = active.end - COMPLETION_EPSILON - active.video.currentTime;
+    const nextBoundary = Math.min(active.end - COMPLETION_EPSILON, ...active.segments
+        .flatMap(segment => segment.segment)
+        .filter(time => time > active.video.currentTime));
+    const remainingVideoTime = nextBoundary - active.video.currentTime;
     // 最小 8ms：防 0ms 定时器链空转，同时把高倍速下越过结尾的过冲压到最低
     const delay = Math.max(8, (remainingVideoTime * 1000) / active.rate);
     active.completionTimeout = setTimeout(() => {
@@ -272,6 +277,21 @@ function scheduleMuteTimers(): void {
     }
 }
 
+/** Playback may merge ranges, but each segment owns its card and completion countdown. */
+function updateSegmentNotices(active: SpeedUpSession, completed = false): void {
+    if (!active.showNotices) return;
+    for (const segment of active.segments) {
+        if (!completed && active.video.currentTime < segment.segment[0]) continue;
+        const done = completed || active.video.currentTime >= segment.segment[1];
+        if (active.noticeStates.get(segment.UUID) === done) continue;
+        active.noticeStates.set(segment.UUID, done);
+        safeCommand(() => getContentApp().bus.emit(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, {
+            noticeKind: "skip", skippingSegments: [segment], autoSkip: done,
+            startReskip: false, updateOnly: done,
+        }, { source: "speedUpManager.segmentNotice" }), "segment notice");
+    }
+}
+
 async function checkCompletion(): Promise<void> {
     const active = session;
     if (!active) return;
@@ -285,6 +305,8 @@ async function checkCompletion(): Promise<void> {
     } else if (!isMuteWindowActive()) {
         clearSpeedUpMute(video);
     }
+
+    updateSegmentNotices(active, current >= active.end - COMPLETION_EPSILON);
 
     // Completed: reached or passed end
     if (current >= active.end - COMPLETION_EPSILON) {
@@ -300,11 +322,6 @@ async function checkCompletion(): Promise<void> {
             segments: completedSegments,
             rate: completedRate,
         }), "recordSkipped");
-
-        // 关闭对应的手动快进 notice，避免显示时间与实际快进结束后仍残留对不上
-        safeCommand(() => getContentApp().commands.execute("skip/closeNoticesForSegments", {
-            segments: completedSegments,
-        }), "closeNoticesForSegments");
 
         // Emit completion events for UI (reuse skip executed semantics but as speedUp)
         safeCommand(() => getContentApp().bus.emit(CONTENT_EVENTS.SKIP_EXECUTED, {
@@ -374,7 +391,7 @@ function notifySpeedUpStateChange(): void {
     }, { source: "speedUpManager" }), "emit SPEEDUP_STATE_CHANGED");
 }
 
-export async function startSpeedUp(skippingSegments: SponsorTime[], skipTime: number[], forcedOriginalRate?: number): Promise<boolean> {
+export async function startSpeedUp(skippingSegments: SponsorTime[], skipTime: number[], forcedOriginalRate?: number, showNotices = true): Promise<boolean> {
     if (!skippingSegments?.length || !skipTime?.length) return false;
     const primary = skippingSegments[0];
     if (!shouldUseSpeedUp(primary)) return false;
@@ -425,6 +442,8 @@ export async function startSpeedUp(skippingSegments: SponsorTime[], skipTime: nu
         checkInterval: null,
         completionTimeout: null,
         timeUpdateHandler: null,
+        noticeStates: new Map(),
+        showNotices,
     };
     const active = session;
 

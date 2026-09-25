@@ -966,7 +966,8 @@ function getStartTimes(
         (minimum === undefined ||
             (includeNonIntersectingSegments && segment.scheduledTime >= minimum) ||
             (includeIntersectingSegments &&
-                segment.scheduledTime < minimum &&
+                // A skip can land exactly on the next segment's inclusive start.
+                segment.scheduledTime <= minimum &&
                 segment.segment[1] > minimum &&
                 shouldSkip(segment))) &&
         (!hideHiddenSponsors || segment.hidden === SponsorHideType.Visible) &&
@@ -1242,7 +1243,7 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
 
     const isSubmittingSegment = contentState.sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment);
 
-    // SpeedUp handling: delegate to speedUpManager and reuse existing manual skip notice path
+    // Speed-up owns per-segment card transitions while playback spans a merged range.
     const originalAutoSkip = autoSkip;
     let speedUpDelegated = false;
     if (autoSkip && !isSubmittingSegment && skippingSegments[0].actionType === ActionType.Skip && shouldUseSpeedUp(skippingSegments[0])) {
@@ -1257,8 +1258,8 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
                 capturedOriginalRate = undefined;
             }
 
-            void startSpeedUp(skippingSegments, skipTime as [number, number], capturedOriginalRate);
-            // 复用下方已有的手动跳过 notice 逻辑（autoSkip=false 时的 createSkipNotice 去重路径），避免在此手动 emit 造成重复创建
+            void startSpeedUp(skippingSegments, skipTime as [number, number], capturedOriginalRate, openNotice);
+            // The manager emits each segment card at its own playback boundary.
             speedUpDelegated = true;
             autoSkip = false;
         } else {
@@ -1323,7 +1324,7 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
             const showNotice = speedUpDelegated
                 ? !Config.config.dontShowNotice
                 : (!Config.config.dontShowNotice || !originalAutoSkip);
-            if (showNotice) {
+            if (showNotice && !speedUpDelegated) {
                 emitSkipNoticeRequested(
                     "skip",
                     skippingSegments,

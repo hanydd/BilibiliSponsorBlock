@@ -5,9 +5,9 @@ import { SponsorTime } from "../types";
 import { waitFor } from "../utils/";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
-import { contentState, executedRangeEndTolerance, executedRangeStartTolerance } from "./state";
+import { contentState } from "./state";
 import { getSkipNoticeContentContainer } from "./skipNoticeContentContainer";
-import { noticeSegmentsContain, noticeSegmentsIntersect } from "../utils/noticeUtils";
+import { noticeSegmentsIntersect } from "../utils/noticeUtils";
 
 function getSkipButtonControlBar() {
     return getContentApp().ui.getState().skipButtonControlBar;
@@ -54,15 +54,17 @@ function dontShowNoticeAgain(): void {
 }
 
 function showNotice(skippingSegments: SponsorTime[], autoSkip: boolean, unskipTime: number,
-    startReskip: boolean, upcoming: boolean): void {
+    startReskip: boolean, upcoming: boolean, updateOnly = false): void {
+    if (skippingSegments.length > 1) {
+        for (const segment of [...skippingSegments].sort((a, b) => a.segment[0] - b.segment[0])) {
+            showNotice([segment], autoSkip, unskipTime, startReskip, upcoming, updateOnly);
+        }
+        return;
+    }
     const existing = contentState.skipNotices.find(notice => !notice.closed && notice.isCurrentVideo() &&
         (notice.sameNotice(skippingSegments) || (!upcoming && notice.upcoming && notice.contains(skippingSegments))));
-    if (existing && existing.upcoming === upcoming) return;
-    // A later subset of an already visible merged result is the same notice.
-    if (!upcoming && contentState.skipNotices.some(notice => !notice.closed && !notice.upcoming && notice.isCurrentVideo() &&
-        noticeSegmentsContain(notice.segments, skippingSegments) &&
-        Math.min(...skippingSegments.map(segment => segment.segment[0])) >= Math.min(...notice.segments.map(segment => segment.segment[0])) - executedRangeStartTolerance &&
-        Math.max(...skippingSegments.map(segment => segment.segment[1])) <= Math.max(...notice.segments.map(segment => segment.segment[1])) + executedRangeEndTolerance)) return;
+    if (updateOnly && !existing) return;
+    if (existing && existing.upcoming === upcoming && existing.props.autoSkip === autoSkip) return;
     const update = { segments: skippingSegments, autoSkip, unskipTime, startReskip, upcoming };
     if (existing) {
         existing.update(update);
@@ -128,7 +130,7 @@ export function registerSkipUIManager(): void {
     app.commands.register("skip/closeNoticesForSegments", ({ segments }) => closeSkipNoticesForSegments(segments));
     app.commands.register("skip/dontShowNoticeAgain", () => dontShowNoticeAgain());
 
-    app.bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, ({ noticeKind, skippingSegments, autoSkip, unskipTime, startReskip }) => {
+    app.bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, ({ noticeKind, skippingSegments, autoSkip, unskipTime, startReskip, updateOnly }) => {
         if (Config.config.dontShowNotice) return;
         if (noticeKind === "advance") {
             if (!Config.config.advanceSkipNotice || Config.config.skipNoticeDurationBefore <= 0) return;
@@ -136,7 +138,7 @@ export function registerSkipUIManager(): void {
             return;
         }
 
-        showNotice(skippingSegments, autoSkip, unskipTime, startReskip, false);
+        showNotice(skippingSegments, autoSkip, unskipTime, startReskip, false, updateOnly);
     });
 
     app.bus.on(CONTENT_EVENTS.CONFIG_CHANGED, ({ changes }) => {

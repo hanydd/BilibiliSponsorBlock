@@ -108,6 +108,8 @@ export interface ContentEventMap {
     };
     [CONTENT_EVENTS.SKIP_NOTICE_REQUESTED]: {
         noticeKind: "skip" | "advance";
+        /** Completion must not recreate a card the user already dismissed. */
+        updateOnly?: boolean;
         skippingSegments: SponsorTime[];
         autoSkip: boolean;
         unskipTime?: number | null;
