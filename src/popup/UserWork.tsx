@@ -6,6 +6,7 @@ import Config from "../config";
 import { getUserInfo, setUsername } from "../requests/user";
 import { getErrorMessage, getFormattedHours } from "../utils/formating";
 import { getHash } from "../utils/hash";
+import { assetUrl } from "./assetUrl";
 
 interface UserWorkProps {
     messageApi: MessageInstance;
@@ -113,7 +114,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                                     />
                                     <button id="submitUsername" onClick={this.submitUsername.bind(this)}>
                                         <img
-                                            src="/icons/check.svg"
+                                            src={assetUrl("/icons/check.svg")}
                                             alt={chrome.i18n.getMessage("setUsername")}
                                             width="16"
                                             height="16"
@@ -131,7 +132,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                                         onClick={this.editUsername.bind(this)}
                                     >
                                         <img
-                                            src="/icons/pencil.svg"
+                                            src={assetUrl("/icons/pencil.svg")}
                                             alt={chrome.i18n.getMessage("setUsername")}
                                             width="16"
                                             height="16"
@@ -145,7 +146,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                                         }
                                     >
                                         <img
-                                            src="/icons/clipboard.svg"
+                                            src={assetUrl("/icons/clipboard.svg")}
                                             alt={chrome.i18n.getMessage("copyPublicID")}
                                             width="16"
                                             height="16"

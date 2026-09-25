@@ -1,3 +1,4 @@
+import { StyleProvider } from "@ant-design/cssinjs";
 import { ConfigProvider, message, theme } from "antd";
 import * as React from "react";
 import Config from "../config";
@@ -5,15 +6,23 @@ import { StorageChangesObject } from "../config/config";
 import { IsChannelWhitelistedResponse, IsInfoFoundMessageResponse, Message, PageLogsResponse, PopupMessage } from "../messageTypes";
 import { NewVideoID, PortVideo, SponsorTime } from "../types";
 import { waitFor } from "../utils/index";
+import { assetUrl } from "./assetUrl";
 import ControlMenu from "./ControlMenu";
 import PopupFooter from "./PopupFooter";
-import { MessageHandler } from "./PopupMessageHandler";
+import { MessageHandler, MessageListener } from "./PopupMessageHandler";
 import { PortVideoSection } from "./PortVideoSection";
 import SubmitBox from "./SubmitBox";
 import UserWork from "./UserWork";
 import VideoInfo from "./VideoInfo/VideoInfo";
 
-function app() {
+interface PopupAppProps {
+    embedded?: boolean;
+    messageListener?: MessageListener;
+    styleContainer?: Element | ShadowRoot;
+    keyboardEventTarget?: EventTarget;
+}
+
+function app({ embedded, messageListener, styleContainer, keyboardEventTarget }: PopupAppProps = {}) {
     const videoInfoRef = React.createRef<VideoInfo>();
     const controlMenuRef = React.createRef<ControlMenu>();
     const portVideoRef = React.createRef<PortVideoSection>();
@@ -21,14 +30,19 @@ function app() {
 
     const [messageApi, messageContextHolder] = message.useMessage();
 
-    const isEmbed = window !== window.top;
+    const isEmbed = embedded ?? window !== window.top;
 
-    const messageHandler = new MessageHandler();
-    let port: chrome.runtime.Port = null;
+    const messageHandler = new MessageHandler(messageListener);
+    const portRef = React.useRef<chrome.runtime.Port>(null);
+    const reconnectPortRef = React.useRef(true);
 
-    // Forward click events
-    if (isEmbed) {
-        document.addEventListener("keydown", (e) => {
+    React.useEffect(() => {
+        if (!isEmbed) {
+            return () => undefined;
+        }
+
+        const target = keyboardEventTarget ?? document;
+        const keydownListener = (e: KeyboardEvent) => {
             const target = e.target as HTMLElement;
             if (
                 target.tagName === "INPUT" ||
@@ -55,16 +69,32 @@ function app() {
                 altKey: e.altKey,
                 metaKey: e.metaKey,
             });
-        });
-    }
+        };
 
-    getSegmentsFromContentScript(false);
+        target.addEventListener("keydown", keydownListener as EventListener);
+        return () => target.removeEventListener("keydown", keydownListener as EventListener);
+    }, [isEmbed, keyboardEventTarget]);
 
-    if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
-        Config.configSyncListeners.push(contentConfigUpdateListener);
-    }
+    React.useEffect(() => {
+        getSegmentsFromContentScript(false);
 
-    setupComPort();
+        if (!Config.configSyncListeners.includes(contentConfigUpdateListener)) {
+            Config.configSyncListeners.push(contentConfigUpdateListener);
+        }
+
+        setupComPort();
+
+        return () => {
+            reconnectPortRef.current = false;
+            portRef.current?.disconnect();
+            portRef.current = null;
+
+            const listenerIndex = Config.configSyncListeners.indexOf(contentConfigUpdateListener);
+            if (listenerIndex !== -1) {
+                Config.configSyncListeners.splice(listenerIndex, 1);
+            }
+        };
+    }, []);
 
     // For loading video info from the page
     let loadRetryCount = 0;
@@ -234,8 +264,13 @@ function app() {
     }
 
     function setupComPort(): void {
-        port = chrome.runtime.connect({ name: "popup" });
-        port.onDisconnect.addListener(() => setupComPort());
+        const port = chrome.runtime.connect({ name: "popup" });
+        portRef.current = port;
+        port.onDisconnect.addListener(() => {
+            if (reconnectPortRef.current) {
+                setupComPort();
+            }
+        });
         port.onMessage.addListener((msg) => onMessage(msg));
     }
 
@@ -261,7 +296,7 @@ function app() {
         }
     }
 
-    return (
+    const popup = (
         <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
             {messageContextHolder}
             <div id="sponsorblockPopup" className="sponsorBlockPageBody sb-preload">
@@ -270,7 +305,7 @@ function app() {
                     className={"sbCloseButton" + (isEmbed ? "" : " hidden")}
                     onClick={() => sendTabMessage({ message: "closePopup" })}
                 >
-                    <img src="icons/close.png" width="15" height="15" alt="Close icon" />
+                    <img src={assetUrl("icons/close.png")} width="15" height="15" alt="Close icon" />
                 </button>
 
                 {Config.config.testingServer && (
@@ -286,7 +321,7 @@ function app() {
                 {!Config.config.cleanPopup && (
                     <header className={"sbPopupLogo"}>
                         <img
-                            src="icons/IconSponsorBlocker256px.png"
+                            src={assetUrl("icons/IconSponsorBlocker256px.png")}
                             alt="SponsorBlock"
                             width="40"
                             height="40"
@@ -336,6 +371,8 @@ function app() {
             </div>
         </ConfigProvider>
     );
+
+    return styleContainer ? <StyleProvider container={styleContainer}>{popup}</StyleProvider> : popup;
 }
 
 export default app;

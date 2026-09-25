@@ -6,6 +6,7 @@ import { ActionType, SegmentUUID, SponsorHideType, SponsorTime } from "../../typ
 import { shortCategoryName } from "../../utils/categoryUtils";
 import { getErrorMessage, getFormattedTime } from "../../utils/formating";
 import { MessageInstance } from "antd/es/message/interface";
+import { assetUrl } from "../assetUrl";
 
 interface PopupSegmentProps {
     segment: SponsorTime;
@@ -159,7 +160,7 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                         <img
                             className="voteButton"
                             title={chrome.i18n.getMessage("upvote")}
-                            src="/icons/thumbs_up.svg"
+                            src={assetUrl("/icons/thumbs_up.svg")}
                             onClick={() => this.vote.bind(this)(1, UUID)}
                         ></img>
 
@@ -167,14 +168,14 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                             className="voteButton"
                             title={chrome.i18n.getMessage("downvote")}
                             src={
-                                locked && Config.config.isVip ? "icons/thumbs_down_locked.svg" : "icons/thumbs_down.svg"
+                                assetUrl(locked && Config.config.isVip ? "icons/thumbs_down_locked.svg" : "icons/thumbs_down.svg")
                             }
                             onClick={() => this.vote.bind(this)(0, UUID)}
                         ></img>
 
                         <img
                             className="voteButton"
-                            src="/icons/clipboard.svg"
+                            src={assetUrl("/icons/clipboard.svg")}
                             title={chrome.i18n.getMessage("copySegmentID")}
                             onClick={this.copyUUID.bind(this)}
                         ></img>
@@ -185,8 +186,8 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                                 title={chrome.i18n.getMessage("hideSegment")}
                                 src={
                                     this.state.hidden === SponsorHideType.Hidden
-                                        ? "icons/not_visible.svg"
-                                        : "/icons/visible.svg"
+                                        ? assetUrl("icons/not_visible.svg")
+                                        : assetUrl("/icons/visible.svg")
                                 }
                                 onClick={() => {
                                     if (this.state.hidden === SponsorHideType.Hidden) {
@@ -208,7 +209,7 @@ class PopupSegment extends React.Component<PopupSegmentProps, PopupSegmentState>
                         {this.showSkipButton() && (
                             <img
                                 className="voteButton"
-                                src="/icons/skip.svg"
+                                src={assetUrl("/icons/skip.svg")}
                                 title={chrome.i18n.getMessage("skipSegment")}
                                 onClick={this.skipSegment.bind(this)}
                             ></img>

@@ -3,6 +3,7 @@ import { MessageInstance } from "antd/es/message/interface";
 import * as React from "react";
 import Config from "../config";
 import { GetChannelIDResponse, Message } from "../messageTypes";
+import { assetUrl } from "./assetUrl";
 
 interface ControlMenuProps {
     messageApi: MessageInstance;
@@ -166,7 +167,7 @@ class ControlMenu extends React.Component<ControlMenuProps, ControlMenuState> {
                         onClick={() => this.props.openOptionsAt("behavior")}
                     >
                         <img
-                            src="/icons/settings.svg"
+                            src={assetUrl("/icons/settings.svg")}
                             alt="Settings icon"
                             width="23"
                             height="23"
