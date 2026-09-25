@@ -36,9 +36,9 @@ interface SBConfig {
     submissionCountSinceCategories: number; // New count used to show the "Read The Guidelines!!" message
     showTimeWithSkips: boolean;
     disableSkipping: boolean;
-    enableClickableTimeDanmaku: boolean;
     enableDanmakuSkip: boolean;
     enableAutoSkipDanmakuSkip: boolean;
+    enableClickableTimeDanmaku: boolean;
     enableMenuDanmakuSkip: boolean;
     danmakuOffsetMatchingRegexPattern: string;
     checkTimeDanmakuSkip: boolean;
