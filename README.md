@@ -49,6 +49,29 @@
 
 ## macOS Safari 安装（源码构建）
 
+### GitHub Actions 测试应用
+
+仓库的 **Actions → Safari macOS** 工作流会在 push、PR 时构建，也支持手动运行。
+运行成功后，登录 GitHub，在该次运行的 Artifacts 中下载 `Safari-macOS-universal`，
+解压其中的 `Safari-macOS-universal.zip` 即可得到包含扩展的 `.app`，同时支持 Intel 和 Apple Silicon。
+
+这是采用 ad-hoc 签名、未经 Apple 公证的开发测试包，不是 App Store 安装包。
+macOS 可能阻止打开；仅在确认来源可信后按系统提示允许打开。
+测试时还需要在 Safari 开发设置中启用“允许未签名的扩展”，然后在“设置 → 扩展”中启用扩展并授予网站权限。
+Safari 重启后可能需要重新允许未签名扩展。请只启用一个同名扩展副本。
+CI 构建成功仅代表编译、签名完整性和双架构检查通过，不代表 Safari 功能测试通过。
+
+本机构建同样的测试包（需要完整 Xcode、Node.js 22 和已安装的 npm 依赖及 `config.json`）：
+
+```bash
+npm run build:safari:app
+```
+
+输出位于 `safari/artifacts/Safari-macOS-universal.zip`。
+正式面向普通用户分发仍需 Developer ID 签名及公证，或通过 App Store 发布。
+
+### 自行生成 Xcode 工程
+
 Safari 版本通过 Safari Web Extension 打包。项目已提供一键脚本：
 
 ```bash
