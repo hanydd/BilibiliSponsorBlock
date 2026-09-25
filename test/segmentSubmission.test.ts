@@ -196,7 +196,6 @@ describe("segment submission business events", () => {
             const { voteAsync } = await import("../src/content/segmentSubmission");
 
             const app = createContentApp();
-            app.commands.register("skip/getSponsorSkipped", () => [false]);
 
             const segmentUpdatedEvents = [];
             app.bus.on(CONTENT_EVENTS.SEGMENT_UPDATED, (payload) => {

@@ -14,9 +14,12 @@ import PencilSvg from "../svg-icons/pencil_svg";
 import ThumbsDownSvg from "../svg-icons/thumbs_down_svg";
 import ThumbsUpSvg from "../svg-icons/thumbs_up_svg";
 import { getFormattedTime } from "../utils/formating";
-import { downvoteButtonColor, SkipNoticeAction } from "../utils/noticeUtils";
+import { downvoteButtonColor, noticeSegmentsIntersect, SkipNoticeAction } from "../utils/noticeUtils";
 import { generateUserID } from "../utils/setup";
 import { getCid, getVideo } from "../utils/video";
+import { cancelSpeedUp, clearManuallyCancelled, getActiveSpeedUpInfo, startSpeedUp } from "../content/speedUpManager";
+import { getContentApp } from "../content/app";
+import { CONTENT_EVENTS } from "../content/app/events";
 
 enum SkipButtonState {
     Undo, // Unskip
@@ -72,6 +75,9 @@ export interface SkipNoticeState {
 
     voted?: SkipNoticeAction[];
     copied?: SkipNoticeAction[];
+
+    /** 当前 notice 的快进是否被用户暂停（暂停后按钮变为"恢复快进"） */
+    speedUpPaused?: boolean;
 }
 
 class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeState> {
@@ -181,6 +187,8 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             // Keep track of what segment the user interacted with.
             voted: new Array(this.props.segments.length).fill(SkipNoticeAction.None),
             copied: new Array(this.props.segments.length).fill(SkipNoticeAction.None),
+
+            speedUpPaused: false,
         };
 
         if (!this.autoSkip) {
@@ -195,7 +203,15 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         // If it started out as smaller, always keep the
         // skip button there
         const showFirstSkipButton = this.isSmallNotice() || this.segments[0].actionType === ActionType.Mute;
-        const firstColumn = showFirstSkipButton ? this.getSkipButton(0) : null;
+        const showSpeedUpControl = this.isSpeedUpForCurrentSegment() || this.state.speedUpPaused;
+        const firstColumn = showFirstSkipButton ? (
+            <>
+                {this.getSkipButton(0)}
+                {showFirstSkipButton && showSpeedUpControl ? this.getSpeedUpControlButton() : null}
+            </>
+        ) : showSpeedUpControl ? (
+            <>{this.getSpeedUpControlButton()}</>
+        ) : null;
 
         return (
             <NoticeComponent
@@ -260,12 +276,26 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         if (this.props.componentDidMount) {
             this.props.componentDidMount();
         }
+
+        // 快进状态变化（外部取消/恢复/结束）时刷新按钮显隐，避免“恢复快进”按钮永久滞留
+        getContentApp().bus.on(CONTENT_EVENTS.SPEEDUP_STATE_CHANGED, this.onSpeedUpStateChanged);
     }
 
     componentWillUnmount(): void {
         this.playerResizeObserver?.disconnect();
         this.clearConfigListener();
+        getContentApp().bus.off(CONTENT_EVENTS.SPEEDUP_STATE_CHANGED, this.onSpeedUpStateChanged);
     }
+
+    onSpeedUpStateChanged = (): void => {
+        if (this.state.speedUpPaused && !this.isSpeedUpForCurrentSegment() && !getActiveSpeedUpInfo()) {
+            // 快进已被外部路径取消（非用户暂停流程），退出“已暂停”显示
+            this.setState({ speedUpPaused: false });
+            return;
+        }
+        // 触发重渲染以重新计算 isSpeedUpForCurrentSegment()（该读取非响应式）
+        this.forceUpdate();
+    };
 
     getBottomRow(): JSX.Element[] {
         return [
@@ -491,6 +521,53 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             );
         }
         return null;
+    }
+
+    /** 当前 notice 的片段是否正处于倍速快进中 */
+    isSpeedUpForCurrentSegment(): boolean {
+        const activeInfo = getActiveSpeedUpInfo();
+        return !!activeInfo && noticeSegmentsIntersect(activeInfo.segments, this.segments);
+    }
+
+    /** 顶行快进控制按钮*/
+    getSpeedUpControlButton(): JSX.Element {
+        const isPaused = this.state.speedUpPaused;
+        return (
+            <span className="sponsorSkipNoticeUnskipSection" style={{ marginLeft: "4px" }}>
+                <button
+                    id={"sponsorSkipPauseSpeedUpButton" + this.idSuffix}
+                    className="sponsorSkipObject sponsorSkipNoticeButton"
+                    onClick={() => (isPaused ? this.resumeSpeedUp() : this.pauseSpeedUp())}
+                >
+                    {chrome.i18n.getMessage(isPaused ? "resumeSpeedUp" : "pauseSpeedUp")}
+                </button>
+            </span>
+        );
+    }
+
+    /** 暂停快进：恢复原始倍速*/
+    pauseSpeedUp(): void {
+        void cancelSpeedUp(true, true);
+        this.setState({ speedUpPaused: true });
+        // 暂停 notice 倒计时，避免 notice 自动关闭
+        this.noticeRef.current?.pauseCountdown();
+    }
+
+    /** 恢复快进：重新以快进倍速播放 */
+    async resumeSpeedUp(): Promise<void> {
+        // 清除手动取消标记，允许同一片段重新快进
+        for (const seg of this.segments) {
+            clearManuallyCancelled(seg);
+        }
+        const skipTime = [this.segments[0].segment[0], this.segments[this.segments.length - 1].segment[1]];
+        const resumed = await startSpeedUp(this.segments, skipTime as [number, number]);
+        if (!resumed) {
+            // 启动被拒绝（冷却期/近结尾等）：保持“恢复快进”按钮，不假恢复、不重启倒计时
+            return;
+        }
+        this.setState({ speedUpPaused: false });
+        // 恢复 notice 倒计时
+        this.noticeRef.current?.startCountdown();
     }
 
     getSubmissionChooser(): JSX.Element[] {
@@ -816,8 +893,18 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     getFullDurationCountdown(index: number): () => number {
         return () => {
             const sponsorTime = this.segments[index];
+            const video = getVideo();
+            if (!video) return Config.config.skipNoticeDuration;
+            // 如果该片段正处于倍速快进中，则按快进速率计算墙钟剩余时间，避免与实际快进时长对不上
+            const activeInfo = getActiveSpeedUpInfo();
+            const isSpeedUpForThisSegment = !!activeInfo && activeInfo.segments.some((s) => s.UUID === sponsorTime.UUID);
+            if (isSpeedUpForThisSegment) {
+                const wallClock = (sponsorTime.segment[1] - video.currentTime) / activeInfo.rate;
+                // 快进时不强制与 skipNoticeDuration 取 max，否则短片段会显示 4s 而实际仅 0.5s，对不上
+                return Math.max(1, Math.ceil(wallClock));
+            }
             const duration = Math.round(
-                (sponsorTime.segment[1] - getVideo().currentTime) * (1 / getVideo().playbackRate)
+                (sponsorTime.segment[1] - video.currentTime) * (1 / video.playbackRate)
             );
 
             return Math.max(duration, Config.config.skipNoticeDuration);

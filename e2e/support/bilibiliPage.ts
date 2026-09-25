@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 export type MockBilibiliPageOptions = {
     bvid?: string;
@@ -227,7 +227,15 @@ export async function routeMockBilibiliVideoPage(
 }
 
 export async function setMockVideoTime(page: Page, time: number, dispatchSeeking = false): Promise<void> {
-    await page.locator("#bilibili-player video").evaluate(
+    const video = page.locator("#bilibili-player video");
+    // 元数据未就绪时 currentTime 赋值会被浏览器存为默认播放起始位置而非触发 seek，
+    // 且随后 mock 的 initializeVideo 会把时间重置回配置值——seek 静默失效（CI 慢机偶发）。
+    // loadedmetadata 监听器与事件同任务同步执行：观察到 readyState≥1 时 initializeVideo
+    // （含 play()）必然已运行，此后 seek 真正生效。暂停状态的 seek 是部分用例的合法场景，不在此限制。
+    await expect
+        .poll(() => video.evaluate((element: HTMLVideoElement) => element.readyState >= 1))
+        .toBe(true);
+    await video.evaluate(
         (video: HTMLVideoElement, values: { time: number; dispatchSeeking: boolean }) => {
             video.currentTime = values.time;
             if (values.dispatchSeeking) {

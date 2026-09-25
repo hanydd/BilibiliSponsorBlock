@@ -17,6 +17,12 @@ import { ContentAppState } from "./app/types";
 export const skipBuffer = 0.003;
 export const endTimeSkipBuffer = 0.5;
 export const manualSkipPercentCount = 0.5;
+// 已执行区间去重的容差（skipScheduler 与 skipUIManager 共用）：
+// 起点前 0.1s、终点后 0.5s 内视为同一合并体，抑制重复 notice
+export const executedRangeStartTolerance = 0.1;
+export const executedRangeEndTolerance = 0.5;
+// executedSkipRanges 的最大保留条数（防止长视频重入场景无限增长）
+export const maxExecutedSkipRanges = 20;
 
 let sponsorDataFound = false;
 let sponsorTimes: SponsorTime[] = [];

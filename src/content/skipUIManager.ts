@@ -5,8 +5,9 @@ import { SponsorTime } from "../types";
 import { waitFor } from "../utils/";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
-import { contentState } from "./state";
+import { contentState, executedRangeEndTolerance, executedRangeStartTolerance } from "./state";
 import { getSkipNoticeContentContainer } from "./skipNoticeContentContainer";
+import { noticeSegmentsContain, noticeSegmentsIntersect } from "../utils/noticeUtils";
 
 function getSkipButtonControlBar() {
     return getContentApp().ui.getState().skipButtonControlBar;
@@ -47,6 +48,15 @@ function closeSkipNotices(includeAdvance = false): void {
     }
 }
 
+function closeSkipNoticesForSegments(segments: SponsorTime[]): void {
+    // close 会经回调从 skipNotices 中移除自身，故遍历副本
+    for (const notice of [...contentState.skipNotices]) {
+        if (noticeSegmentsIntersect(notice.segments, segments)) {
+            notice.close();
+        }
+    }
+}
+
 function dontShowNoticeAgain(): void {
     Config.config.dontShowNotice = true;
     closeSkipNotices(true);
@@ -64,6 +74,20 @@ function createSkipNotice(
             skippingSegments.every((segment) => skipNotice.segments.some((existingSegment) => existingSegment.UUID === segment.UUID))
         ) {
             return;
+        }
+        // 合并重复弹窗：已存在 notice 的 UUID 集合被新集合完全包含（如合并 [A,B] 已弹，再来单段 [B]），
+        // 且新集合落在已存在 notice 的时间范围内时，视为重复调度，直接丢弃。
+        if (
+            skippingSegments.length < skipNotice.segments.length &&
+            noticeSegmentsContain(skipNotice.segments, skippingSegments)
+        ) {
+            const existingStart = Math.min(...skipNotice.segments.map((s) => s.segment[0]));
+            const existingEnd = Math.max(...skipNotice.segments.map((s) => s.segment[1]));
+            const newStart = Math.min(...skippingSegments.map((s) => s.segment[0]));
+            const newEnd = Math.max(...skippingSegments.map((s) => s.segment[1]));
+            if (newStart >= existingStart - executedRangeStartTolerance && newEnd <= existingEnd + executedRangeEndTolerance) {
+                return;
+            }
         }
     }
 
@@ -149,6 +173,7 @@ export function registerSkipUIManager(): void {
     const app = getContentApp();
 
     app.commands.register("skip/closeNotices", ({ includeAdvance }) => closeSkipNotices(includeAdvance));
+    app.commands.register("skip/closeNoticesForSegments", ({ segments }) => closeSkipNoticesForSegments(segments));
     app.commands.register("skip/dontShowNoticeAgain", () => dontShowNoticeAgain());
 
     app.bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, ({ noticeKind, skippingSegments, autoSkip, unskipTime, startReskip }) => {
