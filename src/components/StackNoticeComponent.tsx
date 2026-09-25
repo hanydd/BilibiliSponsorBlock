@@ -18,6 +18,7 @@ interface StackNoticeProps {
     playbackEnd?: number;
     dismissalPaused?: boolean;
     closeListener: () => void;
+    onDismiss?: () => void;
     onInteractionChange: () => void;
 }
 
@@ -150,7 +151,7 @@ export default class StackNoticeComponent extends React.Component<StackNoticePro
                             disabled={this.props.upcomingStart !== undefined}
                             onClick={() => this.toggleManualPause()}>{this.getCountdownElements()}</button>
                         <button type="button" className="sponsorSkipNoticeButton sponsorSkipNoticeCloseButton sponsorSkipNoticeRightButton"
-                            aria-label={chrome.i18n.getMessage("close") || "关闭"} onClick={() => this.close()}>
+                            aria-label={chrome.i18n.getMessage("close") || "关闭"} onClick={() => { this.props.onDismiss?.(); this.close(); }}>
                             <img src={chrome.runtime.getURL("icons/close.png")} alt="" />
                         </button>
                     </div>

@@ -1,3 +1,5 @@
+import { getRuleRuntime, isRuleEngineEnabled } from "./skipRules/bridge";
+import { SponsorHideType } from "../types";
 import Config from "../config";
 import { StorageChangesObject } from "../config/config";
 import { Message, MessageResponse } from "../messageTypes";
@@ -45,7 +47,9 @@ export function handleContentMessage(
             sendResponse({
                 found: contentState.sponsorDataFound,
                 status: contentState.lastResponseStatus,
-                sponsorTimes: contentState.sponsorTimes,
+                sponsorTimes: isRuleEngineEnabled() ? contentState.sponsorTimes.map(segment =>
+                    getRuleRuntime().isExcluded(segment.UUID) ? { ...segment, hidden: SponsorHideType.Hidden } : segment
+                ) : contentState.sponsorTimes,
                 portVideo: contentState.portVideo,
                 time: getVideo()?.currentTime ?? 0,
             });
@@ -175,6 +179,13 @@ export function handleContentMessage(
         case "hideSegment":
             {
                 const segment = utils.getSponsorTimeFromUUID(contentState.sponsorTimes, request.UUID);
+                if (!segment) return;
+                if (isRuleEngineEnabled() && segment.hidden === undefined &&
+                    (request.type === SponsorHideType.Hidden || request.type === SponsorHideType.Visible)) {
+                    getRuleRuntime().action({ kind: request.type === SponsorHideType.Hidden ? "dismiss" : "allow", id: segment.UUID });
+                    sendResponse({});
+                    return;
+                }
                 segment.hidden = request.type;
                 utils.addHiddenSegment(getVideoID(), request.UUID, request.type);
                 syncContentStateStore("messageHandler.hideSegment");

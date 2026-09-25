@@ -1,3 +1,4 @@
+import { getRuleRuntime, isRuleEngineEnabled } from "./skipRules/bridge";
 import { upcomingSkipDecision } from "../notices/UpcomingSkipDecision";
 import Config from "../config";
 import { isSkipSeek, seekForSkip } from "./skipSeek";
@@ -110,6 +111,7 @@ function isInsideExecutedRange(start: number, end: number): boolean {
 }
 
 export function resetSchedulerState(): void {
+    scheduleGeneration++;
     if (currentSkipSchedule !== null) {
         clearTimeout(currentSkipSchedule);
         currentSkipSchedule = null;
@@ -208,7 +210,7 @@ export function registerSkipScheduler(): void {
     app.commands.register("skip/unskip", ({ segment, unskipTime, forceSeek }) => unskipSponsorTime(segment, unskipTime, forceSeek));
     app.commands.register("skip/reskip", ({ segment, forceSeek }) => reskipSponsorTime(segment, forceSeek));
     app.commands.register("skip/execute", (payload) => skipToTime(payload));
-    app.commands.register("skip/previewTime", ({ time, unpause }) => previewTime(time, unpause));
+    app.commands.register("skip/previewTime", ({ time, unpause, segmentId }) => previewTime(time, unpause, segmentId));
     app.commands.register("skip/updateVirtualTime", () => updateVirtualTime());
     app.commands.register("skip/updateWaitingTime", () => updateWaitingTime());
     app.commands.register("skip/clearWaitingTime", () => clearWaitingTime());
@@ -224,6 +226,7 @@ export function registerSkipScheduler(): void {
     );
 
     app.bus.on(CONTENT_EVENTS.SEGMENTS_LOADED, ({ sponsorTimes, videoID }) => {
+        if (isRuleEngineEnabled()) return;
         if (videoID !== getVideoID()) {
             return;
         }
@@ -236,17 +239,20 @@ export function registerSkipScheduler(): void {
         startSkipScheduleCheckingForStartSponsors();
     });
     app.bus.on(CONTENT_EVENTS.CONFIG_CHANGED, ({ changes }) => {
+        if (isRuleEngineEnabled()) return;
         if ("hideSkipButtonPlayerControls" in changes) {
             updatePoiSkipButtonForCurrentTime();
         }
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_TIME_UPDATED, ({ time }) => {
+        if (isRuleEngineEnabled()) return;
         const skipButtonControlBar = getContentApp().ui.getState().skipButtonControlBar;
         if (skipButtonControlBar?.isEnabled() && skipButtonControlBar.segment?.segment[1] <= time) {
             updatePoiSkipButtonForCurrentTime();
         }
     });
     app.bus.on(CONTENT_EVENTS.SEGMENTS_SUBMITTING_CHANGED, ({ videoID }) => {
+        if (isRuleEngineEnabled()) return;
         if (videoID !== getVideoID() || getVideo() === null) {
             return;
         }
@@ -254,9 +260,11 @@ export function registerSkipScheduler(): void {
         void startSponsorSchedule();
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_VIDEO_READY, () => {
+        if (isRuleEngineEnabled()) return;
         updatePoiSkipButtonForCurrentTime();
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_RATE_CHANGED, ({ playbackRate }) => {
+        if (isRuleEngineEnabled()) return;
         updateVirtualTime();
         clearWaitingTime();
         // 快进起止写倍速也会触发 ratechange：程序性变更不重排，避免与快进互相触发震荡
@@ -267,6 +275,7 @@ export function registerSkipScheduler(): void {
         void startSponsorSchedule();
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_PLAY, ({ video }) => {
+        if (isRuleEngineEnabled()) return;
         updateVirtualTime();
 
         if (contentState.switchingVideos || lastPausedAtZero) {
@@ -280,6 +289,7 @@ export function registerSkipScheduler(): void {
         scheduleIfPlaybackMoved(video);
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_PLAYING, ({ video }) => {
+        if (isRuleEngineEnabled()) return;
         updateVirtualTime();
         lastPausedAtZero = false;
 
@@ -298,6 +308,7 @@ export function registerSkipScheduler(): void {
         scheduleIfPlaybackMoved(video);
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_SEEKING, ({ video }) => {
+        if (isRuleEngineEnabled()) return;
         // UI suppression belongs to one playback pass. A user seek may replay
         // the same range; UUID-based statistics remain independently deduplicated.
         if (!isSkipSeek(video)) {
@@ -330,10 +341,12 @@ export function registerSkipScheduler(): void {
         }
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_PAUSE, ({ video }) => {
+        if (isRuleEngineEnabled()) return;
         lastKnownVideoTime.fromPause = true;
         stopPlaybackScheduling(video);
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_WAITING, ({ video }) => {
+        if (isRuleEngineEnabled()) return;
         logDebug("[SB] Not skipping due to buffering");
         startedWaiting = true;
         stopPlaybackScheduling(video);
@@ -375,6 +388,7 @@ function stopPlaybackScheduling(video: HTMLVideoElement): void {
 }
 
 export function cancelSponsorSchedule(): void {
+    scheduleGeneration++;
     logDebug("Pausing skipping");
 
     if (currentSkipSchedule !== null) {
@@ -401,6 +415,7 @@ export async function startSponsorSchedule(
     currentTime?: number,
     includeNonIntersectingSegments = true
 ): Promise<void> {
+    if (isRuleEngineEnabled()) { getRuleRuntime().observe(); return; }
     // 未显式指定扫描参数的调用（PLAYING 重启等）继承尚未消费的 seek 意图
     if (includeIntersectingSegments) {
         pendingIncludeIntersecting = true;
@@ -1002,7 +1017,8 @@ function getStartTimes(
     return { includedTimes, scheduledTimes };
 }
 
-export function previewTime(time: number, unpause = true): void {
+export function previewTime(time: number, unpause = true, segmentId?: string): void {
+    if (isRuleEngineEnabled()) { getRuleRuntime().preview(time, unpause, segmentId); return; }
     contentState.previewedSegment = true;
     getVideo().currentTime = time;
 
@@ -1033,7 +1049,7 @@ function reportViewedSponsorTime(uuid: string): void {
     }
 }
 
-function recordSkippedSegments(
+export function recordSkippedSegments(
     segments: SponsorTime[],
     secondsSaved: (segment: SponsorTime) => number,
     fullSkip: boolean
@@ -1070,6 +1086,7 @@ function recordSkippedSegments(
  * Ex. When segments are first loaded
  */
 export function startSkipScheduleCheckingForStartSponsors(): void {
+    if (isRuleEngineEnabled()) { getRuleRuntime().observe(); return; }
     // switchingVideos is ignored in Safari due to event fire order. See #1142
     if ((!contentState.switchingVideos || isSafari()) && contentState.sponsorTimes) {
         let startingSegmentTime = getStartTimeFromUrl(document.URL) || -1;
@@ -1232,6 +1249,11 @@ export function shouldSkip(segment: SponsorTime): boolean {
 }
 
 export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAutoSkip, unskipTime }: SkipToTimeParams): void {
+    if (isRuleEngineEnabled()) {
+        if (forceAutoSkip && skippingSegments[0]) getRuleRuntime().action({ kind: "skip", id: skippingSegments[0].UUID, forceSeek: true });
+        else getRuleRuntime().observe();
+        return;
+    }
     if (Config.config.disableSkipping) return;
 
     let autoSkip: boolean;
@@ -1386,6 +1408,7 @@ function playSkipBeep(): void {
 }
 
 export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = null, forceSeek = false): void {
+    if (isRuleEngineEnabled()) { getRuleRuntime().action({ kind: "undo", id: segment.UUID, forceSeek }); return; }
     // If currently speeding up this segment, cancel speedUp as manual interaction
     if (isSpeedUpActive()) {
         void cancelSpeedUp(true, true);
@@ -1402,6 +1425,7 @@ export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = nul
 }
 
 export function reskipSponsorTime(segment: SponsorTime, forceSeek = false): void {
+    if (isRuleEngineEnabled()) { getRuleRuntime().action({ kind: "skip", id: segment.UUID, forceSeek }); return; }
     // If speeding, cancel first (reskip means instant skip, not speedUp)
     // reskip 随后自行调度，取消时不再触发 cancel 内部的重排
     if (isSpeedUpActive()) {

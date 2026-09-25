@@ -1,3 +1,5 @@
+import { isRuleEngineEnabled } from "./skipRules/bridge";
+import type { RuleCard } from "./skipRules/types";
 import Config from "../config";
 import { isSkipSeek } from "./skipSeek";
 import SkipNotice from "../render/SkipNotice";
@@ -54,18 +56,18 @@ function dontShowNoticeAgain(): void {
 }
 
 function showNotice(skippingSegments: SponsorTime[], autoSkip: boolean, unskipTime: number,
-    startReskip: boolean, upcoming: boolean, updateOnly = false): void {
+    startReskip: boolean, upcoming: boolean, updateOnly = false, ruleCard?: RuleCard): void {
     if (skippingSegments.length > 1) {
         for (const segment of [...skippingSegments].sort((a, b) => a.segment[0] - b.segment[0])) {
-            showNotice([segment], autoSkip, unskipTime, startReskip, upcoming, updateOnly);
+            showNotice([segment], autoSkip, unskipTime, startReskip, upcoming, updateOnly, ruleCard);
         }
         return;
     }
     const existing = contentState.skipNotices.find(notice => !notice.closed && notice.isCurrentVideo() &&
         (notice.sameNotice(skippingSegments) || (!upcoming && notice.upcoming && notice.contains(skippingSegments))));
     if (updateOnly && !existing) return;
-    if (existing && existing.upcoming === upcoming && existing.props.autoSkip === autoSkip) return;
-    const update = { segments: skippingSegments, autoSkip, unskipTime, startReskip, upcoming };
+    if (existing && existing.upcoming === upcoming && existing.props.autoSkip === autoSkip && JSON.stringify(existing.props.ruleCard) === JSON.stringify(ruleCard)) return;
+    const update = { segments: skippingSegments, autoSkip, unskipTime, startReskip, upcoming, ruleCard };
     if (existing) {
         existing.update(update);
         selectNoticeTarget(existing);
@@ -115,7 +117,7 @@ export function registerSkipUIManager(): void {
     const app = getContentApp();
 
     app.bus.on(CONTENT_EVENTS.PLAYER_SEEKING, ({ video }) => {
-        if (isSkipSeek(video)) return;
+        if (isRuleEngineEnabled() || isSkipSeek(video)) return;
         // Small corrections around a segment keep its controls; unrelated old
         // notices (including manually paused ones) do not follow a user seek.
         const nearby = (segments: SponsorTime[], lead = 5) => segments.some(({ segment }) =>
@@ -130,15 +132,15 @@ export function registerSkipUIManager(): void {
     app.commands.register("skip/closeNoticesForSegments", ({ segments }) => closeSkipNoticesForSegments(segments));
     app.commands.register("skip/dontShowNoticeAgain", () => dontShowNoticeAgain());
 
-    app.bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, ({ noticeKind, skippingSegments, autoSkip, unskipTime, startReskip, updateOnly }) => {
+    app.bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, ({ noticeKind, skippingSegments, autoSkip, unskipTime, startReskip, updateOnly, ruleCard }) => {
         if (Config.config.dontShowNotice) return;
         if (noticeKind === "advance") {
             if (!Config.config.advanceSkipNotice || Config.config.skipNoticeDurationBefore <= 0) return;
-            showNotice(skippingSegments, autoSkip, unskipTime, startReskip, true);
+            showNotice(skippingSegments, autoSkip, unskipTime, startReskip, true, false, ruleCard);
             return;
         }
 
-        showNotice(skippingSegments, autoSkip, unskipTime, startReskip, false, updateOnly);
+        showNotice(skippingSegments, autoSkip, unskipTime, startReskip, false, updateOnly, ruleCard);
     });
 
     app.bus.on(CONTENT_EVENTS.CONFIG_CHANGED, ({ changes }) => {

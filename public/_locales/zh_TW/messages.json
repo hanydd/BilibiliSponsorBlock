@@ -1580,5 +1580,23 @@
     },
     "copyPageLogsFailed": {
         "message": "複製頁面日誌失敗"
+    },
+    "skipEngineMode": {
+        "message": "跳過邏輯（實驗功能）"
+    },
+    "skipEngineLegacy": {
+        "message": "舊版（預設）"
+    },
+    "skipEngineShadow": {
+        "message": "舊版播放，新規則僅記錄判斷"
+    },
+    "skipEngineRules": {
+        "message": "新版規則引擎（灰度體驗）"
+    },
+    "skipEngineDescription": {
+        "message": "切換後重新整理影片頁面生效。新版支援依片段進入關係判斷、關閉卡片取消本次經過，以及編輯預覽範圍選擇。遇到問題可選回舊版並重新整理頁面。"
+    },
+    "previewIncludeOtherSegments": {
+        "message": "編輯預覽時包含其他片段"
     }
 }

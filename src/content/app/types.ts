@@ -1,3 +1,4 @@
+import type { RuleCard } from "../skipRules/types";
 import SkipNoticeComponent from "../../components/SkipNoticeComponent";
 import PreviewBar from "../../js-components/previewBar";
 import { SkipButtonControlBar } from "../../js-components/skipButtonControlBar";
@@ -108,6 +109,7 @@ export interface ContentEventMap {
     };
     [CONTENT_EVENTS.SKIP_NOTICE_REQUESTED]: {
         noticeKind: "skip" | "advance";
+        ruleCard?: RuleCard;
         /** Completion must not recreate a card the user already dismissed. */
         updateOnly?: boolean;
         skippingSegments: SponsorTime[];
@@ -178,7 +180,7 @@ export interface ContentCommandMap {
     "skip/unskip": ContentCommandDefinition<{ segment: SponsorTime; unskipTime?: number; forceSeek?: boolean }, void>;
     "skip/reskip": ContentCommandDefinition<{ segment: SponsorTime; forceSeek?: boolean }, void>;
     "skip/execute": ContentCommandDefinition<SkipToTimeParams, void>;
-    "skip/previewTime": ContentCommandDefinition<{ time: number; unpause?: boolean }, void>;
+    "skip/previewTime": ContentCommandDefinition<{ time: number; unpause?: boolean; segmentId?: string }, void>;
     "skip/updateVirtualTime": ContentCommandDefinition<void, void>;
     "skip/updateWaitingTime": ContentCommandDefinition<void, void>;
     "skip/clearWaitingTime": ContentCommandDefinition<void, void>;
