@@ -119,3 +119,74 @@ test("adds and removes the current channel from the whitelist", async ({
         .poll(() => readSyncStorage<Array<{ id: string; name: string }>>(extensionServiceWorker, "whitelistedChannels"))
         .toEqual([]);
 });
+
+test("moves only in wide mode and preserves the open form across mode changes", async ({ extensionPage }) => {
+    const popup = await openEmbeddedPopup(extensionPage);
+    await popup.locator("#issueReporterImportExport > div button").first().click();
+    await popup.locator("#importSegmentsText").fill("0:10 - 0:20 draft");
+    const player = extensionPage.locator(".bpx-player-container");
+    const container = extensionPage.locator("#sponsorBlockPopupContainer");
+
+    await player.evaluate((element) => element.setAttribute("data-screen", "wide"));
+    await expect(container).toHaveClass("sb-popup-wide");
+    await expect(container.locator("..")).toHaveClass("bpx-player-video-area");
+    await expect(popup.locator("#importSegmentsText")).toHaveValue("0:10 - 0:20 draft");
+
+    for (const mode of ["normal", "web", "full"]) {
+        await player.evaluate((element, screen) => element.setAttribute("data-screen", screen), mode);
+        await expect(container.locator("..")).toHaveAttribute("id", "danmukuBox");
+        await expect(container).not.toHaveClass("sb-popup-wide");
+    }
+    await expect(popup.locator("#importSegmentsText")).toHaveValue("0:10 - 0:20 draft");
+});
+
+test("recovers after wide-player and sidebar hosts are removed and recreated", async ({ extensionPage }) => {
+    const popup = await openEmbeddedPopup(extensionPage);
+    const container = extensionPage.locator("#sponsorBlockPopupContainer");
+    const player = extensionPage.locator(".bpx-player-container");
+    await player.evaluate((element) => element.setAttribute("data-screen", "wide"));
+    await expect(container).toHaveClass("sb-popup-wide");
+
+    for (const selector of [".bpx-player-video-area", "#danmukuBox"]) {
+        if (selector === "#danmukuBox") {
+            await player.evaluate((element) => element.setAttribute("data-screen", "normal"));
+            await expect(container.locator("..")).toHaveAttribute("id", "danmukuBox");
+        }
+        await extensionPage.locator(selector).evaluate((host) => {
+            const replacement = host.cloneNode(true) as HTMLElement;
+            replacement.querySelector("#sponsorBlockPopupContainer")?.remove();
+            const parent = host.parentElement;
+            host.remove();
+            setTimeout(() => parent.appendChild(replacement), 100);
+        });
+        await expect(container).toHaveCount(1);
+        await expect(popup.locator("#mainControls")).toBeVisible();
+        await popup.locator("#toggleSwitch").click();
+        await expect(popup.locator("#toggleSwitch")).toHaveAttribute("aria-checked", selector === "#danmukuBox" ? "true" : "false");
+    }
+
+    await popup.locator(".sbCloseButton").click();
+    await player.evaluate((element) => element.setAttribute("data-screen", "wide"));
+    await extensionPage.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect(container).toHaveCount(0);
+});
+
+test("opens inside a short wide player and closes when opening the submission editor", async ({ extensionPage }) => {
+    await extensionPage.locator("#bilibili-player").evaluate((element) => {
+        element.style.width = "600px";
+        element.style.height = "300px";
+    });
+    await extensionPage.locator(".bpx-player-container").evaluate((element) => element.setAttribute("data-screen", "wide"));
+    const popup = await openEmbeddedPopup(extensionPage);
+    const container = extensionPage.locator("#sponsorBlockPopupContainer");
+    await expect(container).toHaveClass("sb-popup-wide");
+    const bounds = await container.boundingBox();
+    const playerBounds = await extensionPage.locator(".bpx-player-video-area").boundingBox();
+    expect(bounds.x).toBeGreaterThanOrEqual(playerBounds.x);
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(playerBounds.y + playerBounds.height - 60);
+    await popup.locator("#issueReporterImportExport > div button").first().click();
+    await popup.locator("#importSegmentsText").fill("0:10 - 0:20 sponsor");
+    await popup.locator("#importSegmentsMenu button").click();
+    await expect(extensionPage.locator("#submissionNoticeContainer")).toHaveCount(1);
+    await expect(container).toHaveCount(0);
+});

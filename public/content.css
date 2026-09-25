@@ -19,6 +19,23 @@
 	width: 100%;
 }
 
+#sponsorBlockPopupContainer.sb-popup-wide {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	width: min(374px, calc(100% - 24px));
+	height: min(500px, calc(100% - 72px));
+	margin: 0;
+	z-index: 80;
+	border-radius: 6px;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+#sponsorBlockPopupContainer.sb-popup-wide iframe {
+	display: block;
+	height: 100%;
+}
+
 .sbhidden {
 	display: none;
 }

@@ -271,8 +271,6 @@ async function storePageCidMap(bvid: BVID): Promise<void> {
 
 export function getSkipButtonControlBar() { return getUIState().skipButtonControlBar; }
 export function getCategoryPill() { return getUIState().categoryPill; }
-export function getPopupInitialised() { return getUIState().popupInitialised; }
-export function setPopupInitialised(v: boolean) { patchUIState({ popupInitialised: v }); }
 export function getSubmissionNotice() { return getUIState().submissionNotice; }
 
 export function resetSubmissionState(): void {
@@ -286,7 +284,6 @@ export function resetSubmissionState(): void {
         playerButtons: {},
         descriptionPill: null,
         submissionNotice: null,
-        popupInitialised: false,
         skipButtonControlBar: null,
         categoryPill: null,
     });
@@ -324,8 +321,6 @@ export function registerSegmentSubmission(): void {
     app.commands.register("ui/setupSkipButtonControlBar", () => setupSkipButtonControlBar());
     app.commands.register("ui/setupCategoryPill", () => setupCategoryPill());
     app.commands.register("ui/setupDescriptionPill", () => setupDescriptionPill());
-    app.commands.register("popup/openInfoMenu", () => openInfoMenu());
-    app.commands.register("popup/closeInfoMenu", () => closeInfoMenu());
     app.commands.register("port/submitVideo", ({ ytbID }) => submitPortVideo(ytbID));
     app.commands.register("port/voteVideo", ({ UUID, vote }) => portVideoVote(UUID, vote));
     app.commands.register("port/updateSegments", ({ UUID }) => updateSegments(UUID));
@@ -693,52 +688,6 @@ export function updateSponsorTimesSubmitting(getFromConfig = true): void {
     });
 }
 
-export function openInfoMenu(): void {
-    if (document.getElementById("sponsorBlockPopupContainer") != null) {
-        return;
-    }
-
-    patchUIState({ popupInitialised: false });
-
-    const popup = document.createElement("div");
-    popup.id = "sponsorBlockPopupContainer";
-
-    const frame = document.createElement("iframe");
-    frame.width = "374";
-    frame.height = "500";
-    frame.style.borderRadius = "6px";
-    frame.style.margin = "0px auto 20px";
-    frame.addEventListener("load", async () => {
-        frame.contentWindow.postMessage("", "*");
-
-        const stylusStyle = document.querySelector(".stylus");
-        if (stylusStyle) {
-            frame.contentWindow.postMessage(
-                {
-                    type: "style",
-                    css: stylusStyle.textContent,
-                },
-                "*"
-            );
-        }
-    });
-    frame.src = chrome.runtime.getURL("popup.html");
-    popup.appendChild(frame);
-
-    const container = document.querySelector("#danmukuBox") as HTMLElement;
-    container.prepend(popup);
-}
-
-export function closeInfoMenu(): void {
-    const popup = document.getElementById("sponsorBlockPopupContainer");
-    if (popup === null) return;
-
-    popup.remove();
-
-    window.dispatchEvent(new Event("closePopupMenu"));
-    getContentApp().bus.emit(CONTENT_EVENTS.UI_POPUP_CLOSED, {}, { source: "segmentSubmission.closeInfoMenu" });
-}
-
 export function clearSponsorTimes(): void {
     clearSubmittingSegments("segmentSubmission.clearSponsorTimes", true);
 }
@@ -889,6 +838,7 @@ export function openSubmissionMenu(): void {
     }
 
     if (contentState.sponsorTimesSubmitting !== undefined && contentState.sponsorTimesSubmitting.length > 0) {
+        void getContentApp().commands.execute("popup/closeInfoMenu", { onlyOverlay: true });
         patchUIState({
             submissionNotice: new SubmissionNotice(getSkipNoticeContentContainer, sendSubmitMessage),
         });

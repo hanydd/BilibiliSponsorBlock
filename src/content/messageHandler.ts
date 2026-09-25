@@ -9,6 +9,7 @@ import { getBilibiliVideoID } from "../utils/parseVideoID";
 import { checkVideoIDChange, getChannelIDInfo, getVideo, getVideoID } from "../utils/video";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
+import { handlePopupInfoRequest } from "./popupManager";
 import { contentState, syncContentStateStore } from "./state";
 
 const utils = new Utils();
@@ -26,7 +27,6 @@ export function handleContentMessage(
     sendResponse: (response: MessageResponse) => void
 ): void | boolean {
     const app = getContentApp();
-    const uiState = app.ui.getState();
     switch (request.message) {
         case "update":
             checkVideoIDChange();
@@ -50,15 +50,7 @@ export function handleContentMessage(
                 time: getVideo()?.currentTime ?? 0,
             });
 
-            if (
-                !request.updating &&
-                uiState.popupInitialised &&
-                document.getElementById("sponsorBlockPopupContainer") != null
-            ) {
-                void app.commands.execute("popup/closeInfoMenu", undefined);
-            }
-
-            app.ui.patchState({ popupInitialised: true });
+            handlePopupInfoRequest(request.updating);
             return;
         case "getVideoID":
             (async () => {

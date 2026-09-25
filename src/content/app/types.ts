@@ -49,7 +49,6 @@ export interface ContentUIRegistryState {
     playerButtons: Record<string, { button: HTMLButtonElement; image: HTMLImageElement }>;
     descriptionPill: DescriptionPortPill | null;
     submissionNotice: SubmissionNotice | null;
-    popupInitialised: boolean;
     skipButtonControlBar: SkipButtonControlBar | null;
     categoryPill: CategoryPill | null;
     previewBar: PreviewBar | null;
@@ -197,7 +196,7 @@ export interface ContentCommandMap {
     "ui/setupCategoryPill": ContentCommandDefinition<void, void>;
     "ui/setupSkipButtonControlBar": ContentCommandDefinition<void, void>;
     "popup/openInfoMenu": ContentCommandDefinition<void, void>;
-    "popup/closeInfoMenu": ContentCommandDefinition<void, void>;
+    "popup/closeInfoMenu": ContentCommandDefinition<{ onlyOverlay?: boolean } | void, void>;
     "port/submitVideo": ContentCommandDefinition<{ ytbID: YTID }, PortVideo>;
     "port/voteVideo": ContentCommandDefinition<{ UUID: string; vote: number }, void>;
     "port/updateSegments": ContentCommandDefinition<{ UUID: string }, FetchResponse>;

@@ -1,6 +1,7 @@
 import Config from "./config";
 import { createContentApp } from "./content/app";
 import { CONTENT_EVENTS } from "./content/app/events";
+import { registerPopupManager } from "./content/popupManager";
 import { waitForPlayerUiReady } from "./content/playerUi";
 import {
     getPreviewBar,
@@ -111,6 +112,7 @@ function init(): void {
 
     registerPreviewBarManager();
     registerSegmentSubmission();
+    registerPopupManager();
     registerSkipUIManager();
     registerSkipScheduler();
     registerSpeedUpManager();
