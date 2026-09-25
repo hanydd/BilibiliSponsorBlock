@@ -1581,5 +1581,23 @@
     },
     "copyPageLogsFailed": {
         "message": "复制页面日志失败"
+    },
+    "skipEngineMode": {
+        "message": "跳过逻辑（实验功能）"
+    },
+    "skipEngineLegacy": {
+        "message": "旧版（默认）"
+    },
+    "skipEngineShadow": {
+        "message": "旧版播放，新规则仅记录判断"
+    },
+    "skipEngineRules": {
+        "message": "新版规则引擎（灰度体验）"
+    },
+    "skipEngineDescription": {
+        "message": "切换后刷新视频页面生效。新版支持按片段进入关系判断、关闭卡片取消本次经过，以及编辑预览范围选择。遇到问题可选回旧版并刷新页面。"
+    },
+    "previewIncludeOtherSegments": {
+        "message": "编辑预览时包含其他片段"
     }
 }

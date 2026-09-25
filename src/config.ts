@@ -37,6 +37,8 @@ interface SBConfig {
     showTimeWithSkips: boolean;
     disableSkipping: boolean;
     enableSpeedUp: boolean;
+    skipEngineMode: "legacy" | "shadow" | "rules";
+    previewIncludeOtherSegments: boolean;
     speedUpPlaybackRate: number;
     enableDanmakuSkip: boolean;
     enableAutoSkipDanmakuSkip: boolean;
@@ -307,6 +309,8 @@ const syncDefaults = {
     showTimeWithSkips: true,
     disableSkipping: false,
     enableSpeedUp: false,
+    skipEngineMode: "legacy" as const,
+    previewIncludeOtherSegments: false,
     speedUpPlaybackRate: 2,
 
     // danmaku skip

@@ -13,7 +13,7 @@ export interface ContentContainer {
         addSubmittingSegment: (segment: SponsorTime) => void;
         replaceSubmittingSegments: (segments: SponsorTime[]) => void;
         removeSubmittingSegment: (index: number) => void;
-        previewTime: (time: number, unpause?: boolean) => void;
+        previewTime: (time: number, unpause?: boolean, segmentId?: string) => void;
         videoInfo: VideoInfo;
         getRealCurrentTime: () => number;
         lockedCategories: string[];

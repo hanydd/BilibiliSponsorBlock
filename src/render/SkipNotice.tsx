@@ -1,3 +1,4 @@
+import type { RuleCard } from "../content/skipRules/types";
 import * as React from "react";
 import { createPortal, flushSync } from "react-dom";
 import { createRoot, Root } from "react-dom/client";
@@ -16,6 +17,7 @@ export interface SkipNoticeUpdate {
     upcoming: boolean;
     unskipTime?: number;
     startReskip?: boolean;
+    ruleCard?: RuleCard;
 }
 
 /** One React owner per player. Portals keep card identity while layout moves wrappers. */
@@ -104,7 +106,7 @@ export default class SkipNotice {
         return {
             segments: [...update.segments].sort((a, b) => a.segment[0] - b.segment[0]),
             autoSkip: update.autoSkip, advanceSkipNotice: update.upcoming,
-            unskipTime: update.unskipTime, startReskip: update.startReskip,
+            unskipTime: update.unskipTime, startReskip: update.startReskip, ruleCard: update.ruleCard,
         };
     }
 

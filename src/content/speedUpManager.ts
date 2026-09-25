@@ -1,3 +1,4 @@
+import { getRuleRuntime, isRuleEngineEnabled } from "./skipRules/bridge";
 import Config from "../config";
 import { ActionType, SponsorHideType, SponsorTime } from "../types";
 import { getVideo } from "../utils/video";
@@ -124,16 +125,19 @@ export function isSpeedUpActive(): boolean {
  * 因此调度 delayTime 应使用原始倍速而非当前快进倍速。
  */
 export function getSpeedUpOriginalRate(): number {
+    if (isRuleEngineEnabled()) return getRuleRuntime().originalRate();
     return session ? session.originalRate : 1;
 }
 
 export function getActiveSpeedUpInfo(): { segments: SponsorTime[]; start: number; end: number; rate: number } | null {
+    if (isRuleEngineEnabled()) return getRuleRuntime().speedInfo();
     if (!session) return null;
     return { segments: [...session.segments], start: session.start, end: session.end, rate: session.rate };
 }
 
 /** Read-only deadline for the notice, including a video-paused speed-up session. */
 export function getSpeedUpNoticeEnd(segments: SponsorTime[]): number | undefined {
+    if (isRuleEngineEnabled()) return getRuleRuntime().deadline(segments);
     const context = session ?? pausedSession;
     return context && context.segments.some(member => segments.some(segment => segment.UUID === member.UUID))
         ? Math.max(...segments.map(segment => segment.segment[1])) : undefined;
@@ -392,6 +396,10 @@ function notifySpeedUpStateChange(): void {
 }
 
 export async function startSpeedUp(skippingSegments: SponsorTime[], skipTime: number[], forcedOriginalRate?: number, showNotices = true): Promise<boolean> {
+    if (isRuleEngineEnabled()) {
+        skippingSegments.forEach(segment => getRuleRuntime().action({ kind: "resume-speed", id: segment.UUID }));
+        return !!getRuleRuntime().speedInfo();
+    }
     if (!skippingSegments?.length || !skipTime?.length) return false;
     const primary = skippingSegments[0];
     if (!shouldUseSpeedUp(primary)) return false;
@@ -470,6 +478,10 @@ export async function startSpeedUp(skippingSegments: SponsorTime[], skipTime: nu
 }
 
 export async function cancelSpeedUp(restoreRate = true, isManual = false, reschedule = true): Promise<void> {
+    if (isRuleEngineEnabled()) {
+        getRuleRuntime().speedInfo()?.segments.forEach(segment => getRuleRuntime().action({ kind: "pause-speed", id: segment.UUID }));
+        return;
+    }
     if (!session) return;
     const cancelledSegments = [...session.segments];
     logDebug(`[SB SpeedUp] cancel restore=${restoreRate} manual=${isManual}`);
@@ -517,6 +529,7 @@ export function registerSpeedUpManager(): void {
     // Seeking during speedUp：seek 落点仍在同一片段内则保持倍速（仅更新区间），
     // 落到段外才取消。一律 manual-cancel 会让调度器退化为瞬时跳过。
     app.bus.on(CONTENT_EVENTS.PLAYER_SEEKING, ({ video }) => {
+        if (isRuleEngineEnabled()) return;
         const active = session;
         if (!active) return;
         const t = video.currentTime;
@@ -530,6 +543,7 @@ export function registerSpeedUpManager(): void {
     });
 
     app.bus.on(CONTENT_EVENTS.PLAYER_PAUSE, () => {
+        if (isRuleEngineEnabled()) return;
         const active = session;
         if (!active) return;
         // 暂存上下文并恢复原倍速；PLAY 时若仍在段内则恢复快进（长暂停可恢复）。
@@ -541,6 +555,7 @@ export function registerSpeedUpManager(): void {
     });
 
     const resumeAfterPause = ({ video }: { video: HTMLVideoElement }) => {
+        if (isRuleEngineEnabled()) return;
         const saved = pausedSession;
         if (session || !saved) return;
         // PLAY 与 PLAYING 通常接连触发，200ms 内视为同一轮，只处理一次
@@ -560,6 +575,7 @@ export function registerSpeedUpManager(): void {
     app.bus.on(CONTENT_EVENTS.PLAYER_PLAYING, resumeAfterPause);
 
     app.bus.on(CONTENT_EVENTS.PLAYER_RATE_CHANGED, ({ playbackRate }) => {
+        if (isRuleEngineEnabled()) return;
         const active = session;
         if (!active) return;
         // If rate changed externally and not equal to our target, user manually changed rate
@@ -573,14 +589,17 @@ export function registerSpeedUpManager(): void {
     });
 
     app.bus.on(CONTENT_EVENTS.VIDEO_RESET_REQUESTED, () => {
+        if (isRuleEngineEnabled()) return;
         resetSpeedUpState();
     });
 
     app.bus.on(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, () => {
+        if (isRuleEngineEnabled()) return;
         resetSpeedUpState();
     });
 
     app.bus.on(CONTENT_EVENTS.CONFIG_CHANGED, ({ changes }) => {
+        if (isRuleEngineEnabled()) return;
         const c = changes as unknown as Record<string, unknown>;
         const active = session;
         if (!active) return;
@@ -598,6 +617,7 @@ export function registerSpeedUpManager(): void {
     });
 
     app.bus.on(CONTENT_EVENTS.CHANNEL_WHITELIST_CHANGED, ({ whitelisted }) => {
+        if (isRuleEngineEnabled()) return;
         if (whitelisted && session) {
             void cancelSpeedUp(true, false);
         }

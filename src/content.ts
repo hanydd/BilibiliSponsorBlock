@@ -1,3 +1,5 @@
+import { registerSkipRules } from "./content/skipRules/runtime";
+import { recordSkippedSegments } from "./content/skipScheduler";
 import Config from "./config";
 import { createContentApp } from "./content/app";
 import { CONTENT_EVENTS } from "./content/app/events";
@@ -114,6 +116,10 @@ function init(): void {
     registerSegmentSubmission();
     registerPopupManager();
     registerSkipUIManager();
+    registerSkipRules({
+        stopLegacy: () => { resetSchedulerState(); resetSpeedUpState(); },
+        record: (segments, saved) => recordSkippedSegments(segments, () => saved, true),
+    });
     registerSkipScheduler();
     registerSpeedUpManager();
     app.commands.register("config/applyCategoryColors", () => setCategoryColorCSSVariables());
