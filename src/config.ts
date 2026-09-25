@@ -40,6 +40,7 @@ interface SBConfig {
     speedUpPlaybackRate: number;
     enableDanmakuSkip: boolean;
     enableAutoSkipDanmakuSkip: boolean;
+    enableClickableTimeDanmaku: boolean;
     enableMenuDanmakuSkip: boolean;
     danmakuOffsetMatchingRegexPattern: string;
     checkTimeDanmakuSkip: boolean;
@@ -309,6 +310,7 @@ const syncDefaults = {
     speedUpPlaybackRate: 2,
 
     // danmaku skip
+    enableClickableTimeDanmaku: false,
     enableDanmakuSkip: false,
     enableAutoSkipDanmakuSkip: false,
     enableMenuDanmakuSkip: false,
