@@ -1,9 +1,6 @@
 name: Safari macOS
 
 on:
-  push:
-  pull_request:
-  workflow_dispatch:
   workflow_call:
 
 permissions:
