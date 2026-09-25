@@ -1,0 +1,45 @@
+name: Safari macOS
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safari-macos-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Safari macOS app
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Check Xcode
+        run: xcodebuild -version
+      - name: Install dependencies
+        run: npm ci
+      - name: Prepare configuration
+        run: cp config.json.example config.json
+      - name: Build and package universal app
+        run: npm run build:safari:app
+      - name: Upload test app
+        uses: actions/upload-artifact@v4
+        with:
+          name: Safari-macOS-universal
+          path: safari/artifacts/Safari-macOS-universal.zip
+          if-no-files-found: error
+          retention-days: 14

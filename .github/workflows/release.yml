@@ -9,6 +9,30 @@ permissions:
 
 jobs:
 
+  safari-macos:
+    name: Build Safari macOS app
+    uses: ./.github/workflows/safari-macos.yml
+    permissions:
+      contents: read
+
+  upload-safari-macos:
+    name: Upload Safari macOS app to release
+    needs: safari-macos
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Safari-macOS-universal
+          path: safari-release
+      - name: Upload app to the triggering release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" safari-release/Safari-macOS-universal.zip --clobber
+
   build:
     name: Upload Release
     runs-on: ubuntu-latest
