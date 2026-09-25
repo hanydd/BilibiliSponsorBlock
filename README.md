@@ -47,9 +47,13 @@
 
     1. 打开浏览器的插件管理页面，启用“开发者模式”，点击`加载已解压的扩展程序`，选择刚刚下载解压的插件文件夹，就可以完成安装。
 
-## macOS Safari 安装（源码构建）
+## macOS Safari 安装（开发测试包或源码构建）
 
 ### GitHub Actions 测试应用
+
+新版本发布时，Release 工作流会从该版本 tag 自动构建并上传 `Safari-macOS-universal.zip`，
+解压后可获得包含扩展的 macOS 应用。原有 `SafariExtension.zip` 仍保留，它仅包含网页扩展资源，不是 macOS 应用。
+下面的签名限制和启用步骤同时适用于 Release 和 Actions 中的测试应用。
 
 仓库的 **Actions → Safari macOS** 工作流会在 push、PR 时构建，也支持手动运行。
 运行成功后，登录 GitHub，在该次运行的 Artifacts 中下载 `Safari-macOS-universal`，
