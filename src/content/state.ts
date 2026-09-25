@@ -1,4 +1,3 @@
-import advanceSkipNotice from "../render/advanceSkipNotice";
 import SkipNotice from "../render/SkipNotice";
 import {
     Category,
@@ -27,7 +26,6 @@ export const maxExecutedSkipRanges = 20;
 let sponsorDataFound = false;
 let sponsorTimes: SponsorTime[] = [];
 const skipNotices: SkipNotice[] = [];
-let advanceSkipNoticesVar: advanceSkipNotice | null = null;
 let activeSkipKeybindElement: ToggleSkippable = null;
 let shownSegmentFailedToFetchWarning = false;
 let previewedSegment = false;
@@ -53,7 +51,6 @@ function buildContentStateSnapshot(): ContentAppState {
         sponsorDataFound,
         sponsorTimes,
         skipNotices,
-        advanceSkipNotices: advanceSkipNoticesVar,
         activeSkipKeybindElement,
         shownSegmentFailedToFetchWarning,
         previewedSegment,
@@ -100,11 +97,7 @@ export const contentState = {
 
     get skipNotices() { return skipNotices; },
 
-    get advanceSkipNotices() { return advanceSkipNoticesVar; },
-    set advanceSkipNotices(v: advanceSkipNotice | null) {
-        advanceSkipNoticesVar = v;
-        syncContentStateStore("contentState.advanceSkipNotices");
-    },
+    get advanceSkipNotices() { return skipNotices.find(notice => notice.upcoming && !notice.closed) ?? null; },
 
     get activeSkipKeybindElement() { return activeSkipKeybindElement; },
     set activeSkipKeybindElement(v: ToggleSkippable) {

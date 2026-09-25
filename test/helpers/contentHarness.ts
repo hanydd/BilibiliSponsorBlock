@@ -107,6 +107,7 @@ export function installCoreModuleMocks(video: HTMLVideoElement, options: CoreMoc
         getChannelIDInfo: jest.fn(() => ({ status: options.channelStatus ?? 1 })),
         getVideo: jest.fn(() => video),
         getVideoID: jest.fn(() => "BV1test"),
+            getCid: jest.fn(() => "1"),
     }));
 }
 

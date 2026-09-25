@@ -130,6 +130,13 @@ export function getActiveSpeedUpInfo(): { segments: SponsorTime[]; start: number
     return { segments: [...session.segments], start: session.start, end: session.end, rate: session.rate };
 }
 
+/** Read-only deadline for the notice, including a video-paused speed-up session. */
+export function getSpeedUpNoticeEnd(segments: SponsorTime[]): number | undefined {
+    const context = session ?? pausedSession;
+    return context && context.segments.some(member => segments.some(segment => segment.UUID === member.UUID))
+        ? context.end : undefined;
+}
+
 /** 是否已进入“距结尾不足 epsilon”的近尾区：startSpeedUp 据此拒绝启动，skipToTime 据此回退瞬时跳过。 */
 export function isNearSpeedUpEnd(currentTime: number, endTime: number): boolean {
     return currentTime >= endTime - COMPLETION_EPSILON;

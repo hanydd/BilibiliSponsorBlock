@@ -1,98 +1,148 @@
 import * as React from "react";
+import { createPortal, flushSync } from "react-dom";
 import { createRoot, Root } from "react-dom/client";
-
+import Config from "../config";
+import { getVideoID, getCid, getVideo } from "../utils/video";
 import Utils from "../utils";
-const utils = new Utils();
-
-import SkipNoticeComponent from "../components/SkipNoticeComponent";
+import SkipNoticeComponent, { SkipNoticeProps } from "../components/SkipNoticeComponent";
 import { ContentContainer } from "../ContentContainerTypes";
-import { SponsorTime } from "../types";
+import { ActionType, SponsorTime } from "../types";
 import { SkipNoticeAction } from "../utils/noticeUtils";
+import { dismissStackCard } from "./SkipNoticeStack";
 
-class SkipNotice {
+export interface SkipNoticeUpdate {
     segments: SponsorTime[];
     autoSkip: boolean;
-    // Contains functions and variables from the content script needed by the skip notice
-    contentContainer: ContentContainer;
-    onClosed: (notice: SkipNotice) => void;
+    upcoming: boolean;
+    unskipTime?: number;
+    startReskip?: boolean;
+}
 
-    noticeElement: HTMLDivElement;
+/** One React owner per player. Portals keep card identity while layout moves wrappers. */
+class NoticeList {
+    private root: Root;
+    private cards = new Set<SkipNotice>();
 
-    skipNoticeRef: React.MutableRefObject<SkipNoticeComponent>;
-    root: Root;
+    constructor(private player: HTMLElement) {
+        // All visible content is portalled into card wrappers. The owner needs no
+        // empty element in the player's DOM (or its hit-testing/layout tree).
+        this.root = createRoot(document.createDocumentFragment());
+    }
 
-    constructor(
-        segments: SponsorTime[],
-        autoSkip = false,
-        contentContainer: ContentContainer,
-        componentDidMount: () => void,
-        unskipTime: number = null,
-        startReskip = false,
-        advanceSkipNoticeShow: boolean,
-        onClosed: (notice: SkipNotice) => void
-    ) {
-        this.skipNoticeRef = React.createRef();
+    add(card: SkipNotice): void {
+        this.cards.add(card);
+        this.player.prepend(card.noticeElement);
+        this.render();
+    }
 
-        this.segments = segments;
-        this.autoSkip = autoSkip;
-        this.contentContainer = contentContainer;
-        this.onClosed = onClosed;
+    render(): void {
+        this.root.render(<>{[...this.cards].map(card => createPortal(
+            <SkipNoticeComponent {...card.props} ref={card.skipNoticeRef} />,
+            card.noticeElement, card.id
+        ))}</>);
+    }
 
-        const referenceNode = utils.findReferenceNode();
-
-        const amountOfPreviousNotices = document.getElementsByClassName("sponsorSkipNotice").length;
-        //this is the suffix added at the end of every id
-        let idSuffix = "";
-        for (const segment of this.segments) {
-            idSuffix += segment.UUID;
+    remove(card: SkipNotice): void {
+        this.cards.delete(card);
+        // Layout must see the unregistered card before starting downward settlement.
+        flushSync(() => this.render());
+        card.noticeElement.remove();
+        if (!this.cards.size) {
+            lists.delete(this.player);
+            this.root.unmount();
         }
-        idSuffix += amountOfPreviousNotices;
-
-        this.noticeElement = document.createElement("div");
-        this.noticeElement.className = "sponsorSkipNoticeContainer";
-        this.noticeElement.id = "sponsorSkipNoticeContainer" + idSuffix;
-
-        referenceNode.prepend(this.noticeElement);
-
-        this.root = createRoot(this.noticeElement);
-        this.root.render(
-            <SkipNoticeComponent
-                segments={segments}
-                autoSkip={autoSkip}
-                startReskip={startReskip}
-                contentContainer={contentContainer}
-                ref={this.skipNoticeRef}
-                closeListener={() => this.close()}
-                fadeIn={!advanceSkipNoticeShow}
-                fadeOut={true}
-                unskipTime={unskipTime}
-                componentDidMount={componentDidMount}
-                advanceSkipNoticeShow={false}
-            />
-        );
-    }
-
-    setShowKeybindHint(value: boolean): void {
-        this.skipNoticeRef?.current?.setState({
-            showKeybindHint: value,
-        });
-    }
-
-    close(): void {
-        this.root.unmount();
-
-        this.noticeElement.remove();
-
-        this.onClosed(this);
-    }
-
-    toggleSkip(): void {
-        this.skipNoticeRef?.current?.prepAction(SkipNoticeAction.Unskip0);
-    }
-
-    unmutedListener(time: number): void {
-        this.skipNoticeRef?.current?.unmutedListener(time);
     }
 }
 
-export default SkipNotice;
+const lists = new WeakMap<HTMLElement, NoticeList>();
+let nextNoticeId = 0;
+
+/** Stable record shared by preview, pending and completed presentations. */
+export default class SkipNotice {
+    readonly id: string;
+    private readonly videoID = getVideoID();
+    private readonly cid = getCid();
+    readonly noticeElement = document.createElement("div");
+    readonly skipNoticeRef = React.createRef<SkipNoticeComponent>();
+    props: SkipNoticeProps;
+    closed = false;
+    private list: NoticeList;
+
+    constructor(update: SkipNoticeUpdate, contentContainer: ContentContainer, private onClosed: (notice: SkipNotice) => void, onInteractionChange: () => void) {
+        this.id = `${this.videoID}-${this.cid}-${update.segments.map(segment => segment.UUID).join("-")}-${++nextNoticeId}`;
+        this.noticeElement.className = "sponsorSkipNoticeContainer";
+        this.noticeElement.id = `sponsorSkipNoticeContainer${this.id}`;
+        this.props = {
+            ...this.toProps(update), id: this.id, revision: 0, contentContainer,
+            showKeybindHint: false,
+            closeListener: () => this.close(), onInteractionChange,
+        };
+        // Scrolling or a player menu can obscure the visibility probe while the
+        // current video still plays. Keep its notice attached to its own player.
+        const player = getVideo()?.closest<HTMLElement>(".bpx-player-video-area") ?? new Utils().findReferenceNode();
+        if (!player) {
+            this.closed = true;
+            return;
+        }
+        this.list = lists.get(player);
+        if (!this.list) { this.list = new NoticeList(player); lists.set(player, this.list); }
+        this.list.add(this);
+    }
+
+    get segments(): SponsorTime[] { return this.props.segments; }
+    get actionable(): boolean {
+        return !this.closed && this.skipNoticeRef.current?.state.showSkipButton?.[0] !== false &&
+            (this.segments.length > 1 || this.segments[0].actionType !== ActionType.Poi || this.props.unskipTime != null);
+    }
+
+    get focused(): boolean { return this.noticeElement.contains(document.activeElement); }
+    get hovered(): boolean { return !!this.noticeElement.querySelector(".sponsorSkipStackCard:hover"); }
+
+    get upcoming(): boolean { return !!this.props.advanceSkipNotice; }
+
+    private toProps(update: SkipNoticeUpdate) {
+        return {
+            segments: [...update.segments].sort((a, b) => a.segment[0] - b.segment[0]),
+            autoSkip: update.autoSkip, advanceSkipNotice: update.upcoming,
+            unskipTime: update.unskipTime, startReskip: update.startReskip,
+        };
+    }
+
+    update(update: SkipNoticeUpdate): void {
+        if (this.closed) return;
+        this.props = { ...this.props, ...this.toProps(update), revision: this.props.revision + 1 };
+        this.list.render();
+    }
+
+    isCurrentVideo(): boolean { return this.videoID === getVideoID() && this.cid === getCid(); }
+
+    sameNotice(segments: SponsorTime[]): boolean {
+        return segments.length === this.segments.length && this.contains(segments);
+    }
+
+    contains(segments: SponsorTime[]): boolean {
+        return this.segments.every(old => segments.some(segment => segment.UUID === old.UUID));
+    }
+
+    setShowKeybindHint(value: boolean): void {
+        value &&= Config.config.skipKeybind != null;
+        if (value === this.props.showKeybindHint) return;
+        this.props = { ...this.props, showKeybindHint: value };
+        this.list.render();
+    }
+
+    close(): void {
+        if (this.closed) return;
+        this.closed = true;
+        this.onClosed(this);
+        dismissStackCard(this.noticeElement, () => this.list.remove(this));
+    }
+
+    toggleSkip(): void {
+        if (!this.closed) this.skipNoticeRef.current?.prepAction(SkipNoticeAction.Unskip0);
+    }
+
+    unmutedListener(time: number): void {
+        if (!this.upcoming && !this.closed) this.skipNoticeRef.current?.unmutedListener(time);
+    }
+}

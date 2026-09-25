@@ -200,6 +200,9 @@ for (const category of ["sponsor", "selfpromo"] as const) {
             await expect(notice).toHaveClass(/sponsorSkipNoticeCompact/);
             await notice.hover();
             await expect(notice.locator("[id^='sponsorSkipNoticeSecondRow']")).toBeVisible();
+            // A row can have a nonzero DOM box while its parent's overflow clips it entirely.
+            // Even the smallest player must leave a usable downward detail viewport.
+            await expect.poll(async () => (await notice.locator(".sponsorSkipStackDetail").boundingBox()).height).toBeGreaterThan(18);
             await expect(notice.locator("[id^='sponsorSkipUnskipButton']").first()).toBeVisible();
             await expect(notice.locator(".sponsorSkipNoticeCloseButton")).toBeVisible();
             const playerBounds = await extensionPage.locator(".bpx-player-video-area").boundingBox();
@@ -384,4 +387,123 @@ test("uses the configured notice duration after switching to a mini player", asy
     await expect(notice).toHaveClass(/sponsorSkipNoticeCompact/);
     await writeSyncStorage(extensionServiceWorker, { skipNoticeDuration: 1 });
     await expect(notice).toHaveCount(0, { timeout: 4000 });
+});
+
+test("expires a pending manual notice even while hovered", async ({
+    extensionContext, extensionPage, extensionServiceWorker, sendContentMessage,
+}) => {
+    await writeSyncStorage(extensionServiceWorker, { skipNoticeDuration: 60 });
+    await loadVideoWithSegment(extensionContext, extensionPage, sendContentMessage, "selfpromo");
+    await setMockVideoTime(extensionPage, 6, true);
+    await pauseMockVideo(extensionPage);
+    const notice = extensionPage.locator(".sponsorSkipStackCard");
+    await expect(notice).toHaveCount(1);
+    await notice.locator(".sponsorSkipStackHeader").hover();
+    await setMockVideoTime(extensionPage, 21, true);
+    await expect(notice).toHaveCount(0);
+    await expect(extensionPage.locator(".sponsorSkipStack")).toHaveCount(0);
+});
+
+for (const cancelAdvance of [false, true]) {
+    test(`advance becomes a result in place without an entrance (cancel=${cancelAdvance})`, async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+        await writeSyncStorage(extensionServiceWorker, { advanceSkipNotice: true, skipNoticeDurationBefore: 3, skipNoticeDuration: 60, noticeVisibilityMode: 2 });
+        await loadVideoWithSegment(extensionContext, page, sendContentMessage, 'sponsor');
+        const advance = page.locator('.sponsorSkipUpcomingNotice');
+        await expect(advance).toHaveCount(1);
+        await page.waitForTimeout(400);
+        const initial = await advance.locator('.sponsorSkipStackHeader').boundingBox();
+        await page.evaluate(() => {
+            const frames: number[] = [];
+            const state = { entrances: 0, frames };
+            (window as Window & { handoff?: typeof state }).handoff = state;
+            document.addEventListener('animationstart', event => {
+                if ((event as AnimationEvent).animationName === 'sb-stack-arrive') state.entrances++;
+            });
+            const until = performance.now() + 5000;
+            function frame() {
+                const el = document.querySelector('.sponsorSkipStackCard:not(.sponsorSkipUpcomingNotice) .sponsorSkipStackHeader');
+                if (el) frames.push(el.getBoundingClientRect().y);
+                if (performance.now() < until) requestAnimationFrame(frame);
+            }
+            frame();
+        });
+        if (cancelAdvance) await page.keyboard.press('Enter');
+        const result = page.locator('.sponsorSkipStackCard:not(.sponsorSkipUpcomingNotice)');
+        await expect(result).toHaveCount(1);
+        await pauseMockVideo(page);
+        if (cancelAdvance) await page.keyboard.press('Enter');
+        await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(20);
+        await expect(advance).toHaveCount(0);
+        await page.waitForTimeout(750);
+        const samples = await page.evaluate(() => (window as Window & { handoff: { entrances: number; frames: number[] } }).handoff);
+        expect(samples.entrances).toBe(0);
+        expect(samples.frames.length).toBeGreaterThan(5);
+        for (const y of samples.frames) expect(y).toBeCloseTo(initial.y, 1);
+    });
+}
+
+test('preview follows paused video, seeks and playback rate without replacing its DOM', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await writeSyncStorage(extensionServiceWorker, {
+        advanceSkipNotice: true, skipNoticeDurationBefore: 3, skipNoticeDuration: 5, noticeVisibilityMode: 2,
+    });
+    await loadVideoWithSegment(extensionContext, page, sendContentMessage, 'sponsor');
+    const preview = page.locator('.sponsorSkipUpcomingNotice');
+    await expect(preview).toHaveCount(1);
+    await pauseMockVideo(page);
+    const original = await preview.elementHandle();
+    const timer = preview.locator('[id^="skipNoticeTimerText"]');
+    const pausedValue = await timer.textContent();
+    await page.waitForTimeout(4200);
+    await expect(timer).toHaveText(pausedValue);
+    await expect(preview).toHaveCount(1);
+    await setMockVideoTime(page, 3.5, true);
+    await expect(timer).toHaveText(/^2/);
+    await page.locator('video').evaluate((v: HTMLVideoElement) => { v.playbackRate = 2; });
+    await expect(timer).toHaveText(/^1/);
+    await setMockVideoTime(page, 2.5, true);
+    await expect(timer).toHaveText(/^2/);
+    await preview.locator('.sponsorSkipStackHeader').hover();
+    await page.locator('video').evaluate((v: HTMLVideoElement) => v.play());
+    const result = page.locator('.sponsorSkipStackCard:not(.sponsorSkipUpcomingNotice)');
+    await expect(result).toHaveCount(1);
+    expect(await original.evaluate(el => el === document.querySelector('.sponsorSkipStackCard'))).toBe(true);
+    await expect(result.locator('[id^="skipNoticeTimerPaused"]')).toBeVisible();
+    await page.mouse.move(1200, 700);
+    await expect(result).toHaveCount(0, { timeout: 6500 });
+});
+
+test('cancelled preview survives pause/resume and updates the same card to a manual action', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await writeSyncStorage(extensionServiceWorker, {
+        advanceSkipNotice: true, skipNoticeDurationBefore: 3, skipNoticeDuration: 60, noticeVisibilityMode: 2,
+    });
+    await loadVideoWithSegment(extensionContext, page, sendContentMessage, 'sponsor');
+    const preview = page.locator('.sponsorSkipUpcomingNotice');
+    await expect(preview).toHaveCount(1);
+    await pauseMockVideo(page);
+    const original = await preview.elementHandle();
+    await page.keyboard.press('Enter');
+    await page.locator('video').evaluate((v: HTMLVideoElement) => v.play());
+    const result = page.locator('.sponsorSkipStackCard:not(.sponsorSkipUpcomingNotice)');
+    await expect(result).toHaveCount(1);
+    await pauseMockVideo(page);
+    expect(await getMockVideoTime(page)).toBeLessThan(10);
+    expect(await original.evaluate(el => el === document.querySelector('.sponsorSkipStackCard'))).toBe(true);
+    await page.keyboard.press('Enter');
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(20);
+});
+
+test('seeking past a previewed segment removes the preview instead of leaving a zero countdown', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await writeSyncStorage(extensionServiceWorker, { advanceSkipNotice: true, skipNoticeDurationBefore: 3 });
+    await loadVideoWithSegment(extensionContext, page, sendContentMessage, 'sponsor');
+    const preview = page.locator('.sponsorSkipUpcomingNotice');
+    await expect(preview).toHaveCount(1);
+    await pauseMockVideo(page);
+    await setMockVideoTime(page, 21, true);
+    await expect(page.locator('.sponsorSkipStackCard')).toHaveCount(0);
+    await setMockVideoTime(page, 0, true);
+    await page.locator('video').evaluate((v: HTMLVideoElement) => v.play());
+    await expect(preview).toHaveCount(1);
+    await pauseMockVideo(page);
+    await writeSyncStorage(extensionServiceWorker, { disableSkipping: true });
+    await expect(page.locator('.sponsorSkipStackCard')).toHaveCount(0);
 });

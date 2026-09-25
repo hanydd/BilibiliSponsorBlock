@@ -1101,3 +1101,130 @@ input::-webkit-inner-spin-button {
 #commentSponsorLabel .Match {
 	margin-top: 5px;
 }
+
+/* B1 changes positioning and motion. Reuse the existing notice typography, icons and controls. */
+.sponsorSkipStack {
+    position: absolute;
+    right: 12px;
+    width: min(440px, calc(100% - 24px));
+    /* Below Bilibili's control menus (75), above its video overlays. */
+    z-index: 74;
+    overflow: hidden;
+    overscroll-behavior: contain;
+}
+.sponsorSkipStackBody { position: relative; width: 100%; }
+.sponsorSkipStackReviewing, .sponsorSkipStackScrollable { overflow-y: auto; }
+/* Keep scrolling available without flashing scrollbars as details animate open. */
+.sponsorSkipStack, .sponsorSkipStackCard .sponsorSkipStackDetail { scrollbar-width: none; }
+.sponsorSkipStack::-webkit-scrollbar,
+.sponsorSkipStackCard .sponsorSkipStackDetail::-webkit-scrollbar { display: none; }
+.sponsorSkipStackCompact { right: 8px; width: calc(100% - 16px); max-width: 360px; }
+.sponsorSkipStack .sponsorSkipStackCard {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    pointer-events: auto;
+    transition: transform var(--sb-move-duration) ease-out, opacity var(--sb-exit-duration) ease-out;
+    --sb-detail-height: 0px;
+    height: 40px;
+    min-width: 0;
+}
+.sponsorSkipStackSettling .sponsorSkipStackCard {
+    transition: transform var(--sb-settle-duration) ease-in-out, opacity var(--sb-exit-duration) ease-out;
+}
+.sponsorSkipStackCard .sponsorSkipNoticeTableContainer { overflow: hidden; }
+.sponsorSkipStackCard .sponsorSkipStackHeader {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-sizing: border-box;
+    height: 40px;
+    padding: 4px 8px;
+}
+.sponsorSkipStackCard .sponsorSkipStackHeader .sponsorSkipMessage {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sponsorSkipStackCard .sponsorSkipLogo { flex-shrink: 0; }
+.sponsorSkipStackCard .sponsorSkipNoticeUnskipSection { flex-shrink: 0; margin-right: auto; }
+.sponsorSkipStackCard .sponsorSkipNoticeTimeLeft {
+    /* Include the unit, border and padding; keep this space when showing pause/stop. */
+    flex: 0 0 48px;
+    box-sizing: border-box;
+    justify-content: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    background: none;
+    cursor: pointer;
+}
+.sponsorSkipStackCard .sbhidden { display: none; }
+.sponsorSkipStackCard .sponsorSkipNoticeCloseButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    float: none;
+}
+.sponsorSkipStackCard .sponsorSkipNoticeCloseButton img { width: 100%; height: 100%; }
+.sponsorSkipStackCard .sponsorSkipStackDetail {
+    height: var(--sb-detail-height);
+    overflow: hidden auto;
+    transition: height var(--sb-move-duration) ease-out;
+    overscroll-behavior: contain;
+}
+.sponsorSkipStackCard[aria-expanded="false"] .sponsorSkipStackDetail { visibility: hidden; }
+.sponsorSkipStackCard .sponsorSkipStackDetailInner {
+    width: 100%;
+    max-width: none;
+    table-layout: auto;
+    padding: 0 5px;
+    margin: 0;
+    transition: none;
+}
+.sponsorSkipStackDetailInner > tbody > tr { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.sponsorSkipStackDetailInner > tbody > tr:empty { display: none; }
+.sponsorSkipStackDetailInner > tbody > tr > td { min-width: 0; }
+.sponsorSkipStackCard .sponsorSkipNoticeRightSection { position: static; margin: 0 0 0 auto; float: none; }
+.sponsorSkipStackCard .sponsorTimesVoteButtonsContainer { float: none; }
+.sponsorSkipStackCard button.voteButton {
+    display: inline-block;
+    border: 0;
+    padding: 0 5px;
+    background: none;
+    color: inherit;
+    font: inherit;
+}
+.sponsorSkipStackCard .sponsorSkipStackCount {
+    margin: 0;
+    box-sizing: border-box;
+    flex: 0 0 24px;
+}
+.sponsorSkipStackCard .sponsorSkipStackCount[hidden] { display: block; visibility: hidden; pointer-events: none; }
+.sponsorSkipStackFolded > * { pointer-events: none; }
+.sponsorSkipStack .sponsorSkipStackExiting { opacity: 0; pointer-events: none; }
+.sponsorSkipStackArriving .sponsorSkipNoticeTableContainer { animation: sb-stack-arrive var(--sb-move-duration) ease-out; }
+.sponsorSkipStackCompact .sponsorSkipStackCard { height: 34px; }
+.sponsorSkipStackCompact .sponsorSkipStackHeader { height: 34px; padding: 2px 5px; gap: 2px; }
+.sponsorSkipStackCompact .sponsorSkipStackDetailInner { padding: 0 2px; }
+.sponsorSkipStackCompact .sponsorSkipNoticeTimeLeft { flex-basis: 40px; }
+@keyframes sb-stack-arrive {
+    from { opacity: 0; transform: translateY(-40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .sponsorSkipStack .sponsorSkipStackCard, .sponsorSkipStackCard .sponsorSkipStackDetail { transition: none; }
+    .sponsorSkipStackArriving .sponsorSkipNoticeTableContainer { animation: none; }
+}
+
+/* Expanded/hovered cards stay clear across skip/undo state changes. */
+.sponsorSkipStackCard[aria-expanded="true"] > .sponsorSkipNoticeFaded,
+.sponsorSkipStackCard:hover > .sponsorSkipNoticeFaded { opacity: 1; }

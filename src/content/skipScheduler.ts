@@ -1,4 +1,6 @@
+import { upcomingSkipDecision } from "../notices/UpcomingSkipDecision";
 import Config from "../config";
+import { isSkipSeek, seekForSkip } from "./skipSeek";
 import { asyncRequestToServer } from "../requests/requests";
 import {
     ActionType,
@@ -21,6 +23,7 @@ import {
     checkIfNewVideoID,
     checkVideoIDChange,
     getChannelIDInfo,
+    getCid,
     getVideo,
     getVideoID,
 } from "../utils/video";
@@ -295,6 +298,14 @@ export function registerSkipScheduler(): void {
         scheduleIfPlaybackMoved(video);
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_SEEKING, ({ video }) => {
+        // UI suppression belongs to one playback pass. A user seek may replay
+        // the same range; UUID-based statistics remain independently deduplicated.
+        if (!isSkipSeek(video)) {
+            executedSkipRanges = [];
+            // A paused seek is scheduled on resume. Zero may be snapped to the
+            // first decoded frame, so lastPausedAtZero alone is not sufficient.
+            pendingIncludeIntersecting = Config.config.skipOnSeekToSegment;
+        }
         lastKnownVideoTime.fromPause = false;
         updatePoiSkipButtonForCurrentTime();
 
@@ -418,8 +429,6 @@ export async function startSponsorSchedule(
 
     if (video.paused || (video.currentTime >= video.duration - 0.01 && video.duration > 1)) return;
     const skipInfo = getNextSkipIndex(currentTime, includeIntersectingSegments, includeNonIntersectingSegments);
-    // intersecting 意图已由获胜调用（代际机制保证唯一）消费：无论命中与否都不再继承
-    pendingIncludeIntersecting = false;
 
     const currentSkip = skipInfo.array[skipInfo.index];
     const skipTime: number[] = [currentSkip?.scheduledTime, skipInfo.array[skipInfo.endIndex]?.segment[1]];
@@ -442,7 +451,10 @@ export async function startSponsorSchedule(
     }
 
     logDebug(`Ready to start skipping: ${skipInfo.index} at ${currentTime}`);
-    if (skipInfo.index === -1) return;
+    if (skipInfo.index === -1) {
+        pendingIncludeIntersecting = false;
+        return;
+    }
 
     if (
         Config.config.disableSkipping ||
@@ -486,6 +498,9 @@ export async function startSponsorSchedule(
         if (stale()) return;
         if (await incorrectVideoCheck(videoID, currentSkip)) return;
         if (stale()) return;
+        // Consume the seek only after the last asynchronous check. Buffering can
+        // replace this schedule while it waits; the successor must inherit it.
+        pendingIncludeIntersecting = false;
         forceVideoTime ||= Math.max(getVideo().currentTime, getVirtualTime());
 
         if (
@@ -647,7 +662,6 @@ export async function startSponsorSchedule(
                         false,
                         "skipScheduler.startSponsorSchedule.advanceNotice"
                     );
-                    sessionStorage.setItem("SKIPPING", "true");
                 }, timeUntilPopup);
             }
         }
@@ -1117,7 +1131,9 @@ export function startSkipScheduleCheckingForStartSponsors(): void {
         }
 
         if (startingSegmentTime !== -1) {
-            startSponsorSchedule(undefined, startingSegmentTime);
+            // Initial playback can already be inside an opening segment. Carry
+            // that intent through the PLAY/PLAYING and buffering restarts too.
+            startSponsorSchedule(true, startingSegmentTime);
         } else {
             startSponsorSchedule();
         }
@@ -1218,8 +1234,7 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
     if (Config.config.disableSkipping) return;
 
     let autoSkip: boolean;
-    if (sessionStorage.getItem("SKIPPING") === "false") {
-        sessionStorage.setItem("SKIPPING", "null");
+    if (upcomingSkipDecision.consume(`${getVideoID()}:${getCid()}`, skippingSegments.map(segment => segment.UUID))) {
         autoSkip = false;
     } else {
         autoSkip = forceAutoSkip || shouldAutoSkip(skippingSegments[0]);
@@ -1259,27 +1274,27 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
             case ActionType.Poi:
             case ActionType.Skip: {
                 if (v.loop && v.duration > 1 && skipTime[1] >= v.duration - 1) {
-                    v.currentTime = 0;
+                    seekForSkip(v, 0);
                 } else if (
                     v.duration > 1 &&
                     skipTime[1] >= v.duration &&
                     (navigator.vendor === "Apple Computer, Inc." || isPlayingPlaylist())
                 ) {
-                    v.currentTime = v.duration - 0.001;
+                    seekForSkip(v, v.duration - 0.001);
                 } else if (
                     v.duration > 1 &&
                     Math.abs(skipTime[1] - v.duration) < endTimeSkipBuffer &&
                     isFirefoxOrSafari() &&
                     !isSafari()
                 ) {
-                    v.currentTime = v.duration;
+                    seekForSkip(v, v.duration);
                 } else {
                     if (inMuteSegment(skipTime[1], true)) {
                         v.muted = true;
                         videoMuted = true;
                     }
 
-                    v.currentTime = skipTime[1];
+                    seekForSkip(v, skipTime[1]);
                 }
 
                 break;
@@ -1381,7 +1396,7 @@ export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = nul
     }
 
     if (forceSeek || segment.actionType === ActionType.Skip) {
-        getVideo().currentTime = unskipTime ?? segment.segment[0] + 0.001;
+        seekForSkip(getVideo(), unskipTime ?? segment.segment[0] + 0.001);
     }
 }
 
@@ -1400,7 +1415,7 @@ export function reskipSponsorTime(segment: SponsorTime, forceSeek = false): void
         const segmentDuration = segment.segment[1] - segment.segment[0];
         const fullSkip = skippedTime / segmentDuration > manualSkipPercentCount;
 
-        getVideo().currentTime = segment.segment[1];
+        seekForSkip(getVideo(), segment.segment[1]);
         recordSkippedSegments([segment], () => skippedTime, fullSkip);
         markRangeExecuted(segment.segment[0], segment.segment[1]);
         void startSponsorSchedule(true, segment.segment[1], false);

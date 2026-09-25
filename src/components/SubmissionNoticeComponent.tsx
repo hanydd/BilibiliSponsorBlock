@@ -149,7 +149,6 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                         closeListener={this.cancel.bind(this)}
                         zIndex={5000}
                         firstColumn={[sortButton, exportButton]}
-                        advanceSkipNoticeShow={false}
                     >
                         {/* Text Boxes */}
                         {this.getMessageBoxes()}

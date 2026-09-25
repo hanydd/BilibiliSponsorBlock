@@ -1,10 +1,12 @@
 import * as React from "react";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
-import { ActionType, Category, NoticeVisibilityMode, SegmentUUID, SponsorSourceType, SponsorTime } from "../types";
+import { ActionType, Category, SegmentUUID, SponsorSourceType, SponsorTime } from "../types";
 import Utils from "../utils";
 import { getAdvanceSkipText, getSkippingText } from "../utils/categoryUtils";
-import NoticeComponent from "./NoticeComponent";
+import { upcomingSkipDecision } from "../notices/UpcomingSkipDecision";
+import StackNoticeComponent from "./StackNoticeComponent";
+import { expandStackCard, setStackCardExpanded } from "../render/SkipNoticeStack";
 import NoticeTextSelectionComponent from "./NoticeTextSectionComponent";
 const utils = new Utils();
 
@@ -16,16 +18,12 @@ import ThumbsUpSvg from "../svg-icons/thumbs_up_svg";
 import { getFormattedTime } from "../utils/formating";
 import { downvoteButtonColor, noticeSegmentsIntersect, SkipNoticeAction } from "../utils/noticeUtils";
 import { generateUserID } from "../utils/setup";
-import { getCid, getVideo } from "../utils/video";
-import { cancelSpeedUp, clearManuallyCancelled, getActiveSpeedUpInfo, startSpeedUp } from "../content/speedUpManager";
+import { getCid, getVideo, getVideoID } from "../utils/video";
+import { cancelSpeedUp, clearManuallyCancelled, getActiveSpeedUpInfo, getSpeedUpNoticeEnd, startSpeedUp } from "../content/speedUpManager";
 import { getContentApp } from "../content/app";
 import { CONTENT_EVENTS } from "../content/app/events";
 
-enum SkipButtonState {
-    Undo, // Unskip
-    Redo, // Reskip
-    Start, // Skip
-}
+import { SegmentPlaybackState, initialPlayback, noticePresentation } from "../notices/SkipNoticeModel";
 
 export interface SkipNoticeProps {
     segments: SponsorTime[];
@@ -37,30 +35,23 @@ export interface SkipNoticeProps {
     contentContainer: ContentContainer;
 
     closeListener: () => void;
+    onInteractionChange: () => void;
     showKeybindHint?: boolean;
-    fadeIn: boolean;
-    fadeOut: boolean;
-
-    componentDidMount?: () => void;
+    id: string;
+    revision: number;
 
     unskipTime?: number;
-
-    advanceSkipNoticeShow: boolean;
 }
 
 export interface SkipNoticeState {
     compact?: boolean;
-    noticeTitle?: string;
 
     messages?: string[];
     messageOnClick?: (event: React.MouseEvent) => unknown;
 
-    countdownTime?: number;
     maxCountdownTime?: () => number;
-    countdownText?: string;
 
-    skipButtonStates?: SkipButtonState[];
-    skipButtonCallbacks?: Array<(buttonIndex: number, index: number, forceSeek: boolean) => void>;
+    playback?: SegmentPlaybackState[];
     showSkipButton?: boolean[];
 
     editing?: boolean;
@@ -68,10 +59,6 @@ export interface SkipNoticeState {
     thanksForVotingText?: string; //null until the voting buttons should be hidden
 
     actionState?: SkipNoticeAction;
-
-    showKeybindHint?: boolean;
-
-    smaller?: boolean;
 
     voted?: SkipNoticeAction[];
     copied?: SkipNoticeAction[];
@@ -82,19 +69,21 @@ export interface SkipNoticeState {
 
 class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeState> {
     private playerResizeObserver?: ResizeObserver;
+    private video?: HTMLVideoElement;
+    private expirePending = (): void => {
+        if (this.props.autoSkip || this.props.advanceSkipNotice || this.state.playback[0] !== SegmentPlaybackState.Pending) return;
+        if (this.segments.every((segment) => segment.actionType === ActionType.Skip &&
+            (this.video.currentTime < segment.segment[0] || this.video.currentTime >= segment.segment[1]))) {
+            this.closeListener();
+        }
+    };
 
-    segments: SponsorTime[];
-    autoSkip: boolean;
-    // Contains functions and variables from the content script needed by the skip notice
-    contentContainer: ContentContainer;
-    advanceSkipNoticeShow: boolean;
+    get segments(): SponsorTime[] { return this.props.segments; }
+    get contentContainer(): ContentContainer { return this.props.contentContainer; }
 
-    amountOfPreviousNotices: number;
-    showInSecondSlot: boolean;
+    idSuffix = "";
 
-    idSuffix: string;
-
-    noticeRef: React.MutableRefObject<NoticeComponent>;
+    noticeRef: React.MutableRefObject<StackNoticeComponent>;
     categoryOptionRef: React.RefObject<HTMLSelectElement>;
 
     selectedColor: string;
@@ -109,69 +98,28 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         this.noticeRef = React.createRef();
         this.categoryOptionRef = React.createRef();
 
-        this.segments = props.segments;
-        this.autoSkip = props.autoSkip;
-        this.contentContainer = props.contentContainer;
-        this.advanceSkipNoticeShow = props.advanceSkipNotice;
-
-        const noticeTitle = !this.props.advanceSkipNotice
-            ? getSkippingText(this.segments, this.props.autoSkip)
-            : getAdvanceSkipText(this.segments, this.props.autoSkip);
-
-        const previousSkipNotices = document.querySelectorAll(
-            ".sponsorSkipNoticeParent:not(.sponsorSkipUpcomingNotice)"
-        );
-        this.amountOfPreviousNotices = previousSkipNotices.length;
-        // If there is at least one already in the first slot
-        this.showInSecondSlot =
-            previousSkipNotices.length > 0 &&
-            [...previousSkipNotices].some((notice) => !notice.classList.contains("secondSkipNotice"));
-
-        // Sort segments
-        if (this.segments.length > 1) {
-            this.segments.sort((a, b) => a.segment[0] - b.segment[0]);
-        }
-
-        // This is the suffix added at the end of every id
-        for (const segment of this.segments) {
-            this.idSuffix += segment.UUID;
-        }
-        this.idSuffix += this.amountOfPreviousNotices;
+        this.idSuffix = props.id;
 
         this.selectedColor = Config.config.colorPalette.red;
         this.unselectedColor = Config.config.colorPalette.white;
         this.lockedColor = Config.config.colorPalette.locked;
 
         const isMuteSegment = this.segments[0].actionType === ActionType.Mute;
-        const maxCountdownTime = isMuteSegment
+        const maxCountdownTime = isMuteSegment || !props.autoSkip
             ? this.getFullDurationCountdown(0)
             : () => Config.config.skipNoticeDuration;
 
-        const defaultSkipButtonState = this.props.startReskip ? SkipButtonState.Redo : SkipButtonState.Undo;
-        const skipButtonStates = [
-            defaultSkipButtonState,
-            isMuteSegment ? SkipButtonState.Start : defaultSkipButtonState,
-        ];
-
-        const defaultSkipButtonCallback = this.props.startReskip ? this.reskip.bind(this) : this.unskip.bind(this);
-        const skipButtonCallbacks = [
-            defaultSkipButtonCallback,
-            isMuteSegment ? this.reskip.bind(this) : defaultSkipButtonCallback,
-        ];
+        const playback = initialPlayback(props.autoSkip, props.startReskip, this.segments[0].actionType);
 
         // Setup state
         this.state = {
-            noticeTitle,
             messages: [],
             messageOnClick: null,
 
             //the countdown until this notice closes
             maxCountdownTime,
-            countdownTime: maxCountdownTime(),
-            countdownText: null,
 
-            skipButtonStates,
-            skipButtonCallbacks,
+            playback,
             showSkipButton: [true, true],
 
             editing: false,
@@ -180,87 +128,67 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
 
             actionState: SkipNoticeAction.None,
 
-            showKeybindHint: this.props.showKeybindHint ?? true,
-
-            smaller: this.isSmallNotice(),
-
             // Keep track of what segment the user interacted with.
             voted: new Array(this.props.segments.length).fill(SkipNoticeAction.None),
             copied: new Array(this.props.segments.length).fill(SkipNoticeAction.None),
 
             speedUpPaused: false,
         };
-
-        if (!this.autoSkip) {
-            // Assume manual skip is only skipping 1 submission
-            Object.assign(this.state, this.getUnskippedModeInfo(null, 0, SkipButtonState.Start));
-        }
     }
 
     render(): React.ReactElement {
-        const noticeStyle: React.CSSProperties = {};
-
-        // If it started out as smaller, always keep the
-        // skip button there
-        const showFirstSkipButton = this.isSmallNotice() || this.segments[0].actionType === ActionType.Mute;
-        const showSpeedUpControl = this.isSpeedUpForCurrentSegment() || this.state.speedUpPaused;
-        const firstColumn = showFirstSkipButton ? (
-            <>
-                {this.getSkipButton(0)}
-                {showFirstSkipButton && showSpeedUpControl ? this.getSpeedUpControlButton() : null}
-            </>
-        ) : showSpeedUpControl ? (
-            <>{this.getSpeedUpControlButton()}</>
-        ) : null;
+        const firstColumn = <>
+            {this.getSkipButton(0)}
+            {(this.isSpeedUpForCurrentSegment() || this.state.speedUpPaused) && this.getSpeedUpControlButton()}
+        </>;
 
         return (
-            <NoticeComponent
-                noticeTitle={this.state.noticeTitle}
-                amountOfPreviousNotices={this.amountOfPreviousNotices}
-                showInSecondSlot={this.showInSecondSlot}
+            <StackNoticeComponent
+                noticeTitle={this.props.advanceSkipNotice
+                    ? getAdvanceSkipText(this.segments, this.state.playback[0] === SegmentPlaybackState.Skipped)
+                    : getSkippingText(this.segments, this.hasSkipped())}
                 idSuffix={this.idSuffix}
-                fadeIn={this.props.fadeIn}
-                fadeOut={!this.props.fadeOut}
-                startFaded={
-                    Config.config.noticeVisibilityMode >= NoticeVisibilityMode.FadedForAll ||
-                    (Config.config.noticeVisibilityMode >= NoticeVisibilityMode.FadedForAutoSkip && this.autoSkip)
-                }
-                timed={true}
+                startFaded={this.isFadedNotice()}
                 maxCountdownTime={this.state.maxCountdownTime}
-                style={noticeStyle}
-                biggerCloseButton={false}
                 ref={this.noticeRef}
                 closeListener={() => this.closeListener()}
-                smaller={this.state.smaller}
+                onInteractionChange={this.props.onInteractionChange}
+                playbackEnd={getSpeedUpNoticeEnd(this.segments)}
+                dismissalPaused={this.state.speedUpPaused}
+                upcomingStart={this.props.advanceSkipNotice ? this.segments[0].segment[0] : undefined}
+                smaller={this.isSmallNotice()}
                 compact={this.state.compact}
                 logoFill={Config.config.barTypes[this.segments[0].category].color}
-                limitWidth={true}
                 firstColumn={firstColumn}
                 bottomRow={[...this.getMessageBoxes(), ...this.getBottomRow()]}
-                extraClass={this.props.advanceSkipNotice ? "sponsorSkipUpcomingNotice" : ""}
-                onMouseEnter={() => this.onMouseEnter()}
-                advanceSkipNoticeShow={this.advanceSkipNoticeShow}
-            ></NoticeComponent>
+            ></StackNoticeComponent>
         );
     }
 
+    private hasSkipped(): boolean {
+        return !this.props.advanceSkipNotice && this.state.playback[0] === SegmentPlaybackState.Skipped;
+    }
+
     private isSmallNotice(): boolean {
-        return Config.config.noticeVisibilityMode >= NoticeVisibilityMode.MiniForAll ||
-            (Config.config.noticeVisibilityMode >= NoticeVisibilityMode.MiniForAutoSkip && this.autoSkip);
+        return noticePresentation(Config.config.noticeVisibilityMode, !!this.props.advanceSkipNotice, this.state.playback[0]).small;
+    }
+
+    private isFadedNotice(): boolean {
+        return noticePresentation(Config.config.noticeVisibilityMode, !!this.props.advanceSkipNotice, this.state.playback[0]).faded;
     }
 
     componentDidMount(): void {
         this.configListener = (changes) => {
             if ("noticeVisibilityMode" in changes) {
-                this.setState({ smaller: this.isSmallNotice() });
-                this.noticeRef.current?.setState({
-                    startFaded: Config.config.noticeVisibilityMode >= NoticeVisibilityMode.FadedForAll ||
-                        (Config.config.noticeVisibilityMode >= NoticeVisibilityMode.FadedForAutoSkip && this.autoSkip),
-                });
+                this.forceUpdate();
+                setStackCardExpanded(this.noticeRef.current?.getElement().current, !this.isSmallNotice());
             }
             if ("barTypes" in changes) this.forceUpdate();
         };
         Config.configSyncListeners.push(this.configListener);
+        this.video = getVideo();
+        this.video?.addEventListener("timeupdate", this.expirePending);
+        this.video?.addEventListener("seeking", this.expirePending);
         const player = this.noticeRef.current?.getElement().current?.closest(".bpx-player-video-area");
         if (player) {
             const updateLayout = () => {
@@ -273,16 +201,14 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             this.playerResizeObserver = new ResizeObserver(updateLayout);
             this.playerResizeObserver.observe(player);
         }
-        if (this.props.componentDidMount) {
-            this.props.componentDidMount();
-        }
-
         // 快进状态变化（外部取消/恢复/结束）时刷新按钮显隐，避免“恢复快进”按钮永久滞留
         getContentApp().bus.on(CONTENT_EVENTS.SPEEDUP_STATE_CHANGED, this.onSpeedUpStateChanged);
     }
 
     componentWillUnmount(): void {
         this.playerResizeObserver?.disconnect();
+        this.video?.removeEventListener("timeupdate", this.expirePending);
+        this.video?.removeEventListener("seeking", this.expirePending);
         this.clearConfigListener();
         getContentApp().bus.off(CONTENT_EVENTS.SPEEDUP_STATE_CHANGED, this.onSpeedUpStateChanged);
     }
@@ -308,11 +234,13 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                         className="sponsorTimesVoteButtonsContainer"
                     >
                         {/* Upvote Button */}
-                        <div
+                        <button
+                            type="button"
                             id={"sponsorTimesDownvoteButtonsContainerUpvote" + this.idSuffix}
                             className="voteButton"
                             style={{ marginRight: "5px" }}
                             title={chrome.i18n.getMessage("upvoteButtonInfo")}
+                            aria-label={chrome.i18n.getMessage("upvoteButtonInfo")}
                             onClick={() => this.prepAction(SkipNoticeAction.Upvote)}
                         >
                             <ThumbsUpSvg
@@ -322,14 +250,16 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                                         : this.unselectedColor
                                 }
                             />
-                        </div>
+                        </button>
 
                         {/* Report Button */}
-                        <div
+                        <button
+                            type="button"
                             id={"sponsorTimesDownvoteButtonsContainerDownvote" + this.idSuffix}
                             className="voteButton"
                             style={{ marginRight: "5px", marginLeft: "5px" }}
                             title={chrome.i18n.getMessage("reportButtonInfo")}
+                            aria-label={chrome.i18n.getMessage("reportButtonInfo")}
                             onClick={() => this.prepAction(SkipNoticeAction.Downvote)}
                         >
                             <ThumbsDownSvg
@@ -339,13 +269,15 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                                     SkipNoticeAction.Downvote
                                 )}
                             />
-                        </div>
+                        </button>
 
                         {/* Copy and Downvote Button */}
-                        <div
+                        <button
+                            type="button"
                             id={"sponsorTimesDownvoteButtonsContainerCopyDownvote" + this.idSuffix}
                             className="voteButton"
                             style={{ marginLeft: "5px" }}
+                            aria-label={chrome.i18n.getMessage("edit")}
                             onClick={() => this.openEditingOptions()}
                         >
                             <PencilSvg
@@ -357,7 +289,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                                         : this.unselectedColor
                                 }
                             />
-                        </div>
+                        </button>
                     </td>
                 ) : (
                     <td
@@ -386,10 +318,10 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 )}
 
                 {/* Unskip/Skip Button */}
-                {!this.isSmallNotice() || this.segments[0].actionType === ActionType.Mute ? this.getSkipButton(1) : null}
+                {this.segments[0].actionType === ActionType.Mute ? <td>{this.getSkipButton(1)}</td> : null}
 
                 {/* Never show button */}
-                {!this.autoSkip || this.props.startReskip ? (
+                {!this.props.autoSkip || this.props.startReskip ? (
                     ""
                 ) : (
                     <td className="sponsorSkipNoticeRightSection" key={1}>
@@ -496,16 +428,12 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                     : this.unselectedColor,
             };
 
-            const showSkipButton =
-                buttonIndex !== 0 || this.isSmallNotice() || this.segments[0].actionType === ActionType.Mute;
-
             return (
                 <span
                     className="sponsorSkipNoticeUnskipSection"
-                    style={{ visibility: !showSkipButton ? "hidden" : null }}
                 >
                     <button
-                        id={"sponsorSkipUnskipButton" + this.idSuffix}
+                        id={"sponsorSkipUnskipButton" + this.idSuffix + "-" + buttonIndex}
                         className="sponsorSkipObject sponsorSkipNoticeButton"
                         style={style}
                         onClick={() =>
@@ -513,7 +441,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                         }
                     >
                         {this.getSkipButtonText(buttonIndex, forceSeek ? ActionType.Skip : null) +
-                            (!this.state.compact && !forceSeek && this.state.showKeybindHint
+                            (!this.state.compact && !forceSeek && this.props.showKeybindHint
                                 ? " (" + keybindToString(Config.config.skipKeybind) + ")"
                                 : "")}
                     </button>
@@ -549,8 +477,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     pauseSpeedUp(): void {
         void cancelSpeedUp(true, true);
         this.setState({ speedUpPaused: true });
-        // 暂停 notice 倒计时，避免 notice 自动关闭
-        this.noticeRef.current?.pauseCountdown();
+
     }
 
     /** 恢复快进：重新以快进倍速播放 */
@@ -566,8 +493,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             return;
         }
         this.setState({ speedUpPaused: false });
-        // 恢复 notice 倒计时
-        this.noticeRef.current?.startCountdown();
+
     }
 
     getSubmissionChooser(): JSX.Element[] {
@@ -611,11 +537,24 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         return shouldWarnUser ? this.lockedColor : this.unselectedColor;
     }
 
-    onMouseEnter(): void {
-        if (this.state.smaller && !this.props.advanceSkipNotice) {
+    componentDidUpdate(previousProps: SkipNoticeProps, previous: SkipNoticeState): void {
+        if (previousProps.revision !== this.props.revision) {
+            const mute = this.segments[0].actionType === ActionType.Mute;
             this.setState({
-                smaller: false,
-            });
+                playback: initialPlayback(this.props.autoSkip, this.props.startReskip, this.segments[0].actionType),
+                showSkipButton: [true, true],
+                maxCountdownTime: mute || !this.props.autoSkip ? this.getFullDurationCountdown(0) : () => Config.config.skipNoticeDuration,
+                voted: this.segments.map(segment => previous.voted[previousProps.segments.findIndex(old => old.UUID === segment.UUID)] ?? SkipNoticeAction.None),
+                copied: this.segments.map(segment => previous.copied[previousProps.segments.findIndex(old => old.UUID === segment.UUID)] ?? SkipNoticeAction.None),
+            }, () => this.noticeRef.current?.resetCountdown());
+        }
+        if (previous.playback !== this.state.playback || previousProps.advanceSkipNotice !== this.props.advanceSkipNotice) {
+            setStackCardExpanded(this.noticeRef.current?.getElement().current, !this.isSmallNotice());
+        }
+        if ((this.state.editing && !previous.editing) ||
+            (this.state.actionState !== SkipNoticeAction.None && this.state.actionState !== previous.actionState) ||
+            this.state.messages !== previous.messages || this.state.thanksForVotingText !== previous.thanksForVotingText) {
+            expandStackCard(this.noticeRef.current?.getElement().current);
         }
     }
 
@@ -655,14 +594,8 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
         if (this.segments.length === 1) {
             this.performAction(0, action);
         } else {
-            if (this.state.smaller) {
-                this.setState({
-                    smaller: false,
-                });
-
-                this.noticeRef.current.fadedMouseEnter();
-                this.noticeRef.current.resetCountdown();
-            }
+            expandStackCard(this.noticeRef.current?.getElement().current);
+            this.noticeRef.current.resetCountdown();
 
             switch (action ?? this.state.actionState) {
                 case SkipNoticeAction.None:
@@ -777,7 +710,8 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     unskipAction(buttonIndex: number, index: number, forceSeek: boolean): void {
-        this.state.skipButtonCallbacks[buttonIndex](buttonIndex, index, forceSeek);
+        if (this.state.playback[buttonIndex] === SegmentPlaybackState.Skipped) this.unskip(buttonIndex, index, forceSeek);
+        else this.reskip(buttonIndex, index, forceSeek);
     }
 
     openEditingOptions(): void {
@@ -805,42 +739,30 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     unskip(buttonIndex: number, index: number, forceSeek: boolean): void {
-        if (this.props.advanceSkipNoticeShow && getVideo().currentTime < this.segments[0].segment[0]) {
-            sessionStorage.setItem("SKIPPING", "false");
+        if (this.props.advanceSkipNotice && getVideo().currentTime < this.segments[0].segment[0]) {
+            upcomingSkipDecision.set(`${getVideoID()}:${getCid()}`, this.segments.map(segment => segment.UUID), false);
         } else {
             this.contentContainer().unskipSponsorTime(this.segments[index], this.props.unskipTime, forceSeek);
-            document.querySelector("#sponsorSkipMessage" + this.idSuffix).textContent = getSkippingText(
-                this.segments,
-                this.props.autoSkip
-            );
         }
 
-        this.unskippedMode(buttonIndex, index, SkipButtonState.Redo);
+        this.unskippedMode(buttonIndex, index, SegmentPlaybackState.Undone);
     }
 
     reskip(buttonIndex: number, index: number, forceSeek: boolean): void {
-        if (this.props.advanceSkipNoticeShow && getVideo().currentTime < this.segments[0].segment[0]) {
-            sessionStorage.setItem("SKIPPING", "true");
+        if (this.props.advanceSkipNotice && getVideo().currentTime < this.segments[0].segment[0]) {
+            upcomingSkipDecision.set(`${getVideoID()}:${getCid()}`, this.segments.map(segment => segment.UUID), true);
         } else {
             this.contentContainer().reskipSponsorTime(this.segments[index], forceSeek);
-            document.querySelector("#sponsorSkipMessage" + this.idSuffix).textContent = getSkippingText(
-                this.segments,
-                this.props.autoSkip
-            );
         }
 
-        const skipButtonStates = this.state.skipButtonStates;
-        skipButtonStates[buttonIndex] = SkipButtonState.Undo;
-
-        const skipButtonCallbacks = this.state.skipButtonCallbacks;
-        skipButtonCallbacks[buttonIndex] = this.unskip.bind(this);
+        const playback = [...this.state.playback];
+        playback[buttonIndex] = SegmentPlaybackState.Skipped;
 
         const newState: SkipNoticeState = {
-            skipButtonStates,
-            skipButtonCallbacks,
+            playback,
+            speedUpPaused: false,
 
             maxCountdownTime: () => Config.config.skipNoticeDuration,
-            countdownTime: Config.config.skipNoticeDuration,
         };
 
         //reset countdown
@@ -850,42 +772,30 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     /** Sets up notice to be not skipped yet */
-    unskippedMode(buttonIndex: number, index: number, skipButtonState: SkipButtonState): void {
-        //setup new callback and reset countdown
+    unskippedMode(buttonIndex: number, index: number, skipButtonState: SegmentPlaybackState): void {
+        // Update playback and explicitly restart the result display time.
         this.setState(this.getUnskippedModeInfo(buttonIndex, index, skipButtonState), () => {
             this.noticeRef.current.resetCountdown();
         });
     }
 
-    getUnskippedModeInfo(buttonIndex: number, index: number, skipButtonState: SkipButtonState): SkipNoticeState {
+    getUnskippedModeInfo(buttonIndex: number, index: number, playbackState: SegmentPlaybackState): SkipNoticeState {
         const changeCountdown = this.segments[index].actionType !== ActionType.Poi;
 
         const maxCountdownTime = changeCountdown ? this.getFullDurationCountdown(index) : this.state.maxCountdownTime;
 
-        const skipButtonStates = this.state.skipButtonStates;
-        const skipButtonCallbacks = this.state.skipButtonCallbacks;
-        if (buttonIndex === null) {
-            for (let i = 0; i < skipButtonStates.length; i++) {
-                skipButtonStates[i] = skipButtonState;
-                skipButtonCallbacks[i] = this.reskip.bind(this);
-            }
-        } else {
-            skipButtonStates[buttonIndex] = skipButtonState;
-            skipButtonCallbacks[buttonIndex] = this.reskip.bind(this);
-
-            if (buttonIndex === 1) {
-                // Trigger both to move at once
-                skipButtonStates[0] = SkipButtonState.Redo;
-                skipButtonCallbacks[0] = this.reskip.bind(this);
-            }
+        const playback = [...this.state.playback];
+        playback[buttonIndex] = playbackState;
+        if (buttonIndex === 1) {
+            // Undoing a mute segment's seek also makes its mute action available again.
+            playback[0] = SegmentPlaybackState.Undone;
         }
 
         return {
-            skipButtonStates,
-            skipButtonCallbacks,
+            playback,
+            speedUpPaused: false,
             // change max duration to however much of the sponsor is left
             maxCountdownTime,
-            countdownTime: maxCountdownTime(),
             showSkipButton: buttonIndex === 1 ? [true, true] : this.state.showSkipButton,
         } as SkipNoticeState;
     }
@@ -895,14 +805,6 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             const sponsorTime = this.segments[index];
             const video = getVideo();
             if (!video) return Config.config.skipNoticeDuration;
-            // 如果该片段正处于倍速快进中，则按快进速率计算墙钟剩余时间，避免与实际快进时长对不上
-            const activeInfo = getActiveSpeedUpInfo();
-            const isSpeedUpForThisSegment = !!activeInfo && activeInfo.segments.some((s) => s.UUID === sponsorTime.UUID);
-            if (isSpeedUpForThisSegment) {
-                const wallClock = (sponsorTime.segment[1] - video.currentTime) / activeInfo.rate;
-                // 快进时不强制与 skipNoticeDuration 取 max，否则短片段会显示 4s 而实际仅 0.5s，对不上
-                return Math.max(1, Math.ceil(wallClock));
-            }
             const duration = Math.round(
                 (sponsorTime.segment[1] - video.currentTime) * (1 / video.playbackRate)
             );
@@ -986,13 +888,13 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
 
     unmutedListener(time: number): void {
         if (
-            this.props.segments.length === 1 &&
+            this.state.showSkipButton[0] && this.props.segments.length === 1 &&
             this.props.segments[0].actionType === ActionType.Mute &&
             time >= this.props.segments[0].segment[1]
         ) {
             this.setState({
                 showSkipButton: [false, true],
-            });
+            }, this.props.onInteractionChange);
         }
     }
 
@@ -1011,12 +913,12 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     private getSkipButtonText(buttonIndex: number, forceType?: ActionType): string {
-        switch (this.state.skipButtonStates[buttonIndex]) {
-            case SkipButtonState.Undo:
+        switch (this.state.playback[buttonIndex]) {
+            case SegmentPlaybackState.Skipped:
                 return this.getUndoText(forceType);
-            case SkipButtonState.Redo:
+            case SegmentPlaybackState.Undone:
                 return this.getRedoText(forceType);
-            case SkipButtonState.Start:
+            case SegmentPlaybackState.Pending:
                 return this.getStartText(forceType);
         }
     }

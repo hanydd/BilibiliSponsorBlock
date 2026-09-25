@@ -4,10 +4,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { ActionType, SponsorTime } from "../src/types";
 import { installChromeMock, installCoreModuleMocks, makeSegment, makeVideo, setupFullContent } from "./helpers/contentHarness";
 
-/** 透传 firstColumn 的哑 NoticeComponent，便于断言倍速控制按钮渲染。 */
-jest.mock("../src/components/NoticeComponent", () => ({
+/** 透传 firstColumn 的哑 StackNoticeComponent，便于断言倍速控制按钮渲染。 */
+jest.mock("../src/components/StackNoticeComponent", () => ({
     __esModule: true,
-    default: class MockNoticeComponent extends React.Component {
+    default: class MockStackNoticeComponent extends React.Component {
         render(): React.ReactElement {
             const props = this.props as unknown as { firstColumn: React.ReactNode; bottomRow: React.ReactNode; noticeTitle: string };
             return React.createElement("div", { className: "mock-notice" }, props.noticeTitle, props.firstColumn, props.bottomRow);
@@ -29,6 +29,36 @@ describe("speedUp 核心行为与交互契约", () => {
 
     afterEach(() => {
         jest.useRealTimers();
+    });
+
+    test("replaying a completed speed-up shows its notice again without counting twice", async () => {
+        installCoreModuleMocks(video, { asyncRequestToServerMock });
+        const { app, contentState, CONTENT_EVENTS } = await setupFullContent();
+        const { skipToTime } = await import("../src/content/skipScheduler");
+        const { isSpeedUpActive } = await import("../src/content/speedUpManager");
+        const config = (await import("../src/config")).default;
+        const segment = makeSegment("replay-notice", 40, 48);
+        contentState.sponsorTimes = [segment];
+        const notices: unknown[] = [];
+        app.bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, payload => notices.push(payload));
+        video.currentTime = 40;
+        skipToTime({ v: video, skipTime: [40, 48], skippingSegments: [segment], openNotice: true });
+        expect(isSpeedUpActive()).toBe(true);
+        video.currentTime = 48;
+        await jest.advanceTimersByTimeAsync(200);
+        expect(notices).toHaveLength(1);
+        expect(config.config.skipCount).toBe(1);
+        Object.defineProperty(video, "paused", { configurable: true, value: true });
+        video.currentTime = 39;
+        app.bus.emit(CONTENT_EVENTS.PLAYER_SEEKING, { video }, { source: "test.userReplay" });
+        Object.defineProperty(video, "paused", { configurable: true, value: false });
+        video.currentTime = 40;
+        skipToTime({ v: video, skipTime: [40, 48], skippingSegments: [segment], openNotice: true });
+        expect(isSpeedUpActive()).toBe(true);
+        expect(notices).toHaveLength(2);
+        video.currentTime = 48;
+        await jest.advanceTimersByTimeAsync(200);
+        expect(config.config.skipCount).toBe(1);
     });
 
     test("近尾不启动快进，不残留高倍速", async () => {
@@ -270,6 +300,7 @@ describe("speedUp 核心行为与交互契约", () => {
             getChannelIDInfo: jest.fn(() => ({ status: 1 })),
             getVideo: jest.fn(() => currentVideo),
             getVideoID: jest.fn(() => "BV1test"),
+            getCid: jest.fn(() => "1"),
         }));
         const { createContentApp } = await import("../src/content/app");
         const { CONTENT_EVENTS } = await import("../src/content/app/events");
@@ -567,6 +598,7 @@ describe("倍速控制按钮渲染", () => {
             getActiveSpeedUpInfo: jest.fn(() =>
                 speedUpActive ? { segments: [{ UUID: "uuid-comp" }], start: 0, end: 1, rate: 4 } : null
             ),
+            getSpeedUpNoticeEnd: jest.fn(() => speedUpActive ? 20 : undefined),
             startSpeedUp: jest.fn(async () => true),
         }));
         (global as unknown as { chrome: unknown }).chrome = {
@@ -579,7 +611,7 @@ describe("倍速控制按钮渲染", () => {
         return { UUID: "uuid-comp", segment: [10, 20], category: "sponsor", actionType: ActionType.Skip, source: 0 } as SponsorTime;
     }
 
-    async function renderNotice(smaller: boolean): Promise<string> {
+    async function renderNotice(): Promise<string> {
         const { default: SkipNoticeComponent } = await import("../src/components/SkipNoticeComponent");
         return renderToStaticMarkup(
             React.createElement(SkipNoticeComponent, {
@@ -587,11 +619,10 @@ describe("倍速控制按钮渲染", () => {
                 autoSkip: false,
                 contentContainer: {},
                 closeListener: () => undefined,
-                smaller,
-                fadeIn: false,
-                fadeOut: false,
+                id: "test-notice",
+                revision: 0,
+                onInteractionChange: () => undefined,
                 advanceSkipNotice: false,
-                advanceSkipNoticeShow: false,
             } as never)
         );
     }
@@ -602,13 +633,13 @@ describe("倍速控制按钮渲染", () => {
 
     test("全尺寸模式且倍速激活时渲染暂停按钮", async () => {
         setup(true);
-        const markup = await renderNotice(false);
+        const markup = await renderNotice();
         expect(markup).toContain("pauseSpeedUp");
     });
 
     test("倍速未激活时不渲染控制按钮", async () => {
         setup(false);
-        const markup = await renderNotice(false);
+        const markup = await renderNotice();
         expect(markup).not.toContain("pauseSpeedUp");
         expect(markup).not.toContain("resumeSpeedUp");
     });
@@ -627,24 +658,25 @@ describe("合并片段 notice 去重", () => {
             __esModule: true,
             default: class {
                 segments;
+                closed = false;
+                upcoming = false;
+                actionable = true;
+                onClosed;
+                isCurrentVideo = () => true;
+                contains = (segments) => this.segments.every(member => segments.some(segment => segment.UUID === member.UUID));
+                sameNotice = (segments) => this.segments.length === segments.length && this.contains(segments);
                 setShowKeybindHint = jest.fn();
                 close = jest.fn(() => {
                     const i = createdNotices.indexOf(this);
                     if (i >= 0) createdNotices.splice(i, 1);
+                    this.closed = true;
+                    this.onClosed(this);
                 });
-                constructor(segments: Array<{ UUID: string }>) {
-                    this.segments = segments;
+                constructor(update, _container, onClosed) {
+                    this.segments = update.segments;
+                    this.onClosed = onClosed;
                     createdNotices.push(this);
                 }
-            },
-        }));
-        jest.doMock("../src/render/advanceSkipNotice", () => ({
-            __esModule: true,
-            default: class {
-                closed = true;
-                sameNotice = jest.fn(() => false);
-                setShowKeybindHint = jest.fn();
-                close = jest.fn();
             },
         }));
         jest.doMock("../src/config", () => ({
@@ -657,10 +689,10 @@ describe("合并片段 notice 去重", () => {
         jest.doMock("../src/utils/video", () => ({
             getVideo: jest.fn(() => null),
             getVideoID: jest.fn(() => "BV1test"),
+            getCid: jest.fn(() => "1"),
             getChannelIDInfo: jest.fn(() => ({ status: 1 })),
             checkVideoIDChange: jest.fn(),
             checkIfNewVideoID: jest.fn(async () => false),
-            getCid: jest.fn(() => 1),
         }));
         jest.doMock("../src/utils/injectedScriptMessageUtils", () => ({
             sourceId: "test-source",

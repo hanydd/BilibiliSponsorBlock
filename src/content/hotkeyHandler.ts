@@ -32,8 +32,11 @@ export function addHotkeyListener(): void {
 }
 
 function hotkeyListener(e: KeyboardEvent): void {
+    const target = e.target instanceof HTMLElement ? e.target : document.activeElement as HTMLElement;
+    // Yield our shortcuts to text/form controls without cancelling the page's event.
     if (
-        ["textarea", "input"].includes(document.activeElement?.tagName?.toLowerCase()) ||
+        e.defaultPrevented || target?.isContentEditable ||
+        target?.closest("input, textarea, select") ||
         document.activeElement?.id?.toLowerCase()?.includes("editable")
     )
         return;
@@ -47,6 +50,16 @@ function hotkeyListener(e: KeyboardEvent): void {
     };
 
     const skipKey = Config.config.skipKeybind;
+    const cardButton = target?.closest<HTMLButtonElement>(".sponsorSkipStackCard button");
+    if (cardButton && (e.key === "Enter" || e.key === " ")) {
+        // Only our configured activation key is ours to handle. Activate the focused
+        // action instead of also skipping; Bilibili may cancel its native Enter click.
+        if (keybindEquals(key, skipKey)) {
+            e.preventDefault();
+            cardButton.click();
+        }
+        return;
+    }
     const skipToHighlightKey = Config.config.skipToHighlightKeybind;
     const closeSkipNoticeKey = Config.config.closeSkipNoticeKeybind;
     const startSponsorKey = Config.config.startSponsorKeybind;

@@ -54,6 +54,7 @@ describe("skip scheduler player events", () => {
             getChannelIDInfo: jest.fn(() => ({ status: 0 })),
             getVideo: jest.fn(() => video),
             getVideoID: jest.fn(() => "BV1test"),
+            getCid: jest.fn(() => "1"),
         }));
     }
 

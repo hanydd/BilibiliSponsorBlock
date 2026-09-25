@@ -96,10 +96,6 @@ describe("segment submission business events", () => {
             __esModule: true,
             default: class SkipNoticeMock {},
         }));
-        jest.doMock("../src/render/advanceSkipNotice", () => ({
-            __esModule: true,
-            default: class AdvanceSkipNoticeMock {},
-        }));
         jest.doMock("../src/requests/portVideo", () => ({
             getPortVideoByHash: jest.fn(),
             postPortVideo: jest.fn(),

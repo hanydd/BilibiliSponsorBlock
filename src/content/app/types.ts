@@ -2,7 +2,6 @@ import SkipNoticeComponent from "../../components/SkipNoticeComponent";
 import PreviewBar from "../../js-components/previewBar";
 import { SkipButtonControlBar } from "../../js-components/skipButtonControlBar";
 import SubmissionNotice from "../../render/SubmissionNotice";
-import advanceSkipNotice from "../../render/advanceSkipNotice";
 import { CategoryPill } from "../../render/CategoryPill";
 import { DescriptionPortPill } from "../../render/DescriptionPortPill";
 import { PlayerButton } from "../../render/PlayerButton";
@@ -30,7 +29,6 @@ export interface ContentAppState {
     sponsorDataFound: boolean;
     sponsorTimes: SponsorTime[];
     skipNotices: SkipNotice[];
-    advanceSkipNotices: advanceSkipNotice | null;
     activeSkipKeybindElement: ToggleSkippable;
     shownSegmentFailedToFetchWarning: boolean;
     previewedSegment: boolean;

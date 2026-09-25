@@ -1,6 +1,6 @@
 import Config from "../config";
+import { isSkipSeek } from "./skipSeek";
 import SkipNotice from "../render/SkipNotice";
-import advanceSkipNotice from "../render/advanceSkipNotice";
 import { SponsorTime } from "../types";
 import { waitFor } from "../utils/";
 import { getContentApp } from "./app";
@@ -13,25 +13,20 @@ function getSkipButtonControlBar() {
     return getContentApp().ui.getState().skipButtonControlBar;
 }
 
-function removeSkipNotice(notice: SkipNotice): void {
-    const noticeIndex = contentState.skipNotices.indexOf(notice);
-    if (noticeIndex >= 0) {
-        contentState.skipNotices.splice(noticeIndex, 1);
-    }
-
-    if (contentState.activeSkipKeybindElement === notice) {
-        contentState.activeSkipKeybindElement = null;
-    }
+function selectNoticeTarget(preferred?: SkipNotice): void {
+    const actionable = contentState.skipNotices.filter(notice => notice.actionable);
+    const target = actionable.find(notice => notice.focused) ?? actionable.find(notice => notice.hovered) ?? preferred ?? actionable[actionable.length - 1]
+        ?? (getSkipButtonControlBar()?.isEnabled() ? getSkipButtonControlBar() : null);
+    if (target === contentState.activeSkipKeybindElement) return;
+    contentState.activeSkipKeybindElement?.setShowKeybindHint(false);
+    contentState.activeSkipKeybindElement = target;
+    target?.setShowKeybindHint(target instanceof SkipNotice ? Config.config.skipKeybind != null : Config.config.skipToHighlightKeybind != null);
 }
 
-function clearAdvanceSkipNotice(notice: advanceSkipNotice): void {
-    if (contentState.advanceSkipNotices === notice) {
-        contentState.advanceSkipNotices = null;
-    }
-
-    if (contentState.activeSkipKeybindElement === notice) {
-        contentState.activeSkipKeybindElement = null;
-    }
+function removeSkipNotice(notice: SkipNotice): void {
+    const index = contentState.skipNotices.indexOf(notice);
+    if (index >= 0) contentState.skipNotices.splice(index, 1);
+    if (contentState.activeSkipKeybindElement === notice) selectNoticeTarget();
 }
 
 function closeAdvanceSkipNotice(): void {
@@ -39,12 +34,8 @@ function closeAdvanceSkipNotice(): void {
 }
 
 function closeSkipNotices(includeAdvance = false): void {
-    while (contentState.skipNotices.length > 0) {
-        contentState.skipNotices[contentState.skipNotices.length - 1].close();
-    }
-
-    if (includeAdvance) {
-        closeAdvanceSkipNotice();
+    for (const notice of [...contentState.skipNotices]) {
+        if (includeAdvance || !notice.upcoming) notice.close();
     }
 }
 
@@ -62,78 +53,27 @@ function dontShowNoticeAgain(): void {
     closeSkipNotices(true);
 }
 
-function createSkipNotice(
-    skippingSegments: SponsorTime[],
-    autoSkip: boolean,
-    unskipTime: number | null | undefined,
-    startReskip: boolean
-): void {
-    for (const skipNotice of contentState.skipNotices) {
-        if (
-            skippingSegments.length === skipNotice.segments.length &&
-            skippingSegments.every((segment) => skipNotice.segments.some((existingSegment) => existingSegment.UUID === segment.UUID))
-        ) {
-            return;
-        }
-        // 合并重复弹窗：已存在 notice 的 UUID 集合被新集合完全包含（如合并 [A,B] 已弹，再来单段 [B]），
-        // 且新集合落在已存在 notice 的时间范围内时，视为重复调度，直接丢弃。
-        if (
-            skippingSegments.length < skipNotice.segments.length &&
-            noticeSegmentsContain(skipNotice.segments, skippingSegments)
-        ) {
-            const existingStart = Math.min(...skipNotice.segments.map((s) => s.segment[0]));
-            const existingEnd = Math.max(...skipNotice.segments.map((s) => s.segment[1]));
-            const newStart = Math.min(...skippingSegments.map((s) => s.segment[0]));
-            const newEnd = Math.max(...skippingSegments.map((s) => s.segment[1]));
-            if (newStart >= existingStart - executedRangeStartTolerance && newEnd <= existingEnd + executedRangeEndTolerance) {
-                return;
-            }
-        }
-    }
-
-    const advanceSkipNoticeShow = !!contentState.advanceSkipNotices;
-    const newSkipNotice = new SkipNotice(
-        skippingSegments,
-        autoSkip,
-        getSkipNoticeContentContainer,
-        () => {
-            closeAdvanceSkipNotice();
-        },
-        unskipTime ?? null,
-        startReskip,
-        advanceSkipNoticeShow,
-        removeSkipNotice
-    );
-    if (Config.config.skipKeybind == null) newSkipNotice.setShowKeybindHint(false);
-    contentState.skipNotices.push(newSkipNotice);
-
-    contentState.activeSkipKeybindElement?.setShowKeybindHint(false);
-    contentState.activeSkipKeybindElement = newSkipNotice;
-}
-
-function createAdvanceSkipNotice(
-    skippingSegments: SponsorTime[],
-    unskipTime: number | null | undefined,
-    autoSkip: boolean,
-    startReskip: boolean
-): void {
-    if (contentState.advanceSkipNotices && !contentState.advanceSkipNotices.closed && contentState.advanceSkipNotices.sameNotice(skippingSegments)) {
+function showNotice(skippingSegments: SponsorTime[], autoSkip: boolean, unskipTime: number,
+    startReskip: boolean, upcoming: boolean): void {
+    const existing = contentState.skipNotices.find(notice => !notice.closed && notice.isCurrentVideo() &&
+        (notice.sameNotice(skippingSegments) || (!upcoming && notice.upcoming && notice.contains(skippingSegments))));
+    if (existing && existing.upcoming === upcoming) return;
+    // A later subset of an already visible merged result is the same notice.
+    if (!upcoming && contentState.skipNotices.some(notice => !notice.closed && !notice.upcoming && notice.isCurrentVideo() &&
+        noticeSegmentsContain(notice.segments, skippingSegments) &&
+        Math.min(...skippingSegments.map(segment => segment.segment[0])) >= Math.min(...notice.segments.map(segment => segment.segment[0])) - executedRangeStartTolerance &&
+        Math.max(...skippingSegments.map(segment => segment.segment[1])) <= Math.max(...notice.segments.map(segment => segment.segment[1])) + executedRangeEndTolerance)) return;
+    const update = { segments: skippingSegments, autoSkip, unskipTime, startReskip, upcoming };
+    if (existing) {
+        existing.update(update);
+        selectNoticeTarget(existing);
         return;
     }
-
     closeAdvanceSkipNotice();
-    contentState.advanceSkipNotices = new advanceSkipNotice(
-        skippingSegments,
-        getSkipNoticeContentContainer,
-        unskipTime ?? null,
-        autoSkip,
-        startReskip,
-        clearAdvanceSkipNotice
-    );
-    if (Config.config.skipKeybind == null) contentState.advanceSkipNotices.setShowKeybindHint(false);
-
-    contentState.activeSkipKeybindElement?.setShowKeybindHint(false);
-    contentState.activeSkipKeybindElement = contentState.advanceSkipNotices;
+    const notice = new SkipNotice(update, getSkipNoticeContentContainer, removeSkipNotice, () => selectNoticeTarget());
+    if (notice.closed) return;
+    contentState.skipNotices.push(notice);
+    selectNoticeTarget(notice);
 }
 
 function applySkipButtonState(enabled: boolean, segment: SponsorTime | null): void {
@@ -141,7 +81,7 @@ function applySkipButtonState(enabled: boolean, segment: SponsorTime | null): vo
         const skipButtonControlBar = getSkipButtonControlBar();
         skipButtonControlBar?.disable();
         if (skipButtonControlBar && contentState.activeSkipKeybindElement === skipButtonControlBar) {
-            contentState.activeSkipKeybindElement = null;
+            selectNoticeTarget();
         }
         return;
     }
@@ -156,7 +96,7 @@ function applySkipButtonState(enabled: boolean, segment: SponsorTime | null): vo
             skipButtonControlBar.enable(segment);
             if (!skipButtonControlBar.isEnabled()) {
                 if (contentState.activeSkipKeybindElement === skipButtonControlBar) {
-                    contentState.activeSkipKeybindElement = null;
+                    selectNoticeTarget();
                 }
                 return;
             }
@@ -172,6 +112,18 @@ function applySkipButtonState(enabled: boolean, segment: SponsorTime | null): vo
 export function registerSkipUIManager(): void {
     const app = getContentApp();
 
+    app.bus.on(CONTENT_EVENTS.PLAYER_SEEKING, ({ video }) => {
+        if (isSkipSeek(video)) return;
+        // Small corrections around a segment keep its controls; unrelated old
+        // notices (including manually paused ones) do not follow a user seek.
+        const nearby = (segments: SponsorTime[], lead = 5) => segments.some(({ segment }) =>
+            video.currentTime >= segment[0] - lead && video.currentTime <= (segment[1] ?? segment[0]) + 5);
+        for (const notice of [...contentState.skipNotices]) {
+            const pastPreview = notice.upcoming && notice.segments.every(segment => video.currentTime >= segment.segment[1]);
+            if (pastPreview || !nearby(notice.segments, notice.upcoming ? Math.max(5, Number(Config.config.skipNoticeDurationBefore)) : 5)) notice.close();
+        }
+    });
+
     app.commands.register("skip/closeNotices", ({ includeAdvance }) => closeSkipNotices(includeAdvance));
     app.commands.register("skip/closeNoticesForSegments", ({ segments }) => closeSkipNoticesForSegments(segments));
     app.commands.register("skip/dontShowNoticeAgain", () => dontShowNoticeAgain());
@@ -180,18 +132,19 @@ export function registerSkipUIManager(): void {
         if (Config.config.dontShowNotice) return;
         if (noticeKind === "advance") {
             if (!Config.config.advanceSkipNotice || Config.config.skipNoticeDurationBefore <= 0) return;
-            createAdvanceSkipNotice(skippingSegments, unskipTime, autoSkip, startReskip);
+            showNotice(skippingSegments, autoSkip, unskipTime, startReskip, true);
             return;
         }
 
-        createSkipNotice(skippingSegments, autoSkip, unskipTime, startReskip);
+        showNotice(skippingSegments, autoSkip, unskipTime, startReskip, false);
     });
 
     app.bus.on(CONTENT_EVENTS.CONFIG_CHANGED, ({ changes }) => {
         if ("dontShowNotice" in changes && Config.config.dontShowNotice) {
             closeSkipNotices(true);
         } else if (("advanceSkipNotice" in changes || "skipNoticeDurationBefore" in changes) &&
-            (!Config.config.advanceSkipNotice || Config.config.skipNoticeDurationBefore <= 0)) {
+            (!Config.config.advanceSkipNotice || Config.config.skipNoticeDurationBefore <= 0) ||
+            ("disableSkipping" in changes && Config.config.disableSkipping)) {
             closeAdvanceSkipNotice();
         }
     });
