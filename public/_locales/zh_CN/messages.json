@@ -451,6 +451,12 @@
     "skipSoundVolumeDescription": {
         "message": "跳过提示音的播放音量（0-100%）。试听与实际跳过时使用相同音量。"
     },
+    "skipSoundFade": {
+        "message": "提示音淡出"
+    },
+    "skipSoundFadeDescription": {
+        "message": "音效播放到指定进度后逐渐淡出到静音（如 75% 表示最后 25% 淡出）。100% 表示不淡出。试听与实际跳过时使用相同淡出。"
+    },
     "showTimeWithSkips": {
         "message": "显示去除可跳片段后的视频时长"
     },

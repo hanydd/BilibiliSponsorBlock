@@ -1229,11 +1229,19 @@ svg {
 	margin-top: 5px;
 }
 
-.volume-slider {
+.volume-slider,
+.fade-slider {
 	width: 200px;
 }
 
 .volume-value {
+	color: var(--description);
+	font-size: 13px;
+
+	min-width: 40px;
+}
+
+.fade-value {
 	color: var(--description);
 	font-size: 13px;
 

@@ -28,6 +28,7 @@ import { CacheStats } from "./types";
 import { waitFor } from "./utils/";
 import { getHash } from "./utils/hash";
 import { localizeHtmlPage } from "./utils/setup";
+import { applyFadeOut, clamp01 } from "./utils/soundFade";
 
 let embed = false;
 
@@ -314,6 +315,10 @@ async function init() {
             }
             case "skip-sound-volume": {
                 setupSkipSoundVolume(optionsElements[i] as HTMLElement);
+                break;
+            }
+            case "skip-sound-fade": {
+                setupSkipSoundFade(optionsElements[i] as HTMLElement);
                 break;
             }
             case "display": {
@@ -1012,8 +1017,11 @@ const MAX_CUSTOM_SKIP_SOUND_DURATION = 10; // 秒，过长的音效会在每次�
 class SoundTooLongError extends Error {}
 
 function getSkipSoundVolume(): number {
-    const volume = Config.config.skipSoundVolume;
-    return isFinite(volume) ? Math.min(1, Math.max(0, volume)) : 0.1;
+    return clamp01(Config.config.skipSoundVolume, 0.1);
+}
+
+function getSkipSoundFadeStart(): number {
+    return clamp01(Config.config.skipSoundFadeStart, 1);
 }
 
 function setupSkipSoundVolume(element: HTMLElement) {
@@ -1029,6 +1037,23 @@ function setupSkipSoundVolume(element: HTMLElement) {
 
     slider.addEventListener("input", () => {
         Config.config.skipSoundVolume = Number(slider.value) / 100;
+        updateDisplay();
+    });
+}
+
+function setupSkipSoundFade(element: HTMLElement) {
+    const slider = element.querySelector<HTMLInputElement>(".fade-slider");
+    const valueDisplay = element.querySelector<HTMLElement>(".fade-value");
+
+    const updateDisplay = () => {
+        valueDisplay.innerText = `${Math.round(getSkipSoundFadeStart() * 100)}%`;
+    };
+
+    slider.value = String(Math.round(getSkipSoundFadeStart() * 100));
+    updateDisplay();
+
+    slider.addEventListener("input", () => {
+        Config.config.skipSoundFadeStart = Number(slider.value) / 100;
         updateDisplay();
     });
 }
@@ -1049,8 +1074,11 @@ function setupCustomSkipSound(element: HTMLElement) {
     };
 
     let previewAudio: HTMLAudioElement | null = null;
+    let stopPreviewFade: (() => void) | null = null;
     const stopPreview = () => {
         if (!previewAudio) return;
+        stopPreviewFade?.();
+        stopPreviewFade = null;
         previewAudio.pause();
         previewAudio.removeAttribute("src");
         previewAudio = null;
@@ -1064,8 +1092,10 @@ function setupCustomSkipSound(element: HTMLElement) {
         }
 
         const audio = new Audio(Config.local?.customSkipSound?.dataUrl || chrome.runtime.getURL("icons/beep.ogg"));
-        // 试听与实际跳过播放使用同一音量配置
-        audio.volume = getSkipSoundVolume();
+        // 试听与实际跳过播放使用同一音量和淡出配置
+        const baseVolume = getSkipSoundVolume();
+        audio.volume = baseVolume;
+        stopPreviewFade = applyFadeOut(audio, baseVolume, getSkipSoundFadeStart());
         audio.addEventListener("ended", () => {
             if (previewAudio === audio) stopPreview();
         });

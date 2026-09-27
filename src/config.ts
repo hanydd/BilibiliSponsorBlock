@@ -70,6 +70,7 @@ interface SBConfig {
     advanceSkipNotice: boolean;
     audioNotificationOnSkip: boolean;
     skipSoundVolume: number;
+    skipSoundFadeStart: number;
     checkForUnlistedVideos: boolean;
     testingServer: boolean;
     ytInfoPermissionGranted: boolean;
@@ -348,6 +349,7 @@ const syncDefaults = {
     advanceSkipNotice: false,
     audioNotificationOnSkip: false,
     skipSoundVolume: 0.1,
+    skipSoundFadeStart: 1,
     checkForUnlistedVideos: false,
     testingServer: false,
     ytInfoPermissionGranted: false,

@@ -451,6 +451,12 @@
     "skipSoundVolumeDescription": {
         "message": "Playback volume of the skip notification sound. The preview uses the same volume as the actual skip."
     },
+    "skipSoundFade": {
+        "message": "Skip Sound Fade-Out"
+    },
+    "skipSoundFadeDescription": {
+        "message": "Gradually fade the skip sound to silence after it reaches the chosen progress of playback (e.g. 75% fades out the last quarter). 100% disables the fade."
+    },
     "showTimeWithSkips": {
         "message": "显示去除可跳片段后的视频时长"
     },

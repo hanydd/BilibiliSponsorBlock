@@ -226,6 +226,20 @@
 
                         <div class="small-description">__MSG_skipSoundVolumeDescription__</div>
                     </div>
+
+                    <br>
+
+                    <div data-type="skip-sound-fade" data-sync="skipSoundFadeStart"
+                        data-dependent-on="audioNotificationOnSkip">
+                        <label class="optionLabel">__MSG_skipSoundFade__</label>
+
+                        <div class="volume-control">
+                            <input class="fade-slider" type="range" min="0" max="100" step="1" />
+                            <span class="fade-value"></span>
+                        </div>
+
+                        <div class="small-description">__MSG_skipSoundFadeDescription__</div>
+                    </div>
                 </div>
 
 				<div data-type="toggle" data-sync="fullVideoSegments">
