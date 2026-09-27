@@ -1372,8 +1372,11 @@ function wasSkipBeepRecently(): boolean {
 
 function playSkipBeep(): void {
     lastSkipBeepAt = performance.now();
-    const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
-    beep.volume = getVideo().volume * 0.1;
+    const customSound = Config.local?.customSkipSound?.dataUrl;
+    const beep = new Audio(customSound || chrome.runtime.getURL("icons/beep.ogg"));
+    // 音量与设置页试听一致，均取 skipSoundVolume；存储值异常时回退默认
+    const volume = Config.config.skipSoundVolume;
+    beep.volume = isFinite(volume) ? Math.min(1, Math.max(0, volume)) : 0.1;
     const oldMetadata = navigator.mediaSession.metadata;
     beep.play();
     beep.addEventListener("ended", () => {
