@@ -36,6 +36,7 @@ let embed = false;
 const categoryChoosers: CategoryChooser[] = [];
 const unsubmittedVideos: UnsubmittedVideos[] = [];
 const whitelistManagers: WhitelistManager[] = [];
+const dependentOptionTimers = new WeakMap<Element, ReturnType<typeof setTimeout>>();
 
 if (document.readyState === "complete") {
     init();
@@ -191,20 +192,7 @@ async function init() {
                     }
 
                     // If other options depend on this, hide/show them
-                    const dependents = optionsContainer.querySelectorAll(`[data-dependent-on='${option}']`);
-                    for (let j = 0; j < dependents.length; j++) {
-                        const disableWhenChecked = dependents[j].getAttribute("data-dependent-on-inverted") === "true";
-                        if (
-                            !(await shouldHideOption(dependents[j])) &&
-                            ((!disableWhenChecked && checkbox.checked) || (disableWhenChecked && !checkbox.checked))
-                        ) {
-                            dependents[j].classList.remove("hidden");
-                            setTimeout(() => dependents[j].classList.remove("hiding"), 1);
-                        } else {
-                            dependents[j].classList.add("hiding");
-                            setTimeout(() => dependents[j].classList.add("hidden"), 400);
-                        }
-                    }
+                    void updateDependentOptions(optionsContainer, option);
                 });
                 break;
             }
@@ -452,6 +440,25 @@ async function shouldHideOption(element: Element): Promise<boolean> {
     );
 }
 
+/** Local clicks and storage updates share one cancellable visibility transition. */
+async function updateDependentOptions(container: Element, key: string): Promise<void> {
+    for (const dependent of container.querySelectorAll(`[data-dependent-on='${key}']`)) {
+        const forceHide = await shouldHideOption(dependent);
+        const source = container.querySelector(`[data-sync='${key}']`);
+        const reverse = source?.getAttribute("data-toggle-type") === "reverse" || dependent.getAttribute("data-dependent-on-inverted") === "true";
+        // Read the current setting after the async check, including any intervening clicks.
+        const hidden = forceHide || (reverse ? !!Config.config[key] : !Config.config[key]);
+        clearTimeout(dependentOptionTimers.get(dependent));
+        if (hidden) dependent.classList.add("hiding");
+        else dependent.classList.remove("hidden");
+        dependentOptionTimers.set(dependent, setTimeout(() => {
+            if (hidden) dependent.classList.add("hidden");
+            else dependent.classList.remove("hiding");
+            dependentOptionTimers.delete(dependent);
+        }, hidden ? 400 : 1));
+    }
+}
+
 /**
  * Called when the config is updated
  */
@@ -483,17 +490,7 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
     }
 
     // Settings edited on the rules page must also update dependent native controls.
-    for (const dependent of optionsContainer.querySelectorAll("[data-dependent-on]")) {
-        const key = dependent.getAttribute("data-dependent-on");
-        if (!(key in changes)) continue;
-        void shouldHideOption(dependent).then(forceHide => {
-            const source = optionsContainer.querySelector(`[data-sync='${key}']`);
-            const reverse = source?.getAttribute("data-toggle-type") === "reverse" || dependent.getAttribute("data-dependent-on-inverted") === "true";
-            const hidden = forceHide || (reverse ? !!Config.config[key] : !Config.config[key]);
-            dependent.classList.toggle("hidden", hidden);
-            dependent.classList.toggle("hiding", hidden);
-        });
-    }
+    for (const key of Object.keys(changes)) void updateDependentOptions(optionsContainer, key);
 
     if (changes.skipEngineMode) {
         updateBehaviorMode();

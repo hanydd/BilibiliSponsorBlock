@@ -198,6 +198,36 @@ test('first tab covers every classic behavior setting and keeps native controls 
     }
 });
 
+for (const mode of ['legacy', 'rules']) {
+    test(`dependent options stay visible after rapid toggles in ${mode} settings`, async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+        await writeSyncStorage(extensionServiceWorker, { skipEngineMode: mode });
+        await page.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
+        if (mode === 'rules') await page.locator('.rules-common-options').last().locator('summary').click();
+        const checkbox = page.locator('#fullVideoSegments');
+        const labels = page.locator('#fullVideoLabelsOnThumbnailsMode');
+        await expect(labels).toBeVisible();
+        await page.clock.install();
+        await page.clock.pauseAt(new Date());
+
+        // Hold the 400 ms collapse timer while changing the setting locally or in another window.
+        for (const external of [false, true]) {
+            await checkbox.evaluate((node: HTMLInputElement) => node.click());
+            await page.clock.runFor(30);
+            await expect.poll(() => readSyncStorage(extensionServiceWorker, 'fullVideoSegments')).toBe(false);
+            await expect(labels.locator('..')).toHaveClass(/hiding/);
+            if (external) await writeSyncStorage(extensionServiceWorker, { fullVideoSegments: true });
+            else await checkbox.evaluate((node: HTMLInputElement) => node.click());
+            await page.clock.runFor(30);
+            await expect(checkbox).toBeChecked();
+            await expect.poll(() => readSyncStorage(extensionServiceWorker, 'fullVideoSegments')).toBe(true);
+            await expect(labels).toBeVisible();
+            await page.clock.runFor(450);
+            await expect(labels).toBeVisible();
+            await expect(labels.locator('..')).not.toHaveClass(/hiding/);
+        }
+    });
+}
+
 test('migrated whitelist and skip shortcuts retain their editing dialogs', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
     await writeSyncStorage(extensionServiceWorker, { whitelistedChannels: [{ id: '1001', name: 'Migration Channel' }] });
     await open(page, extensionId);
