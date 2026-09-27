@@ -10,20 +10,20 @@ const second = `${cards}[id*="rules-B"]`;
 const rate = page => page.locator('video').evaluate((v: HTMLVideoElement) => v.playbackRate);
 const play = page => page.locator('video').evaluate((v: HTMLVideoElement) => v.play());
 
-async function setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }, config = {}, ranges = [[10, 20], [20, 40]], actions: string[] = []) {
+async function setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }, config = {}, ranges = [[10, 20], [20, 40]], actions: string[] = [], fixture: { categories?: string[]; expectedCount?: number } = {}) {
     await writeSyncStorage(extensionServiceWorker, {
         skipEngineMode: 'rules', enableSpeedUp: false, skipOnSeekToSegment: true, advanceSkipNotice: false,
         skipNoticeDuration: 8, noticeVisibilityMode: 2, dontShowNotice: false, trackViewCount: false,
         categorySelections: [{ name: 'sponsor', option: 2 }], ...config,
     });
     await routeMockSponsorSegments(extensionContext, defaultMockBvid, ranges.map((segment, i) => ({
-        segment: segment as [number, number], UUID: `rules-${String.fromCharCode(65 + i)}`, category: 'sponsor',
+        segment: segment as [number, number], UUID: `rules-${String.fromCharCode(65 + i)}`, category: fixture.categories?.[i] ?? 'sponsor',
         actionType: actions[i] || 'skip', cid: defaultMockCid, videoDuration: 120,
     })));
     await routeMockBilibiliVideoPage(page, { currentTime: 0, paused: true });
     await page.goto(`https://www.bilibili.com/video/${defaultMockBvid}/`);
     await waitForBilibiliContentScript(page, sendContentMessage);
-    await expect.poll(async () => (await sendContentMessage({ message: 'isInfoFound', updating: true })).sponsorTimes?.length).toBe(ranges.length);
+    await expect.poll(async () => (await sendContentMessage({ message: 'isInfoFound', updating: true })).sponsorTimes?.length).toBe(fixture.expectedCount ?? ranges.length);
     await page.waitForTimeout(300);
 }
 
@@ -365,4 +365,62 @@ test('switching engines releases mute ownership and keeps paused video stationar
     await page.waitForTimeout(300);
     await setMockVideoTime(page, 60, true);
     await expect.poll(muted).toBe(false);
+});
+
+test('duration preference releases fast-forward while paused and reevaluates the same visit', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }, { enableSpeedUp: true, speedUpPlaybackRate: 4 }, [[10, 50]]);
+    await setMockVideoTime(page, 12, true); await play(page);
+    await expect.poll(() => rate(page)).toBe(4);
+    await pauseMockVideo(page);
+    const position = await getMockVideoTime(page);
+    await writeSyncStorage(extensionServiceWorker, { minDuration: 41 });
+    await expect.poll(() => rate(page)).toBe(1);
+    await expect(page.locator(first)).toHaveCount(0);
+    expect(await getMockVideoTime(page)).toBe(position);
+    await writeSyncStorage(extensionServiceWorker, { minDuration: 40 });
+    await expect(page.locator(first)).toHaveCount(1);
+    expect(await rate(page)).toBe(1);
+    await expect.poll(async () => (await sendContentMessage({ message: 'isInfoFound', updating: true })).sponsorTimes[0].hidden).toBeUndefined();
+    await play(page);
+    await expect.poll(() => rate(page)).toBe(4);
+});
+
+test('enabling mute reloads missing data and disabling it while paused releases owned mute', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }, { muteSegments: false }, [[10, 50]], ['mute'], { expectedCount: 0 });
+    const muted = () => page.locator('video').evaluate((v: HTMLVideoElement) => v.muted);
+    await page.locator('video').evaluate((v: HTMLVideoElement) => { v.muted = false; });
+    await setMockVideoTime(page, 12, true);
+    await expect(page.locator(first)).toHaveCount(0);
+    await writeSyncStorage(extensionServiceWorker, { muteSegments: true });
+    await expect(page.locator(first)).toHaveCount(1);
+    expect(await muted()).toBe(false);
+    await play(page); await expect.poll(muted).toBe(true);
+    await pauseMockVideo(page);
+    await writeSyncStorage(extensionServiceWorker, { muteSegments: false });
+    await expect.poll(muted).toBe(false);
+    await expect(page.locator(first)).toHaveCount(0);
+    await expect.poll(async () => (await sendContentMessage({ message: 'isInfoFound', updating: true })).sponsorTimes.length).toBe(0);
+    await writeSyncStorage(extensionServiceWorker, { muteSegments: true });
+    await expect(page.locator(first)).toHaveCount(1);
+    expect(await muted()).toBe(false);
+    await play(page); await expect.poll(muted).toBe(true);
+});
+
+test('music and full-video facts survive display and category filtering and compose before execution', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }, {
+        autoSkipOnMusicVideos: true, manualSkipOnFullVideo: true, fullVideoSegments: false,
+        categorySelections: [{ name: 'sponsor', option: 1 }],
+    }, [[10, 50], [0, 0], [60, 70]], ['skip', 'full', 'skip'], { categories: ['sponsor', 'sponsor', 'music_offtopic'], expectedCount: 1 });
+    await setMockVideoTime(page, 12, true); await play(page);
+    await expect(page.locator(first)).toHaveCount(1);
+    await page.waitForTimeout(300);
+    expect(await getMockVideoTime(page)).toBeLessThan(20);
+    // Full-video manual wins over music auto, even though full labels are hidden.
+    await writeSyncStorage(extensionServiceWorker, { fullVideoSegments: true });
+    await expect.poll(async () => (await sendContentMessage({ message: 'isInfoFound', updating: true })).sponsorTimes.length).toBe(2);
+    await writeSyncStorage(extensionServiceWorker, { fullVideoSegments: false });
+    await expect.poll(async () => (await sendContentMessage({ message: 'isInfoFound', updating: true })).sponsorTimes.length).toBe(1);
+    expect(await getMockVideoTime(page)).toBeLessThan(25);
+    await writeSyncStorage(extensionServiceWorker, { manualSkipOnFullVideo: false });
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(50);
 });

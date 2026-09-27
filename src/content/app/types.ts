@@ -29,6 +29,7 @@ import { CONTENT_EVENTS } from "./events";
 export interface ContentAppState {
     sponsorDataFound: boolean;
     sponsorTimes: SponsorTime[];
+    rawSegments?: SponsorTime[];
     skipNotices: SkipNotice[];
     activeSkipKeybindElement: ToggleSkippable;
     shownSegmentFailedToFetchWarning: boolean;

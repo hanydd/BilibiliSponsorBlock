@@ -180,6 +180,7 @@ function resetValues() {
 
     contentState.previewedSegment = false;
     contentState.sponsorTimes = [];
+    contentState.rawSegments = undefined;
     resetSponsorSkipped();
     contentState.lastResponseStatus = 0;
     contentState.shownSegmentFailedToFetchWarning = false;

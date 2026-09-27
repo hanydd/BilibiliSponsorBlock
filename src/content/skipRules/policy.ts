@@ -1,8 +1,6 @@
-import type Config from '../../config';
 import { RULES } from './rules';
-import type { Policy, RuleSegment } from './types';
+import type { Policy, PolicySettings, RuleInput, RuleSegment } from './types';
 
-type PolicySettings = Pick<typeof Config.config, 'autoSkipOnMusicVideos' | 'manualSkipOnFullVideo' | 'muteSegments'>;
 export interface PolicyContext {
     id: string;
     categoryPolicy: Policy;
@@ -11,6 +9,12 @@ export interface PolicyContext {
     categoryHasFullLabel: boolean;
     hidden: boolean;
     externalSource: boolean;
+    duration?: number;
+    draft?: boolean;
+}
+
+export function belowMinimumDuration(duration: number, minimum: number): boolean {
+    return duration > 0 && minimum > 0 && duration < minimum;
 }
 
 /** Preserve the existing override order, while keeping its reasons with the segment. */
@@ -19,7 +23,11 @@ const policyRules = [
         apply: (): Policy => 'auto' },
     { rule: RULES.fullVideo, matches: (c: PolicyContext, p: Policy, s: PolicySettings) => s.manualSkipOnFullVideo && c.categoryHasFullLabel && p === 'auto',
         apply: (): Policy => 'manual' },
-    { rule: RULES.source, matches: (c: PolicyContext, _p: Policy, s: PolicySettings) => c.hidden || c.externalSource || (c.action === 'mute' && !s.muteSegments),
+    { rule: RULES.short, matches: (c: PolicyContext, _p: Policy, s: PolicySettings) => !c.draft && belowMinimumDuration(c.duration, s.minDuration),
+        apply: (): Policy => 'ignore' },
+    { rule: RULES.muteDisabled, matches: (c: PolicyContext, _p: Policy, s: PolicySettings) => c.action === 'mute' && !s.muteSegments,
+        apply: (): Policy => 'ignore' },
+    { rule: RULES.source, matches: (c: PolicyContext) => c.hidden || c.externalSource,
         apply: (): Policy => 'ignore' },
 ];
 
@@ -32,4 +40,17 @@ export function resolveSegmentPolicy(context: PolicyContext, settings: PolicySet
         policyTrace.push({ id: context.id, rule: rule.rule, result: policy });
     }
     return { policy, policyTrace };
+}
+
+/** First engine stage: turn category defaults and video facts into effective policies. */
+export function prepareSegmentPolicies(input: RuleInput): RuleInput {
+    const settings = input.policySettings ?? { autoSkipOnMusicVideos: false, manualSkipOnFullVideo: false, muteSegments: true, minDuration: 0 };
+    const full = new Set(input.videoFacts?.fullVideoCategories ?? []);
+    for (const segment of input.segments) if (segment.action === 'full' && segment.category) full.add(segment.category);
+    const music = input.videoFacts?.hasMusic || input.segments.some(segment => segment.category === 'music_offtopic');
+    return { ...input, segments: input.segments.map(segment => ({ ...segment, ...resolveSegmentPolicy({
+        id: segment.id, categoryPolicy: segment.policy, categoryHasFullLabel: full.has(segment.category),
+        videoHasMusic: music, action: segment.action, duration: segment.end - segment.start,
+        draft: segment.draft, hidden: !!segment.hidden, externalSource: !!segment.externalSource,
+    }, settings) })) };
 }

@@ -71,3 +71,20 @@ test('speed target and user ownership are shared with production code', () => {
     result = step(result.state, { kind: 'seek', time: 35 });
     expect(result.state.rate).toBe(2);
 });
+
+test('explorer composes music, full-video, minimum duration and mute using the production first stage', () => {
+    const policy = { autoSkipOnMusicVideos: true, manualSkipOnFullVideo: false, muteSegments: true, minDuration: 0 };
+    const music = scenario({ ...settings, policy, context: 'music' }, 'manual', 'ready', 'natural');
+    expect(music.effects[0]?.time).toBe(20);
+    const full = scenario({ ...settings, policy: { ...policy, manualSkipOnFullVideo: true }, context: 'music-full' }, 'manual', 'ready', 'natural');
+    expect(full.effects).toEqual([]);
+    expect(full.cards[0].automatic).toBe(false);
+    const short = scenario({ ...settings, policy: { ...policy, minDuration: 11 } }, 'auto', 'ready', 'natural');
+    expect(short.cards).toEqual([]);
+    expect(short.trace.some(t => t.rule === 'POLICY-SHORT')).toBe(true);
+    const mute = scenario({ ...settings, policy, context: 'mute' }, 'auto', 'ready', 'natural');
+    expect(mute.state.muted).toBe(true);
+    expect(mute.effects).toEqual([]);
+    const cancelled = step(mute.state, { kind: 'cancel' });
+    expect(cancelled.state.muted).toBe(false);
+});

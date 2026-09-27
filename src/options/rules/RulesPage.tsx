@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import Config from '../../config';
 import { ruleDefinitions } from '../../content/skipRules/rules';
 import { Policy } from '../../content/skipRules/types';
-import { Action, advance, available, cards, CardView, groups, InputEvent, Layout, makeSimulation, Mode, modes, operations, Result, rows, scenario, StateName, step } from './model';
+import { Action, advance, available, cards, CardView, ExampleContext, groups, InputEvent, Layout, makeSimulation, Mode, modes, operations, Result, rows, scenario, StateName, step } from './model';
 import { currentSettings, SettingsPanel } from './SettingsPanel';
 import { NativeOptions, nativeSettings } from './NativeOptions';
 import { message, playbackText, ruleDescription, ruleInfo, ruleName, settingName, t, traceText } from './text';
@@ -25,6 +25,7 @@ function Card({ card, action, hover }: { card: CardView; action?: (event: InputE
     if (!card.visible) return null;
     const buttons: Array<InputEvent['kind']> = [];
     if (card.phase === 'completed') buttons.push('undo');
+    else if (card.phase === 'muted') buttons.push('cancel');
     else if (card.phase === 'preview') buttons.push(card.automatic ? 'cancel' : 'allow');
     else { buttons.push('skip'); if (card.phase === 'speeding') buttons.push('cancel'); if (card.phase === 'speed-paused') buttons.push('allow'); }
     return <div className="rules-example-card" data-card={card.id} onPointerEnter={() => hover?.(true)} onPointerLeave={() => hover?.(false)}
@@ -46,7 +47,8 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
     const [group, setGroup] = React.useState<typeof groups[number]>('movement');
     const [selectedState, setSelectedState] = React.useState<StateName>('ready');
     const [operation, setOperation] = React.useState<Action>('natural');
-    const settings = React.useMemo(currentSettings, [revision]);
+    const [context, setContext] = React.useState<ExampleContext>('ordinary');
+    const settings = React.useMemo(() => ({ ...currentSettings(), context }), [revision, context]);
     const settingsRef = React.useRef(settings); settingsRef.current = settings;
     const [layout, setLayout] = React.useState<Layout>('single');
     const [second, setSecond] = React.useState<Policy>('manual');
@@ -146,7 +148,10 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
     const filtered = ruleIds.filter(id => (filter === 'all' || (filter === 'fixed' ? !ruleInfo(id).settings.length : !!ruleInfo(id).settings.length)) &&
         [ruleName(id), ruleDescription(id), id, ...ruleInfo(id).settings.map(settingName)].join(' ').toLowerCase().includes(query.toLowerCase()));
     const currentRule = filtered.includes(selectedRule) ? selectedRule : filtered[0];
-    const modeButtons = <div className="rules-modes"><span>{t('exampleMode')}</span>{modes.map(value => <button type="button" key={value} data-rule-mode={value} aria-pressed={mode === value} onClick={() => chooseMode(value)}>{t('mode_' + value)}</button>)}</div>;
+    const modeButtons = <div className="rules-modes"><span>{t('exampleMode')}</span>{modes.map(value => <button type="button" key={value} data-rule-mode={value} aria-pressed={mode === value} onClick={() => chooseMode(value)}>{t('mode_' + value)}</button>)}<label>{t('exampleContext')}<select data-example-context value={context} onChange={event => {
+        const next = event.target.value as ExampleContext; setContext(next); setRunning(false); setHistory([]);
+        commit(step(makeSimulation({ ...settings, context: next }, mode, 'preview', layout, second), { kind: 'data' }), t('initial'));
+    }}>{(['ordinary', 'music', 'full', 'music-full', 'mute'] as const).map(value => <option key={value} value={value}>{t('context_' + value.replace('-', '_'))}</option>)}</select></label></div>;
     const activeHistory = history[historyIndex];
     return <div className="rule-page">
         <header><h2>{t('title')}</h2><span className="rules-engine-status" role="status">{t(Config.config.skipEngineMode === 'rules' ? 'active' : Config.config.skipEngineMode === 'shadow' ? 'shadow' : 'inactive')}</span></header>
@@ -194,7 +199,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
                 <label className="rules-check"><input type="checkbox" checked={failed} onChange={e => setFailed(e.target.checked)} />{t('fail')}</label>
             </div>
             <div className="rules-sim-layout"><div className="rules-player">
-                <div className="rules-player-meta"><strong data-rules-time>{formatTime(simulation.state.time)}</strong><span>{t(simulation.state.paused ? 'paused' : simulation.state.waiting ? 'buffering' : 'playing')} · {simulation.state.rate}× · {t(simulation.state.ownedRate ? 'ownedRate' : 'userRate')}</span></div>
+                <div className="rules-player-meta"><strong data-rules-time>{formatTime(simulation.state.time)}</strong><span>{t(simulation.state.paused ? 'paused' : simulation.state.waiting ? 'buffering' : 'playing')} · {simulation.state.rate}× · {t(simulation.state.ownedRate ? 'ownedRate' : 'userRate')}{simulation.state.muted ? ' · ' + t('phase_muted') : ''}</span></div>
                 <div className="rules-cards">{simulation.cards.filter(c => c.visible).map(card => <Card key={card.id} card={card} action={send} hover={hover} />)}{!simulation.cards.some(c => c.visible) && <p>{t('cardsEmpty')}</p>}</div>
                 <div className="rules-timeline">{simulation.state.segments.filter(s => s.mode !== 'ignore').map(s => <div key={s.id} className={'rules-range ' + (s.id === 'B' ? 'second' : '')} style={{ left: s.start / 40 * 100 + '%', width: (s.end - s.start) / 40 * 100 + '%' }}>{s.id} · {t('mode_' + s.mode)}</div>)}<i style={{ left: simulation.state.time / 40 * 100 + '%' }} /></div>
                 <div className="rules-ticks">{[0, 10, 20, 30, 40].map(time => <span key={time}>{time}s</span>)}</div>

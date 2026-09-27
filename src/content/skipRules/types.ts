@@ -1,12 +1,25 @@
 /** Rule inputs contain values only: no Config, DOM, timers or network. */
 export type Policy = 'auto' | 'manual' | 'mark' | 'ignore';
 export type SegmentAction = 'skip' | 'mute' | 'poi' | 'full';
+export interface PolicySettings {
+    autoSkipOnMusicVideos: boolean;
+    manualSkipOnFullVideo: boolean;
+    muteSegments: boolean;
+    minDuration?: number;
+}
+export interface VideoPolicyFacts {
+    hasMusic: boolean;
+    fullVideoCategories: readonly string[];
+}
 export interface RuleSegment {
     id: string;
     start: number;
     end: number;
     action: SegmentAction;
     policy: Policy;
+    category?: string;
+    hidden?: boolean;
+    externalSource?: boolean;
     draft?: boolean;
     policyTrace?: readonly RuleTrace[];
 }
@@ -41,6 +54,8 @@ export type RuleEvent =
     | { kind: 'dismiss' | 'undo' | 'skip' | 'pause-speed' | 'resume-speed' | 'allow' | 'deny'; id: string; forceSeek?: boolean }
     | { kind: 'applied' | 'user-rate'; ids: string[] };
 export interface RuleInput {
+    policySettings?: PolicySettings;
+    videoFacts?: VideoPolicyFacts;
     time: number;
     paused: boolean;
     waiting: boolean;

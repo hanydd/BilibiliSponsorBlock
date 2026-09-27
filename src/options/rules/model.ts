@@ -1,13 +1,16 @@
 import { evaluateRules } from '../../content/skipRules/engine';
 import { speedUpTarget } from '../../content/skipRules/playback';
 import { rulePreferences } from '../../content/skipRules/preferences';
-import { emptyRuleState, Policy, RuleCard, RuleEvent, RulePlan, RuleState } from '../../content/skipRules/types';
+import { emptyRuleState, Policy, PolicySettings, RuleCard, RuleEvent, RulePlan, RuleState } from '../../content/skipRules/types';
 import { NoticeClock, secondsUntilSegment } from '../../notices/NoticeClock';
 
 export type Mode = Policy | 'fast';
+export type ExampleContext = 'ordinary' | 'music' | 'full' | 'music-full' | 'mute';
 export type StateName = 'preview' | 'ready' | 'active' | 'custom' | 'cancelled' | 'undo' | 'completed' | 'closed';
 export type Layout = 'single' | 'adjacent' | 'overlap';
 export interface Settings {
+    policy?: PolicySettings;
+    context?: ExampleContext;
     disabled?: boolean;
     entry: boolean;
     preview: number;
@@ -19,6 +22,7 @@ export interface Settings {
 }
 export interface ExampleSegment { id: string; start: number; end: number; mode: Mode }
 export interface Simulation {
+    muted: boolean;
     time: number;
     paused: boolean;
     waiting: boolean;
@@ -82,7 +86,7 @@ export function makeSimulation(settings: Settings, mode: Mode, state: StateName 
     if (state === 'undo') { visit.excluded = 'undo'; visit.phase = 'pending'; }
     if (state === 'completed') { visit.phase = 'completed'; visit.auto = false; }
     if (state === 'closed') visit.excluded = 'dismiss';
-    return { time, paused: false, waiting: false, rate: state === 'active' ? speedUpTarget(1, settings.rate) : state === 'custom' ? 2 : 1,
+    return { time, muted: false, paused: false, waiting: false, rate: state === 'active' ? speedUpTarget(1, settings.rate) : state === 'custom' ? 2 : 1,
         baseline: state === 'custom' ? 2 : 1, ownedRate: state === 'active', hovered: false, speedUp: mode === 'fast',
         settings: { ...settings }, segments, rules, lifetimes: {} };
 }
@@ -130,12 +134,18 @@ export function step(previous: Simulation, event: InputEvent): Result {
     for (let pass = 0; pass <= state.segments.length + 1; pass++) {
         const settings = state.settings;
         const plan = evaluateRules(state.rules, { time: state.time, paused: state.paused, waiting: state.waiting, disabled: settings.disabled === true, editing: false,
+            policySettings: settings.policy,
+            videoFacts: { hasMusic: ['music', 'music-full'].includes(settings.context),
+                fullVideoCategories: ['full', 'music-full'].includes(settings.context) ? ['sponsor'] : [] },
             ...rulePreferences({ enableSpeedUp: state.speedUp, skipOnSeekToSegment: settings.entry,
                 advanceSkipNotice: settings.preview > 0, skipNoticeDurationBefore: settings.preview,
                 dontShowNotice: !settings.showCards, previewIncludeOtherSegments: false,
                 skipResumeAction: settings.resumeEntry, speedUpResumeAction: settings.resumeSpeed }),
-            segments: state.segments.map(s => ({ id: s.id, start: s.start, end: s.end, action: 'skip', policy: s.mode === 'fast' ? 'auto' : s.mode })) }, command);
+            segments: state.segments.map(s => ({ id: s.id, start: s.start, end: s.end, category: 'sponsor',
+                action: settings.context === 'mute' ? 'mute' : 'skip', policy: s.mode === 'fast' ? 'auto' : s.mode })) }, command);
         state.rules = plan.state; state.plan = plan; trace.push(...plan.trace);
+        if (!state.paused && !state.waiting) state.muted = !!plan.mute.length;
+        else if (!Object.values(plan.cards).some(card => card.phase === 'muted')) state.muted = false;
         if (!state.paused && !state.waiting) {
             if (plan.speed.length) {
                 if (!state.ownedRate) state.baseline = state.rate;

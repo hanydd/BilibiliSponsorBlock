@@ -1,5 +1,10 @@
 import type Config from '../../config';
-import type { RuleInput } from './types';
+import type { PolicySettings, RuleInput } from './types';
+
+export function policyPreferences(config: PolicySettings): PolicySettings {
+    return { autoSkipOnMusicVideos: config.autoSkipOnMusicVideos, manualSkipOnFullVideo: config.manualSkipOnFullVideo,
+        muteSegments: config.muteSegments, minDuration: Number(config.minDuration) || 0 };
+}
 
 export type RulePreferences = Pick<typeof Config.config, 'enableSpeedUp' | 'skipOnSeekToSegment' |
     'advanceSkipNotice' | 'skipNoticeDurationBefore' | 'dontShowNotice' | 'previewIncludeOtherSegments'> &

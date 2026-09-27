@@ -13,6 +13,7 @@ import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
 import { handlePopupInfoRequest } from "./popupManager";
 import { contentState, syncContentStateStore } from "./state";
+import { refreshMinimumDuration } from "./segmentVisibility";
 
 const utils = new Utils();
 
@@ -238,6 +239,10 @@ export function handleContentMessage(
 
 function contentConfigUpdateListener(changes: StorageChangesObject) {
     const app = getContentApp();
+    if ("minDuration" in changes) {
+        refreshMinimumDuration(contentState.sponsorTimes, Config.config.minDuration);
+        syncContentStateStore("messageHandler.minimumDuration");
+    }
     app.bus.emit(CONTENT_EVENTS.CONFIG_CHANGED, { changes }, { source: "messageHandler.configSyncListener" });
 
     for (const key in changes) {
@@ -248,14 +253,21 @@ function contentConfigUpdateListener(changes: StorageChangesObject) {
                 void app.commands.execute("ui/updatePlayerButtons", undefined);
                 break;
             case "categorySelections":
+            case "muteSegments":
                 void app.commands.execute("segments/lookup", {});
                 checkPageForNewThumbnails(true);
+                break;
+            case "minDuration":
+                void app.commands.execute("ui/updatePreviewBar", undefined);
                 break;
             case "barTypes":
                 void app.commands.execute("config/applyCategoryColors", undefined);
                 void app.commands.execute("ui/updatePreviewBar", undefined);
                 break;
             case "fullVideoSegments":
+                void app.commands.execute("segments/lookup", {});
+                checkPageForNewThumbnails(true);
+                break;
             case "fullVideoLabelsOnThumbnails":
             case "fullVideoLabelsOnThumbnailsMode":
                 checkPageForNewThumbnails(true);

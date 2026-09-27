@@ -2222,7 +2222,7 @@
         "message": "排除隐藏或不支持的来源"
     },
     "rules_rule_SOURCE_EXCLUDED_description": {
-        "message": "隐藏片段、外部来源及禁用的静音片段不参与。"
+        "message": "隐藏片段和外部来源不参与自动处理。"
     },
     "rules_rule_POLICY_INVALID_name": {
         "message": "无效区间不参与处理"
@@ -2502,5 +2502,35 @@
     },
     "rules_enableSkipping": {
         "message": "启用片段跳过"
+    },
+    "rules_rule_POLICY_SHORT_name": {
+        "message": "片段短于最短时长"
+    },
+    "rules_rule_POLICY_SHORT_description": {
+        "message": "片段短于设定时长时，不自动处理或显示提醒。修改时长后重新判断，不保留为用户关闭状态。"
+    },
+    "rules_rule_POLICY_MUTE_DISABLED_name": {
+        "message": "未启用静音片段"
+    },
+    "rules_rule_POLICY_MUTE_DISABLED_description": {
+        "message": "不执行标记为静音的片段。普通跳过片段不受这个开关影响。"
+    },
+    "rules_exampleContext": {
+        "message": "示例条件"
+    },
+    "rules_context_ordinary": {
+        "message": "普通视频 · 跳过片段"
+    },
+    "rules_context_music": {
+        "message": "音乐视频 · 跳过片段"
+    },
+    "rules_context_full": {
+        "message": "同类全片标记 · 跳过片段"
+    },
+    "rules_context_music_full": {
+        "message": "音乐视频＋同类全片标记"
+    },
+    "rules_context_mute": {
+        "message": "静音片段"
     }
 }

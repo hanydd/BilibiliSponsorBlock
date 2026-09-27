@@ -219,3 +219,25 @@ test('migrated whitelist and skip shortcuts retain their editing dialogs', async
     await page.locator('[data-for="keybinds"]').click();
     await expect(page.locator('#keybinds [data-sync="skipKeybind"] .keyBase')).toHaveText('K');
 });
+
+test('scenario contexts explain first-layer policy overrides using saved settings', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+    await writeSyncStorage(extensionServiceWorker, { autoSkipOnMusicVideos: true, manualSkipOnFullVideo: true, muteSegments: false, minDuration: 0 });
+    await open(page, extensionId, 'matrix');
+    await page.locator('[data-rule-mode="manual"]').click();
+    await page.locator('[data-example-context]').selectOption('music-full');
+    await page.locator('[data-state="ready"][data-operation="natural"]').click();
+    await expect(page.locator('.rules-result .rules-trace')).toContainText('音乐');
+    await expect(page.locator('.rules-result .rules-trace')).toContainText('全片');
+    await expect(page.locator('.rules-result dd').first()).not.toContainText('20');
+    await page.locator('[data-example-context]').selectOption('music');
+    await expect(page.locator('.rules-result dd').first()).toContainText('20');
+    await page.locator('[data-example-context]').selectOption('mute');
+    await expect(page.locator('.rules-result .rules-trace')).toContainText('未启用静音片段');
+    await page.locator('.rules-result .rules-trace button').filter({ hasText: '未启用静音片段' }).click();
+    await expect(page.locator('.rules-description')).toContainText('允许片段静音');
+    await page.locator('#rules-tab-segments').click();
+    await page.locator('#skip-rules label[for="muteSegments"]').click();
+    await page.locator('#rules-tab-matrix').click();
+    await page.locator('[data-rule-mode="auto"]').click();
+    await expect(page.locator('.rules-result dd').first()).toContainText('静音');
+});

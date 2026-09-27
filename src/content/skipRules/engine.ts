@@ -5,17 +5,19 @@ import { updateVisits } from './visits';
 import { applyUserIntent } from './intents';
 import { applyResumePreferences } from './resume';
 import { projectSegment } from './cards';
+import { prepareSegmentPolicies } from './policy';
 import { contains, RuleEvent, RuleInput, RulePlan, RuleState } from './types';
 
 /** Compose independent visit, intent, eligibility, playback and presentation rules. */
 export function evaluateRules(previous: RuleState, input: RuleInput, event: RuleEvent): RulePlan {
+    input = prepareSegmentPolicies(input);
     const visits = Object.fromEntries(Object.entries(previous.visits).map(([id, visit]) => [id, { ...visit }]));
-    const plan: RulePlan = { state: { time: input.time, visits }, cards: {}, speed: [], mute: [], trace: [] };
+    const plan: RulePlan = { state: { time: input.time, visits }, cards: {}, speed: [], mute: [],
+        trace: input.segments.flatMap(segment => segment.policyTrace ?? []) };
     updateVisits(plan, input, event);
     applyUserIntent(plan, input, event);
     applyResumePreferences(plan, input, event);
     for (const segment of input.segments) {
-        plan.trace.push(...(segment.policyTrace ?? []));
         const decision = eligibility(segment, visits[segment.id], input);
         plan.trace.push({ id: segment.id, rule: decision.rule, result: decision.automatic ? 'automatic' : decision.show ? 'manual' : 'excluded' });
         projectSegment(plan, segment, input, event, decision);

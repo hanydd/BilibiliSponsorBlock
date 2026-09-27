@@ -4,6 +4,7 @@ import { RuleInput, RuleSegment, Visit } from './types';
 /** IDs describe individual decisions; settings change inputs, never rule precedence. */
 export const RULES = {
     music: 'SOURCE-MUSIC', fullVideo: 'SOURCE-FULL-VIDEO', source: 'SOURCE-EXCLUDED',
+    short: 'POLICY-SHORT', muteDisabled: 'POLICY-MUTE-DISABLED',
     invalid: 'POLICY-INVALID', excluded: 'USER-EXCLUDED', editing: 'EDIT-TARGET', draft: 'EDIT-PREVIEW',
     disabled: 'POLICY-DISABLED', cancelled: 'USER-CANCELLED', visitManual: 'VISIT-MANUAL', automatic: 'POLICY-AUTO', manual: 'POLICY-MANUAL',
     enter: 'ENTER-OUTSIDE-IN', within: 'ENTER-INSIDE-IN', leave: 'EXIT-SEGMENT',
@@ -20,7 +21,9 @@ interface RuleDefinition { stage: 'eligibility' | 'visit' | 'intent' | 'playback
 export const ruleDefinitions: Record<RuleId, RuleDefinition> = {
     [RULES.music]: { stage: 'eligibility', settings: ['autoSkipOnMusicVideos'] },
     [RULES.fullVideo]: { stage: 'eligibility', settings: ['manualSkipOnFullVideo'] },
-    [RULES.source]: { stage: 'eligibility', settings: ['muteSegments'] },
+    [RULES.source]: { stage: 'eligibility', settings: [] },
+    [RULES.short]: { stage: 'eligibility', settings: ['minDuration'] },
+    [RULES.muteDisabled]: { stage: 'eligibility', settings: ['muteSegments'] },
     [RULES.invalid]: { stage: 'eligibility', settings: [] },
     [RULES.excluded]: { stage: 'eligibility', settings: [] },
     [RULES.editing]: { stage: 'eligibility', settings: ['previewIncludeOtherSegments'] },

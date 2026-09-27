@@ -13,6 +13,7 @@ export function playbackText(result: Result): string {
     if (last) return t(last.reason === 'undo' ? 'returnTo' : 'jumpTo', String(last.time));
     if (result.state.paused) return t('paused');
     if (result.state.waiting) return t('buffering');
+    if (result.state.muted) return t('phase_muted');
     if (result.state.plan?.speed.length) return t('fastRate', String(result.state.rate));
     return result.state.rate === 1 ? t('playing') : t('keepRate', String(result.state.rate));
 }
@@ -23,5 +24,6 @@ const settingMessages: Record<string, string> = {
     noticeVisibilityMode: 'noticeVisibilityLabel', previewIncludeOtherSegments: 'previewIncludeOtherSegments',
     autoSkipOnMusicVideos: 'autoSkipOnMusicVideos', manualSkipOnFullVideo: 'enableManualSkipOnFullVideo', muteSegments: 'muteSegments',
     disableSkipping: 'disableSkipping', whitelistedChannels: 'whitelistManagement', forceChannelCheck: 'forceChannelCheck',
+    minDuration: 'minDuration',
 };
 export const settingName = (key: string): string => message(settingMessages[key] ?? key) || key;

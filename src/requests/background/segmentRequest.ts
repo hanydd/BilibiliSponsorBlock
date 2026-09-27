@@ -71,6 +71,7 @@ export async function getSegmentsBackground(
 
         if (bvId == segmentResponse.videoID) {
             responseSegments.segments = segment;
+            responseSegments.rawSegments = segmentResponse.segments?.map(s => ({ ...s, source: SponsorSourceType.Server }));
         }
     }
 

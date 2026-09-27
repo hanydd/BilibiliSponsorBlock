@@ -2,7 +2,7 @@ import Config from '../../config';
 import Utils from '../../utils';
 import { getChannelIDInfo, getCid, getVideo, getVideoID } from '../../utils/video';
 import { logDebug } from '../../utils/logger';
-import { ActionType, CategorySkipOption, ChannelIDStatus, SponsorSourceType, SponsorTime } from '../../types';
+import { CategorySkipOption, ChannelIDStatus, SponsorHideType, SponsorSourceType, SponsorTime } from '../../types';
 import { getContentApp } from '../app';
 import { CONTENT_EVENTS } from '../app/events';
 import { contentState } from '../state';
@@ -11,8 +11,7 @@ import { notifyAutomaticSkip } from '../skipNotification';
 import { EngineMode, installRuleRuntime, RuleRuntime } from './bridge';
 import { evaluateRules } from './engine';
 import { speedUpTarget } from './playback';
-import { rulePreferences } from './preferences';
-import { resolveSegmentPolicy } from './policy';
+import { policyPreferences, rulePreferences } from './preferences';
 import { emptyRuleState, Policy, RuleEvent, RuleInput, RulePlan, RuleSegment, RuleState } from './types';
 
 interface RuntimePorts {
@@ -102,27 +101,29 @@ export class SkipRulesRuntime implements RuleRuntime {
         this.run({ kind: 'data' });
     }
 
-    private segments(): SponsorTime[] { return [...contentState.sponsorTimes, ...contentState.sponsorTimesSubmitting]; }
+    private segments(): SponsorTime[] {
+        const segments = new Map((contentState.rawSegments ?? []).map(segment => [segment.UUID, segment]));
+        // Local edits and user visibility choices override matching server candidates.
+        for (const segment of [...contentState.sponsorTimes, ...contentState.sponsorTimesSubmitting]) segments.set(segment.UUID, segment);
+        return [...segments.values()];
+    }
 
     private snapshot(): RuleInput {
         const all = this.segments();
-        const full = new Set(all.filter(s => s.actionType === ActionType.Full).map(s => s.category));
         const segments: RuleSegment[] = all.map(s => {
             let option = this.utils.getCategorySelection(s.category)?.option ?? CategorySkipOption.Disabled;
             // Retain existing danmaku compatibility outside the interval rule model.
             if (s.source === SponsorSourceType.Danmaku) option = !Config.config.enableDanmakuSkip ? CategorySkipOption.Disabled :
                 Config.config.enableAutoSkipDanmakuSkip ? CategorySkipOption.AutoSkip : CategorySkipOption.ManualSkip;
             const policies: Record<number, Policy> = { [-1]: 'ignore', 0: 'mark', 1: 'manual', 2: 'auto' };
-            const resolved = resolveSegmentPolicy({
-                id: s.UUID, categoryPolicy: policies[option] ?? 'ignore', action: s.actionType,
-                videoHasMusic: all.some(segment => segment.category === 'music_offtopic'),
-                categoryHasFullLabel: full.has(s.category), hidden: s.hidden !== undefined,
-                externalSource: s.source === SponsorSourceType.YouTube,
-            }, Config.config);
             return { id: s.UUID, start: s.segment[0], end: Math.min(s.segment[1], this.video.duration || Infinity),
-                action: s.actionType, ...resolved, draft: contentState.sponsorTimesSubmitting.some(d => d.UUID === s.UUID) };
+                action: s.actionType, category: s.category, policy: policies[option] ?? 'ignore',
+                hidden: s.hidden !== undefined && s.hidden !== SponsorHideType.MinimumDuration,
+                externalSource: s.source === SponsorSourceType.YouTube,
+                draft: contentState.sponsorTimesSubmitting.some(d => d.UUID === s.UUID) };
         });
         return {
+            policySettings: policyPreferences(Config.config),
             time: this.video.currentTime, paused: this.video.paused, waiting: this.waiting,
             disabled: Config.config.disableSkipping || contentState.channelWhitelisted ||
                 (Config.config.forceChannelCheck && getChannelIDInfo().status === ChannelIDStatus.Fetching),
@@ -209,7 +210,12 @@ export class SkipRulesRuntime implements RuleRuntime {
     }
 
     private applyPlayback(plan: RulePlan, input: RuleInput): void {
-        if (input.paused || input.waiting) return;
+        if (input.paused || input.waiting) {
+            // Pausing retains an active effect; revoking its permission must still release it.
+            if (!Object.values(plan.cards).some(card => card.phase === 'speeding')) this.restoreRate();
+            if (!Object.values(plan.cards).some(card => card.phase === 'muted')) this.restoreMute();
+            return;
+        }
         if (plan.speed.length) {
             const original = this.rate?.original ?? this.video.playbackRate;
             const target = speedUpTarget(original, Config.config.speedUpPlaybackRate);

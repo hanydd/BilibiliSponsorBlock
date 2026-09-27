@@ -2,12 +2,14 @@ import * as React from 'react';
 import Config from '../../config';
 import { message, t } from './text';
 import type { Settings } from './model';
+import { policyPreferences } from '../../content/skipRules/preferences';
 
 type Key = keyof typeof Config.config;
 export function currentSettings(): Settings {
     return { entry: Config.config.skipOnSeekToSegment, preview: Config.config.advanceSkipNotice ? Number(Config.config.skipNoticeDurationBefore) : 0,
         duration: Number(Config.config.skipNoticeDuration), rate: Number(Config.config.speedUpPlaybackRate), showCards: !Config.config.dontShowNotice,
-        resumeEntry: Config.config.skipResumeAction, resumeSpeed: Config.config.speedUpResumeAction, disabled: Config.config.disableSkipping };
+        resumeEntry: Config.config.skipResumeAction, resumeSpeed: Config.config.speedUpResumeAction, disabled: Config.config.disableSkipping,
+        policy: policyPreferences(Config.config) };
 }
 export function SettingsPanel({ update }: { update: <K extends Key>(key: K, value: typeof Config.config[K]) => void }): JSX.Element {
     function select<K extends Key>(key: K, label: string, options: Array<[string | number, string]>) {
