@@ -2490,5 +2490,17 @@
     },
     "rules_result_navigate_to_point": {
         "message": "跳转至精彩点"
+    },
+    "rules_settingsView": {
+        "message": "设置界面"
+    },
+    "rules_classicView": {
+        "message": "经典设置"
+    },
+    "rules_rulesView": {
+        "message": "规则设置"
+    },
+    "rules_settingsViewDescription": {
+        "message": "选择规则设置会启用规则引擎，选择经典设置会恢复旧引擎。切换后请刷新已打开的视频页面。尚未迁移的选项仍在经典设置中。"
     }
 }

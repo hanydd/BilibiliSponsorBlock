@@ -5,6 +5,7 @@ import { ruleDefinitions } from '../../content/skipRules/rules';
 import { Policy } from '../../content/skipRules/types';
 import { Action, advance, available, cards, CardView, groups, InputEvent, Layout, makeSimulation, Mode, modes, operations, Result, rows, scenario, StateName, step } from './model';
 import { currentSettings, SettingsPanel } from './SettingsPanel';
+import { SettingsViewSwitch } from './SettingsViewSwitch';
 import { message, playbackText, ruleDescription, ruleInfo, ruleName, settingName, t, traceText } from './text';
 
 type Tab = 'segments' | 'matrix' | 'simulator' | 'rules';
@@ -146,6 +147,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
     const modeButtons = <div className="rules-modes"><span>{t('exampleMode')}</span>{modes.map(value => <button type="button" key={value} data-rule-mode={value} aria-pressed={mode === value} onClick={() => chooseMode(value)}>{t('mode_' + value)}</button>)}</div>;
     const activeHistory = history[historyIndex];
     return <div className="rule-page">
+        <SettingsViewSwitch view="skip-rules" />
         <header><h2>{t('title')}</h2><span className="rules-engine-status" role="status">{t(Config.config.skipEngineMode === 'rules' ? 'active' : Config.config.skipEngineMode === 'shadow' ? 'shadow' : 'inactive')}</span></header>
         <div className="rules-tabs" role="tablist" aria-label={t('title')} onKeyDown={event => {
             const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));

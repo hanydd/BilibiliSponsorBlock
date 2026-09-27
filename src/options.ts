@@ -30,6 +30,7 @@ import { getHash } from "./utils/hash";
 import { localizeHtmlPage } from "./utils/setup";
 
 import { mountRulesPage } from "./options/rules/RulesPage";
+import { SettingsViewSwitch } from "./options/rules/SettingsViewSwitch";
 
 let embed = false;
 
@@ -371,13 +372,11 @@ async function init() {
     }
 
     mountRulesPage(document.getElementById("skip-rules-root"), document.getElementById("category-type"));
+    createRoot(document.getElementById("behavior-view-switch")).render(React.createElement(SettingsViewSwitch, { view: "behavior" }));
     const engineSwitch = document.getElementById("rule-engine-enabled") as HTMLInputElement;
     engineSwitch.checked = Config.config.skipEngineMode === "rules";
     engineSwitch.addEventListener("change", () => {
         Config.config.skipEngineMode = engineSwitch.checked ? "rules" : "legacy";
-    });
-    document.getElementById("open-rule-settings").addEventListener("click", () => {
-        (document.querySelector("[data-for='skip-rules']") as HTMLElement).click();
     });
 
     // Tab interaction

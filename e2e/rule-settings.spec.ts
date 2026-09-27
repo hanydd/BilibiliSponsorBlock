@@ -20,9 +20,25 @@ test('behavior switch selects actual engine mode and stays synchronized with sha
     await page.locator('[data-for="behavior"]').click();
     await page.locator('#skipEngineMode').selectOption('shadow');
     await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('shadow');
+    await page.locator('#open-rule-settings').click();
+    await expect(page.locator(`${rules} .options-view-switch button[aria-pressed="true"]`)).toHaveText('规则设置');
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
+    await expect(page.locator('.rules-engine-status')).toHaveText('规则引擎已启用');
+    await page.locator(`${rules} .options-view-switch`).getByRole('button', { name: '经典设置', exact: true }).click();
+    await expect(page.locator('#category-home #sponsorSkipOption select')).toBeVisible();
+    await expect(page.locator('#skipEngineMode')).toHaveValue('legacy');
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('legacy');
     await page.reload();
-    await expect(page.locator('#skipEngineMode')).toHaveValue('shadow');
+    await expect(page.locator('#skipEngineMode')).toHaveValue('legacy');
     await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
+    // Sidebar navigation can inspect settings without opting in; version selection opts in even on the current page.
+    await page.locator('[data-for="skip-rules"]').click();
+    expect(await readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('legacy');
+    await page.locator(`${rules} .options-view-switch`).getByRole('button', { name: '规则设置', exact: true }).click();
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
+    await page.reload();
+    await expect(page.locator('.rules-engine-status')).toHaveText('规则引擎已启用');
 });
 
 test('segment tab reuses category controls including both colors and restores them to behavior', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {

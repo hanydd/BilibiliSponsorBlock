@@ -2489,5 +2489,17 @@
     },
     "rules_result_navigate_to_point": {
         "message": "跳转至精彩点"
+    },
+    "rules_settingsView": {
+        "message": "設定介面"
+    },
+    "rules_classicView": {
+        "message": "經典設定"
+    },
+    "rules_rulesView": {
+        "message": "規則設定"
+    },
+    "rules_settingsViewDescription": {
+        "message": "選擇規則設定會啟用規則引擎，選擇經典設定會恢復舊引擎。切換後請重新整理已開啟的影片頁面。尚未遷移的選項仍在經典設定中。"
     }
 }
