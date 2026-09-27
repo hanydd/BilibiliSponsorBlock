@@ -8,9 +8,9 @@ import { currentSettings, SettingsPanel } from './SettingsPanel';
 import { NativeOptions, nativeSettings } from './NativeOptions';
 import { message, playbackText, ruleDescription, ruleInfo, ruleName, settingName, t, traceText } from './text';
 
-type Tab = 'segments' | 'matrix' | 'simulator' | 'rules';
+type Tab = 'segments' | 'community' | 'matrix' | 'simulator' | 'rules';
 type Preset = 'pause' | 'pauseSpeed' | 'rate' | 'close' | 'adjacent' | 'merge';
-const tabs: Tab[] = ['segments', 'matrix', 'simulator', 'rules'];
+const tabs: Tab[] = ['segments', 'community', 'matrix', 'simulator', 'rules'];
 const ruleIds = Object.keys(ruleDefinitions);
 const formatTime = (time: number) => Number(time.toFixed(1)) + 's';
 function clockText(card: CardView): string {
@@ -166,11 +166,16 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
             <SettingsPanel update={update} />
             <NativeOptions selectors={nativeSettings.notice} active={active} />
             <p>{t('segmentDescription')}</p><div ref={categoryTarget} className="rules-categories" />
+            <NativeOptions selectors={nativeSettings.categories} active={active} />
             <label className="rules-global-speed"><input type="checkbox" data-rule-setting="enableSpeedUp" checked={Config.config.enableSpeedUp} onChange={e => update('enableSpeedUp', e.target.checked)} />{message('enableSpeedUp')}</label>
             <NativeOptions selectors={nativeSettings.playback} active={active} />
             <details className="rules-common-options"><summary>{t('whitelistSettings')}</summary><NativeOptions selectors={nativeSettings.whitelist} active={active} /></details>
-            <details className="rules-common-options"><summary>{message('optionsTabKeyBinds')}</summary><NativeOptions selectors={nativeSettings.shortcuts} active={active} /></details>
-            <details className="rules-common-options"><summary>{t('supplementSettings')}</summary><p>{t('supplementDescription')}</p><NativeOptions selectors={nativeSettings.supplements} active={active} /></details>
+        </section>
+        <section role="tabpanel" id="rules-panel-community" aria-labelledby="rules-tab-community" hidden={tab !== 'community'}>
+            <h3>{t('videoLabels')}</h3>
+            <NativeOptions selectors={nativeSettings.labels} active={active} />
+            <h3>{t('feedAndComments')}</h3>
+            <NativeOptions selectors={nativeSettings.community} active={active} />
         </section>
         {(tab === 'matrix' || tab === 'simulator') && <><button type="button" className="rules-link" onClick={() => changeTab('segments')}>{t('editSettings')}</button>{modeButtons}<p className="small-description">{t('exampleDescription')}</p></>}
         <section role="tabpanel" id="rules-panel-matrix" aria-labelledby="rules-tab-matrix" hidden={tab !== 'matrix'}>

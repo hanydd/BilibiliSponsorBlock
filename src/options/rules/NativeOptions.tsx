@@ -22,8 +22,8 @@ export const nativeSettings = {
     playback: ['muteSegments', 'audioNotificationOnSkip', 'minDuration', 'manualSkipOnFullVideo', 'forceChannelCheck']
         .map(key => `[data-sync="${key}"]`),
     notice: ['[data-sync="noticeVisibilityMode"]'],
-    supplements: ['fullVideoSegments', 'showCategoryWithoutPermission', 'dynamicAndCommentSponsorBlocker']
-        .map(key => `[data-sync="${key}"]`),
+    categories: ['[data-sync="showCategoryWithoutPermission"]'],
+    labels: ['[data-sync="fullVideoSegments"]'],
+    community: ['[data-sync="dynamicAndCommentSponsorBlocker"]'],
     whitelist: ['[data-type="react-WhitelistManagerComponent"]'],
-    shortcuts: ['skipKeybind', 'skipToHighlightKeybind', 'closeSkipNoticeKeybind'].map(key => `[data-sync="${key}"]`),
 } as const;

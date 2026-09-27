@@ -2487,11 +2487,14 @@
     "rules_result_navigate_to_point": {
         "message": "跳转至精彩点"
     },
-    "rules_supplementSettings": {
-        "message": "補充設定"
+    "rules_tab_community": {
+        "message": "標籤與過濾"
     },
-    "rules_supplementDescription": {
-        "message": "影片標籤、提交類別，以及動態和評論區封鎖設定。"
+    "rules_videoLabels": {
+        "message": "影片標籤"
+    },
+    "rules_feedAndComments": {
+        "message": "動態與留言"
     },
     "rules_whitelistSettings": {
         "message": "頻道白名單"

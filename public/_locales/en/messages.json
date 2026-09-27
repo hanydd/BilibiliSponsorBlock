@@ -2488,11 +2488,14 @@
     "rules_result_navigate_to_point": {
         "message": "跳转至精彩点"
     },
-    "rules_supplementSettings": {
-        "message": "补充配置"
+    "rules_tab_community": {
+        "message": "标签与过滤"
     },
-    "rules_supplementDescription": {
-        "message": "视频标签、提交类别，以及动态和评论区屏蔽设置。"
+    "rules_videoLabels": {
+        "message": "视频标签"
+    },
+    "rules_feedAndComments": {
+        "message": "动态与评论"
     },
     "rules_whitelistSettings": {
         "message": "频道白名单"

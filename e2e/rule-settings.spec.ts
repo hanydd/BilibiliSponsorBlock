@@ -20,7 +20,7 @@ test('one rollout switch controls both views and engines across reloads and sett
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
     await expect(page.locator(rules)).toBeVisible();
     await expect(page.locator('#classic-behavior')).toBeHidden();
-    await expect(page.locator('.rules-tabs [role="tab"]')).toHaveCount(4);
+    await expect(page.locator('.rules-tabs [role="tab"]')).toHaveCount(5);
     await page.locator('#rules-tab-matrix').click();
     await expect(page.locator('#rule-engine-entry')).toBeVisible();
     await page.reload();
@@ -143,7 +143,7 @@ test('rule directory search, filter, theme, tab persistence and narrow layouts',
     await writeSyncStorage(extensionServiceWorker, { darkMode: false }); await page.reload();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
     await page.setViewportSize({ width: 390, height: 844 });
-    for (const tab of ['segments', 'matrix', 'simulator', 'rules']) {
+    for (const tab of ['segments', 'community', 'matrix', 'simulator', 'rules']) {
         await page.locator('#rules-tab-' + tab).click();
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
@@ -152,14 +152,14 @@ test('rule directory search, filter, theme, tab persistence and narrow layouts',
 });
 
 
-test('first tab covers every classic behavior setting and keeps native controls functional', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+test('settings tabs cover every classic behavior setting and keep native controls functional', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
     await page.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
     await expect(page.locator('#sponsorSkipOption select')).toBeVisible();
     const originalKeys = await page.locator('#classic-behavior [data-sync]').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-sync')));
     await page.locator('label[for="rule-engine-enabled"]').click();
     const panel = page.locator('#rules-panel-segments');
     for (const key of originalKeys) {
-        await expect(panel.locator(`[data-sync="${key}"], [data-rule-setting="${key}"]`)).toHaveCount(1);
+        await expect(page.locator(rules).locator(`[data-sync="${key}"], [data-rule-setting="${key}"]`)).toHaveCount(1);
     }
     await expect(page.locator('.rules-settings')).toHaveCount(1);
     await expect(page.locator('#rule-engine-entry')).toBeVisible();
@@ -167,11 +167,14 @@ test('first tab covers every classic behavior setting and keeps native controls 
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'forceChannelCheck')).toBe(true);
     await panel.locator('label[for="audioNotificationOnSkip"]').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'audioNotificationOnSkip')).toBe(true);
-    await panel.locator('.rules-common-options').last().locator('summary').click();
-    const labels = panel.locator('#fullVideoLabelsOnThumbnailsMode');
-    await panel.locator('label[for="fullVideoSegments"]').click();
+    await expect(panel.locator('#fullVideoSegments, #dynamicAndCommentSponsorBlocker')).toHaveCount(0);
+    await expect(panel.locator('label[for="showCategoryWithoutPermission"]')).toBeVisible();
+    await page.locator('#rules-tab-community').click();
+    const community = page.locator('#rules-panel-community');
+    const labels = community.locator('#fullVideoLabelsOnThumbnailsMode');
+    await community.locator('label[for="fullVideoSegments"]').click();
     await expect(labels).toBeHidden();
-    await panel.locator('label[for="fullVideoSegments"]').click();
+    await community.locator('label[for="fullVideoSegments"]').click();
     await expect(labels).toBeVisible();
     page.once('dialog', dialog => dialog.dismiss());
     const previous = await labels.inputValue();
@@ -179,10 +182,10 @@ test('first tab covers every classic behavior setting and keeps native controls 
     await expect(labels).toHaveValue(previous);
     await labels.selectOption('1');
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'fullVideoLabelsOnThumbnailsMode')).toBe(1);
-    await panel.locator('label[for="dynamicAndCommentSponsorBlocker"]').click();
+    await community.locator('label[for="dynamicAndCommentSponsorBlocker"]').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'dynamicAndCommentSponsorBlocker')).toBe(true);
-    await panel.locator('#dynamicAndCommentSponsorRegexPattern').fill('migration-test');
-    await panel.locator('[data-sync="dynamicAndCommentSponsorRegexPattern"] .text-change-set').click();
+    await community.locator('#dynamicAndCommentSponsorRegexPattern').fill('migration-test');
+    await community.locator('[data-sync="dynamicAndCommentSponsorRegexPattern"] .text-change-set').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'dynamicAndCommentSponsorRegexPattern')).toBe('migration-test');
     await page.locator('label[for="rule-engine-enabled"]').click();
     await expect(page.locator('#behavior #audioNotificationOnSkip')).toBeChecked();
@@ -191,7 +194,7 @@ test('first tab covers every classic behavior setting and keeps native controls 
     await page.locator('label[for="rule-engine-enabled"]').click();
     await page.reload();
     await expect(panel.locator('#audioNotificationOnSkip')).toBeChecked();
-    for (const tab of ['matrix', 'simulator', 'rules']) {
+    for (const tab of ['community', 'matrix', 'simulator', 'rules']) {
         await page.locator('#rules-tab-' + tab).click();
         await expect(page.locator('.rules-settings')).toBeHidden();
         await expect(page.locator('#rule-engine-entry')).toBeVisible();
@@ -202,7 +205,7 @@ for (const mode of ['legacy', 'rules']) {
     test(`dependent options stay visible after rapid toggles in ${mode} settings`, async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
         await writeSyncStorage(extensionServiceWorker, { skipEngineMode: mode });
         await page.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
-        if (mode === 'rules') await page.locator('.rules-common-options').last().locator('summary').click();
+        if (mode === 'rules') await page.locator('#rules-tab-community').click();
         const checkbox = page.locator('#fullVideoSegments');
         const labels = page.locator('#fullVideoLabelsOnThumbnailsMode');
         await expect(labels).toBeVisible();
@@ -228,7 +231,7 @@ for (const mode of ['legacy', 'rules']) {
     });
 }
 
-test('migrated whitelist and skip shortcuts retain their editing dialogs', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+test('whitelist remains editable and shortcuts stay on the original keyboard page', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
     await writeSyncStorage(extensionServiceWorker, { whitelistedChannels: [{ id: '1001', name: 'Migration Channel' }] });
     await open(page, extensionId);
     const panel = page.locator('#rules-panel-segments');
@@ -238,14 +241,21 @@ test('migrated whitelist and skip shortcuts retain their editing dialogs', async
     page.once('dialog', dialog => dialog.accept());
     await manager.getByRole('row').filter({ hasText: 'Migration Channel' }).locator('.option-button').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'whitelistedChannels')).toEqual([]);
-    await panel.locator('.rules-common-options').nth(1).locator('summary').click();
-    await panel.locator('[data-sync="skipKeybind"] .keybind-buttons').click();
+    for (const key of ['skipKeybind', 'skipToHighlightKeybind', 'closeSkipNoticeKeybind']) {
+        await expect(page.locator(`${rules} [data-sync="${key}"]`)).toHaveCount(0);
+        await expect(page.locator(`#keybinds [data-sync="${key}"]`)).toHaveCount(1);
+    }
+    await page.locator('[data-for="keybinds"]').click();
+    await page.locator('#keybinds [data-sync="skipKeybind"] .keybind-buttons').click();
     await expect(page.locator('#keybind-dialog .dialog')).toBeVisible();
     await page.keyboard.press('k');
     await page.locator('#change-keybind-ctrl').check();
     await page.locator('#change-keybind-alt').check();
     await page.locator('#keybind-dialog .save-button').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipKeybind')).toMatchObject({ key: 'k', code: 'KeyK' });
+    await expect(page.locator('#keybinds [data-sync="skipKeybind"] .keyBase')).toHaveText('K');
+    await page.locator('[data-for="behavior"]').click();
+    await expect(page.locator(`${rules} [data-sync="skipKeybind"]`)).toHaveCount(0);
     await page.locator('[data-for="keybinds"]').click();
     await expect(page.locator('#keybinds [data-sync="skipKeybind"] .keyBase')).toHaveText('K');
 });
