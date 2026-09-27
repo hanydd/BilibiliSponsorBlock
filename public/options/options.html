@@ -185,62 +185,62 @@
 					</div>
 				</div>
 
-                <div data-type="toggle" data-sync="audioNotificationOnSkip">
-                    <div class="switch-container">
-                        <label class="switch">
-                            <input id="audioNotificationOnSkip" type="checkbox" checked />
-                            <span class="slider round"></span>
-                        </label>
-                        <label class="switch-label" for="audioNotificationOnSkip"> __MSG_audioNotification__ </label>
-                    </div>
-                
-                    <div class="small-description">__MSG_audioNotificationDescription__</div>
+				<div data-type="toggle" data-sync="audioNotificationOnSkip">
+					<div class="switch-container">
+						<label class="switch">
+							<input id="audioNotificationOnSkip" type="checkbox" checked />
+							<span class="slider round"></span>
+						</label>
+						<label class="switch-label" for="audioNotificationOnSkip"> __MSG_audioNotification__ </label>
+					</div>
 
-                    <br>
-                
-                    <div data-type="custom-skip-sound" data-dependent-on="audioNotificationOnSkip">
-                        <label class="optionLabel">__MSG_customSkipSound__</label>
-                
-                        <div class="small-description">__MSG_customSkipSoundDescription__</div>
-                
-                        <div class="custom-sound-buttons">
-                            <div class="option-button trigger-button custom-sound-choose">__MSG_customSkipSoundChoose__</div>
-                            <div class="option-button trigger-button custom-sound-play">__MSG_customSkipSoundPlay__</div>
-                            <div class="option-button trigger-button custom-sound-reset">__MSG_customSkipSoundReset__</div>
-                            <span class="custom-sound-status"></span>
-                        </div>
-                
-                        <input class="custom-sound-file-input hidden" type="file" accept="audio/*" />
-                    </div>
+					<div class="small-description">__MSG_audioNotificationDescription__</div>
 
-                    <br>
+					<div data-type="custom-skip-sound" data-dependent-on="audioNotificationOnSkip">
+						<br />
 
-                    <div data-type="skip-sound-volume" data-sync="skipSoundVolume"
-                        data-dependent-on="audioNotificationOnSkip">
-                        <label class="optionLabel">__MSG_skipSoundVolume__</label>
+						<label class="optionLabel">__MSG_customSkipSound__</label>
 
-                        <div class="volume-control">
-                            <input class="volume-slider" type="range" min="0" max="100" step="1" />
-                            <span class="volume-value"></span>
-                        </div>
+						<div class="small-description">__MSG_customSkipSoundDescription__</div>
 
-                        <div class="small-description">__MSG_skipSoundVolumeDescription__</div>
-                    </div>
+						<div class="custom-sound-buttons">
+							<div class="option-button trigger-button custom-sound-choose">__MSG_customSkipSoundChoose__</div>
+							<div class="option-button trigger-button custom-sound-play">__MSG_customSkipSoundPlay__</div>
+							<div class="option-button trigger-button custom-sound-reset">__MSG_customSkipSoundReset__</div>
+							<span class="custom-sound-status"></span>
+						</div>
 
-                    <br>
+						<input class="custom-sound-file-input hidden" type="file" accept="audio/*" />
+					</div>
 
-                    <div data-type="skip-sound-fade" data-sync="skipSoundFadeStart"
-                        data-dependent-on="audioNotificationOnSkip">
-                        <label class="optionLabel">__MSG_skipSoundFade__</label>
+					<div data-type="skip-sound-volume" data-sync="skipSoundVolume"
+						data-dependent-on="audioNotificationOnSkip">
+						<br />
 
-                        <div class="volume-control">
-                            <input class="fade-slider" type="range" min="0" max="100" step="1" />
-                            <span class="fade-value"></span>
-                        </div>
+						<label class="optionLabel">__MSG_skipSoundVolume__</label>
 
-                        <div class="small-description">__MSG_skipSoundFadeDescription__</div>
-                    </div>
-                </div>
+						<div class="volume-control">
+							<input class="volume-slider" type="range" min="0" max="100" step="1" />
+							<span class="volume-value"></span>
+						</div>
+
+						<div class="small-description">__MSG_skipSoundVolumeDescription__</div>
+					</div>
+
+					<div data-type="skip-sound-fade" data-sync="skipSoundFadeStart"
+						data-dependent-on="audioNotificationOnSkip">
+						<br />
+
+						<label class="optionLabel">__MSG_skipSoundFade__</label>
+
+						<div class="volume-control">
+							<input class="fade-slider" type="range" min="0" max="100" step="1" />
+							<span class="fade-value"></span>
+						</div>
+
+						<div class="small-description">__MSG_skipSoundFadeDescription__</div>
+					</div>
+				</div>
 
 				<div data-type="toggle" data-sync="fullVideoSegments">
 					<div class="switch-container">
