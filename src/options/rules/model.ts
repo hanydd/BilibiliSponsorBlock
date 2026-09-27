@@ -8,6 +8,7 @@ export type Mode = Policy | 'fast';
 export type StateName = 'preview' | 'ready' | 'active' | 'custom' | 'cancelled' | 'undo' | 'completed' | 'closed';
 export type Layout = 'single' | 'adjacent' | 'overlap';
 export interface Settings {
+    disabled?: boolean;
     entry: boolean;
     preview: number;
     duration: number;
@@ -128,7 +129,7 @@ export function step(previous: Simulation, event: InputEvent): Result {
     }
     for (let pass = 0; pass <= state.segments.length + 1; pass++) {
         const settings = state.settings;
-        const plan = evaluateRules(state.rules, { time: state.time, paused: state.paused, waiting: state.waiting, disabled: false, editing: false,
+        const plan = evaluateRules(state.rules, { time: state.time, paused: state.paused, waiting: state.waiting, disabled: settings.disabled === true, editing: false,
             ...rulePreferences({ enableSpeedUp: state.speedUp, skipOnSeekToSegment: settings.entry,
                 advanceSkipNotice: settings.preview > 0, skipNoticeDurationBefore: settings.preview,
                 dontShowNotice: !settings.showCards, previewIncludeOtherSegments: false,

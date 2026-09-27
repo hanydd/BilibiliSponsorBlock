@@ -318,3 +318,51 @@ test('rules resume speed preference does not affect buffering and resets after l
     await setMockVideoTime(extensionPage, 70, true); await setMockVideoTime(extensionPage, 15, true);
     await expect.poll(() => rate(extensionPage)).toBe(4);
 });
+
+test('settings page switches the running engine without reloading the video', async ({ extensionContext, extensionPage: page, extensionId, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }, { skipEngineMode: 'legacy', enableSpeedUp: true, speedUpPlaybackRate: 4 }, [[10, 90]]);
+    await setMockVideoTime(page, 12, true); await play(page);
+    await expect.poll(() => rate(page)).toBe(4);
+    const settings = await extensionContext.newPage();
+    await settings.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
+    await settings.locator('#open-rule-settings').click();
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
+    await expect(page.locator(first)).toHaveCount(1);
+    await page.locator(first).locator('.sponsorSkipNoticeCloseButton').click();
+    // Rule-engine dismissal cancels this visit; the old engine would keep fast-forwarding.
+    await expect.poll(() => rate(page)).toBe(1);
+    await settings.locator('#rules-panel-segments .options-view-switch').getByRole('button', { name: '经典设置', exact: true }).click();
+    await expect.poll(() => rate(page)).toBe(4);
+    await expect(page.locator(first)).toHaveCount(1);
+    await page.locator(first).locator('.sponsorSkipNoticeCloseButton').click();
+    await page.waitForTimeout(300);
+    expect(await rate(page)).toBe(4);
+    await pauseMockVideo(page);
+    const pausedAt = await getMockVideoTime(page);
+    await settings.locator('#open-rule-settings').click();
+    await expect.poll(() => rate(page)).toBe(1);
+    expect(await getMockVideoTime(page)).toBe(pausedAt);
+    expect(await page.locator('video').evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
+    await play(page);
+    await expect.poll(() => rate(page)).toBe(4);
+    await settings.close();
+});
+
+test('switching engines releases mute ownership and keeps paused video stationary', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }, { muteSegments: true }, [[10, 50]], ['mute']);
+    const muted = () => page.locator('video').evaluate((v: HTMLVideoElement) => v.muted);
+    await page.locator('video').evaluate((v: HTMLVideoElement) => { v.muted = false; });
+    await setMockVideoTime(page, 12, true); await play(page);
+    await expect.poll(muted).toBe(true);
+    await pauseMockVideo(page);
+    const pausedAt = await getMockVideoTime(page);
+    await writeSyncStorage(extensionServiceWorker, { skipEngineMode: 'legacy' });
+    await expect.poll(muted).toBe(false);
+    expect(await getMockVideoTime(page)).toBe(pausedAt);
+    await play(page);
+    await expect.poll(muted).toBe(true);
+    await writeSyncStorage(extensionServiceWorker, { skipEngineMode: 'rules' });
+    await page.waitForTimeout(300);
+    await setMockVideoTime(page, 60, true);
+    await expect.poll(muted).toBe(false);
+});

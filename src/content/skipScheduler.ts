@@ -2,6 +2,7 @@ import { getRuleRuntime, isRuleEngineEnabled } from "./skipRules/bridge";
 import { upcomingSkipDecision } from "../notices/UpcomingSkipDecision";
 import Config from "../config";
 import { isSkipSeek, seekForSkip } from "./skipSeek";
+import { notifyAutomaticSkip } from "./skipNotification";
 import { asyncRequestToServer } from "../requests/requests";
 import {
     ActionType,
@@ -110,7 +111,8 @@ function isInsideExecutedRange(start: number, end: number): boolean {
     );
 }
 
-export function resetSchedulerState(): void {
+export function resetSchedulerState(restoreMute = false): void {
+    if (restoreMute && videoMuted && getVideo()) getVideo().muted = false;
     scheduleGeneration++;
     if (currentSkipSchedule !== null) {
         clearTimeout(currentSkipSchedule);
@@ -1332,8 +1334,8 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
         }
     }
 
-    if ((originalAutoSkip || speedUpDelegated) && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted && !wasSkipBeepRecently()) {
-        playSkipBeep();
+    if ((originalAutoSkip || speedUpDelegated) && !isSubmittingSegment) {
+        notifyAutomaticSkip(getVideo());
     }
 
     if (!originalAutoSkip && skippingSegments.length === 1 && skippingSegments[0].actionType === ActionType.Poi) {
@@ -1384,27 +1386,6 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
     }
     // 倍速委托不在此处标记：快进可能被用户取消，过早标记会吞掉取消后的同段 notice，
     // 已执行区间由 speedUpManager 在快进完成时经 skip/markRangeExecuted 命令补记
-}
-
-let lastSkipBeepAt = -Infinity;
-/** extras 循环会连续多次进入 skipToTime，短窗内只响一次提示音。 */
-function wasSkipBeepRecently(): boolean {
-    return performance.now() - lastSkipBeepAt < 50;
-}
-
-function playSkipBeep(): void {
-    lastSkipBeepAt = performance.now();
-    const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
-    beep.volume = getVideo().volume * 0.1;
-    const oldMetadata = navigator.mediaSession.metadata;
-    beep.play();
-    beep.addEventListener("ended", () => {
-        navigator.mediaSession.metadata = null;
-        setTimeout(() => {
-            navigator.mediaSession.metadata = oldMetadata;
-            beep.remove();
-        });
-    });
 }
 
 export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = null, forceSeek = false): void {

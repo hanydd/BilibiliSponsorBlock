@@ -3,6 +3,15 @@ import { ruleDefinitions } from '../src/content/skipRules/rules';
 
 const settings: Settings = { entry: true, preview: 3, duration: 4, rate: 4, showCards: true, resumeEntry: 'continue', resumeSpeed: 'continue' };
 
+test('global disable suppresses automatic actions and cards in the explorer', () => {
+    for (const mode of ['auto', 'fast'] as const) {
+        const result = scenario({ ...settings, disabled: true }, mode, 'ready', 'natural');
+        expect(result.effects).toEqual([]);
+        expect(result.state.ownedRate).toBe(false);
+        expect(result.cards.some(card => card.visible)).toBe(false);
+    }
+});
+
 test('all available matrix cases use known production rules without mutating settings', () => {
     const frozen = Object.freeze({ ...settings });
     for (const mode of modes) for (const state of rows(mode)) for (const operation of operations) {

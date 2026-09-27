@@ -6,6 +6,7 @@ import { Policy } from '../../content/skipRules/types';
 import { Action, advance, available, cards, CardView, groups, InputEvent, Layout, makeSimulation, Mode, modes, operations, Result, rows, scenario, StateName, step } from './model';
 import { currentSettings, SettingsPanel } from './SettingsPanel';
 import { SettingsViewSwitch } from './SettingsViewSwitch';
+import { NativeOptions, nativeSettings } from './NativeOptions';
 import { message, playbackText, ruleDescription, ruleInfo, ruleName, settingName, t, traceText } from './text';
 
 type Tab = 'segments' | 'matrix' | 'simulator' | 'rules';
@@ -147,7 +148,6 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
     const modeButtons = <div className="rules-modes"><span>{t('exampleMode')}</span>{modes.map(value => <button type="button" key={value} data-rule-mode={value} aria-pressed={mode === value} onClick={() => chooseMode(value)}>{t('mode_' + value)}</button>)}</div>;
     const activeHistory = history[historyIndex];
     return <div className="rule-page">
-        <SettingsViewSwitch view="skip-rules" />
         <header><h2>{t('title')}</h2><span className="rules-engine-status" role="status">{t(Config.config.skipEngineMode === 'rules' ? 'active' : Config.config.skipEngineMode === 'shadow' ? 'shadow' : 'inactive')}</span></header>
         <div className="rules-tabs" role="tablist" aria-label={t('title')} onKeyDown={event => {
             const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
@@ -157,15 +157,18 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
         }}>{tabs.map(value => <button type="button" key={value} role="tab" id={'rules-tab-' + value} aria-controls={'rules-panel-' + value} aria-selected={tab === value} tabIndex={tab === value ? 0 : -1} onClick={() => changeTab(value)}>{t('tab_' + value)}</button>)}</div>
 
         <section role="tabpanel" id="rules-panel-segments" aria-labelledby="rules-tab-segments" hidden={tab !== 'segments'}>
+            <SettingsViewSwitch view="skip-rules" />
+            <NativeOptions selectors={nativeSettings.engine} active={active} />
+            <SettingsPanel update={update} />
+            <NativeOptions selectors={nativeSettings.notice} active={active} />
             <p>{t('segmentDescription')}</p><div ref={categoryTarget} className="rules-categories" />
             <label className="rules-global-speed"><input type="checkbox" data-rule-setting="enableSpeedUp" checked={Config.config.enableSpeedUp} onChange={e => update('enableSpeedUp', e.target.checked)} />{message('enableSpeedUp')}</label>
-            <div className="rules-segment-extras">
-                {(['muteSegments', 'fullVideoSegments', 'manualSkipOnFullVideo'] as const).map(key => <label key={key}><input type="checkbox" data-rule-setting={key} checked={Config.config[key]} onChange={e => update(key, e.target.checked)} />{message(key === 'manualSkipOnFullVideo' ? 'enableManualSkipOnFullVideo' : key)}</label>)}
-                <label>{message('minDuration')}<input type="number" min="0" step="0.1" data-rule-setting="minDuration" value={Config.config.minDuration} onChange={e => { const value = Number(e.target.value); if (Number.isFinite(value) && value >= 0) update('minDuration', value); }} /></label>
-            </div>
-            {tab === 'segments' && <SettingsPanel update={update} />}
+            <NativeOptions selectors={nativeSettings.playback} active={active} />
+            <details className="rules-common-options"><summary>{t('whitelistSettings')}</summary><NativeOptions selectors={nativeSettings.whitelist} active={active} /></details>
+            <details className="rules-common-options"><summary>{message('optionsTabKeyBinds')}</summary><NativeOptions selectors={nativeSettings.shortcuts} active={active} /></details>
+            <details className="rules-common-options"><summary>{t('supplementSettings')}</summary><p>{t('supplementDescription')}</p><NativeOptions selectors={nativeSettings.supplements} active={active} /></details>
         </section>
-        {(tab === 'matrix' || tab === 'simulator') && <><SettingsPanel update={update} />{modeButtons}<p className="small-description">{t('exampleDescription')}</p></>}
+        {(tab === 'matrix' || tab === 'simulator') && <><button type="button" className="rules-link" onClick={() => changeTab('segments')}>{t('editSettings')}</button>{modeButtons}<p className="small-description">{t('exampleDescription')}</p></>}
         <section role="tabpanel" id="rules-panel-matrix" aria-labelledby="rules-tab-matrix" hidden={tab !== 'matrix'}>
             <div className="rules-workspace"><div><h3>{t('matrixTitle')}</h3><div className="rules-groups">{groups.map(value => <button type="button" key={value} data-rule-group={value} aria-pressed={group === value} onClick={() => {
                 setGroup(value); setOperation(operations.find(o => o.group === value && available(mode, selectedState, o.id))?.id ?? 'natural');

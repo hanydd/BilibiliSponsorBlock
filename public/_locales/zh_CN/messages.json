@@ -1619,7 +1619,7 @@
         "message": "新版规则引擎（灰度体验）"
     },
     "skipEngineDescription": {
-        "message": "切换后刷新视频页面生效。新版支持按片段进入关系判断、关闭卡片取消本次经过，以及编辑预览范围选择。遇到问题可选回旧版并刷新页面。"
+        "message": "旧版使用现有调度；仅对照模式记录规则结果但不接管播放；规则模式按新规则执行。切换后立即生效。"
     },
     "previewIncludeOtherSegments": {
         "message": "编辑预览时包含其他片段"
@@ -1631,7 +1631,7 @@
         "message": "启用规则引擎"
     },
     "rules_enableDescription": {
-        "message": "使用规则引擎处理跳过与快进。切换后需要刷新已打开的视频页面。"
+        "message": "使用规则引擎处理跳过与快进。切换后会接管已打开的视频页面。"
     },
     "rules_open": {
         "message": "打开跳过规则设置"
@@ -1646,7 +1646,7 @@
         "message": "规则引擎已启用"
     },
     "rules_refresh": {
-        "message": "切换引擎后，请刷新已打开的视频页面。"
+        "message": "切换后立即生效，无需刷新视频页面。"
     },
     "rules_tab_segments": {
         "message": "片段设置"
@@ -2501,6 +2501,21 @@
         "message": "规则设置"
     },
     "rules_settingsViewDescription": {
-        "message": "选择规则设置会启用规则引擎，选择经典设置会恢复旧引擎。切换后请刷新已打开的视频页面。尚未迁移的选项仍在经典设置中。"
+        "message": "规则设置使用规则引擎，经典设置使用旧引擎。切换后立即生效，两种版本共用配置。"
+    },
+    "rules_supplementSettings": {
+        "message": "补充配置"
+    },
+    "rules_supplementDescription": {
+        "message": "视频标签、提交类别，以及动态和评论区屏蔽设置。"
+    },
+    "rules_whitelistSettings": {
+        "message": "频道白名单"
+    },
+    "rules_editSettings": {
+        "message": "修改跳过设置"
+    },
+    "rules_enableSkipping": {
+        "message": "启用片段跳过"
     }
 }

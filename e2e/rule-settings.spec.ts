@@ -32,9 +32,9 @@ test('behavior switch selects actual engine mode and stays synchronized with sha
     await page.reload();
     await expect(page.locator('#skipEngineMode')).toHaveValue('legacy');
     await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
-    // Sidebar navigation can inspect settings without opting in; version selection opts in even on the current page.
+    // Entering the new page also enables the matching engine.
     await page.locator('[data-for="skip-rules"]').click();
-    expect(await readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('legacy');
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
     await page.locator(`${rules} .options-view-switch`).getByRole('button', { name: '规则设置', exact: true }).click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
     await page.reload();
@@ -61,11 +61,14 @@ test('segment tab reuses category controls including both colors and restores th
 });
 
 test('matrix uses real saved settings and supports rule detail navigation', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
-    await open(page, extensionId, 'matrix');
+    await open(page, extensionId);
     await page.locator('[data-rule-setting="skipOnSeekToSegment"]').selectOption('true');
+    await page.locator('#rules-tab-matrix').click();
     await page.locator('[data-state="ready"][data-operation="front"]').click();
     await expect(page.locator('.rules-result dd').first()).toContainText('20');
+    await page.locator('#rules-tab-segments').click();
     await page.locator('[data-rule-setting="skipOnSeekToSegment"]').selectOption('false');
+    await page.locator('#rules-tab-matrix').click();
     await expect(page.locator('.rules-result dd').first()).not.toContainText('20');
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipOnSeekToSegment')).toBe(false);
     await page.locator('.rules-result .rules-trace button').first().click();
@@ -74,6 +77,7 @@ test('matrix uses real saved settings and supports rule detail navigation', asyn
     await page.locator('.rules-description > .rules-link').click();
     await expect(page.locator('#rules-tab-matrix')).toHaveAttribute('aria-selected', 'true');
     await expect(page.locator('[data-state="ready"][data-operation="front"]')).toHaveAttribute('aria-pressed', 'true');
+    await page.locator('#rules-tab-segments').click();
     await page.locator('[data-rule-setting="skipResumeAction"]').selectOption('manual');
     await page.locator('[data-rule-setting="advanceSkipNotice"]').check();
     await page.locator('[data-for="interface"]').click();
@@ -104,9 +108,13 @@ test('simulation preserves configured resume behavior and never saves preset pol
     await expect(panel.locator('[data-card="B"]')).toContainText('正在快进');
     expect(await readSyncStorage(extensionServiceWorker, 'categorySelections')).toEqual(before);
     expect(await readSyncStorage(extensionServiceWorker, 'enableSpeedUp')).toBe(beforeSpeed);
+    await page.locator('#rules-tab-segments').click();
     await page.locator('[data-rule-setting="dontShowNotice"]').uncheck();
+    await page.locator('#rules-tab-simulator').click();
     await expect(panel.locator('[data-card]')).toHaveCount(0);
+    await page.locator('#rules-tab-segments').click();
     await page.locator('[data-rule-setting="dontShowNotice"]').check();
+    await page.locator('#rules-tab-simulator').click();
     await expect(panel.locator('[data-card]')).toHaveCount(2);
     await panel.getByRole('button', { name: '连续播放', exact: true }).click();
     await page.waitForTimeout(250);
@@ -136,4 +144,73 @@ test('rule directory search, filter, theme, tab persistence and narrow layouts',
     }
     const body = await page.locator(rules).textContent();
     expect(body).not.toMatch(/__MSG_/);
+});
+
+
+test('first tab covers every classic behavior setting and keeps native controls functional', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+    await page.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
+    await expect(page.locator('#sponsorSkipOption select')).toBeVisible();
+    const originalKeys = await page.locator('#behavior [data-sync]').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-sync')));
+    await page.locator('#open-rule-settings').click();
+    const panel = page.locator('#rules-panel-segments');
+    for (const key of originalKeys) {
+        await expect(panel.locator(`[data-sync="${key}"], [data-rule-setting="${key}"]`)).toHaveCount(1);
+    }
+    await expect(page.locator('.rules-settings')).toHaveCount(1);
+    await expect(panel.locator('.options-view-switch')).toBeVisible();
+    await panel.locator('label[for="forceChannelCheck"]').click();
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'forceChannelCheck')).toBe(true);
+    await panel.locator('label[for="audioNotificationOnSkip"]').click();
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'audioNotificationOnSkip')).toBe(true);
+    await panel.locator('.rules-common-options').last().locator('summary').click();
+    const labels = panel.locator('#fullVideoLabelsOnThumbnailsMode');
+    await panel.locator('label[for="fullVideoSegments"]').click();
+    await expect(labels).toBeHidden();
+    await panel.locator('label[for="fullVideoSegments"]').click();
+    await expect(labels).toBeVisible();
+    page.once('dialog', dialog => dialog.dismiss());
+    const previous = await labels.inputValue();
+    await labels.selectOption('2');
+    await expect(labels).toHaveValue(previous);
+    await labels.selectOption('1');
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'fullVideoLabelsOnThumbnailsMode')).toBe(1);
+    await panel.locator('label[for="dynamicAndCommentSponsorBlocker"]').click();
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'dynamicAndCommentSponsorBlocker')).toBe(true);
+    await panel.locator('#dynamicAndCommentSponsorRegexPattern').fill('migration-test');
+    await panel.locator('[data-sync="dynamicAndCommentSponsorRegexPattern"] .text-change-set').click();
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'dynamicAndCommentSponsorRegexPattern')).toBe('migration-test');
+    await panel.locator('.options-view-switch').getByRole('button', { name: '经典设置', exact: true }).click();
+    await expect(page.locator('#behavior #audioNotificationOnSkip')).toBeChecked();
+    await expect(page.locator('#behavior #dynamicAndCommentSponsorRegexPattern')).toHaveValue('migration-test');
+    await expect(page.locator('#behavior #fullVideoLabelsOnThumbnailsMode')).toHaveValue('1');
+    await page.locator('#open-rule-settings').click();
+    await page.reload();
+    await expect(panel.locator('#audioNotificationOnSkip')).toBeChecked();
+    for (const tab of ['matrix', 'simulator', 'rules']) {
+        await page.locator('#rules-tab-' + tab).click();
+        await expect(page.locator('.rules-settings')).toBeHidden();
+        await expect(page.locator(`${rules} .options-view-switch`)).toBeHidden();
+    }
+});
+
+test('migrated whitelist and skip shortcuts retain their editing dialogs', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+    await writeSyncStorage(extensionServiceWorker, { whitelistedChannels: [{ id: '1001', name: 'Migration Channel' }] });
+    await open(page, extensionId);
+    const panel = page.locator('#rules-panel-segments');
+    await panel.locator('.rules-common-options').nth(0).locator('summary').click();
+    const manager = panel.locator('[data-type="react-WhitelistManagerComponent"]');
+    await expect(manager).toContainText('Migration Channel');
+    page.once('dialog', dialog => dialog.accept());
+    await manager.getByRole('row').filter({ hasText: 'Migration Channel' }).locator('.option-button').click();
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'whitelistedChannels')).toEqual([]);
+    await panel.locator('.rules-common-options').nth(1).locator('summary').click();
+    await panel.locator('[data-sync="skipKeybind"] .keybind-buttons').click();
+    await expect(page.locator('#keybind-dialog .dialog')).toBeVisible();
+    await page.keyboard.press('k');
+    await page.locator('#change-keybind-ctrl').check();
+    await page.locator('#change-keybind-alt').check();
+    await page.locator('#keybind-dialog .save-button').click();
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipKeybind')).toMatchObject({ key: 'k', code: 'KeyK' });
+    await page.locator('[data-for="keybinds"]').click();
+    await expect(page.locator('#keybinds [data-sync="skipKeybind"] .keyBase')).toHaveText('K');
 });

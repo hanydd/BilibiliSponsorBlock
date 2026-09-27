@@ -117,7 +117,8 @@ function init(): void {
     registerPopupManager();
     registerSkipUIManager();
     registerSkipRules({
-        stopLegacy: () => { resetSchedulerState(); resetSpeedUpState(); },
+        stopLegacy: () => { resetSchedulerState(true); resetSpeedUpState(); },
+        startLegacy: () => { void app.commands.execute("skip/startSchedule", { includeIntersectingSegments: true }); },
         record: (segments, saved) => recordSkippedSegments(segments, () => saved, true),
     });
     registerSkipScheduler();

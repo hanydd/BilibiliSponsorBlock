@@ -53,13 +53,17 @@ async function init() {
     setMessageNotice(Config.config.darkMode);
 
     // selected tab
+    if (location.hash === "#skip-rules" && Config.config.skipEngineMode === "legacy") {
+        Config.config.skipEngineMode = "rules";
+    }
     if (location.hash != "") {
         const substr = location.hash.slice(1);
         let menuItem = document.querySelector(`[data-for='${substr}']`);
         if (menuItem == null) menuItem = document.querySelector(`[data-for='behavior']`);
         menuItem.classList.add("selected");
     } else {
-        document.querySelector(`[data-for='behavior']`).classList.add("selected");
+        const initialTab = Config.config.skipEngineMode === "rules" ? "skip-rules" : "behavior";
+        document.querySelector(`[data-for='${initialTab}']`).classList.add("selected");
     }
 
     document.getElementById("version").innerText = "v. " + chrome.runtime.getManifest().version;
@@ -387,6 +391,9 @@ async function init() {
         if (tabElements[i].classList.contains("selected")) document.getElementById(tabFor).classList.remove("hidden");
 
         tabElements[i].addEventListener("click", () => {
+            if (tabFor === "skip-rules" || tabFor === "behavior") {
+                Config.config.skipEngineMode = tabFor === "skip-rules" ? "rules" : "legacy";
+            }
             if (!embed) location.hash = tabFor;
 
             createStickyHeader();

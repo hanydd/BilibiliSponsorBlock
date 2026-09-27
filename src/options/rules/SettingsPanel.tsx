@@ -7,7 +7,7 @@ type Key = keyof typeof Config.config;
 export function currentSettings(): Settings {
     return { entry: Config.config.skipOnSeekToSegment, preview: Config.config.advanceSkipNotice ? Number(Config.config.skipNoticeDurationBefore) : 0,
         duration: Number(Config.config.skipNoticeDuration), rate: Number(Config.config.speedUpPlaybackRate), showCards: !Config.config.dontShowNotice,
-        resumeEntry: Config.config.skipResumeAction, resumeSpeed: Config.config.speedUpResumeAction };
+        resumeEntry: Config.config.skipResumeAction, resumeSpeed: Config.config.speedUpResumeAction, disabled: Config.config.disableSkipping };
 }
 export function SettingsPanel({ update }: { update: <K extends Key>(key: K, value: typeof Config.config[K]) => void }): JSX.Element {
     function select<K extends Key>(key: K, label: string, options: Array<[string | number, string]>) {
@@ -22,7 +22,7 @@ export function SettingsPanel({ update }: { update: <K extends Key>(key: K, valu
     }
     return <section className="rules-settings" aria-label={t('sharedSettings')}>
         <div className="rules-settings-heading"><h3>{t('sharedSettings')}</h3><button type="button" className="rules-link" onClick={() => {
-            for (const key of ['skipOnSeekToSegment', 'speedUpPlaybackRate', 'advanceSkipNotice', 'skipNoticeDurationBefore', 'skipNoticeDuration', 'dontShowNotice', 'skipResumeAction', 'speedUpResumeAction'] as const) update(key, Config.syncDefaults[key]);
+            for (const key of ['skipOnSeekToSegment', 'speedUpPlaybackRate', 'advanceSkipNotice', 'skipNoticeDurationBefore', 'skipNoticeDuration', 'dontShowNotice', 'skipResumeAction', 'speedUpResumeAction', 'previewIncludeOtherSegments', 'disableSkipping'] as const) update(key, Config.syncDefaults[key]);
         }}>{t('resetSettings')}</button></div><div className="rules-setting-grid">
             <label>{t('entry')}<select className="optionsSelector" data-rule-setting="skipOnSeekToSegment" value={String(Config.config.skipOnSeekToSegment)} onChange={e => update('skipOnSeekToSegment', e.target.value === 'true')}>
                 <option value="true">{t('entry_follow')}</option><option value="false">{t('entry_ask')}</option></select></label>
@@ -34,6 +34,9 @@ export function SettingsPanel({ update }: { update: <K extends Key>(key: K, valu
         </div><div className="rules-resume-grid">
             {select('skipResumeAction', message('skipResumeAction'), [['continue', message('resumeFollowPolicy')], ['manual', message('resumeManual')]])}
             {select('speedUpResumeAction', message('speedUpResumeAction'), [['continue', message('resumeSpeedContinue')], ['manual', message('resumeSpeedManual')]])}
+        </div><div className="rules-resume-grid">
+            <label>{message('previewIncludeOtherSegments')}<input type="checkbox" data-rule-setting="previewIncludeOtherSegments" checked={Config.config.previewIncludeOtherSegments} onChange={e => update('previewIncludeOtherSegments', e.target.checked)} /></label>
+            <label>{t('enableSkipping')}<input type="checkbox" data-rule-setting="disableSkipping" checked={!Config.config.disableSkipping} onChange={e => update('disableSkipping', !e.target.checked)} /></label>
         </div><p className="small-description">{t('resumeNote')} {t('saved')}</p>
     </section>;
 }

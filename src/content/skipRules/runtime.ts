@@ -7,6 +7,7 @@ import { getContentApp } from '../app';
 import { CONTENT_EVENTS } from '../app/events';
 import { contentState } from '../state';
 import { seekForSkip } from '../skipSeek';
+import { notifyAutomaticSkip } from '../skipNotification';
 import { EngineMode, installRuleRuntime, RuleRuntime } from './bridge';
 import { evaluateRules } from './engine';
 import { speedUpTarget } from './playback';
@@ -16,6 +17,7 @@ import { emptyRuleState, Policy, RuleEvent, RuleInput, RulePlan, RuleSegment, Ru
 
 interface RuntimePorts {
     stopLegacy: () => void;
+    startLegacy: () => void;
     record: (segments: SponsorTime[], saved: number) => void;
 }
 
@@ -46,11 +48,20 @@ export class SkipRulesRuntime implements RuleRuntime {
 
     attach(): void {
         if (!Config.isReady()) return;
-        if (!this.selected) {
+        const configured = Config.config.skipEngineMode;
+        const nextMode = configured === 'rules' || configured === 'shadow' ? configured : 'legacy';
+        if (!this.selected || this.mode !== nextMode) {
+            const wasRules = this.mode === 'rules';
+            if (this.selected) this.reset();
             this.selected = true;
-            const configured = Config.config.skipEngineMode;
-            if (configured === 'rules') this.ports.stopLegacy();
-            this.mode = configured === 'rules' || configured === 'shadow' ? configured : 'legacy';
+            this.mode = nextMode;
+            if (wasRules || nextMode === 'rules') {
+                // Release timers, playback ownership and old cards before the next engine runs.
+                this.ports.stopLegacy();
+                for (const notice of [...contentState.skipNotices]) notice.close();
+                getContentApp().bus.emit(CONTENT_EVENTS.SKIP_BUTTON_STATE_CHANGED, { enabled: false, segment: null }, { source: 'skipRules.switch' });
+                if (nextMode !== 'rules') this.ports.startLegacy();
+            }
         }
         if (this.mode === 'legacy') return;
         const video = getVideo();
@@ -158,6 +169,9 @@ export class SkipRulesRuntime implements RuleRuntime {
             if (trace !== this.previousTrace) { this.previousTrace = trace; logDebug(`[SB Rules] ${trace}`); }
             if (this.mode === 'rules') {
                 this.applyPlayback(plan, input);
+                const startedSpeed = plan.speed.some(id => !input.segments.find(s => s.id === id)?.draft &&
+                    (prior?.cards[id]?.phase !== 'speeding' || prior.cards[id].visit !== plan.cards[id].visit));
+                if (startedSpeed) notifyAutomaticSkip(this.video);
                 this.publish(plan);
                 const completed = Object.entries(plan.cards).filter(([id, card]) => card.phase === 'completed' &&
                     (prior?.cards[id]?.phase !== 'completed' || prior.cards[id].visit !== card.visit)).map(([id]) => id);
@@ -173,6 +187,7 @@ export class SkipRulesRuntime implements RuleRuntime {
                     seekForSkip(this.video, target);
                     if (Math.abs(this.video.currentTime - target) < 0.25) {
                         if (plan.seek.reason === 'skip') {
+                            if (event.kind !== 'skip' && plan.seek.ids.some(id => !input.segments.find(s => s.id === id)?.draft)) notifyAutomaticSkip(this.video);
                             this.ports.record(this.segments().filter(s => plan.seek.ids.includes(s.UUID)), Math.max(0, target - from) / original);
                             this.run({ kind: 'applied', ids: plan.seek.ids });
                         } else this.run({ kind: 'handoff' });

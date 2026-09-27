@@ -1618,7 +1618,7 @@
         "message": "新版規則引擎（灰度體驗）"
     },
     "skipEngineDescription": {
-        "message": "切換後重新整理影片頁面生效。新版支援依片段進入關係判斷、關閉卡片取消本次經過，以及編輯預覽範圍選擇。遇到問題可選回舊版並重新整理頁面。"
+        "message": "舊版使用現有排程；僅對照模式記錄規則結果但不接管播放；規則模式按新規則執行。切換後立即生效。"
     },
     "previewIncludeOtherSegments": {
         "message": "編輯預覽時包含其他片段"
@@ -1630,7 +1630,7 @@
         "message": "啟用規則引擎"
     },
     "rules_enableDescription": {
-        "message": "使用規則引擎處理跳過與快進。切换後需要刷新已打開的影片頁面。"
+        "message": "使用規則引擎處理跳過與快進。切換後會接管已開啟的影片頁面。"
     },
     "rules_open": {
         "message": "打開跳過規則設定"
@@ -1645,7 +1645,7 @@
         "message": "規則引擎已啟用"
     },
     "rules_refresh": {
-        "message": "切换引擎後，請刷新已打開的影片頁面。"
+        "message": "切換後立即生效，無需重新整理影片頁面。"
     },
     "rules_tab_segments": {
         "message": "片段設定"
@@ -2500,6 +2500,21 @@
         "message": "規則設定"
     },
     "rules_settingsViewDescription": {
-        "message": "選擇規則設定會啟用規則引擎，選擇經典設定會恢復舊引擎。切換後請重新整理已開啟的影片頁面。尚未遷移的選項仍在經典設定中。"
+        "message": "規則設定使用規則引擎，經典設定使用舊引擎。切換後立即生效，兩種版本共用設定。"
+    },
+    "rules_supplementSettings": {
+        "message": "補充設定"
+    },
+    "rules_supplementDescription": {
+        "message": "影片標籤、提交類別，以及動態和評論區封鎖設定。"
+    },
+    "rules_whitelistSettings": {
+        "message": "頻道白名單"
+    },
+    "rules_editSettings": {
+        "message": "修改跳過設定"
+    },
+    "rules_enableSkipping": {
+        "message": "啟用片段跳過"
     }
 }
