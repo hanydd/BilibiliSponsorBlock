@@ -1627,13 +1627,10 @@
         "message": "跳過規則"
     },
     "rules_enable": {
-        "message": "啟用規則引擎"
+        "message": "啟用新版規則引擎（灰度體驗）"
     },
     "rules_enableDescription": {
-        "message": "使用規則引擎處理跳過與快進。切換後會接管已開啟的影片頁面。"
-    },
-    "rules_open": {
-        "message": "打開跳過規則設定"
+        "message": "關閉時使用經典設定頁面和舊跳過邏輯；開啟時使用新規則頁面和新跳過引擎。切換立即生效，既有設定會保留。"
     },
     "rules_inactive": {
         "message": "規則引擎未啟用。以下設定仍會保存，對照與測試展示規則引擎啟用後的行為。"
@@ -2489,18 +2486,6 @@
     },
     "rules_result_navigate_to_point": {
         "message": "跳转至精彩点"
-    },
-    "rules_settingsView": {
-        "message": "設定介面"
-    },
-    "rules_classicView": {
-        "message": "經典設定"
-    },
-    "rules_rulesView": {
-        "message": "規則設定"
-    },
-    "rules_settingsViewDescription": {
-        "message": "規則設定使用規則引擎，經典設定使用舊引擎。切換後立即生效，兩種版本共用設定。"
     },
     "rules_supplementSettings": {
         "message": "補充設定"

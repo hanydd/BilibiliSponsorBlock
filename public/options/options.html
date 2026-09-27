@@ -25,7 +25,6 @@
 			<div id="navigation">
 				<div class="tab-heading" data-for="behavior">__MSG_optionsTabBehavior__</div>
 
-				<div class="tab-heading" data-for="skip-rules">__MSG_rules_title__</div>
 
 				<div class="tab-heading" data-for="interface">__MSG_optionsTabInterface__</div>
 
@@ -51,7 +50,6 @@
 
 		<div id="options">
 			<div id="behavior" class="option-group hidden">
-				<div id="behavior-view-switch"></div>
 				<div id="rule-engine-entry">
                     <div class="switch-container">
                         <label class="switch"><input id="rule-engine-enabled" type="checkbox" /><span class="slider round"></span></label>
@@ -59,6 +57,7 @@
                     </div>
                     <div class="small-description">__MSG_rules_enableDescription__</div>
                 </div>
+                <div id="classic-behavior">
                 <div id="category-home"><div id="category-type" data-type="react-CategoryChooserComponent"></div></div>
 
 				<div data-type="toggle" data-sync="dynamicAndCommentSponsorBlocker">
@@ -285,34 +284,6 @@
 					<div class="small-description">__MSG_whatForceChannelCheck__</div>
 				</div>
 
-                <div data-type="selector" data-sync="skipEngineMode">
-                    <label class="optionLabel" for="skipEngineMode">__MSG_skipEngineMode__</label>
-                    <select id="skipEngineMode" class="selector-element optionsSelector">
-                        <option value="legacy">__MSG_skipEngineLegacy__</option>
-                        <option value="shadow">__MSG_skipEngineShadow__</option>
-                        <option value="rules">__MSG_skipEngineRules__</option>
-                    </select>
-                    <div class="small-description">__MSG_skipEngineDescription__</div>
-                </div>
-
-
-                <div data-type="selector" data-sync="skipResumeAction">
-                    <label class="optionLabel" for="skipResumeAction">__MSG_skipResumeAction__</label>
-                    <select id="skipResumeAction" class="selector-element optionsSelector">
-                        <option value="continue">__MSG_resumeFollowPolicy__</option>
-                        <option value="manual">__MSG_resumeManual__</option>
-                    </select>
-                    <div class="small-description">__MSG_skipResumeActionDescription__</div>
-                </div>
-                <div data-type="selector" data-sync="speedUpResumeAction">
-                    <label class="optionLabel" for="speedUpResumeAction">__MSG_speedUpResumeAction__</label>
-                    <select id="speedUpResumeAction" class="selector-element optionsSelector">
-                        <option value="continue">__MSG_resumeSpeedContinue__</option>
-                        <option value="manual">__MSG_resumeSpeedManual__</option>
-                    </select>
-                    <div class="small-description">__MSG_speedUpResumeActionDescription__</div>
-                </div>
-
 				<div data-type="toggle" data-sync="enableSpeedUp">
 					<div class="switch-container">
 						<label class="switch">
@@ -353,9 +324,9 @@
 
 					<div class="small-description">__MSG_whatShowCategoryWithoutPermission__</div>
 				</div>
+                </div>
+                <div id="skip-rules" class="hidden"><div id="skip-rules-root"></div></div>
 			</div>
-
-			<div id="skip-rules" class="option-group hidden"><div id="skip-rules-root"></div></div>
 
 			<div id="interface" class="option-group hidden">
 				<div class="section">

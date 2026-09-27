@@ -117,11 +117,11 @@ test('shadow leaves dismissal semantics and playback with the legacy engine', as
 
 test('engine setting can be switched and persists for the next video page load', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
     await page.goto(`chrome-extension://${extensionId}/options/options.html`);
-    const selector = page.locator('#skipEngineMode');
-    await expect(selector).toHaveValue('legacy');
-    await selector.selectOption('rules');
+    const toggle = page.locator('label[for="rule-engine-enabled"]');
+    await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
+    await toggle.click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
-    await selector.selectOption('legacy');
+    await toggle.click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('legacy');
 });
 
@@ -325,13 +325,13 @@ test('settings page switches the running engine without reloading the video', as
     await expect.poll(() => rate(page)).toBe(4);
     const settings = await extensionContext.newPage();
     await settings.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
-    await settings.locator('#open-rule-settings').click();
+    await settings.locator('label[for="rule-engine-enabled"]').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
     await expect(page.locator(first)).toHaveCount(1);
     await page.locator(first).locator('.sponsorSkipNoticeCloseButton').click();
     // Rule-engine dismissal cancels this visit; the old engine would keep fast-forwarding.
     await expect.poll(() => rate(page)).toBe(1);
-    await settings.locator('#rules-panel-segments .options-view-switch').getByRole('button', { name: '经典设置', exact: true }).click();
+    await settings.locator('label[for="rule-engine-enabled"]').click();
     await expect.poll(() => rate(page)).toBe(4);
     await expect(page.locator(first)).toHaveCount(1);
     await page.locator(first).locator('.sponsorSkipNoticeCloseButton').click();
@@ -339,7 +339,7 @@ test('settings page switches the running engine without reloading the video', as
     expect(await rate(page)).toBe(4);
     await pauseMockVideo(page);
     const pausedAt = await getMockVideoTime(page);
-    await settings.locator('#open-rule-settings').click();
+    await settings.locator('label[for="rule-engine-enabled"]').click();
     await expect.poll(() => rate(page)).toBe(1);
     expect(await getMockVideoTime(page)).toBe(pausedAt);
     expect(await page.locator('video').evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);

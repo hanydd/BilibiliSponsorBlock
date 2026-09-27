@@ -30,7 +30,6 @@ import { getHash } from "./utils/hash";
 import { localizeHtmlPage } from "./utils/setup";
 
 import { mountRulesPage } from "./options/rules/RulesPage";
-import { SettingsViewSwitch } from "./options/rules/SettingsViewSwitch";
 
 let embed = false;
 
@@ -52,18 +51,23 @@ async function init() {
     // setup message component
     setMessageNotice(Config.config.darkMode);
 
-    // selected tab
-    if (location.hash === "#skip-rules" && Config.config.skipEngineMode === "legacy") {
-        Config.config.skipEngineMode = "rules";
+    // Retired links only select the behavior section, never enable the experiment.
+    if (location.hash === "#skip-rules") {
+        const url = new URL(location.href);
+        url.hash = "behavior";
+        window.history.replaceState(null, "", url.toString());
     }
+    // The public rollout switch has exactly two states. Shadow remains an internal diagnostic mode.
+    if (Config.config.skipEngineMode === "shadow") Config.config.skipEngineMode = "legacy";
+    updateBehaviorMode();
+    // selected tab
     if (location.hash != "") {
         const substr = location.hash.slice(1);
         let menuItem = document.querySelector(`[data-for='${substr}']`);
         if (menuItem == null) menuItem = document.querySelector(`[data-for='behavior']`);
         menuItem.classList.add("selected");
     } else {
-        const initialTab = Config.config.skipEngineMode === "rules" ? "skip-rules" : "behavior";
-        document.querySelector(`[data-for='${initialTab}']`).classList.add("selected");
+        document.querySelector(`[data-for='behavior']`).classList.add("selected");
     }
 
     document.getElementById("version").innerText = "v. " + chrome.runtime.getManifest().version;
@@ -376,11 +380,11 @@ async function init() {
     }
 
     mountRulesPage(document.getElementById("skip-rules-root"), document.getElementById("category-type"));
-    createRoot(document.getElementById("behavior-view-switch")).render(React.createElement(SettingsViewSwitch, { view: "behavior" }));
     const engineSwitch = document.getElementById("rule-engine-enabled") as HTMLInputElement;
     engineSwitch.checked = Config.config.skipEngineMode === "rules";
     engineSwitch.addEventListener("change", () => {
         Config.config.skipEngineMode = engineSwitch.checked ? "rules" : "legacy";
+        updateBehaviorMode();
     });
 
     // Tab interaction
@@ -391,9 +395,6 @@ async function init() {
         if (tabElements[i].classList.contains("selected")) document.getElementById(tabFor).classList.remove("hidden");
 
         tabElements[i].addEventListener("click", () => {
-            if (tabFor === "skip-rules" || tabFor === "behavior") {
-                Config.config.skipEngineMode = tabFor === "skip-rules" ? "rules" : "legacy";
-            }
             if (!embed) location.hash = tabFor;
 
             createStickyHeader();
@@ -413,6 +414,15 @@ async function init() {
     window.addEventListener("scroll", () => createStickyHeader());
 
     optionsContainer.classList.add("animated");
+}
+
+/** The saved engine choice is also the only source of truth for the behavior page. */
+function updateBehaviorMode(): void {
+    const enabled = Config.config.skipEngineMode === "rules";
+    (document.getElementById("rule-engine-enabled") as HTMLInputElement).checked = enabled;
+    document.getElementById("classic-behavior").classList.toggle("hidden", enabled);
+    document.getElementById("skip-rules").classList.toggle("hidden", !enabled);
+    document.getElementById("behavior").classList.toggle("rules-enabled", enabled);
 }
 
 function createStickyHeader() {
@@ -486,7 +496,7 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
     }
 
     if (changes.skipEngineMode) {
-        (document.getElementById("rule-engine-enabled") as HTMLInputElement).checked = Config.config.skipEngineMode === "rules";
+        updateBehaviorMode();
     }
 
     if (changes.categorySelections) {

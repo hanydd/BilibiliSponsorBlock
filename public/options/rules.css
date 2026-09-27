@@ -9,18 +9,11 @@
 .rules-segment-extras{display:grid;grid-template-columns:1fr;gap:12px;margin:5px 0 15px}.rules-segment-extras label{flex-direction:row;align-items:center}.rules-segment-extras input[type=number]{width:90px}
 #options #skip-rules{width:100%;min-width:0;max-width:100%}.animated .rule-page *{transition-property:color,background-color,border-color;transition-duration:.15s}.animated .rule-page .rules-tabs button{transition:none}.animated .rule-page .rules-card-detail{transition:max-height .2s,opacity .2s}.animated .rule-page .rules-timeline i{transition:left .1s}
 
-/* The same view selector is available on both settings pages. */
-#behavior-view-switch{min-height:0}
-.options-view-switch{margin-bottom:20px}
-.options-view-switch [role=group]{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.options-view-switch span{font-size:13px;margin-right:8px}
-.options-view-switch button{font:inherit;font-size:14px;cursor:pointer;color:var(--white);background:var(--tab-color);border:1px solid var(--border-color);border-radius:5px;padding:6px 12px}
-.options-view-switch button[aria-pressed=true]{background:#00a1d6;border-color:#00a1d6;color:white}
-.options-view-switch button:focus-visible{outline:2px solid var(--server-node-active);outline-offset:2px}
-.options-view-switch p{font-size:12px;line-height:1.7;color:var(--description);padding:0;margin:8px 0 0}
-
 .rules-native{font-size:14px;min-width:0;overflow-x:auto}
 .rules-native>div{padding:15px 0;border-bottom:1px solid var(--border-color)}
 .rules-native .option-text-box{max-width:100%}
 .rules-native .switch-label{min-width:0}
 .rules-common-options>summary{font-size:14px;font-weight:600}
+
+#behavior>#classic-behavior,#behavior>#skip-rules{padding:0;min-height:0;border:0}
+#options #behavior.rules-enabled{width:100%;min-width:0;max-width:100%}

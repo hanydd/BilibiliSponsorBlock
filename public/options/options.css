@@ -149,6 +149,7 @@ body {
 }
 
 .option-group > div,
+#classic-behavior > div,
 .option-group > div.section > div {
 	min-height: 50px;
 	padding: 15px 0;
@@ -190,6 +191,7 @@ body {
 }
 
 .option-group > div:last-child,
+#classic-behavior > div:last-child,
 .option-group > #keybind-dialog {
 	border-bottom: inherit;
 }

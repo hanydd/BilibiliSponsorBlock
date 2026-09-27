@@ -431,13 +431,14 @@ test("removes individual channels and clears the whitelist", async ({
 
 test('persists independent rule-engine resume preferences', async ({ extensionId, extensionPage, extensionServiceWorker }) => {
     await openOptions(extensionPage, extensionId);
-    await expect(extensionPage.locator('#skipResumeAction')).toHaveValue('continue');
-    await expect(extensionPage.locator('#speedUpResumeAction')).toHaveValue('continue');
-    await extensionPage.locator('#skipResumeAction').selectOption('manual');
-    await extensionPage.locator('#speedUpResumeAction').selectOption('manual');
+    await extensionPage.locator('label[for="rule-engine-enabled"]').click();
+    await expect(extensionPage.locator('[data-rule-setting="skipResumeAction"]')).toHaveValue('continue');
+    await expect(extensionPage.locator('[data-rule-setting="speedUpResumeAction"]')).toHaveValue('continue');
+    await extensionPage.locator('[data-rule-setting="skipResumeAction"]').selectOption('manual');
+    await extensionPage.locator('[data-rule-setting="speedUpResumeAction"]').selectOption('manual');
     await expectSyncStorage(extensionServiceWorker, 'skipResumeAction', 'manual');
     await expectSyncStorage(extensionServiceWorker, 'speedUpResumeAction', 'manual');
     await extensionPage.reload();
-    await expect(extensionPage.locator('#skipResumeAction')).toHaveValue('manual');
-    await expect(extensionPage.locator('#speedUpResumeAction')).toHaveValue('manual');
+    await expect(extensionPage.locator('[data-rule-setting="skipResumeAction"]')).toHaveValue('manual');
+    await expect(extensionPage.locator('[data-rule-setting="speedUpResumeAction"]')).toHaveValue('manual');
 });

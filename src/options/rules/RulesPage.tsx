@@ -5,7 +5,6 @@ import { ruleDefinitions } from '../../content/skipRules/rules';
 import { Policy } from '../../content/skipRules/types';
 import { Action, advance, available, cards, CardView, groups, InputEvent, Layout, makeSimulation, Mode, modes, operations, Result, rows, scenario, StateName, step } from './model';
 import { currentSettings, SettingsPanel } from './SettingsPanel';
-import { SettingsViewSwitch } from './SettingsViewSwitch';
 import { NativeOptions, nativeSettings } from './NativeOptions';
 import { message, playbackText, ruleDescription, ruleInfo, ruleName, settingName, t, traceText } from './text';
 
@@ -39,7 +38,8 @@ function Card({ card, action, hover }: { card: CardView; action?: (event: InputE
 
 function RulesPage({ container, category }: { container: HTMLElement; category: HTMLElement }): JSX.Element {
     const [revision, refresh] = React.useReducer(value => value + 1, 0);
-    const [active, setActive] = React.useState(!container.closest('.option-group').classList.contains('hidden'));
+    const isVisible = () => !container.closest('.option-group').classList.contains('hidden') && !container.parentElement.classList.contains('hidden');
+    const [active, setActive] = React.useState(isVisible);
     const initial = new URLSearchParams(location.search).get('rulesTab') as Tab;
     const [tab, setTab] = React.useState<Tab>(tabs.includes(initial) ? initial : 'segments');
     const [mode, setMode] = React.useState<Mode>('auto');
@@ -68,8 +68,9 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
 
     React.useEffect(() => {
         const listener = () => refresh(); Config.configSyncListeners.push(listener);
-        const observer = new MutationObserver(() => setActive(!container.closest('.option-group').classList.contains('hidden')));
+        const observer = new MutationObserver(() => setActive(isVisible()));
         observer.observe(container.closest('.option-group'), { attributes: true, attributeFilter: ['class'] });
+        observer.observe(container.parentElement, { attributes: true, attributeFilter: ['class'] });
         return () => { observer.disconnect(); Config.configSyncListeners = Config.configSyncListeners.filter(callback => callback !== listener); };
     }, [container]);
     React.useEffect(() => {
@@ -157,8 +158,6 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
         }}>{tabs.map(value => <button type="button" key={value} role="tab" id={'rules-tab-' + value} aria-controls={'rules-panel-' + value} aria-selected={tab === value} tabIndex={tab === value ? 0 : -1} onClick={() => changeTab(value)}>{t('tab_' + value)}</button>)}</div>
 
         <section role="tabpanel" id="rules-panel-segments" aria-labelledby="rules-tab-segments" hidden={tab !== 'segments'}>
-            <SettingsViewSwitch view="skip-rules" />
-            <NativeOptions selectors={nativeSettings.engine} active={active} />
             <SettingsPanel update={update} />
             <NativeOptions selectors={nativeSettings.notice} active={active} />
             <p>{t('segmentDescription')}</p><div ref={categoryTarget} className="rules-categories" />

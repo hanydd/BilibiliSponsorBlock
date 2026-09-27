@@ -4,41 +4,46 @@ import { readSyncStorage, writeSyncStorage } from './support/extensionStorage';
 const rules = '#skip-rules';
 async function open(page, extensionId: string, tab = 'segments') {
     await page.goto(`chrome-extension://${extensionId}/options/options.html?rulesTab=${tab}#skip-rules`);
+    if (!await page.locator('#rule-engine-enabled').isChecked()) await page.locator('label[for="rule-engine-enabled"]').click();
+    await expect(page.locator('#skip-rules')).toBeVisible();
     await expect(page.locator('#rules-tab-' + tab)).toHaveAttribute('aria-selected', 'true');
 }
 
-test('behavior switch selects actual engine mode and stays synchronized with shadow selector', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
-    await page.goto(`chrome-extension://${extensionId}/options/options.html`);
+test('one rollout switch controls both views and engines across reloads and settings windows', async ({ extensionContext, extensionPage: page, extensionId, extensionServiceWorker }) => {
+    await page.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
     await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
+    await expect(page.locator('#classic-behavior')).toBeVisible();
+    await expect(page.locator(rules)).toBeHidden();
+    await expect(page.locator('#rule-engine-enabled')).toHaveCount(1);
+    await expect(page.locator('#skipEngineMode, .options-view-switch, [data-for="skip-rules"]')).toHaveCount(0);
     await page.locator('label[for="rule-engine-enabled"]').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
-    await expect(page.locator('#skipEngineMode')).toHaveValue('rules');
-    await page.locator('#open-rule-settings').click();
     await expect(page.locator(rules)).toBeVisible();
-    await expect(page.locator('[data-for="skip-rules"]')).toHaveCount(1);
+    await expect(page.locator('#classic-behavior')).toBeHidden();
     await expect(page.locator('.rules-tabs [role="tab"]')).toHaveCount(4);
+    await page.locator('#rules-tab-matrix').click();
+    await expect(page.locator('#rule-engine-entry')).toBeVisible();
+    await page.reload();
+    await expect(page.locator('#rule-engine-enabled')).toBeChecked();
+    await expect(page.locator('#rules-tab-matrix')).toHaveAttribute('aria-selected', 'true');
+    await page.locator('[data-for="interface"]').click();
     await page.locator('[data-for="behavior"]').click();
-    await page.locator('#skipEngineMode').selectOption('shadow');
-    await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
-    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('shadow');
-    await page.locator('#open-rule-settings').click();
-    await expect(page.locator(`${rules} .options-view-switch button[aria-pressed="true"]`)).toHaveText('规则设置');
-    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
-    await expect(page.locator('.rules-engine-status')).toHaveText('规则引擎已启用');
-    await page.locator(`${rules} .options-view-switch`).getByRole('button', { name: '经典设置', exact: true }).click();
-    await expect(page.locator('#category-home #sponsorSkipOption select')).toBeVisible();
-    await expect(page.locator('#skipEngineMode')).toHaveValue('legacy');
+    await expect(page.locator(rules)).toBeVisible();
+    expect(await readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
+    const other = await extensionContext.newPage();
+    await other.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
+    await expect(other.locator('#rule-engine-enabled')).toBeChecked();
+    await other.locator('label[for="rule-engine-enabled"]').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('legacy');
-    await page.reload();
-    await expect(page.locator('#skipEngineMode')).toHaveValue('legacy');
     await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
-    // Entering the new page also enables the matching engine.
-    await page.locator('[data-for="skip-rules"]').click();
-    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
-    await page.locator(`${rules} .options-view-switch`).getByRole('button', { name: '规则设置', exact: true }).click();
-    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
-    await page.reload();
-    await expect(page.locator('.rules-engine-status')).toHaveText('规则引擎已启用');
+    await expect(page.locator('#classic-behavior')).toBeVisible();
+    await expect(page.locator(rules)).toBeHidden();
+    await page.goto(`chrome-extension://${extensionId}/options/options.html#skip-rules`);
+    await expect(page).toHaveURL(/#behavior$/);
+    await expect(page.locator('#classic-behavior')).toBeVisible();
+    await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
+    expect(await readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('legacy');
+    await other.close();
 });
 
 test('segment tab reuses category controls including both colors and restores them to behavior', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
@@ -51,10 +56,10 @@ test('segment tab reuses category controls including both colors and restores th
     await page.locator('#sponsorPreviewColorOption input').fill('#654321');
     await expect.poll(async () => (await readSyncStorage<Record<string, { color: string }>>(extensionServiceWorker, 'barTypes'))?.sponsor?.color).toBe('#123456');
     await expect.poll(async () => (await readSyncStorage<Record<string, { color: string }>>(extensionServiceWorker, 'barTypes'))?.['preview-sponsor']?.color).toBe('#654321');
-    await page.locator('[data-for="behavior"]').click();
+    await page.locator('label[for="rule-engine-enabled"]').click();
     await expect(page.locator('#category-home #sponsorSkipOption select')).toHaveValue('manualSkip');
     await expect(page.locator('#category-home #sponsorColorOption input')).toHaveValue('#123456');
-    await page.locator('[data-for="skip-rules"]').click();
+    await page.locator('label[for="rule-engine-enabled"]').click();
     await expect(page.locator(`${rules} #sponsorSkipOption select`)).toHaveValue('manualSkip');
     await page.reload();
     await expect(page.locator(`${rules} #sponsorPreviewColorOption input`)).toHaveValue('#654321');
@@ -83,7 +88,7 @@ test('matrix uses real saved settings and supports rule detail navigation', asyn
     await page.locator('[data-for="interface"]').click();
     await expect(page.locator('[data-sync="skipNoticeDurationBefore"]')).toBeVisible();
     await page.locator('[data-for="behavior"]').click();
-    await expect(page.locator('#skipResumeAction')).toHaveValue('manual');
+    await expect(page.locator('[data-rule-setting="skipResumeAction"]')).toHaveValue('manual');
     await expect(page.locator('#skipOnSeekToSegment')).not.toBeChecked();
 });
 
@@ -150,14 +155,14 @@ test('rule directory search, filter, theme, tab persistence and narrow layouts',
 test('first tab covers every classic behavior setting and keeps native controls functional', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
     await page.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
     await expect(page.locator('#sponsorSkipOption select')).toBeVisible();
-    const originalKeys = await page.locator('#behavior [data-sync]').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-sync')));
-    await page.locator('#open-rule-settings').click();
+    const originalKeys = await page.locator('#classic-behavior [data-sync]').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-sync')));
+    await page.locator('label[for="rule-engine-enabled"]').click();
     const panel = page.locator('#rules-panel-segments');
     for (const key of originalKeys) {
         await expect(panel.locator(`[data-sync="${key}"], [data-rule-setting="${key}"]`)).toHaveCount(1);
     }
     await expect(page.locator('.rules-settings')).toHaveCount(1);
-    await expect(panel.locator('.options-view-switch')).toBeVisible();
+    await expect(page.locator('#rule-engine-entry')).toBeVisible();
     await panel.locator('label[for="forceChannelCheck"]').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'forceChannelCheck')).toBe(true);
     await panel.locator('label[for="audioNotificationOnSkip"]').click();
@@ -179,17 +184,17 @@ test('first tab covers every classic behavior setting and keeps native controls 
     await panel.locator('#dynamicAndCommentSponsorRegexPattern').fill('migration-test');
     await panel.locator('[data-sync="dynamicAndCommentSponsorRegexPattern"] .text-change-set').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'dynamicAndCommentSponsorRegexPattern')).toBe('migration-test');
-    await panel.locator('.options-view-switch').getByRole('button', { name: '经典设置', exact: true }).click();
+    await page.locator('label[for="rule-engine-enabled"]').click();
     await expect(page.locator('#behavior #audioNotificationOnSkip')).toBeChecked();
     await expect(page.locator('#behavior #dynamicAndCommentSponsorRegexPattern')).toHaveValue('migration-test');
     await expect(page.locator('#behavior #fullVideoLabelsOnThumbnailsMode')).toHaveValue('1');
-    await page.locator('#open-rule-settings').click();
+    await page.locator('label[for="rule-engine-enabled"]').click();
     await page.reload();
     await expect(panel.locator('#audioNotificationOnSkip')).toBeChecked();
     for (const tab of ['matrix', 'simulator', 'rules']) {
         await page.locator('#rules-tab-' + tab).click();
         await expect(page.locator('.rules-settings')).toBeHidden();
-        await expect(page.locator(`${rules} .options-view-switch`)).toBeHidden();
+        await expect(page.locator('#rule-engine-entry')).toBeVisible();
     }
 });
 

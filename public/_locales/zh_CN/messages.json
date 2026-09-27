@@ -1628,13 +1628,10 @@
         "message": "跳过规则"
     },
     "rules_enable": {
-        "message": "启用规则引擎"
+        "message": "启用新版规则引擎（灰度体验）"
     },
     "rules_enableDescription": {
-        "message": "使用规则引擎处理跳过与快进。切换后会接管已打开的视频页面。"
-    },
-    "rules_open": {
-        "message": "打开跳过规则设置"
+        "message": "关闭时使用经典设置页面和旧跳过逻辑；开启时使用新规则页面和新跳过引擎。切换立即生效，已有配置会保留。"
     },
     "rules_inactive": {
         "message": "规则引擎未启用。以下设置仍会保存，对照与测试展示规则引擎启用后的行为。"
@@ -2490,18 +2487,6 @@
     },
     "rules_result_navigate_to_point": {
         "message": "跳转至精彩点"
-    },
-    "rules_settingsView": {
-        "message": "设置界面"
-    },
-    "rules_classicView": {
-        "message": "经典设置"
-    },
-    "rules_rulesView": {
-        "message": "规则设置"
-    },
-    "rules_settingsViewDescription": {
-        "message": "规则设置使用规则引擎，经典设置使用旧引擎。切换后立即生效，两种版本共用配置。"
     },
     "rules_supplementSettings": {
         "message": "补充配置"

@@ -19,7 +19,6 @@ export function NativeOptions({ selectors, active }: { selectors: readonly strin
 }
 
 export const nativeSettings = {
-    engine: ['[data-sync="skipEngineMode"]'],
     playback: ['muteSegments', 'audioNotificationOnSkip', 'minDuration', 'manualSkipOnFullVideo', 'forceChannelCheck']
         .map(key => `[data-sync="${key}"]`),
     notice: ['[data-sync="noticeVisibilityMode"]'],
