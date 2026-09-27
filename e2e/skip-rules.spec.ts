@@ -256,3 +256,65 @@ test('rules undo protects the selected point from overlapping auto segments', as
     expect(await getMockVideoTime(extensionPage)).toBeGreaterThanOrEqual(20);
     expect(await getMockVideoTime(extensionPage)).toBeLessThan(25);
 });
+
+test('rules release overlapping speed members together after user changes rate', async ({ extensionContext, extensionPage, extensionServiceWorker, sendContentMessage }) => {
+    const fixtures = { extensionContext, extensionPage, extensionServiceWorker, sendContentMessage };
+    await setup(fixtures, { enableSpeedUp: true, speedUpPlaybackRate: 4 }, [[10, 50], [15, 60]]);
+    await setMockVideoTime(extensionPage, 20, true); await play(extensionPage);
+    await expect.poll(() => rate(extensionPage)).toBe(4);
+    await extensionPage.locator('video').evaluate((v: HTMLVideoElement) => { v.playbackRate = 2; });
+    await expect.poll(() => rate(extensionPage)).toBe(2);
+    await setMockVideoTime(extensionPage, 25, true);
+    await pauseMockVideo(extensionPage); await play(extensionPage);
+    await extensionPage.waitForTimeout(250);
+    expect(await rate(extensionPage)).toBe(2);
+    await setMockVideoTime(extensionPage, 65, true);
+    expect(await rate(extensionPage)).toBe(2);
+    await setMockVideoTime(extensionPage, 20, true);
+    await expect.poll(() => rate(extensionPage)).toBe(4);
+});
+
+test('rules can show cards again during the same visit without cancelling speed', async ({ extensionContext, extensionPage, extensionServiceWorker, sendContentMessage }) => {
+    const fixtures = { extensionContext, extensionPage, extensionServiceWorker, sendContentMessage };
+    await setup(fixtures, { dontShowNotice: true, enableSpeedUp: true, speedUpPlaybackRate: 4 }, [[10, 80]]);
+    await setMockVideoTime(extensionPage, 15, true); await play(extensionPage);
+    await expect.poll(() => rate(extensionPage)).toBe(4);
+    await expect(extensionPage.locator(first)).toHaveCount(0);
+    await writeSyncStorage(extensionServiceWorker, { dontShowNotice: false });
+    await expect(extensionPage.locator(first)).toHaveCount(1);
+    expect(await rate(extensionPage)).toBe(4);
+    await writeSyncStorage(extensionServiceWorker, { dontShowNotice: true });
+    await expect(extensionPage.locator(first)).toHaveCount(0);
+    expect(await rate(extensionPage)).toBe(4);
+    await writeSyncStorage(extensionServiceWorker, { dontShowNotice: false });
+    await expect(extensionPage.locator(first)).toHaveCount(1);
+});
+
+test('rules manual-on-resume keeps the paused entry actionable until explicit skip', async ({ extensionContext, extensionPage, extensionServiceWorker, sendContentMessage }) => {
+    const fixtures = { extensionContext, extensionPage, extensionServiceWorker, sendContentMessage };
+    await setup(fixtures, { skipResumeAction: 'manual' }, [[10, 50]]);
+    await setMockVideoTime(extensionPage, 15, true); await play(extensionPage);
+    await expect(extensionPage.locator(first)).toHaveCount(1);
+    await extensionPage.waitForTimeout(300);
+    expect(await getMockVideoTime(extensionPage)).toBeLessThan(25);
+    await setMockVideoTime(extensionPage, 20, true);
+    expect(await getMockVideoTime(extensionPage)).toBeLessThan(30);
+    await extensionPage.locator(first).locator('[id^="sponsorSkipUnskipButton"]').first().click();
+    await expect.poll(() => getMockVideoTime(extensionPage)).toBeGreaterThanOrEqual(50);
+});
+
+test('rules resume speed preference does not affect buffering and resets after leaving', async ({ extensionContext, extensionPage, extensionServiceWorker, sendContentMessage }) => {
+    const fixtures = { extensionContext, extensionPage, extensionServiceWorker, sendContentMessage };
+    await setup(fixtures, { enableSpeedUp: true, speedUpPlaybackRate: 4, speedUpResumeAction: 'manual' }, [[10, 60]]);
+    await setMockVideoTime(extensionPage, 15, true); await play(extensionPage);
+    await expect.poll(() => rate(extensionPage)).toBe(4);
+    await extensionPage.locator('video').evaluate((v: HTMLVideoElement) => { v.dispatchEvent(new Event('waiting')); v.dispatchEvent(new Event('playing')); });
+    await expect.poll(() => rate(extensionPage)).toBe(4);
+    await pauseMockVideo(extensionPage); await play(extensionPage);
+    await expect.poll(() => rate(extensionPage)).toBe(1);
+    await expect(extensionPage.locator(first)).toHaveCount(1);
+    await setMockVideoTime(extensionPage, 30, true);
+    expect(await rate(extensionPage)).toBe(1);
+    await setMockVideoTime(extensionPage, 70, true); await setMockVideoTime(extensionPage, 15, true);
+    await expect.poll(() => rate(extensionPage)).toBe(4);
+});

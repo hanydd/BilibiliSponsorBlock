@@ -179,3 +179,57 @@ test('undo of merged overlap returns to the selected segment without another mem
     expect(step(20, { kind: 'handoff' }).seek).toBeUndefined();
     expect(step(25).seek).toBeUndefined();
 });
+
+// Contracts for composed rules: changing presentation must not change execution.
+test('global card visibility composes with skipping and clocks without excluding a visit', () => {
+    const step = sequence({ showNotices: false });
+    const hidden = step(12);
+    expect(hidden.seek?.time).toBe(20);
+    expect(hidden.cards.A.show).toBe(false);
+    expect(hidden.cards.A.clock).toEqual({ kind: 'media', boundary: 'end', deadline: 20 });
+    expect(hidden.state.visits.A.excluded).toBeUndefined();
+    const completed = step(20, { kind: 'applied', ids: ['A'] });
+    expect(completed.cards.A.clock).toEqual({ kind: 'display' });
+    expect(step(20, { kind: 'data' }, { showNotices: true }).cards.A.show).toBe(true);
+});
+
+test('user rate change releases overlapping speed members in one transition', () => {
+    const step = sequence({ speedUp: true, segments: [segment('A', 10, 30), segment('B', 15, 40)] });
+    expect(step(16).speed).toEqual(['A', 'B']);
+    const changed = step(16, { kind: 'user-rate', ids: ['A', 'B'] });
+    expect(changed.speed).toEqual([]);
+    expect(changed.state.visits.A.excluded).toBe('user-rate');
+    expect(changed.state.visits.B.excluded).toBe('user-rate');
+    expect(step(19, { kind: 'seek' }).speed).toEqual([]);
+    expect(step(19, { kind: 'resume' }).speed).toEqual([]);
+    step(45, { kind: 'seek' });
+    expect(step(16, { kind: 'seek' }).speed).toEqual(['A', 'B']);
+});
+
+test.each(['skip', 'mute'] as const)('undo protects active overlapping %s before any effects are projected', action => {
+    const segments = [segment('A', 10, 30), segment('B', 15, 40)].map(s => ({ ...s, action }));
+    const step = sequence({ speedUp: true, segments });
+    step(16);
+    const undo = step(16, { kind: 'undo', id: 'B' });
+    expect(undo.speed).toEqual([]);
+    expect(undo.mute).toEqual([]);
+    expect(undo.cards.A.phase).toBe('pending');
+    expect(undo.cards.B.phase).toBe('pending');
+});
+
+test('pause and entry preference remain independent restrictions', () => {
+    const step = sequence({ speedUp: true, skipOnEntry: false });
+    step(0);
+    expect(step(12, { kind: 'seek' }, { paused: true }).speed).toEqual([]);
+    expect(step(12, { kind: 'resume' }).speed).toEqual([]);
+    expect(step(12, { kind: 'resume-speed', id: 'A' }).speed).toEqual(['A']);
+});
+
+test('clock descriptors derive from card phase, not the playback method', () => {
+    for (const speedUp of [false, true]) {
+        const step = sequence({ speedUp, previewLead: 3 });
+        expect(step(8).cards.A.clock).toEqual({ kind: 'media', boundary: 'start', deadline: 10 });
+        expect(step(12, { kind: 'pause' }, { paused: true }).cards.A.clock).toEqual({ kind: 'media', boundary: 'end', deadline: 20 });
+        expect(step(20, { kind: 'applied', ids: ['A'] }).cards.A.clock).toEqual({ kind: 'display' });
+    }
+});

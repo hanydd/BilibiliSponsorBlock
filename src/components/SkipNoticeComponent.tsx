@@ -159,7 +159,8 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 closeListener={() => this.closeListener()}
                 onDismiss={() => { if (isRuleEngineEnabled()) getRuleRuntime().action({ kind: "dismiss", id: this.segments[0].UUID }); }}
                 onInteractionChange={this.props.onInteractionChange}
-                playbackEnd={this.props.ruleCard ? this.props.ruleCard.deadline : this.props.autoSkip ? undefined : getSpeedUpNoticeEnd(this.segments)}
+                playbackEnd={this.props.ruleCard ? (this.props.ruleCard.clock.kind === "media" ? this.props.ruleCard.clock.deadline : undefined)
+                    : this.props.autoSkip ? undefined : getSpeedUpNoticeEnd(this.segments)}
                 dismissalPaused={this.state.speedUpPaused}
                 upcomingStart={this.props.advanceSkipNotice ? this.segments[0].segment[0] : undefined}
                 smaller={this.isSmallNotice()}

@@ -9,6 +9,9 @@ import { contentState } from '../state';
 import { seekForSkip } from '../skipSeek';
 import { EngineMode, installRuleRuntime, RuleRuntime } from './bridge';
 import { evaluateRules } from './engine';
+import { speedUpTarget } from './playback';
+import { rulePreferences } from './preferences';
+import { resolveSegmentPolicy } from './policy';
 import { emptyRuleState, Policy, RuleEvent, RuleInput, RulePlan, RuleSegment, RuleState } from './types';
 
 interface RuntimePorts {
@@ -74,9 +77,8 @@ export class SkipRulesRuntime implements RuleRuntime {
         on('ratechange', () => {
             if (this.mode !== 'rules' || !this.rate || video.playbackRate === this.rate.target) return;
             this.rate = undefined; // The user's new rate becomes the next baseline.
-            for (const [id, card] of Object.entries(this.plan?.cards ?? {})) {
-                if (card.phase === 'speeding') this.action({ kind: 'pause-speed', id });
-            }
+            const ids = Object.entries(this.plan?.cards ?? {}).filter(([, card]) => card.phase === 'speeding').map(([id]) => id);
+            this.action({ kind: 'user-rate', ids });
         });
         on('volumechange', () => {
             if (this.mode !== 'rules' || !this.muted || video.muted) return;
@@ -96,23 +98,25 @@ export class SkipRulesRuntime implements RuleRuntime {
         const full = new Set(all.filter(s => s.actionType === ActionType.Full).map(s => s.category));
         const segments: RuleSegment[] = all.map(s => {
             let option = this.utils.getCategorySelection(s.category)?.option ?? CategorySkipOption.Disabled;
+            // Retain existing danmaku compatibility outside the interval rule model.
             if (s.source === SponsorSourceType.Danmaku) option = !Config.config.enableDanmakuSkip ? CategorySkipOption.Disabled :
                 Config.config.enableAutoSkipDanmakuSkip ? CategorySkipOption.AutoSkip : CategorySkipOption.ManualSkip;
-            if (Config.config.autoSkipOnMusicVideos && all.some(s => s.category === 'music_offtopic') && s.actionType === ActionType.Skip && option !== CategorySkipOption.Disabled) option = CategorySkipOption.AutoSkip;
-            if (Config.config.manualSkipOnFullVideo && full.has(s.category) && option === CategorySkipOption.AutoSkip) option = CategorySkipOption.ManualSkip;
             const policies: Record<number, Policy> = { [-1]: 'ignore', 0: 'mark', 1: 'manual', 2: 'auto' };
-            const policy = s.hidden !== undefined || s.source === SponsorSourceType.YouTube ||
-                (s.actionType === ActionType.Mute && !Config.config.muteSegments) ? 'ignore' : policies[option] ?? 'ignore';
+            const resolved = resolveSegmentPolicy({
+                id: s.UUID, categoryPolicy: policies[option] ?? 'ignore', action: s.actionType,
+                videoHasMusic: all.some(segment => segment.category === 'music_offtopic'),
+                categoryHasFullLabel: full.has(s.category), hidden: s.hidden !== undefined,
+                externalSource: s.source === SponsorSourceType.YouTube,
+            }, Config.config);
             return { id: s.UUID, start: s.segment[0], end: Math.min(s.segment[1], this.video.duration || Infinity),
-                action: s.actionType, policy, draft: contentState.sponsorTimesSubmitting.some(d => d.UUID === s.UUID) };
+                action: s.actionType, ...resolved, draft: contentState.sponsorTimesSubmitting.some(d => d.UUID === s.UUID) };
         });
         return {
             time: this.video.currentTime, paused: this.video.paused, waiting: this.waiting,
             disabled: Config.config.disableSkipping || contentState.channelWhitelisted ||
                 (Config.config.forceChannelCheck && getChannelIDInfo().status === ChannelIDStatus.Fetching),
-            speedUp: Config.config.enableSpeedUp, skipOnEntry: Config.config.skipOnSeekToSegment,
-            previewLead: Config.config.advanceSkipNotice ? Config.config.skipNoticeDurationBefore : 0,
-            editing: this.editing, includeOtherSegments: Config.config.previewIncludeOtherSegments,
+            ...rulePreferences(Config.config),
+            editing: this.editing,
             previewId: this.previewId, segments,
         };
     }
@@ -193,8 +197,7 @@ export class SkipRulesRuntime implements RuleRuntime {
         if (input.paused || input.waiting) return;
         if (plan.speed.length) {
             const original = this.rate?.original ?? this.video.playbackRate;
-            const configured = Math.min(16, Math.max(1.1, Number(Config.config.speedUpPlaybackRate) || 2));
-            const target = Math.min(16, Math.abs(configured - original) <= 0.05 ? original + configured : Math.max(configured, original));
+            const target = speedUpTarget(original, Config.config.speedUpPlaybackRate);
             this.rate = { original, target };
             if (this.video.playbackRate !== target) this.video.playbackRate = target;
         } else this.restoreRate();
@@ -216,9 +219,10 @@ export class SkipRulesRuntime implements RuleRuntime {
         for (const notice of [...contentState.skipNotices]) {
             if (!notice.props.ruleCard) continue;
             const id = notice.segments[0].UUID;
-            if (!plan.cards[id]) notice.close();
+            if (!plan.cards[id]?.show) notice.close();
         }
         for (const [id, card] of Object.entries(plan.cards)) {
+            if (!card.show) continue;
             const key = JSON.stringify(card);
             if (this.published.get(id) === key) continue;
             this.published.set(id, key);
@@ -229,7 +233,7 @@ export class SkipRulesRuntime implements RuleRuntime {
                 autoSkip: card.phase === 'completed' || card.phase === 'muted' || (card.phase === 'preview' && card.automatic), startReskip: false, ruleCard: card,
             }, { source: 'skipRules' });
         }
-        for (const id of this.published.keys()) if (!plan.cards[id]) this.published.delete(id);
+        for (const id of this.published.keys()) if (!plan.cards[id]?.show) this.published.delete(id);
         app.bus.emit(CONTENT_EVENTS.SPEEDUP_STATE_CHANGED, { active: !!plan.speed.length, pausedContext: !!this.rate && this.video.paused }, { source: 'skipRules' });
     }
 

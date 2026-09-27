@@ -428,3 +428,16 @@ test("removes individual channels and clears the whitelist", async ({
     await expectSyncStorage(extensionServiceWorker, "whitelistedChannels", []);
     await expect(manager).not.toContainText("Mock Channel B");
 });
+
+test('persists independent rule-engine resume preferences', async ({ extensionId, extensionPage, extensionServiceWorker }) => {
+    await openOptions(extensionPage, extensionId);
+    await expect(extensionPage.locator('#skipResumeAction')).toHaveValue('continue');
+    await expect(extensionPage.locator('#speedUpResumeAction')).toHaveValue('continue');
+    await extensionPage.locator('#skipResumeAction').selectOption('manual');
+    await extensionPage.locator('#speedUpResumeAction').selectOption('manual');
+    await expectSyncStorage(extensionServiceWorker, 'skipResumeAction', 'manual');
+    await expectSyncStorage(extensionServiceWorker, 'speedUpResumeAction', 'manual');
+    await extensionPage.reload();
+    await expect(extensionPage.locator('#skipResumeAction')).toHaveValue('manual');
+    await expect(extensionPage.locator('#speedUpResumeAction')).toHaveValue('manual');
+});

@@ -29,6 +29,8 @@ import { waitFor } from "./utils/";
 import { getHash } from "./utils/hash";
 import { localizeHtmlPage } from "./utils/setup";
 
+import { mountRulesPage } from "./options/rules/RulesPage";
+
 let embed = false;
 
 const categoryChoosers: CategoryChooser[] = [];
@@ -368,6 +370,16 @@ async function init() {
         }
     }
 
+    mountRulesPage(document.getElementById("skip-rules-root"), document.getElementById("category-type"));
+    const engineSwitch = document.getElementById("rule-engine-enabled") as HTMLInputElement;
+    engineSwitch.checked = Config.config.skipEngineMode === "rules";
+    engineSwitch.addEventListener("change", () => {
+        Config.config.skipEngineMode = engineSwitch.checked ? "rules" : "legacy";
+    });
+    document.getElementById("open-rule-settings").addEventListener("click", () => {
+        (document.querySelector("[data-for='skip-rules']") as HTMLElement).click();
+    });
+
     // Tab interaction
     const tabElements = document.getElementsByClassName("tab-heading");
     for (let i = 0; i < tabElements.length; i++) {
@@ -432,11 +444,43 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
     const optionsElements = optionsContainer.querySelectorAll("*");
 
     for (let i = 0; i < optionsElements.length; i++) {
+        const key = optionsElements[i].getAttribute("data-sync");
+        if (key && key in changes) {
+            const element = optionsElements[i];
+            const type = element.getAttribute("data-type");
+            if (type === "toggle") {
+                const input = element.querySelector("input") as HTMLInputElement;
+                if (input) input.checked = element.getAttribute("data-toggle-type") === "reverse" ? !Config.config[key] : !!Config.config[key];
+            } else if (type === "selector") {
+                const select = element.querySelector("select") as HTMLSelectElement;
+                if (select) select.value = String(Config.config[key]);
+            } else if (type === "number-change") {
+                const input = element.querySelector("input") as HTMLInputElement;
+                if (input && document.activeElement !== input) input.value = String(Config.config[key]);
+            }
+        }
         switch (optionsElements[i].getAttribute("data-type")) {
             case "display":
                 updateDisplayElement(<HTMLElement>optionsElements[i]);
                 break;
         }
+    }
+
+    // Settings edited on the rules page must also update dependent native controls.
+    for (const dependent of optionsContainer.querySelectorAll("[data-dependent-on]")) {
+        const key = dependent.getAttribute("data-dependent-on");
+        if (!(key in changes)) continue;
+        void shouldHideOption(dependent).then(forceHide => {
+            const source = optionsContainer.querySelector(`[data-sync='${key}']`);
+            const reverse = source?.getAttribute("data-toggle-type") === "reverse" || dependent.getAttribute("data-dependent-on-inverted") === "true";
+            const hidden = forceHide || (reverse ? !!Config.config[key] : !Config.config[key]);
+            dependent.classList.toggle("hidden", hidden);
+            dependent.classList.toggle("hiding", hidden);
+        });
+    }
+
+    if (changes.skipEngineMode) {
+        (document.getElementById("rule-engine-enabled") as HTMLInputElement).checked = Config.config.skipEngineMode === "rules";
     }
 
     if (changes.categorySelections) {

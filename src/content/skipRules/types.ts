@@ -8,9 +8,13 @@ export interface RuleSegment {
     action: SegmentAction;
     policy: Policy;
     draft?: boolean;
+    policyTrace?: readonly RuleTrace[];
 }
 export type CardPhase = 'preview' | 'pending' | 'speeding' | 'speed-paused' | 'muted' | 'completed';
+export type RuleCardClock = { kind: 'media'; boundary: 'start' | 'end'; deadline: number } | { kind: 'display' };
 export interface RuleCard {
+    show: boolean;
+    clock: RuleCardClock;
     visit: number;
     phase: CardPhase;
     deadline?: number;
@@ -22,7 +26,8 @@ export interface Visit {
     entered: boolean;
     auto: boolean;
     manual?: 'mute' | 'speed';
-    excluded?: 'dismiss' | 'undo' | 'pause-speed';
+    resumeFrom?: 'pending' | 'speed' | 'explicit';
+    excluded?: 'dismiss' | 'cancel' | 'undo' | 'pause-speed' | 'user-rate';
     phase?: CardPhase;
     start: number;
     end: number;
@@ -34,7 +39,7 @@ export interface RuleState {
 export type RuleEvent =
     | { kind: 'time' | 'seek' | 'resume' | 'data' | 'pause' | 'handoff' | 'edit-end' }
     | { kind: 'dismiss' | 'undo' | 'skip' | 'pause-speed' | 'resume-speed' | 'allow' | 'deny'; id: string; forceSeek?: boolean }
-    | { kind: 'applied'; ids: string[] };
+    | { kind: 'applied' | 'user-rate'; ids: string[] };
 export interface RuleInput {
     time: number;
     paused: boolean;
@@ -42,7 +47,10 @@ export interface RuleInput {
     disabled: boolean;
     speedUp: boolean;
     skipOnEntry: boolean;
+    resumeAction?: 'continue' | 'manual';
+    speedUpResumeAction?: 'continue' | 'manual';
     previewLead: number;
+    showNotices?: boolean;
     editing: boolean;
     includeOtherSegments: boolean;
     previewId?: string;
