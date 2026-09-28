@@ -6,7 +6,7 @@ const rules = '#skip-rules';
 const settingTabs: Record<string, string> = {
     skipOnSeekToSegment: 'matrix', skipResumeAction: 'matrix', speedUpResumeAction: 'matrix', previewIncludeOtherSegments: 'matrix',
     advanceSkipNotice: 'cards', skipNoticeDurationBefore: 'cards', skipNoticeDuration: 'cards', dontShowNotice: 'cards',
-    audioNotificationOnSkip: 'cards', noticeVisibilityMode: 'cards',
+    audioNotificationOnSkip: 'cards', noticeVisibilityMode: 'cards', skipSoundVolume: 'cards', skipSoundFadeStart: 'cards',
 };
 async function open(page, extensionId: string, tab = 'segments') {
     await page.goto(`chrome-extension://${extensionId}/options/options.html?rulesTab=${tab}#skip-rules`);
@@ -179,6 +179,7 @@ test('settings tabs cover every classic behavior setting and keep native control
         await expect(page.locator(`#rules-panel-${home}`).locator(`[data-sync="${key}"], [data-rule-setting="${key}"]`)).toHaveCount(1);
     }
     const compositeSettings = {
+        customSkipSound: '#rules-panel-cards [data-type="custom-skip-sound"]',
         categorySelections: '#rules-panel-segments #category-type', barTypes: '#rules-panel-segments #category-type',
         autoSkipOnMusicVideos: '#rules-panel-segments #autoSkipOnMusicVideos',
         whitelistedChannels: '#rules-panel-segments [data-type="react-WhitelistManagerComponent"]',

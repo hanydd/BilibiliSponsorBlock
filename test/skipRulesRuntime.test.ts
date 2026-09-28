@@ -20,10 +20,44 @@ async function setup(settings = {}) {
     const beep = document.createElement('audio');
     const play = jest.spyOn(beep, 'play').mockResolvedValue(undefined);
     const audio = jest.spyOn(window, 'Audio').mockImplementation(() => beep);
-    return { video, Config, contentState, runtime, ports, play, audio };
+    return { video, Config, contentState, runtime, ports, play, audio, beep };
 }
 
 afterEach(() => { jest.clearAllTimers(); jest.useRealTimers(); jest.restoreAllMocks(); });
+
+test.each([false, true])('custom sound, volume and fade apply to automatic playback (speed=%s)', async enableSpeedUp => {
+    const { video, Config, runtime, audio, beep } = await setup({ enableSpeedUp, skipSoundVolume: 0.4, skipSoundFadeStart: 0.5 });
+    Object.assign(Config, { local: { customSkipSound: { dataUrl: 'data:audio/wav;base64,test', name: 'custom.wav' } } });
+    video.volume = 0.8;
+    Object.defineProperty(beep, 'duration', { configurable: true, value: 4 });
+    runtime.observe();
+    expect(audio).toHaveBeenCalledWith(Config.local.customSkipSound.dataUrl);
+    expect(beep.volume).toBe(0.4);
+    beep.currentTime = 3;
+    jest.advanceTimersByTime(40);
+    expect(beep.volume).toBeCloseTo(0.2);
+    beep.dispatchEvent(new Event('ended'));
+    beep.volume = 0.3;
+    beep.currentTime = 3.5;
+    jest.advanceTimersByTime(40);
+    expect(beep.volume).toBe(0.3);
+    runtime.reset();
+});
+
+test('shared sound used by the legacy scheduler falls back and releases fades on rejection', async () => {
+    const { video, audio, beep, play, runtime } = await setup({ skipSoundVolume: NaN, skipSoundFadeStart: 0.5 });
+    const { notifyAutomaticSkip } = await import('../src/content/skipNotification');
+    play.mockRejectedValue(new Error('audio blocked'));
+    Object.defineProperty(beep, 'duration', { configurable: true, value: 4 });
+    notifyAutomaticSkip(video);
+    expect(audio).toHaveBeenCalledWith(expect.stringContaining('icons/beep.ogg'));
+    expect(beep.volume).toBe(0.1);
+    await Promise.resolve();
+    beep.currentTime = 3;
+    jest.advanceTimersByTime(40);
+    expect(beep.volume).toBe(0.1);
+    runtime.reset();
+});
 
 test('merged automatic skips notify once; repeated observation does not replay sound', async () => {
     const { video, runtime, play, ports } = await setup({ enableSpeedUp: false });

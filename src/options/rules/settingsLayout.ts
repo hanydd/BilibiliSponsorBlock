@@ -12,7 +12,7 @@ export const editableSettings: readonly string[] = Object.values(settingGroups).
 
 /** Each preference has one home, even when edited beside a result. */
 export function settingTab(key: string): SettingsGroup {
-    if (key === 'audioNotificationOnSkip' || key === 'noticeVisibilityMode' || settingGroups.cards.some(value => value === key)) return 'cards';
+    if (['audioNotificationOnSkip', 'noticeVisibilityMode', 'skipSoundVolume', 'skipSoundFadeStart', 'customSkipSound'].includes(key) || settingGroups.cards.some(value => value === key)) return 'cards';
     if (settingGroups.matrix.some(value => value === key)) return 'matrix';
     return 'segments';
 }
