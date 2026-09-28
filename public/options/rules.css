@@ -247,6 +247,23 @@
     cursor: pointer;
 }
 .rule-page .rules-toggle > span { min-width: 0; line-height: 1.6; }
+
+/* Keep the three default playback controls inline; wrap whole settings when space runs out. */
+.rules-settings[data-settings-group="segments"] .rules-setting-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 32px;
+}
+.rules-settings[data-settings-group="segments"] .rules-setting-grid > label {
+    flex-direction: row;
+    align-items: center;
+    align-self: auto;
+    gap: 8px;
+    min-height: 32px;
+}
+.rules-settings[data-settings-group="segments"] select { width: 96px; }
+
 @media (prefers-reduced-motion: reduce) {
     :is(.rule-page, #rule-engine-entry) input[type=checkbox]::before { transition: none; }
 }
