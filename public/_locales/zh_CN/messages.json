@@ -402,6 +402,61 @@
     "audioNotificationDescription": {
         "message": "在跳过片段时播放音频提醒。如果禁用（或禁用自动跳过），则不会播放声音。"
     },
+    "customSkipSound": {
+        "message": "自定义跳过提示音"
+    },
+    "customSkipSoundDescription": {
+        "message": "自动跳过片段时播放你自己的音效文件，代替默认提示音。请选择不超过 2MB 且不超过 10 秒的音频文件。"
+    },
+    "customSkipSoundChoose": {
+        "message": "选择音效文件"
+    },
+    "customSkipSoundPlay": {
+        "message": "试听"
+    },
+    "customSkipSoundStop": {
+        "message": "停止"
+    },
+    "customSkipSoundReset": {
+        "message": "恢复默认"
+    },
+    "customSkipSoundEnabled": {
+        "message": "自定义音效：$SOUND_NAME$",
+        "placeholders": {
+            "sound_name": {
+                "content": "$1"
+            }
+        }
+    },
+    "customSkipSoundDefault": {
+        "message": "当前使用默认提示音"
+    },
+    "customSkipSoundTooLarge": {
+        "message": "所选文件过大，请选择不超过 2MB 的音频文件。"
+    },
+    "customSkipSoundTooLong": {
+        "message": "所选音效超过 $MAX_SECONDS$ 秒，请更换更短的文件。",
+        "placeholders": {
+            "max_seconds": {
+                "content": "$1"
+            }
+        }
+    },
+    "customSkipSoundInvalid": {
+        "message": "所选文件无法作为音频解码，请更换文件。"
+    },
+    "skipSoundVolume": {
+        "message": "提示音音量"
+    },
+    "skipSoundVolumeDescription": {
+        "message": "跳过提示音的播放音量（0-100%）。试听与实际跳过时使用相同音量。"
+    },
+    "skipSoundFade": {
+        "message": "提示音淡出"
+    },
+    "skipSoundFadeDescription": {
+        "message": "音效播放到指定进度后逐渐淡出到静音（如 75% 表示最后 25% 淡出）。100% 表示不淡出。试听与实际跳过时使用相同淡出。"
+    },
     "showTimeWithSkips": {
         "message": "显示去除可跳片段后的视频时长"
     },

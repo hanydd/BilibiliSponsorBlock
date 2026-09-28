@@ -28,6 +28,7 @@ import { CacheStats } from "./types";
 import { waitFor } from "./utils/";
 import { getHash } from "./utils/hash";
 import { localizeHtmlPage } from "./utils/setup";
+import { applyFadeOut, clamp01 } from "./utils/soundFade";
 
 let embed = false;
 
@@ -306,6 +307,18 @@ async function init() {
             case "keybind-change": {
                 const root = createRoot(optionsElements[i].querySelector("div"));
                 root.render(React.createElement(KeybindComponent, { option: option }));
+                break;
+            }
+            case "custom-skip-sound": {
+                setupCustomSkipSound(optionsElements[i] as HTMLElement);
+                break;
+            }
+            case "skip-sound-volume": {
+                setupSkipSoundVolume(optionsElements[i] as HTMLElement);
+                break;
+            }
+            case "skip-sound-fade": {
+                setupSkipSoundFade(optionsElements[i] as HTMLElement);
                 break;
             }
             case "display": {
@@ -993,6 +1006,184 @@ function copyDebugOutputToClipboard() {
 
 function isIncognitoAllowed(): Promise<boolean> {
     return new Promise((resolve) => chrome.extension.isAllowedIncognitoAccess(resolve));
+}
+
+/**
+ * Setup custom skip sound functionality
+ */
+const MAX_CUSTOM_SKIP_SOUND_SIZE = 2 * 1024 * 1024; // 2MB，base64 后约 2.7MB，低于 chrome.storage.local 默认 10MB 配额
+const MAX_CUSTOM_SKIP_SOUND_DURATION = 10; // 秒，过长的音效会在每次自动跳过时持续打扰
+
+class SoundTooLongError extends Error {}
+
+function getSkipSoundVolume(): number {
+    return clamp01(Config.config.skipSoundVolume, 0.1);
+}
+
+function getSkipSoundFadeStart(): number {
+    return clamp01(Config.config.skipSoundFadeStart, 1);
+}
+
+function setupSkipSoundVolume(element: HTMLElement) {
+    const slider = element.querySelector<HTMLInputElement>(".volume-slider");
+    const valueDisplay = element.querySelector<HTMLElement>(".volume-value");
+
+    const updateDisplay = () => {
+        valueDisplay.innerText = `${Math.round(getSkipSoundVolume() * 100)}%`;
+    };
+
+    slider.value = String(Math.round(getSkipSoundVolume() * 100));
+    updateDisplay();
+
+    slider.addEventListener("input", () => {
+        Config.config.skipSoundVolume = Number(slider.value) / 100;
+        updateDisplay();
+    });
+}
+
+function setupSkipSoundFade(element: HTMLElement) {
+    const slider = element.querySelector<HTMLInputElement>(".fade-slider");
+    const valueDisplay = element.querySelector<HTMLElement>(".fade-value");
+
+    const updateDisplay = () => {
+        valueDisplay.innerText = `${Math.round(getSkipSoundFadeStart() * 100)}%`;
+    };
+
+    slider.value = String(Math.round(getSkipSoundFadeStart() * 100));
+    updateDisplay();
+
+    slider.addEventListener("input", () => {
+        Config.config.skipSoundFadeStart = Number(slider.value) / 100;
+        updateDisplay();
+    });
+}
+
+function setupCustomSkipSound(element: HTMLElement) {
+    const fileInput = element.querySelector<HTMLInputElement>(".custom-sound-file-input");
+    const chooseButton = element.querySelector<HTMLElement>(".custom-sound-choose");
+    const playButton = element.querySelector<HTMLElement>(".custom-sound-play");
+    const resetButton = element.querySelector<HTMLElement>(".custom-sound-reset");
+    const status = element.querySelector<HTMLElement>(".custom-sound-status");
+
+    const updateStatus = () => {
+        const customSound = Config.local?.customSkipSound;
+        status.innerText = customSound?.dataUrl
+            ? chrome.i18n.getMessage("customSkipSoundEnabled", [customSound.name])
+            : chrome.i18n.getMessage("customSkipSoundDefault");
+        status.title = customSound?.dataUrl ? customSound.name : "";
+    };
+
+    let previewAudio: HTMLAudioElement | null = null;
+    let stopPreviewFade: (() => void) | null = null;
+    const stopPreview = () => {
+        if (!previewAudio) return;
+        stopPreviewFade?.();
+        stopPreviewFade = null;
+        previewAudio.pause();
+        previewAudio.removeAttribute("src");
+        previewAudio = null;
+        playButton.innerText = chrome.i18n.getMessage("customSkipSoundPlay");
+    };
+
+    const preview = () => {
+        if (previewAudio) {
+            stopPreview();
+            return;
+        }
+
+        const audio = new Audio(Config.local?.customSkipSound?.dataUrl || chrome.runtime.getURL("icons/beep.ogg"));
+        // 试听与实际跳过播放使用同一音量和淡出配置
+        const baseVolume = getSkipSoundVolume();
+        audio.volume = baseVolume;
+        stopPreviewFade = applyFadeOut(audio, baseVolume, getSkipSoundFadeStart());
+        audio.addEventListener("ended", () => {
+            if (previewAudio === audio) stopPreview();
+        });
+        previewAudio = audio;
+        audio.play();
+        playButton.innerText = chrome.i18n.getMessage("customSkipSoundStop");
+    };
+
+    // 解码校验并返回时长，超过时长上限或无法解码时拒绝
+    const validateAudioDataUrl = (dataUrl: string) =>
+        new Promise<number>((resolve, reject) => {
+            const test = new Audio();
+            test.preload = "auto";
+            const cleanup = () => {
+                clearTimeout(timeout);
+                test.removeEventListener("loadedmetadata", onMetadata);
+                test.removeEventListener("canplaythrough", onOk);
+                test.removeEventListener("error", onFail);
+                test.removeAttribute("src");
+                test.load();
+            };
+            const onMetadata = () => {
+                if (!isFinite(test.duration) || test.duration > MAX_CUSTOM_SKIP_SOUND_DURATION) {
+                    cleanup();
+                    reject(new SoundTooLongError(`audio duration ${test.duration}s`));
+                }
+            };
+            const onOk = () => {
+                cleanup();
+                resolve(test.duration);
+            };
+            const onFail = () => {
+                cleanup();
+                reject(new Error("audio decode failed"));
+            };
+            const timeout = setTimeout(() => {
+                cleanup();
+                reject(new Error("audio validation timed out"));
+            }, 5000);
+            test.addEventListener("loadedmetadata", onMetadata);
+            test.addEventListener("canplaythrough", onOk);
+            test.addEventListener("error", onFail);
+            test.src = dataUrl;
+        });
+
+    const onFileChosen = async () => {
+        const file = fileInput.files?.[0];
+        if (!file) return;
+
+        stopPreview();
+
+        if (file.size > MAX_CUSTOM_SKIP_SOUND_SIZE) {
+            alert(chrome.i18n.getMessage("customSkipSoundTooLarge"));
+        } else {
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(file);
+            });
+
+            try {
+                await validateAudioDataUrl(dataUrl);
+                Config.local.customSkipSound = { dataUrl, name: file.name };
+                updateStatus();
+            } catch (error) {
+                alert(
+                    error instanceof SoundTooLongError
+                        ? chrome.i18n.getMessage("customSkipSoundTooLong", [String(MAX_CUSTOM_SKIP_SOUND_DURATION)])
+                        : chrome.i18n.getMessage("customSkipSoundInvalid")
+                );
+            }
+        }
+
+        // 允许再次选择同一个文件
+        fileInput.value = "";
+    };
+
+    chooseButton.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", () => void onFileChosen());
+    playButton.addEventListener("click", preview);
+    resetButton.addEventListener("click", () => {
+        stopPreview();
+        Config.local.customSkipSound = null;
+        updateStatus();
+    });
+
+    updateStatus();
 }
 
 /**

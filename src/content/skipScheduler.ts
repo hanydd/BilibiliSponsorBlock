@@ -16,6 +16,7 @@ import Utils from "../utils";
 import { isFirefox, isFirefoxOrSafari, isSafari, waitFor } from "../utils/";
 import { GenericUtils } from "../utils/genericUtils";
 import { logDebug, logUiLifecycle } from "../utils/logger";
+import { applyFadeOut, clamp01 } from "../utils/soundFade";
 import { isPlayingPlaylist } from "../utils/pageUtils";
 import { getBilibiliVideoID } from "../utils/parseVideoID";
 import { getStartTimeFromUrl } from "../utils/urlParser";
@@ -1372,17 +1373,24 @@ function wasSkipBeepRecently(): boolean {
 
 function playSkipBeep(): void {
     lastSkipBeepAt = performance.now();
-    const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
-    beep.volume = getVideo().volume * 0.1;
+    const customSound = Config.local?.customSkipSound?.dataUrl;
+    const beep = new Audio(customSound || chrome.runtime.getURL("icons/beep.ogg"));
+    // 音量与设置页试听一致，均取 skipSoundVolume；存储值异常时回退默认
+    const baseVolume = clamp01(Config.config.skipSoundVolume, 0.1);
+    beep.volume = baseVolume;
+    // 淡出起点同样与试听共用 skipSoundFadeStart 配置
+    const stopFade = applyFadeOut(beep, baseVolume, Config.config.skipSoundFadeStart);
     const oldMetadata = navigator.mediaSession.metadata;
-    beep.play();
+    beep.play().catch(() => stopFade());
     beep.addEventListener("ended", () => {
+        stopFade();
         navigator.mediaSession.metadata = null;
         setTimeout(() => {
             navigator.mediaSession.metadata = oldMetadata;
             beep.remove();
         });
     });
+    beep.addEventListener("error", stopFade, { once: true });
 }
 
 export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = null, forceSeek = false): void {

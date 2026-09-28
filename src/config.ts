@@ -69,6 +69,8 @@ interface SBConfig {
     skipNoticeDurationBefore: number;
     advanceSkipNotice: boolean;
     audioNotificationOnSkip: boolean;
+    skipSoundVolume: number;
+    skipSoundFadeStart: number;
     checkForUnlistedVideos: boolean;
     testingServer: boolean;
     ytInfoPermissionGranted: boolean;
@@ -178,6 +180,10 @@ interface SBStorage {
 
     // Used when sync storage disabled
     alreadyInstalled: boolean;
+
+    // 自定义跳过提示音，name 用于设置页展示；null 表示使用内置 beep.ogg。
+    // 放在 local 而非 sync，避免超出 chrome.storage.sync 单条 8KB 限额
+    customSkipSound: { dataUrl: string; name: string } | null;
 
     /* Contains unsubmitted segments that the user has created. */
     unsubmittedSegments: Record<string, SponsorTime[]>;
@@ -342,6 +348,8 @@ const syncDefaults = {
     skipNoticeDurationBefore: 3,
     advanceSkipNotice: false,
     audioNotificationOnSkip: false,
+    skipSoundVolume: 0.1,
+    skipSoundFadeStart: 1,
     checkForUnlistedVideos: false,
     testingServer: false,
     ytInfoPermissionGranted: false,
@@ -592,6 +600,7 @@ const localDefaults = {
     alreadyInstalled: false,
     unsubmittedSegments: {},
     videoPageCidMap: {},
+    customSkipSound: null,
 };
 
 const Config = new ConfigClass(syncDefaults, localDefaults, migrateOldSyncFormats);

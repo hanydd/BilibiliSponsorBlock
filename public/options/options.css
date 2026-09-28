@@ -1200,3 +1200,50 @@ svg {
 .cache-stats-table th {
 	padding: 10px;
 }
+
+.custom-sound-buttons {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 5px;
+}
+
+.custom-sound-file-input {
+	display: none;
+}
+
+.custom-sound-status {
+	color: var(--description);
+	font-size: 13px;
+
+	max-width: 260px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.volume-control {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 5px;
+}
+
+.volume-slider,
+.fade-slider {
+	width: 200px;
+}
+
+.volume-value {
+	color: var(--description);
+	font-size: 13px;
+
+	min-width: 40px;
+}
+
+.fade-value {
+	color: var(--description);
+	font-size: 13px;
+
+	min-width: 40px;
+}

@@ -402,6 +402,61 @@
     "audioNotificationDescription": {
         "message": "在跳过片段时播放音频提醒。如果禁用（或禁用自动跳过），则不会播放声音。"
     },
+    "customSkipSound": {
+        "message": "Custom Skip Sound"
+    },
+    "customSkipSoundDescription": {
+        "message": "Play your own sound file when a segment is auto-skipped, instead of the default beep. Select an audio file up to 2MB and 10 seconds."
+    },
+    "customSkipSoundChoose": {
+        "message": "Choose Sound File"
+    },
+    "customSkipSoundPlay": {
+        "message": "Preview"
+    },
+    "customSkipSoundStop": {
+        "message": "Stop"
+    },
+    "customSkipSoundReset": {
+        "message": "Reset to Default"
+    },
+    "customSkipSoundEnabled": {
+        "message": "Custom sound: $SOUND_NAME$",
+        "placeholders": {
+            "sound_name": {
+                "content": "$1"
+            }
+        }
+    },
+    "customSkipSoundDefault": {
+        "message": "Using default sound"
+    },
+    "customSkipSoundTooLarge": {
+        "message": "The selected file is too large. Please choose an audio file of 2MB or less."
+    },
+    "customSkipSoundTooLong": {
+        "message": "The selected sound is longer than $MAX_SECONDS$ seconds. Please choose a shorter file.",
+        "placeholders": {
+            "max_seconds": {
+                "content": "$1"
+            }
+        }
+    },
+    "customSkipSoundInvalid": {
+        "message": "The selected file could not be decoded as audio. Please choose a different file."
+    },
+    "skipSoundVolume": {
+        "message": "Skip Sound Volume"
+    },
+    "skipSoundVolumeDescription": {
+        "message": "Playback volume of the skip notification sound. The preview uses the same volume as the actual skip."
+    },
+    "skipSoundFade": {
+        "message": "Skip Sound Fade-Out"
+    },
+    "skipSoundFadeDescription": {
+        "message": "Gradually fade the skip sound to silence after it reaches the chosen progress of playback (e.g. 75% fades out the last quarter). 100% disables the fade."
+    },
     "showTimeWithSkips": {
         "message": "显示去除可跳片段后的视频时长"
     },

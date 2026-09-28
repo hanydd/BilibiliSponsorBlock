@@ -1,6 +1,7 @@
 import type { Page, Worker } from "@playwright/test";
+import path from "path";
 import { expect, test } from "./fixtures/extension";
-import { readSyncStorage, writeSyncStorage } from "./support/extensionStorage";
+import { readLocalStorage, readSyncStorage, writeSyncStorage } from "./support/extensionStorage";
 
 // Health-check UI tests should not open Chrome's optional host-permission prompt.
 const permittedTestServerAddress = "http://server-e2e.bsbsb.top";
@@ -14,6 +15,27 @@ async function openOptions(page: Page, extensionId: string, hash = ""): Promise<
 
 async function expectSyncStorage<T>(serviceWorker: Worker, key: string, expected: T): Promise<void> {
     await expect.poll(() => readSyncStorage<T>(serviceWorker, key)).toEqual(expected);
+}
+
+/** 生成指定秒数的静音 PCM WAV，用于构造超时长限制的音效文件 */
+function buildWavBuffer(durationSeconds: number): Buffer {
+    const sampleRate = 8000;
+    const dataSize = sampleRate * durationSeconds * 2;
+    const buffer = Buffer.alloc(44 + dataSize);
+    buffer.write("RIFF", 0);
+    buffer.writeUInt32LE(36 + dataSize, 4);
+    buffer.write("WAVE", 8);
+    buffer.write("fmt ", 12);
+    buffer.writeUInt32LE(16, 16);
+    buffer.writeUInt16LE(1, 20); // PCM
+    buffer.writeUInt16LE(1, 22); // mono
+    buffer.writeUInt32LE(sampleRate, 24);
+    buffer.writeUInt32LE(sampleRate * 2, 28);
+    buffer.writeUInt16LE(2, 32);
+    buffer.writeUInt16LE(16, 34);
+    buffer.write("data", 36);
+    buffer.writeUInt32LE(dataSize, 40);
+    return buffer;
 }
 
 test("loads the options page and keeps tab navigation in the URL", async ({ extensionId, extensionPage }) => {
@@ -44,6 +66,68 @@ test("disables skipping after seeking by default and preserves an enabled prefer
     await extensionPage.reload();
     await expect(extensionPage.locator("#skipOnSeekToSegment")).toBeChecked();
     await expectSyncStorage(extensionServiceWorker, "skipOnSeekToSegment", true);
+});
+
+test("customizes the skip sound only while audio notifications are enabled", async ({
+    extensionId, extensionPage, extensionServiceWorker,
+}) => {
+    await openOptions(extensionPage, extensionId);
+
+    const block = extensionPage.locator("[data-type='custom-skip-sound']");
+    const status = block.locator(".custom-sound-status");
+    const playButton = block.locator(".custom-sound-play");
+    const fileInput = block.locator(".custom-sound-file-input");
+    await expect(block).toBeHidden();
+
+    await extensionPage.locator("label[for='audioNotificationOnSkip']").click();
+    await expect(block).toBeVisible();
+    const defaultStatus = await status.innerText();
+
+    await fileInput.setInputFiles(path.join(__dirname, "../public/icons/beep.ogg"));
+    await expect
+        .poll(() =>
+            readLocalStorage<{ dataUrl: string; name: string }>(extensionServiceWorker, "customSkipSound"))
+        .toMatchObject({ dataUrl: expect.stringContaining("data:audio"), name: "beep.ogg" });
+    await expect(status).toContainText("beep.ogg");
+    await expect(status).not.toHaveText(defaultStatus);
+
+    // 超过 10 秒的音效被拒绝，保留原选择
+    let dialogMessage: string | null = null;
+    extensionPage.once("dialog", (dialog) => {
+        dialogMessage = dialog.message();
+        dialog.accept();
+    });
+    await fileInput.setInputFiles({ name: "too-long.wav", mimeType: "audio/wav", buffer: buildWavBuffer(12) });
+    await expect.poll(() => dialogMessage).toContain("10");
+    await expect
+        .poll(() => readLocalStorage(extensionServiceWorker, "customSkipSound"))
+        .toMatchObject({ name: "beep.ogg" });
+
+    // 试听中再次点击可停止
+    await playButton.click();
+    await expect(playButton).toHaveText(/停止|Stop/i);
+    await playButton.click();
+    await expect(playButton).toHaveText(/试听|Preview/i);
+
+    // 音量滑杆与同步存储联动，刷新后保持
+    const volumeBlock = extensionPage.locator("[data-type='skip-sound-volume']");
+    const slider = volumeBlock.locator(".volume-slider");
+    await expect(volumeBlock).toBeVisible();
+    await slider.evaluate((element) => {
+        (element as HTMLInputElement).value = "40";
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await expectSyncStorage(extensionServiceWorker, "skipSoundVolume", 0.4);
+    await expect(volumeBlock.locator(".volume-value")).toHaveText(/40%/);
+
+    await extensionPage.reload();
+    await expect(volumeBlock).toBeVisible();
+    await expect(slider).toHaveValue("40");
+    await expect(volumeBlock.locator(".volume-value")).toHaveText(/40%/);
+
+    await block.locator(".custom-sound-reset").click();
+    await expect.poll(() => readLocalStorage(extensionServiceWorker, "customSkipSound")).toBeFalsy();
+    await expect(status).toHaveText(defaultStatus);
 });
 
 test("persists common interface toggles, numeric values, and selectors", async ({
