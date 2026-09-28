@@ -288,6 +288,8 @@
 /* Preview surfaces represent the player, independently of the settings theme. */
 .rules-player, .rules-card-preview {
     --white: #eee;
+    --description: #c4c4c4;
+    --border-color: #555;
     --rules-control-background: #333;
     color: #eee;
     color-scheme: dark;
@@ -330,7 +332,7 @@
 .rule-page .rules-native .categoryTableHeader th { white-space: nowrap; }
 .rule-page .rules-native .categoryChooserTable .ColorOption { min-width: 7em; }
 
-/* Example inputs and results are one dark region, separate from saved preferences. */
+/* Example inputs and results share a distinct surface in each theme. */
 .rule-page {
     --rules-settings-background: var(--background);
     --rules-settings-text: var(--white);
@@ -358,6 +360,18 @@
     border: 1px solid var(--border-color);
     border-radius: 6px;
     container: rules-example / inline-size;
+}
+[data-theme="light"] .rules-example-section {
+    --background: #ededed;
+    --white: #262626;
+    --title: #212121;
+    --description: #595959;
+    --border-color: #d4d4d4;
+    --slider: #bfbebe;
+    --server-node-active: #008fbe;
+    --rules-control-background: #fafafa;
+    --rules-surface-background: #f5f5f5;
+    color-scheme: light;
 }
 .rules-example-section > h3:first-child { margin: 0 0 var(--rules-space-heading); }
 .rules-example-section > h3 + .rules-example-controls { margin-top: 0; }
