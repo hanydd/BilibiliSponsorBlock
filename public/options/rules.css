@@ -168,3 +168,44 @@
 .rules-setting-links{display:flex;flex-direction:column;align-items:flex-start;gap:8px}.rules-setting-links .rules-link{margin:0}.rule-page [data-setting-highlight]:focus{outline:2px solid var(--server-node-active);outline-offset:4px}
 
 .rules-context-settings .rules-setting-grid{grid-template-columns:1fr}.rules-card-preview{padding:16px 0}.rules-card-preview .rules-example-card{max-width:100%}.rules-tabs{flex-wrap:wrap}
+
+/* Reused controls keep their behavior, with the same density as the rule settings. */
+.rules-categories .categoryTableElement { font-size: 13px; }
+.rules-categories .categoryTableElement td { padding-top: 8px; }
+.rules-categories .categoryTableDescription > td { font-size: 12px; line-height: 1.55; padding: 6px 0 10px 12px; }
+.rules-categories #categoryChooserTable .optionsSelector { font-size: 13px; min-height: 30px; padding: 5px 8px; }
+#rules-panel-segments > .rules-native { font-size: 13px; }
+#rules-panel-segments > .rules-native > div { padding: 10px 0; }
+#rules-panel-segments > .rules-native .small-description { font-size: 12px; line-height: 1.55; padding: 0; margin: 6px 0 0; }
+
+.rules-setting-grid > .rules-native { overflow: visible; font-size: 12px; }
+.rules-setting-grid > .rules-native > div { padding: 0; border: 0; }
+.rules-setting-grid [data-sync="noticeVisibilityMode"] { display: flex; flex-direction: column; gap: 6px; }
+.rules-setting-grid .rules-native br { display: none; }
+.rules-setting-grid .rules-native .optionLabel { font-size: 12px; min-width: 0; margin: 0; }
+.rules-setting-grid .rules-native select {
+    width: 100%; min-width: 0; min-height: 32px; padding: 6px 8px; font-size: 13px;
+    color: var(--white); background: var(--background); border: 1px solid var(--border-color); border-radius: 4px;
+}
+.rules-sound-settings .rules-native { font-size: 13px; }
+.rules-sound-settings .rules-native > div { padding: 0; border: 0; }
+.rules-sound-settings .small-description { font-size: 12px; line-height: 1.55; padding: 0; margin: 6px 0 0; }
+.rules-sound-settings [data-dependent-on] { margin-top: 12px; }
+.rules-sound-settings br { display: none; }
+.rules-sound-settings .option-button { font-size: 12px; padding: 6px 10px; }
+
+.rules-card-preview { padding: 12px; margin: 12px 0; border-radius: 6px; background: #181818; min-height: 96px; }
+.rules-card-preview .rules-example-card { color: #eee; }
+.rules-example-card[data-small=false] .rules-card-detail { max-height: 120px; opacity: 1; padding-top: 8px; }
+.rules-example-card[data-faded=true] { opacity: .5; }
+.rules-example-card:hover, .rules-example-card:focus-within { opacity: 1; }
+.rules-example-card .rules-card-detail { color: #ddd; }
+@container category-options (max-width: 640px) {
+    .rules-categories .categoryTableElement { gap: 10px 16px; }
+    .rules-categories .categoryTableElement td { padding-top: 0; }
+    .rules-categories .categoryTableDescription > td { padding: 8px 0 12px; }
+    .rules-categories [data-label]::before { font-size: 12px; }
+}
+.rules-card-preview .rules-card-header,
+.rules-card-preview .rules-card-header strong,
+.rules-card-preview .rules-clock { color: #eee; }

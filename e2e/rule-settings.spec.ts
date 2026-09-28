@@ -216,7 +216,7 @@ test('settings tabs cover every classic behavior setting and keep native control
             compositeSettings,
         }, null, 2), contentType: 'application/json',
     });
-    await expect(page.locator('.rules-settings')).toHaveCount(3);
+    await expect(page.locator('.rules-settings[data-settings-group]')).toHaveCount(3);
     await expect(page.locator('#rule-engine-entry')).toBeVisible();
     await panel.locator('label[for="forceChannelCheck"]').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'forceChannelCheck')).toBe(true);
@@ -253,7 +253,7 @@ test('settings tabs cover every classic behavior setting and keep native control
     await expect(page.locator('#rules-panel-cards #audioNotificationOnSkip')).toBeChecked();
     for (const tab of ['community', 'matrix', 'cards', 'simulator', 'rules']) {
         await page.locator('#rules-tab-' + tab).click();
-        await expect(page.locator('.rules-settings:visible')).toHaveCount(['matrix', 'cards'].includes(tab) ? 1 : 0);
+        await expect(page.locator('.rules-settings[data-settings-group]:visible')).toHaveCount(['matrix', 'cards'].includes(tab) ? 1 : 0);
         await expect(page.locator('#rule-engine-entry')).toBeVisible();
     }
 });
@@ -428,6 +428,39 @@ test('users can replace countdown values and configure fast-forward beside its s
     await expect(speed).not.toBeChecked();
     await expect(settings.locator('[data-rule-setting="skipNoticeDuration"]')).toHaveValue('12');
     await expect(defaults.locator('[data-rule-setting="speedUpPlaybackRate"]')).toHaveValue('2');
+});
+
+test('notice appearance is in the settings grid and previews every visibility mode with hover expansion', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+    await open(page, extensionId, 'cards');
+    const panel = page.locator('#rules-panel-cards');
+    const appearance = panel.locator('.rules-setting-grid #noticeVisibilityMode');
+    await expect(appearance).toBeVisible();
+    await panel.locator('[data-rule-setting="advanceSkipNotice"]').check();
+    const card = panel.locator('[data-card="A"]');
+    for (const mode of [0, 1, 2, 3, 4]) {
+        await appearance.selectOption(String(mode));
+        await expect.poll(() => readSyncStorage(extensionServiceWorker, 'noticeVisibilityMode')).toBe(mode);
+        for (const phase of ['preview', 'pending', 'speeding', 'completed']) {
+            await panel.locator(`[data-card-preview="${phase}"]`).click();
+            await page.mouse.move(0, 0);
+            const small = mode >= 2 || mode === 1 && phase === 'completed';
+            const faded = mode === 4 || mode === 3 && phase === 'completed';
+            await expect(card).toHaveAttribute('data-small', String(small));
+            await expect(card).toHaveCSS('opacity', faded ? '0.5' : '1');
+            await expect(card.locator('.rules-card-detail')).toHaveCSS('max-height', small ? '0px' : '120px');
+        }
+    }
+    await card.hover();
+    await expect(card).toHaveCSS('opacity', '1');
+    await expect(card.locator('.rules-card-detail')).toHaveCSS('max-height', '120px');
+    await page.mouse.move(0, 0);
+    await expect(card).toHaveCSS('opacity', '0.5');
+    await panel.getByRole('button', { name: '恢复本组默认值' }).click();
+    await expect(appearance).toHaveValue('3');
+    await page.locator('label[for="rule-engine-enabled"]').click();
+    await page.locator('[data-for="interface"]').click();
+    await expect(page.locator('#interface #noticeVisibilityMode')).toBeVisible();
+    await expect(page.locator('#noticeVisibilityMode')).toHaveCount(1);
 });
 
 test('card settings update state examples and reset only the reminder group', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {

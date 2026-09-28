@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import Config from '../../config';
+import { noticePresentation, SegmentPlaybackState } from '../../notices/SkipNoticeModel';
 import { ruleDefinitions } from '../../content/skipRules/rules';
 import { Policy } from '../../content/skipRules/types';
 import { Action, advance, available, cards, CardView, ExampleContext, groups, InputEvent, Layout, makeSimulation, MatrixContext, matrixContexts, Mode, modes, operations, overlapReviewExample, Result, rows, scenario, StateName, step } from './model';
@@ -40,18 +41,22 @@ function ContextSettings({ result, update, openSetting }: {
 }
 function Card({ card, action, hover }: { card: CardView; action?: (event: InputEvent) => void; hover?: (value: boolean) => void }): JSX.Element {
     if (!card.visible) return null;
+    // Match the runtime's completed/muted playback state; fast-forward is still pending.
+    const presentation = noticePresentation(Config.config.noticeVisibilityMode, card.phase === 'preview',
+        card.phase === 'completed' || card.phase === 'muted' ? SegmentPlaybackState.Skipped : SegmentPlaybackState.Pending);
     const buttons: Array<InputEvent['kind']> = [];
     if (card.phase === 'completed') buttons.push('undo');
     else if (card.phase === 'muted') buttons.push('cancel');
     else if (card.phase === 'preview') buttons.push(card.automatic ? 'cancel' : 'allow');
     else { buttons.push('skip'); if (card.phase === 'speeding') buttons.push('cancel'); if (card.phase === 'speed-paused') buttons.push('allow'); }
-    return <div className="rules-example-card" data-card={card.id} onPointerEnter={() => hover?.(true)} onPointerLeave={() => hover?.(false)}
+    return <div className="rules-example-card" data-card={card.id} data-small={presentation.small} data-faded={presentation.faded}
+        tabIndex={action ? undefined : 0} onPointerEnter={() => hover?.(true)} onPointerLeave={() => hover?.(false)}
         onFocus={() => hover?.(true)} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) hover?.(false); }}>
         <div className="rules-card-header"><span className="rules-shield">▶</span><strong>{card.id} · {t('phase_' + card.label)}</strong>
             {action && buttons.map(kind => <button type="button" key={kind} data-card-action={kind} onClick={() => action({ kind, id: card.id })}>{t('action_' + kind)}</button>)}
             <span title={clockText(card)} className="rules-clock">{card.held ? 'Ⅱ' : t('seconds', String(card.seconds))}</span>
             {action && <button type="button" data-card-action="close" aria-label={t('action_close')} onClick={() => action({ kind: 'close', id: card.id })}>×</button>}</div>
-        <div className="rules-card-detail">{clockText(card)}<br />{t('timingDescription')}</div></div>;
+        <div className="rules-card-detail">{clockText(card)}</div></div>;
 }
 
 function RulesPage({ container, category }: { container: HTMLElement; category: HTMLElement }): JSX.Element {
@@ -246,8 +251,8 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
             </div>
         </section>
         <section role="tabpanel" id="rules-panel-cards" aria-labelledby="rules-tab-cards" hidden={tab !== 'cards'}>
-            <SettingsPanel group="cards" update={update} />
-            <NativeOptions selectors={nativeSettings.notice} active={active} />
+            <SettingsPanel group="cards" update={update}><NativeOptions selectors={nativeSettings.appearance} active={active} /></SettingsPanel>
+            <section className="rules-settings rules-sound-settings"><NativeOptions selectors={nativeSettings.sound} active={active} /></section>
             <h3>{t('cardExamples')}</h3><p>{t('cardExamplesNote')}</p>
             <div className="rules-modes">{(['preview', 'pending', 'speeding', 'completed'] as const).map(phase => <button key={phase} type="button" data-card-preview={phase} aria-pressed={cardPhase === phase} onClick={() => setCardPhase(phase)}>{t('phase_' + phase)}</button>)}</div>
             <div className="rules-card-preview">{cardExample.cards.some(card => card.visible) ? cardExample.cards.filter(card => card.visible).map(card => <Card key={card.id} card={card} />) : <p>{t('noCards')}</p>}</div>

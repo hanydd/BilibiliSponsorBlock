@@ -55,12 +55,13 @@ export function RuleSetting({ setting, update, inline = false }: { setting: Edit
     }
 }
 
-export function SettingsPanel({ group, update }: { group: SettingsGroup; update: Update }): JSX.Element {
+export function SettingsPanel({ group, update, children }: { group: SettingsGroup; update: Update; children?: React.ReactNode }): JSX.Element {
     return <section className="rules-settings" data-settings-group={group} aria-label={t('settings_' + group)}>
         <div className="rules-settings-heading"><h3>{t('settings_' + group)}</h3><button type="button" className="rules-link" onClick={() => {
             for (const key of settingGroups[group]) update(key, Config.syncDefaults[key]);
+            if (group === 'cards') update('noticeVisibilityMode', Config.syncDefaults.noticeVisibilityMode);
         }}>{t('resetSection')}</button></div>
-        <div className="rules-setting-grid">{settingGroups[group].map(setting => <RuleSetting key={setting} setting={setting} update={update} />)}</div>
+        <div className="rules-setting-grid">{settingGroups[group].map(setting => <RuleSetting key={setting} setting={setting} update={update} />)}{children}</div>
         <p className="small-description">{t(group === 'segments' ? 'speedHelp' : group === 'matrix' ? 'resumeNote' : 'countdownHelp')} {t('saved')}</p>
     </section>;
 }
