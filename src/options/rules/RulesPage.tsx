@@ -6,7 +6,7 @@ import { Policy } from '../../content/skipRules/types';
 import { Action, advance, available, cards, CardView, ExampleContext, groups, InputEvent, Layout, makeSimulation, Mode, modes, operations, Result, rows, scenario, StateName, step } from './model';
 import { currentSettings, SettingsPanel } from './SettingsPanel';
 import { NativeOptions, nativeSettings } from './NativeOptions';
-import { message, playbackText, ruleDescription, ruleInfo, ruleName, settingName, t, traceText } from './text';
+import { playbackText, ruleDescription, ruleInfo, ruleName, settingName, t, traceText } from './text';
 
 type Tab = 'segments' | 'community' | 'matrix' | 'simulator' | 'rules';
 type Preset = 'pause' | 'pauseSpeed' | 'rate' | 'close' | 'adjacent' | 'merge';
@@ -64,6 +64,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
     const [filter, setFilter] = React.useState('all');
     const [selectedRule, setSelectedRule] = React.useState(ruleIds[0]);
     const [ruleOrigin, setRuleOrigin] = React.useState<Tab>('matrix');
+    const [settingToFocus, setSettingToFocus] = React.useState<string | null>(null);
     const categoryTarget = React.useRef<HTMLDivElement>(null);
     const categoryHome = React.useRef(category.parentElement);
     const selected = React.useMemo(() => scenario(settings, mode, selectedState, operation), [settings, mode, selectedState, operation]);
@@ -80,6 +81,27 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
         else categoryHome.current.appendChild(category);
         return () => { categoryHome.current.appendChild(category); };
     }, [active, tab, category]);
+    React.useEffect(() => {
+        if (!active || tab !== 'segments' || !settingToFocus) return;
+        const special = {
+            categorySelections: '.rules-categories',
+            autoSkipOnMusicVideos: '#music_offtopic_autoSkipOnMusicVideos',
+            whitelistedChannels: '[data-type="react-WhitelistManagerComponent"]',
+        };
+        const control = container.querySelector<HTMLElement>(special[settingToFocus] ?? `[data-rule-setting="${settingToFocus}"], [data-sync="${settingToFocus}"]`);
+        if (control) {
+            const target = control.closest<HTMLElement>('label') ?? control;
+            for (let parent = target.parentElement; parent; parent = parent.parentElement) {
+                if (parent instanceof HTMLDetailsElement) parent.open = true;
+            }
+            container.querySelector('[data-setting-highlight]')?.removeAttribute('data-setting-highlight');
+            target.setAttribute('data-setting-highlight', settingToFocus);
+            target.tabIndex = -1;
+            target.focus({ preventScroll: true });
+            target.scrollIntoView({ block: 'center' });
+        }
+        setSettingToFocus(null);
+    }, [active, tab, settingToFocus, container]);
     React.useEffect(() => { if (!active || tab !== 'simulator') setRunning(false); }, [active, tab]);
     React.useEffect(() => {
         // Keep an ongoing paused test intact when the user changes a resume preference.
@@ -163,11 +185,11 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
         }}>{tabs.map(value => <button type="button" key={value} role="tab" id={'rules-tab-' + value} aria-controls={'rules-panel-' + value} aria-selected={tab === value} tabIndex={tab === value ? 0 : -1} onClick={() => changeTab(value)}>{t('tab_' + value)}</button>)}</div>
 
         <section role="tabpanel" id="rules-panel-segments" aria-labelledby="rules-tab-segments" hidden={tab !== 'segments'}>
+            <p>{t('settingsGuide')}</p>
             <SettingsPanel update={update} />
             <NativeOptions selectors={nativeSettings.notice} active={active} />
             <p>{t('segmentDescription')}</p><div ref={categoryTarget} className="rules-categories" />
             <NativeOptions selectors={nativeSettings.categories} active={active} />
-            <label className="rules-global-speed"><input type="checkbox" data-rule-setting="enableSpeedUp" checked={Config.config.enableSpeedUp} onChange={e => update('enableSpeedUp', e.target.checked)} />{message('enableSpeedUp')}</label>
             <NativeOptions selectors={nativeSettings.playback} active={active} />
             <details className="rules-common-options"><summary>{t('whitelistSettings')}</summary><NativeOptions selectors={nativeSettings.whitelist} active={active} /></details>
         </section>
@@ -179,6 +201,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
         </section>
         {(tab === 'matrix' || tab === 'simulator') && <><button type="button" className="rules-link" onClick={() => changeTab('segments')}>{t('editSettings')}</button>{modeButtons}<p className="small-description">{t('exampleDescription')}</p></>}
         <section role="tabpanel" id="rules-panel-matrix" aria-labelledby="rules-tab-matrix" hidden={tab !== 'matrix'}>
+            <p>{t('matrixHint')}</p>
             <div className="rules-workspace"><div><h3>{t('matrixTitle')}</h3><div className="rules-groups">{groups.map(value => <button type="button" key={value} data-rule-group={value} aria-pressed={group === value} onClick={() => {
                 setGroup(value); setOperation(operations.find(o => o.group === value && available(mode, selectedState, o.id))?.id ?? 'natural');
             }}>{t('group_' + value)}</button>)}</div>
@@ -219,8 +242,8 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
         </section>
         <section role="tabpanel" id="rules-panel-rules" aria-labelledby="rules-tab-rules" hidden={tab !== 'rules'}>
             <p>{t('rulesDescription')}</p><div className="rules-search"><label>{t('search')}<input type="search" placeholder={t('searchPlaceholder')} value={query} onChange={e => setQuery(e.target.value)} /></label><label>{t('filter')}<select value={filter} onChange={e => setFilter(e.target.value)}>{['all', 'configurable', 'fixed'].map(value => <option key={value} value={value}>{t('filter_' + value)}</option>)}</select></label><span role="status">{t('ruleCount', String(filtered.length))}</span></div>
-            <div className="rules-browser"><div className="rules-directory">{filtered.map(id => <button type="button" key={id} aria-pressed={currentRule === id} onClick={() => setSelectedRule(id)}>{ruleName(id)}<small>{t('stage_' + ruleInfo(id).stage)} · {ruleInfo(id).settings.length ? t('configurable') : t('filter_fixed')}</small></button>)}</div>
-                <div className="rules-description">{currentRule ? <><h3>{ruleName(currentRule)}</h3><p>{ruleDescription(currentRule)}</p><h4>{t('relatedSettings')}</h4><p>{ruleInfo(currentRule).settings.length ? ruleInfo(currentRule).settings.map(settingName).join('、') : t('fixed')}</p>
+            <div className="rules-browser"><div className="rules-directory">{filtered.map(id => <button type="button" key={id} data-rule-id={id} aria-pressed={currentRule === id} onClick={() => setSelectedRule(id)}>{ruleName(id)}<small>{t('stage_' + ruleInfo(id).stage)} · {ruleInfo(id).settings.length ? t('configurable') : t('filter_fixed')}</small></button>)}</div>
+                <div className="rules-description">{currentRule ? <><h3>{ruleName(currentRule)}</h3><p>{ruleDescription(currentRule)}</p><h4>{t('relatedSettings')}</h4>{ruleInfo(currentRule).settings.length ? <div className="rules-setting-links">{ruleInfo(currentRule).settings.map(key => <button key={key} type="button" className="rules-link" data-related-setting={key} onClick={() => { setSettingToFocus(key); changeTab('segments'); }}>{settingName(key)} →</button>)}</div> : <p>{t('fixed')}</p>}
                     <details><summary>{t('identifier')}</summary><code>{currentRule}</code></details><button type="button" className="rules-link" onClick={() => changeTab(ruleOrigin)}>{t(ruleOrigin === 'simulator' ? 'returnTest' : 'returnMatrix')}</button></> : <p>{t('emptyRules')}</p>}</div>
             </div><details><summary>{t('scope')}</summary><p>{t('scopeDescription')}</p></details>
         </section>

@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/extension';
 import { readSyncStorage, writeSyncStorage } from './support/extensionStorage';
+import { ruleDefinitions } from '../src/content/skipRules/rules';
 
 const rules = '#skip-rules';
 async function open(page, extensionId: string, tab = 'segments') {
@@ -280,4 +281,54 @@ test('scenario contexts explain first-layer policy overrides using saved setting
     await page.locator('#rules-tab-matrix').click();
     await page.locator('[data-rule-mode="auto"]').click();
     await expect(page.locator('.rules-result dd').first()).toContainText('静音');
+});
+
+test('every related setting opens its editable location without changing preferences', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+    await open(page, extensionId, 'rules');
+    const targets = new Map<string, string>();
+    for (const [id, rule] of Object.entries(ruleDefinitions)) for (const key of rule.settings) targets.set(key, id);
+    const before = await Promise.all([...targets.keys()].map(key => readSyncStorage(extensionServiceWorker, key)));
+    for (const [key, id] of targets) {
+        await page.locator('#rules-tab-rules').click();
+        await page.locator(`[data-rule-id="${id}"]`).click();
+        await page.locator(`[data-related-setting="${key}"]`).click();
+        await expect(page.locator('#rules-tab-segments')).toHaveAttribute('aria-selected', 'true');
+        const target = page.locator(`[data-setting-highlight="${key}"]`);
+        await expect(target).toBeVisible();
+        await expect(target).toBeFocused();
+        await expect(target).toBeInViewport();
+    }
+    expect(await Promise.all([...targets.keys()].map(key => readSyncStorage(extensionServiceWorker, key)))).toEqual(before);
+});
+
+test('users can replace countdown values and configure fast-forward beside its switch', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+    await open(page, extensionId);
+    const settings = page.locator('.rules-settings');
+    await settings.locator('[data-rule-setting="advanceSkipNotice"]').check();
+    for (const key of ['skipNoticeDurationBefore', 'skipNoticeDuration']) {
+        const input = settings.locator(`[data-rule-setting="${key}"]`);
+        await input.fill('');
+        await expect(input).toHaveValue('');
+        await input.pressSequentially('12');
+        await input.blur();
+        await expect(input).toHaveValue('12');
+        await expect.poll(() => readSyncStorage(extensionServiceWorker, key)).toBe(12);
+        await input.fill('0');
+        await input.blur();
+        await expect(input).toHaveValue('12');
+    }
+    const speed = settings.locator('[data-rule-setting="enableSpeedUp"]');
+    await expect(speed).not.toBeChecked();
+    const previousSpeed = await readSyncStorage(extensionServiceWorker, 'enableSpeedUp');
+    await settings.locator('[data-rule-setting="speedUpPlaybackRate"]').selectOption('4');
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'speedUpPlaybackRate')).toBe(4);
+    expect(await readSyncStorage(extensionServiceWorker, 'enableSpeedUp')).toBe(previousSpeed);
+    await speed.check();
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'enableSpeedUp')).toBe(true);
+    await page.reload();
+    await expect(speed).toBeChecked();
+    await expect(settings.locator('[data-rule-setting="skipNoticeDuration"]')).toHaveValue('12');
+    await settings.getByRole('button', { name: '恢复行为设置默认值' }).click();
+    await expect(speed).not.toBeChecked();
+    await expect(settings.locator('[data-rule-setting="speedUpPlaybackRate"]')).toHaveValue('2');
 });

@@ -5,6 +5,20 @@ import type { Settings } from './model';
 import { policyPreferences } from '../../content/skipRules/preferences';
 
 type Key = keyof typeof Config.config;
+function DurationSetting({ setting, label, disabled, update }: {
+    setting: 'skipNoticeDuration' | 'skipNoticeDurationBefore'; label: string; disabled?: boolean;
+    update: (key: Key, value: number) => void;
+}): JSX.Element {
+    const value = Config.config[setting];
+    const [draft, setDraft] = React.useState(String(value));
+    React.useEffect(() => setDraft(String(value)), [value]);
+    return <label>{label}<input type="number" min="1" step="1" disabled={disabled} data-rule-setting={setting} value={draft}
+        onChange={e => {
+            setDraft(e.target.value);
+            const next = Number(e.target.value);
+            if (Number.isFinite(next) && next >= 1) update(setting, Math.round(next));
+        }} onBlur={() => setDraft(String(Config.config[setting]))} /></label>;
+}
 export function currentSettings(): Settings {
     return { entry: Config.config.skipOnSeekToSegment, preview: Config.config.advanceSkipNotice ? Number(Config.config.skipNoticeDurationBefore) : 0,
         duration: Number(Config.config.skipNoticeDuration), rate: Number(Config.config.speedUpPlaybackRate), showCards: !Config.config.dontShowNotice,
@@ -18,22 +32,20 @@ export function SettingsPanel({ update }: { update: <K extends Key>(key: K, valu
             {options.map(([value, name]) => <option key={value} value={value}>{name}</option>)}
         </select></label>;
     }
-    function number(key: 'skipNoticeDuration' | 'skipNoticeDurationBefore', label: string, disabled = false) {
-        return <label>{label}<input type="number" min="1" step="1" disabled={disabled} data-rule-setting={key} value={Config.config[key]}
-            onChange={e => { const value = Number(e.target.value); if (Number.isFinite(value) && value >= 1) update(key, Math.round(value)); }} /></label>;
-    }
     return <section className="rules-settings" aria-label={t('sharedSettings')}>
         <div className="rules-settings-heading"><h3>{t('sharedSettings')}</h3><button type="button" className="rules-link" onClick={() => {
-            for (const key of ['skipOnSeekToSegment', 'speedUpPlaybackRate', 'advanceSkipNotice', 'skipNoticeDurationBefore', 'skipNoticeDuration', 'dontShowNotice', 'skipResumeAction', 'speedUpResumeAction', 'previewIncludeOtherSegments', 'disableSkipping'] as const) update(key, Config.syncDefaults[key]);
+            for (const key of ['skipOnSeekToSegment', 'enableSpeedUp', 'speedUpPlaybackRate', 'advanceSkipNotice', 'skipNoticeDurationBefore', 'skipNoticeDuration', 'dontShowNotice', 'skipResumeAction', 'speedUpResumeAction', 'previewIncludeOtherSegments', 'disableSkipping'] as const) update(key, Config.syncDefaults[key]);
         }}>{t('resetSettings')}</button></div><div className="rules-setting-grid">
             <label>{t('entry')}<select className="optionsSelector" data-rule-setting="skipOnSeekToSegment" value={String(Config.config.skipOnSeekToSegment)} onChange={e => update('skipOnSeekToSegment', e.target.value === 'true')}>
                 <option value="true">{t('entry_follow')}</option><option value="false">{t('entry_ask')}</option></select></label>
-            {select('speedUpPlaybackRate', message('speedUpPlaybackRate'), [2, 3, 4, 6, 8, 16].map(value => [value, value + '×']))}
             <label>{t('previewSwitch')}<input type="checkbox" data-rule-setting="advanceSkipNotice" checked={Config.config.advanceSkipNotice} onChange={e => update('advanceSkipNotice', e.target.checked)} /></label>
-            {number('skipNoticeDurationBefore', t('previewSeconds'), !Config.config.advanceSkipNotice)}
-            {number('skipNoticeDuration', t('duration'))}
+            <DurationSetting setting="skipNoticeDurationBefore" label={t('previewSeconds')} disabled={!Config.config.advanceSkipNotice} update={update} />
+            <DurationSetting setting="skipNoticeDuration" label={t('duration')} update={update} />
             <label>{t('showCards')}<input type="checkbox" data-rule-setting="dontShowNotice" checked={!Config.config.dontShowNotice} onChange={e => update('dontShowNotice', !e.target.checked)} /></label>
-        </div><div className="rules-resume-grid">
+        </div><p className="small-description">{t('countdownHelp')}</p><div className="rules-resume-grid">
+            <label>{message('enableSpeedUp')}<input type="checkbox" data-rule-setting="enableSpeedUp" checked={Config.config.enableSpeedUp} onChange={e => update('enableSpeedUp', e.target.checked)} /></label>
+            {select('speedUpPlaybackRate', message('speedUpPlaybackRate'), [2, 3, 4, 6, 8, 16].map(value => [value, value + '×']))}
+        </div><p className="small-description">{t('speedHelp')}</p><div className="rules-resume-grid">
             {select('skipResumeAction', message('skipResumeAction'), [['continue', message('resumeFollowPolicy')], ['manual', message('resumeManual')]])}
             {select('speedUpResumeAction', message('speedUpResumeAction'), [['continue', message('resumeSpeedContinue')], ['manual', message('resumeSpeedManual')]])}
         </div><div className="rules-resume-grid">
