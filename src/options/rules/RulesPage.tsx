@@ -222,7 +222,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
             <p>{t('segmentDescription')}</p><div ref={categoryTarget} className="rules-categories" />
             <NativeOptions selectors={nativeSettings.categories} active={active} />
             <NativeOptions selectors={nativeSettings.playback} active={active} />
-            <details className="rules-common-options"><summary>{t('whitelistSettings')}</summary><NativeOptions selectors={nativeSettings.whitelist} active={active} /></details>
+            <section className="rules-whitelist" aria-label={t('whitelistSettings')}><NativeOptions selectors={nativeSettings.whitelist} active={active} /></section>
         </section>
         <section role="tabpanel" id="rules-panel-matrix" aria-labelledby="rules-tab-matrix" hidden={tab !== 'matrix'}>
             <SettingsPanel group="matrix" update={update} />
@@ -290,7 +290,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
             <div className="rules-browser"><div className="rules-directory">{filtered.map(id => <button type="button" key={id} data-rule-id={id} aria-pressed={currentRule === id} onClick={() => setSelectedRule(id)}>{ruleName(id)}<small>{t('stage_' + ruleInfo(id).stage)} · {ruleInfo(id).settings.length ? t('configurable') : t('filter_fixed')}</small></button>)}</div>
                 <div className="rules-description">{currentRule ? <><h3>{ruleName(currentRule)}</h3><p>{ruleDescription(currentRule)}</p><h4>{t('relatedSettings')}</h4>{ruleInfo(currentRule).settings.length ? <div className="rules-setting-links">{ruleInfo(currentRule).settings.map(key => <button key={key} type="button" className="rules-link" data-related-setting={key} onClick={() => openSetting(key)}>{settingName(key)} →</button>)}</div> : <p>{t('fixed')}</p>}
                     <details><summary>{t('identifier')}</summary><code>{currentRule}</code></details><button type="button" className="rules-link" onClick={() => changeTab(ruleOrigin)}>{t(ruleOrigin === 'simulator' ? 'returnTest' : 'returnMatrix')}</button></> : <p>{t('emptyRules')}</p>}</div>
-            </div><details><summary>{t('scope')}</summary><p>{t('scopeDescription')}</p></details>
+            </div><p className="rules-scope small-description">{t('scope')}：{t('scopeDescription')}</p>
         </section>
     </div>;
 }

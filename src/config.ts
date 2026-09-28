@@ -16,6 +16,7 @@ import {
 } from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
 import { getMigratedMirrorServerAddresses } from "./config/serverConfig";
+import { migratePaddingCategory } from "./config/categoryConfig";
 import { HashedValue } from "./utils/hash";
 
 export interface Permission {
@@ -25,7 +26,8 @@ export interface Permission {
 interface SBConfig {
     userID: string;
     isVip: boolean;
-    permissions: Record<Category, Permission>;
+    permissions: Partial<Record<Category, Permission | boolean>>;
+    paddingCategoryMigrated: boolean;
     defaultCategory: Category;
     renderSegmentsAsChapters: boolean;
     whitelistedChannels: WhitelistedChannel[];
@@ -213,6 +215,7 @@ class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
 }
 
 function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<string>) {
+    migratePaddingCategory(config);
     // Unbind key if it matches a previous one set by the user (should be ordered oldest to newest)
     const keybinds = ["skipKeybind", "startSponsorKeybind", "submitKeybind"];
     for (let i = keybinds.length - 1; i >= 0; i--) {
@@ -306,6 +309,7 @@ const syncDefaults = {
     userID: null,
     isVip: false,
     permissions: {},
+    paddingCategoryMigrated: false,
     defaultCategory: "chooseACategory" as Category,
     renderSegmentsAsChapters: false,
     whitelistedChannels: [],

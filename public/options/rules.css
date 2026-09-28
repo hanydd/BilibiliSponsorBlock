@@ -12,7 +12,6 @@
 .rules-native>div{padding:15px 0;border-bottom:1px solid var(--border-color)}
 .rules-native .option-text-box{max-width:100%}
 .rules-native .switch-label{min-width:0}
-.rules-common-options>summary{font-size:14px;font-weight:600}
 
 #behavior>#classic-behavior,#behavior>#skip-rules{padding:0;min-height:0;border:0}
 #options #behavior.rules-enabled{width:100%;min-width:0;max-width:100%}
@@ -78,6 +77,31 @@
 .rules-settings-heading > button {
     flex-shrink: 0;
     white-space: nowrap;
+}
+
+.rules-whitelist {
+    margin-top: 24px;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--tab-color);
+}
+.rules-whitelist .rules-native > div { padding: 0; border: 0; }
+.rules-whitelist h2 { font-size: 16px; margin-bottom: 12px; }
+.rules-matrix { table-layout: fixed; }
+.rules-matrix th:first-child { width: 150px; }
+#rules-panel-matrix { padding-bottom: 64px; }
+.rules-result {
+    height: 590px;
+    max-height: none;
+    align-self: start;
+    overflow-anchor: none;
+    overscroll-behavior: contain;
+}
+.rule-page .rules-scope {
+    margin-top: 18px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
 }
 
 /* Reserve space for the color headings instead of squeezing them beside a wide category column. */

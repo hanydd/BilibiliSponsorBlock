@@ -292,7 +292,8 @@ test('whitelist remains editable and shortcuts stay on the original keyboard pag
     await writeSyncStorage(extensionServiceWorker, { whitelistedChannels: [{ id: '1001', name: 'Migration Channel' }] });
     await open(page, extensionId);
     const panel = page.locator('#rules-panel-segments');
-    await panel.locator('.rules-common-options').nth(0).locator('summary').click();
+    await expect(panel.locator('.rules-whitelist')).toBeVisible();
+    await expect(panel.locator('.rules-whitelist summary')).toHaveCount(0);
     const manager = panel.locator('[data-type="react-WhitelistManagerComponent"]');
     await expect(manager).toContainText('Migration Channel');
     page.once('dialog', dialog => dialog.accept());
@@ -315,6 +316,42 @@ test('whitelist remains editable and shortcuts stay on the original keyboard pag
     await expect(page.locator(`${rules} [data-sync="skipKeybind"]`)).toHaveCount(0);
     await page.locator('[data-for="keybinds"]').click();
     await expect(page.locator('#keybinds [data-sync="skipKeybind"] .keyBase')).toHaveText('K');
+});
+
+test('missing old padding is upgraded once without undoing a later user disable', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+    await writeSyncStorage(extensionServiceWorker, { paddingCategoryMigrated: false, categorySelections: [{ name: 'sponsor', option: 2 }] });
+    await open(page, extensionId);
+    await expect(page.locator('#paddingSkipOption select')).toHaveValue('autoSkip');
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'paddingCategoryMigrated')).toBe(true);
+    await page.locator('#paddingSkipOption select').selectOption('disable');
+    await expect.poll(async () => (await readSyncStorage<Array<{ name: string }>>(extensionServiceWorker, 'categorySelections')).some(s => s.name === 'padding')).toBe(false);
+    await page.reload();
+    await expect(page.locator('#paddingSkipOption select')).toHaveValue('disable');
+});
+
+test('matrix columns and result height stay stable when selecting rules near the page bottom', async ({ extensionPage: page, extensionId }) => {
+    for (const width of [1300, 720]) {
+        await page.setViewportSize({ width, height: 1000 });
+        await open(page, extensionId, 'matrix');
+        const widths: number[] = [];
+        for (const group of ['movement', 'playback', 'exit', 'controls']) {
+            await page.locator(`[data-rule-group="${group}"]`).click();
+            widths.push(await page.locator('.rules-matrix thead th').first().evaluate(e => e.getBoundingClientRect().width));
+        }
+        expect(Math.max(...widths) - Math.min(...widths)).toBeLessThan(1);
+        await page.locator('[data-rule-group="movement"]').click();
+        await page.locator('#options').evaluate(e => e.scrollTop = e.scrollHeight);
+        const before = await page.locator('#options').evaluate(e => e.scrollTop);
+        for (const state of ['closed', 'ready', 'undo', 'cancelled', 'completed']) {
+            await page.locator(`[data-state="${state}"][data-operation="natural"]`).evaluate((e: HTMLButtonElement) => e.click());
+            await expect(page.locator(`[data-state="${state}"][data-operation="natural"]`)).toHaveAttribute('aria-pressed', 'true');
+            expect(await page.locator('.rules-result').evaluate(e => e.getBoundingClientRect().height)).toBe(590);
+            expect(Math.abs(await page.locator('#options').evaluate(e => e.scrollTop) - before)).toBeLessThan(2);
+        }
+    }
+    await page.locator('#rules-tab-rules').click();
+    await expect(page.locator('.rules-scope')).toBeVisible();
+    await expect(page.locator('.rules-scope')).toContainText('不连接真实视频');
 });
 
 test('scenario contexts explain first-layer policy overrides using saved settings', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {

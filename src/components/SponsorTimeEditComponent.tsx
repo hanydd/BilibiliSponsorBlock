@@ -456,10 +456,10 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         ];
 
         for (const category of this.props.categoryList ?? CompileConfig.categoryList) {
-            // If permission not loaded, treat it like we have permission except chapter
-            const permission =
-                Config.config.showCategoryWithoutPermission || Config.config.permissions[category as Category];
-            if (permission !== undefined && !Config.config.showCategoryWithoutPermission && !permission) continue;
+            // Missing permission data does not hide a category. Support old boolean caches too.
+            const permission = Config.config.permissions?.[category as Category];
+            const canSubmit = typeof permission === "boolean" ? permission : permission?.canSubmit;
+            if (!Config.config.showCategoryWithoutPermission && canSubmit === false) continue;
 
             elements.push(
                 <option value={category} key={category} className={this.getCategoryLockedClass(category)}>
