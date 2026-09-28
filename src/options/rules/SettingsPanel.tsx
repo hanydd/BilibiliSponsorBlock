@@ -3,16 +3,17 @@ import Config from '../../config';
 import { message, t } from './text';
 import type { Settings } from './model';
 import { policyPreferences } from '../../content/skipRules/preferences';
+import { EditableSetting, SettingsGroup, settingGroups } from './settingsLayout';
 
 type Key = keyof typeof Config.config;
-function DurationSetting({ setting, label, disabled, update }: {
-    setting: 'skipNoticeDuration' | 'skipNoticeDurationBefore'; label: string; disabled?: boolean;
+function DurationSetting({ setting, label, disabled, update, inline }: {
+    setting: 'skipNoticeDuration' | 'skipNoticeDurationBefore'; label: string; disabled?: boolean; inline?: boolean;
     update: (key: Key, value: number) => void;
 }): JSX.Element {
     const value = Config.config[setting];
     const [draft, setDraft] = React.useState(String(value));
     React.useEffect(() => setDraft(String(value)), [value]);
-    return <label>{label}<input type="number" min="1" step="1" disabled={disabled} data-rule-setting={setting} value={draft}
+    return <label>{label}<input type="number" min="1" step="1" disabled={disabled} data-rule-setting={inline ? undefined : setting} data-inline-setting={inline ? setting : undefined} value={draft}
         onChange={e => {
             setDraft(e.target.value);
             const next = Number(e.target.value);
@@ -25,32 +26,41 @@ export function currentSettings(): Settings {
         resumeEntry: Config.config.skipResumeAction, resumeSpeed: Config.config.speedUpResumeAction, disabled: Config.config.disableSkipping,
         policy: policyPreferences(Config.config) };
 }
-export function SettingsPanel({ update }: { update: <K extends Key>(key: K, value: typeof Config.config[K]) => void }): JSX.Element {
-    function select<K extends Key>(key: K, label: string, options: Array<[string | number, string]>) {
-        return <label>{label}<select className="optionsSelector" data-rule-setting={key} value={String(Config.config[key])}
-            onChange={e => update(key, (typeof options[0][0] === 'number' ? Number(e.target.value) : e.target.value) as typeof Config.config[K])}>
+type Update = <K extends Key>(key: K, value: typeof Config.config[K]) => void;
+
+export function RuleSetting({ setting, update, inline = false }: { setting: EditableSetting; update: Update; inline?: boolean }): JSX.Element {
+    const attributes = inline ? { 'data-inline-setting': setting } : { 'data-rule-setting': setting };
+    function select(key: 'speedUpPlaybackRate' | 'skipResumeAction' | 'speedUpResumeAction', label: string, options: Array<[string | number, string]>) {
+        return <label>{label}<select className="optionsSelector" {...attributes} value={String(Config.config[key])}
+            onChange={e => update(key, (typeof options[0][0] === 'number' ? Number(e.target.value) : e.target.value) as typeof Config.config[typeof key])}>
             {options.map(([value, name]) => <option key={value} value={value}>{name}</option>)}
         </select></label>;
     }
-    return <section className="rules-settings" aria-label={t('sharedSettings')}>
-        <div className="rules-settings-heading"><h3>{t('sharedSettings')}</h3><button type="button" className="rules-link" onClick={() => {
-            for (const key of ['skipOnSeekToSegment', 'enableSpeedUp', 'speedUpPlaybackRate', 'advanceSkipNotice', 'skipNoticeDurationBefore', 'skipNoticeDuration', 'dontShowNotice', 'skipResumeAction', 'speedUpResumeAction', 'previewIncludeOtherSegments', 'disableSkipping'] as const) update(key, Config.syncDefaults[key]);
-        }}>{t('resetSettings')}</button></div><div className="rules-setting-grid">
-            <label>{t('entry')}<select className="optionsSelector" data-rule-setting="skipOnSeekToSegment" value={String(Config.config.skipOnSeekToSegment)} onChange={e => update('skipOnSeekToSegment', e.target.value === 'true')}>
-                <option value="true">{t('entry_follow')}</option><option value="false">{t('entry_ask')}</option></select></label>
-            <label>{t('previewSwitch')}<input type="checkbox" data-rule-setting="advanceSkipNotice" checked={Config.config.advanceSkipNotice} onChange={e => update('advanceSkipNotice', e.target.checked)} /></label>
-            <DurationSetting setting="skipNoticeDurationBefore" label={t('previewSeconds')} disabled={!Config.config.advanceSkipNotice} update={update} />
-            <DurationSetting setting="skipNoticeDuration" label={t('duration')} update={update} />
-            <label>{t('showCards')}<input type="checkbox" data-rule-setting="dontShowNotice" checked={!Config.config.dontShowNotice} onChange={e => update('dontShowNotice', !e.target.checked)} /></label>
-        </div><p className="small-description">{t('countdownHelp')}</p><div className="rules-resume-grid">
-            <label>{message('enableSpeedUp')}<input type="checkbox" data-rule-setting="enableSpeedUp" checked={Config.config.enableSpeedUp} onChange={e => update('enableSpeedUp', e.target.checked)} /></label>
-            {select('speedUpPlaybackRate', message('speedUpPlaybackRate'), [2, 3, 4, 6, 8, 16].map(value => [value, value + '×']))}
-        </div><p className="small-description">{t('speedHelp')}</p><div className="rules-resume-grid">
-            {select('skipResumeAction', message('skipResumeAction'), [['continue', message('resumeFollowPolicy')], ['manual', message('resumeManual')]])}
-            {select('speedUpResumeAction', message('speedUpResumeAction'), [['continue', message('resumeSpeedContinue')], ['manual', message('resumeSpeedManual')]])}
-        </div><div className="rules-resume-grid">
-            <label>{message('previewIncludeOtherSegments')}<input type="checkbox" data-rule-setting="previewIncludeOtherSegments" checked={Config.config.previewIncludeOtherSegments} onChange={e => update('previewIncludeOtherSegments', e.target.checked)} /></label>
-            <label>{t('enableSkipping')}<input type="checkbox" data-rule-setting="disableSkipping" checked={!Config.config.disableSkipping} onChange={e => update('disableSkipping', !e.target.checked)} /></label>
-        </div><p className="small-description">{t('resumeNote')} {t('saved')}</p>
+    function toggle(key: 'enableSpeedUp' | 'advanceSkipNotice' | 'dontShowNotice' | 'disableSkipping' | 'previewIncludeOtherSegments', label: string, reverse = false) {
+        return <label>{label}<input type="checkbox" {...attributes} checked={reverse ? !Config.config[key] : Config.config[key]} onChange={e => update(key, reverse ? !e.target.checked : e.target.checked)} /></label>;
+    }
+    switch (setting) {
+        case 'skipOnSeekToSegment': return <label>{t('entry')}<select className="optionsSelector" {...attributes} value={String(Config.config.skipOnSeekToSegment)} onChange={e => update('skipOnSeekToSegment', e.target.value === 'true')}>
+            <option value="true">{t('entry_follow')}</option><option value="false">{t('entry_ask')}</option></select></label>;
+        case 'enableSpeedUp': return toggle(setting, message('enableSpeedUp'));
+        case 'disableSkipping': return toggle(setting, t('enableSkipping'), true);
+        case 'speedUpPlaybackRate': return select(setting, message(setting), [2, 3, 4, 6, 8, 16].map(value => [value, value + '×']));
+        case 'skipResumeAction': return select(setting, message(setting), [['continue', message('resumeFollowPolicy')], ['manual', message('resumeManual')]]);
+        case 'speedUpResumeAction': return select(setting, message(setting), [['continue', message('resumeSpeedContinue')], ['manual', message('resumeSpeedManual')]]);
+        case 'previewIncludeOtherSegments': return toggle(setting, message(setting));
+        case 'advanceSkipNotice': return toggle(setting, t('previewSwitch'));
+        case 'dontShowNotice': return toggle(setting, t('showCards'), true);
+        case 'skipNoticeDurationBefore': return <DurationSetting setting={setting} label={t('previewSeconds')} disabled={!Config.config.advanceSkipNotice} update={update} inline={inline} />;
+        case 'skipNoticeDuration': return <DurationSetting setting={setting} label={t('duration')} update={update} inline={inline} />;
+    }
+}
+
+export function SettingsPanel({ group, update }: { group: SettingsGroup; update: Update }): JSX.Element {
+    return <section className="rules-settings" data-settings-group={group} aria-label={t('settings_' + group)}>
+        <div className="rules-settings-heading"><h3>{t('settings_' + group)}</h3><button type="button" className="rules-link" onClick={() => {
+            for (const key of settingGroups[group]) update(key, Config.syncDefaults[key]);
+        }}>{t('resetSection')}</button></div>
+        <div className="rules-setting-grid">{settingGroups[group].map(setting => <RuleSetting key={setting} setting={setting} update={update} />)}</div>
+        <p className="small-description">{t(group === 'segments' ? 'speedHelp' : group === 'matrix' ? 'resumeNote' : 'countdownHelp')} {t('saved')}</p>
     </section>;
 }

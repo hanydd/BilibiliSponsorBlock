@@ -434,6 +434,7 @@ test('persists independent rule-engine resume preferences', async ({ extensionId
     await extensionPage.locator('label[for="rule-engine-enabled"]').click();
     await expect(extensionPage.locator('[data-rule-setting="skipResumeAction"]')).toHaveValue('continue');
     await expect(extensionPage.locator('[data-rule-setting="speedUpResumeAction"]')).toHaveValue('continue');
+    await extensionPage.locator('#rules-tab-matrix').click();
     await extensionPage.locator('[data-rule-setting="skipResumeAction"]').selectOption('manual');
     await extensionPage.locator('[data-rule-setting="speedUpResumeAction"]').selectOption('manual');
     await expectSyncStorage(extensionServiceWorker, 'skipResumeAction', 'manual');

@@ -1649,7 +1649,7 @@
         "message": "片段设置"
     },
     "rules_tab_matrix": {
-        "message": "行为对照"
+        "message": "播放行为"
     },
     "rules_tab_simulator": {
         "message": "操作测试"
@@ -1700,7 +1700,7 @@
         "message": "状态与操作"
     },
     "rules_matrixHint": {
-        "message": "点击格子，在右侧查看处理结果和生效规则。格子用于查看结果；修改配置请打开“片段设置”。"
+        "message": "修改上方设置后，下方对照结果会立即更新。点击格子查看处理结果和生效规则，也可展开“修改相关设置”。"
     },
     "rules_stateAxis": {
         "message": "本次状态"
@@ -1943,7 +1943,7 @@
         "message": "规则标识"
     },
     "rules_returnMatrix": {
-        "message": "返回行为对照"
+        "message": "返回播放行为"
     },
     "rules_returnTest": {
         "message": "返回操作测试"
@@ -2537,12 +2537,39 @@
         "message": "静音片段"
     },
     "rules_settingsGuide": {
-        "message": "修改设置会自动保存并生效。各类片段的处理方式在下方分类表中设置；行为对照和操作测试用于查看设置效果。"
+        "message": "这里设置片段的默认处理方式。拖动、暂停恢复等选项在“播放行为”，提醒开关和计时在“卡片提醒”。修改后自动保存。"
     },
     "rules_countdownHelp": {
         "message": "预告按视频进度倒计时，暂停视频时也会暂停；跳过后的提醒按实际显示时间计时，鼠标悬停时暂停。"
     },
     "rules_speedHelp": {
         "message": "开启快进后，设为自动跳过的片段将按所选倍速播放，结束后恢复原倍速。仅修改倍速不会开启快进；手动跳过仍立即跳至片段结尾。"
+    },
+    "rules_tab_cards": {
+        "message": "卡片提醒"
+    },
+    "rules_settings_segments": {
+        "message": "默认处理方式"
+    },
+    "rules_settings_matrix": {
+        "message": "播放操作设置"
+    },
+    "rules_settings_cards": {
+        "message": "提醒设置"
+    },
+    "rules_resetSection": {
+        "message": "恢复本组默认值"
+    },
+    "rules_editRelatedSettings": {
+        "message": "修改相关设置"
+    },
+    "rules_realSettingsNote": {
+        "message": "这里修改的是实际配置，自动保存并影响视频播放。上方示例条件不会保存为配置。"
+    },
+    "rules_cardExamples": {
+        "message": "卡片状态示例"
+    },
+    "rules_cardExamplesNote": {
+        "message": "选择状态查看是否显示卡片及计时方式。这里展示状态示意，外观以播放器中的实际卡片为准；连续变化可在操作测试中查看。"
     }
 }

@@ -19,3 +19,5 @@
 #options #behavior.rules-enabled{width:100%;min-width:0;max-width:100%}
 
 .rules-setting-links{display:flex;flex-direction:column;align-items:flex-start;gap:8px}.rules-setting-links .rules-link{margin:0}.rule-page [data-setting-highlight]:focus{outline:2px solid var(--server-node-active);outline-offset:4px}
+
+.rules-context-settings .rules-setting-grid{grid-template-columns:1fr}.rules-card-preview{padding:16px 0}.rules-card-preview .rules-example-card{max-width:100%}.rules-tabs{flex-wrap:wrap}

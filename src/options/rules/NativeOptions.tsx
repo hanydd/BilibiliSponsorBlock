@@ -19,9 +19,9 @@ export function NativeOptions({ selectors, active }: { selectors: readonly strin
 }
 
 export const nativeSettings = {
-    playback: ['muteSegments', 'audioNotificationOnSkip', 'minDuration', 'manualSkipOnFullVideo', 'forceChannelCheck']
+    playback: ['muteSegments', 'minDuration', 'manualSkipOnFullVideo', 'forceChannelCheck']
         .map(key => `[data-sync="${key}"]`),
-    notice: ['[data-sync="noticeVisibilityMode"]'],
+    notice: ['[data-sync="noticeVisibilityMode"]', '[data-sync="audioNotificationOnSkip"]'],
     categories: ['[data-sync="showCategoryWithoutPermission"]'],
     labels: ['[data-sync="fullVideoSegments"]'],
     community: ['[data-sync="dynamicAndCommentSponsorBlocker"]'],

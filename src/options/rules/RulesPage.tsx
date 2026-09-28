@@ -4,13 +4,14 @@ import Config from '../../config';
 import { ruleDefinitions } from '../../content/skipRules/rules';
 import { Policy } from '../../content/skipRules/types';
 import { Action, advance, available, cards, CardView, ExampleContext, groups, InputEvent, Layout, makeSimulation, Mode, modes, operations, Result, rows, scenario, StateName, step } from './model';
-import { currentSettings, SettingsPanel } from './SettingsPanel';
+import { currentSettings, RuleSetting, SettingsPanel } from './SettingsPanel';
+import { EditableSetting, editableSettings, settingTab } from './settingsLayout';
 import { NativeOptions, nativeSettings } from './NativeOptions';
 import { playbackText, ruleDescription, ruleInfo, ruleName, settingName, t, traceText } from './text';
 
-type Tab = 'segments' | 'community' | 'matrix' | 'simulator' | 'rules';
+type Tab = 'segments' | 'community' | 'matrix' | 'cards' | 'simulator' | 'rules';
 type Preset = 'pause' | 'pauseSpeed' | 'rate' | 'close' | 'adjacent' | 'merge';
-const tabs: Tab[] = ['segments', 'community', 'matrix', 'simulator', 'rules'];
+const tabs: Tab[] = ['segments', 'matrix', 'cards', 'community', 'simulator', 'rules'];
 const ruleIds = Object.keys(ruleDefinitions);
 const formatTime = (time: number) => Number(time.toFixed(1)) + 's';
 function clockText(card: CardView): string {
@@ -20,6 +21,22 @@ function Trace({ result, openRule }: { result: Result; openRule: (id: string) =>
     return <div className="rules-trace">{result.trace.map((trace, index) => <div key={index}>
         <button type="button" className="rules-link" onClick={() => openRule(trace.rule)}>{trace.id} · {ruleName(trace.rule)}</button>
         <span>{traceText(trace)}</span></div>)}{result.failed && <p role="alert">{t('failed')}</p>}</div>;
+}
+function ContextSettings({ result, update, openSetting }: {
+    result: Result; update: React.ComponentProps<typeof RuleSetting>['update']; openSetting: (key: string) => void;
+}): JSX.Element {
+    const [open, setOpen] = React.useState(false);
+    const keys = [...new Set([
+        ...result.trace.flatMap(trace => ruleInfo(trace.rule)?.settings ?? []),
+        ...(result.state.paused ? ['skipResumeAction', 'speedUpResumeAction'] as const : []),
+    ])];
+    if (!keys.length) return null;
+    return <details className="rules-context-settings" onToggle={e => setOpen(e.currentTarget.open)}>
+        <summary>{t('editRelatedSettings')}</summary><p>{t('realSettingsNote')}</p>
+        {open && <div className="rules-setting-grid">{keys.map(key => editableSettings.includes(key)
+            ? <RuleSetting key={key} setting={key as EditableSetting} update={update} inline />
+            : <button key={key} type="button" className="rules-link" onClick={() => openSetting(key)}>{settingName(key)} →</button>)}</div>}
+    </details>;
 }
 function Card({ card, action, hover }: { card: CardView; action?: (event: InputEvent) => void; hover?: (value: boolean) => void }): JSX.Element {
     if (!card.visible) return null;
@@ -65,9 +82,16 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
     const [selectedRule, setSelectedRule] = React.useState(ruleIds[0]);
     const [ruleOrigin, setRuleOrigin] = React.useState<Tab>('matrix');
     const [settingToFocus, setSettingToFocus] = React.useState<string | null>(null);
+    const [cardPhase, setCardPhase] = React.useState<'preview' | 'pending' | 'speeding' | 'completed'>('completed');
     const categoryTarget = React.useRef<HTMLDivElement>(null);
     const categoryHome = React.useRef(category.parentElement);
     const selected = React.useMemo(() => scenario(settings, mode, selectedState, operation), [settings, mode, selectedState, operation]);
+    const cardExample = React.useMemo(() => {
+        const state = makeSimulation({ ...settings, context: 'ordinary' }, cardPhase === 'speeding' ? 'fast' : cardPhase === 'pending' ? 'manual' : 'auto',
+            cardPhase === 'pending' ? 'ready' : cardPhase === 'speeding' ? 'active' : cardPhase);
+        if (cardPhase === 'preview' && settings.preview > 0) state.time = 10 - Math.min(settings.preview / 2, 2);
+        return step(state, { kind: 'data' });
+    }, [settings, cardPhase]);
 
     React.useEffect(() => {
         const listener = () => refresh(); Config.configSyncListeners.push(listener);
@@ -82,7 +106,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
         return () => { categoryHome.current.appendChild(category); };
     }, [active, tab, category]);
     React.useEffect(() => {
-        if (!active || tab !== 'segments' || !settingToFocus) return;
+        if (!active || !settingToFocus || tab !== settingTab(settingToFocus)) return;
         const special = {
             categorySelections: '.rules-categories',
             autoSkipOnMusicVideos: '#music_offtopic_autoSkipOnMusicVideos',
@@ -131,6 +155,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
     }
     function historyReplace(url: URL) { window.history.replaceState(null, '', url.toString()); }
     function update<K extends keyof typeof Config.config>(key: K, value: typeof Config.config[K]) { Config.config[key] = value; refresh(); }
+    function openSetting(key: string) { setSettingToFocus(key); changeTab(settingTab(key)); }
     function commit(result: Result, label: string, record = true) {
         simulationRef.current = result; setSimulation(result);
         if (record) { setHistory(old => [{ result, label }, ...old].slice(0, 30)); setHistoryIndex(0); }
@@ -175,6 +200,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
         commit(step(makeSimulation({ ...settings, context: next }, mode, 'preview', layout, second), { kind: 'data' }), t('initial'));
     }}>{(['ordinary', 'music', 'full', 'music-full', 'mute'] as const).map(value => <option key={value} value={value}>{t('context_' + value.replace('-', '_'))}</option>)}</select></label></div>;
     const activeHistory = history[historyIndex];
+    const exampleControls = <>{modeButtons}<p className="small-description">{t('exampleDescription')}</p></>;
     return <div className="rule-page">
         <header><h2>{t('title')}</h2><span className="rules-engine-status" role="status">{t(Config.config.skipEngineMode === 'rules' ? 'active' : Config.config.skipEngineMode === 'shadow' ? 'shadow' : 'inactive')}</span></header>
         <div className="rules-tabs" role="tablist" aria-label={t('title')} onKeyDown={event => {
@@ -186,21 +212,15 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
 
         <section role="tabpanel" id="rules-panel-segments" aria-labelledby="rules-tab-segments" hidden={tab !== 'segments'}>
             <p>{t('settingsGuide')}</p>
-            <SettingsPanel update={update} />
-            <NativeOptions selectors={nativeSettings.notice} active={active} />
+            <SettingsPanel group="segments" update={update} />
             <p>{t('segmentDescription')}</p><div ref={categoryTarget} className="rules-categories" />
             <NativeOptions selectors={nativeSettings.categories} active={active} />
             <NativeOptions selectors={nativeSettings.playback} active={active} />
             <details className="rules-common-options"><summary>{t('whitelistSettings')}</summary><NativeOptions selectors={nativeSettings.whitelist} active={active} /></details>
         </section>
-        <section role="tabpanel" id="rules-panel-community" aria-labelledby="rules-tab-community" hidden={tab !== 'community'}>
-            <h3>{t('videoLabels')}</h3>
-            <NativeOptions selectors={nativeSettings.labels} active={active} />
-            <h3>{t('feedAndComments')}</h3>
-            <NativeOptions selectors={nativeSettings.community} active={active} />
-        </section>
-        {(tab === 'matrix' || tab === 'simulator') && <><button type="button" className="rules-link" onClick={() => changeTab('segments')}>{t('editSettings')}</button>{modeButtons}<p className="small-description">{t('exampleDescription')}</p></>}
         <section role="tabpanel" id="rules-panel-matrix" aria-labelledby="rules-tab-matrix" hidden={tab !== 'matrix'}>
+            <SettingsPanel group="matrix" update={update} />
+            {tab === 'matrix' && exampleControls}
             <p>{t('matrixHint')}</p>
             <div className="rules-workspace"><div><h3>{t('matrixTitle')}</h3><div className="rules-groups">{groups.map(value => <button type="button" key={value} data-rule-group={value} aria-pressed={group === value} onClick={() => {
                 setGroup(value); setOperation(operations.find(o => o.group === value && available(mode, selectedState, o.id))?.id ?? 'natural');
@@ -215,10 +235,26 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
                 <aside className="rules-result" aria-live="polite"><h3>{t('result')}</h3><p>{t('mode_' + mode)} · {t('state_' + selectedState)} · {t('op_' + operation)}</p>
                     <dl><dt>{t('video')}</dt><dd>{playbackText(selected)}</dd><dt>{t('card')}</dt><dd>{selected.cards.some(c => c.visible) ? selected.cards.filter(c => c.visible).map(c => c.id + ' · ' + t('phase_' + c.label)).join(' / ') : t('noCards')}</dd>
                         <dt>{t('countdown')}</dt><dd>{selected.cards.some(c => c.visible) ? selected.cards.filter(c => c.visible).map(clockText).join(' / ') : t('noClock')}</dd></dl>
-                    <button type="button" className="rules-primary" onClick={useResult}>{t('continueTest')}</button><h3>{t('matched')}</h3><Trace result={selected} openRule={openRule} /></aside>
+                    <button type="button" className="rules-primary" onClick={useResult}>{t('continueTest')}</button><h3>{t('matched')}</h3><Trace result={selected} openRule={openRule} /><ContextSettings result={selected} update={update} openSetting={openSetting} /></aside>
             </div>
         </section>
+        <section role="tabpanel" id="rules-panel-cards" aria-labelledby="rules-tab-cards" hidden={tab !== 'cards'}>
+            <SettingsPanel group="cards" update={update} />
+            <NativeOptions selectors={nativeSettings.notice} active={active} />
+            <h3>{t('cardExamples')}</h3><p>{t('cardExamplesNote')}</p>
+            <div className="rules-modes">{(['preview', 'pending', 'speeding', 'completed'] as const).map(phase => <button key={phase} type="button" data-card-preview={phase} aria-pressed={cardPhase === phase} onClick={() => setCardPhase(phase)}>{t('phase_' + phase)}</button>)}</div>
+            <div className="rules-card-preview">{cardExample.cards.some(card => card.visible) ? cardExample.cards.filter(card => card.visible).map(card => <Card key={card.id} card={card} />) : <p>{t('noCards')}</p>}</div>
+            <p>{t('timingDescription')}</p>
+            <button type="button" className="rules-link" onClick={() => changeTab('simulator')}>{t('continueTest')}</button>
+        </section>
+        <section role="tabpanel" id="rules-panel-community" aria-labelledby="rules-tab-community" hidden={tab !== 'community'}>
+            <h3>{t('videoLabels')}</h3>
+            <NativeOptions selectors={nativeSettings.labels} active={active} />
+            <h3>{t('feedAndComments')}</h3>
+            <NativeOptions selectors={nativeSettings.community} active={active} />
+        </section>
         <section role="tabpanel" id="rules-panel-simulator" aria-labelledby="rules-tab-simulator" hidden={tab !== 'simulator'}>
+            {tab === 'simulator' && exampleControls}
             <div className="rules-toolbar"><p>{t('simulationDescription')}</p><button type="button" onClick={() => reset()}>{t('reset')}</button></div>
             <div className="rules-sim-controls">
                 <label>{t('preset')}<select value={preset} onChange={e => setPreset(e.target.value as Preset)}>{(['pause', 'pauseSpeed', 'rate', 'close', 'adjacent', 'merge'] as Preset[]).map(value => <option key={value} value={value}>{t('preset_' + value)}</option>)}</select></label><button type="button" onClick={loadPreset}>{t('loadPreset')}</button>
@@ -237,13 +273,14 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
             </div><aside className="rules-history"><h3>{t('history')}</h3><p className="small-description">{t('historyHint')}</p><div className="rules-history-list">{history.map((entry, index) => <button type="button" key={index} aria-pressed={historyIndex === index} onClick={() => setHistoryIndex(index)}>{entry.label}<small>{formatTime(entry.result.from)} → {formatTime(entry.result.state.time)} · {playbackText(entry.result)}</small></button>)}</div>
                 <div className="rules-history-detail">{activeHistory ? <><strong>{activeHistory.label}</strong><Trace result={activeHistory.result} openRule={openRule} /></> : <p>{t('historyEmpty')}</p>}</div>
                 <div className="rules-extra-actions">{(['buffer', 'playing', 'data'] as const).map(kind => <button type="button" key={kind} onClick={() => send({ kind })}>{t('action_' + kind)}</button>)}<button type="button" onClick={() => send({ kind: 'wall', seconds: 1 }, t('wall'))}>{t('wall')}</button></div>
+                <ContextSettings result={simulation} update={update} openSetting={openSetting} />
                 <details><summary>{t('timingHelp')}</summary><p>{t('timingDescription')}</p></details>
             </aside></div>
         </section>
         <section role="tabpanel" id="rules-panel-rules" aria-labelledby="rules-tab-rules" hidden={tab !== 'rules'}>
             <p>{t('rulesDescription')}</p><div className="rules-search"><label>{t('search')}<input type="search" placeholder={t('searchPlaceholder')} value={query} onChange={e => setQuery(e.target.value)} /></label><label>{t('filter')}<select value={filter} onChange={e => setFilter(e.target.value)}>{['all', 'configurable', 'fixed'].map(value => <option key={value} value={value}>{t('filter_' + value)}</option>)}</select></label><span role="status">{t('ruleCount', String(filtered.length))}</span></div>
             <div className="rules-browser"><div className="rules-directory">{filtered.map(id => <button type="button" key={id} data-rule-id={id} aria-pressed={currentRule === id} onClick={() => setSelectedRule(id)}>{ruleName(id)}<small>{t('stage_' + ruleInfo(id).stage)} · {ruleInfo(id).settings.length ? t('configurable') : t('filter_fixed')}</small></button>)}</div>
-                <div className="rules-description">{currentRule ? <><h3>{ruleName(currentRule)}</h3><p>{ruleDescription(currentRule)}</p><h4>{t('relatedSettings')}</h4>{ruleInfo(currentRule).settings.length ? <div className="rules-setting-links">{ruleInfo(currentRule).settings.map(key => <button key={key} type="button" className="rules-link" data-related-setting={key} onClick={() => { setSettingToFocus(key); changeTab('segments'); }}>{settingName(key)} →</button>)}</div> : <p>{t('fixed')}</p>}
+                <div className="rules-description">{currentRule ? <><h3>{ruleName(currentRule)}</h3><p>{ruleDescription(currentRule)}</p><h4>{t('relatedSettings')}</h4>{ruleInfo(currentRule).settings.length ? <div className="rules-setting-links">{ruleInfo(currentRule).settings.map(key => <button key={key} type="button" className="rules-link" data-related-setting={key} onClick={() => openSetting(key)}>{settingName(key)} →</button>)}</div> : <p>{t('fixed')}</p>}
                     <details><summary>{t('identifier')}</summary><code>{currentRule}</code></details><button type="button" className="rules-link" onClick={() => changeTab(ruleOrigin)}>{t(ruleOrigin === 'simulator' ? 'returnTest' : 'returnMatrix')}</button></> : <p>{t('emptyRules')}</p>}</div>
             </div><details><summary>{t('scope')}</summary><p>{t('scopeDescription')}</p></details>
         </section>
