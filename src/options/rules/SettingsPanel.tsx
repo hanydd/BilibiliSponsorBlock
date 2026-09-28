@@ -37,7 +37,7 @@ export function RuleSetting({ setting, update, inline = false }: { setting: Edit
         </select></label>;
     }
     function toggle(key: 'enableSpeedUp' | 'advanceSkipNotice' | 'dontShowNotice' | 'disableSkipping' | 'previewIncludeOtherSegments', label: string, reverse = false) {
-        return <label>{label}<input type="checkbox" {...attributes} checked={reverse ? !Config.config[key] : Config.config[key]} onChange={e => update(key, reverse ? !e.target.checked : e.target.checked)} /></label>;
+        return <label className="rules-toggle"><input type="checkbox" {...attributes} checked={reverse ? !Config.config[key] : Config.config[key]} onChange={e => update(key, reverse ? !e.target.checked : e.target.checked)} /><span>{label}</span></label>;
     }
     switch (setting) {
         case 'skipOnSeekToSegment': return <label>{t('entry')}<select className="optionsSelector" {...attributes} value={String(Config.config.skipOnSeekToSegment)} onChange={e => update('skipOnSeekToSegment', e.target.value === 'true')}>

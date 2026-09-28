@@ -209,3 +209,68 @@
 .rules-card-preview .rules-card-header,
 .rules-card-preview .rules-card-header strong,
 .rules-card-preview .rules-clock { color: #eee; }
+
+/* Use the same compact switch for rule settings and controls moved from the classic form. */
+:is(.rule-page, #rule-engine-entry) input[type=checkbox] {
+    appearance: none;
+    position: relative;
+    display: inline-block;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 20px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    opacity: 1;
+    background: var(--slider);
+    cursor: pointer;
+    vertical-align: middle;
+}
+:is(.rule-page, #rule-engine-entry) input[type=checkbox]::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform .15s;
+}
+:is(.rule-page, #rule-engine-entry) input[type=checkbox]:checked { background: var(--server-node-active); }
+:is(.rule-page, #rule-engine-entry) input[type=checkbox]:checked::before { transform: translateX(16px); }
+:is(.rule-page, #rule-engine-entry) input[type=checkbox]:focus-visible {
+    outline: 2px solid var(--server-node-active);
+    outline-offset: 3px;
+}
+:is(.rule-page, #rule-engine-entry) input[type=checkbox]:disabled { opacity: .45; cursor: default; }
+:is(.rule-page, #rule-engine-entry) .switch {
+    display: flex;
+    align-items: center;
+    flex: 0 0 36px;
+    width: 36px;
+    min-width: 36px;
+    height: 24px;
+}
+:is(.rule-page, #rule-engine-entry) .switch .slider { display: none; }
+:is(.rule-page, #rule-engine-entry) .switch-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    max-width: 100%;
+}
+:is(.rule-page, #rule-engine-entry) .switch-container .switch-label { padding: 0; min-width: 0; }
+.rule-page .rules-toggle {
+    flex-direction: row;
+    align-items: center;
+    align-self: end;
+    gap: 8px;
+    min-height: 32px;
+    cursor: pointer;
+}
+.rule-page .rules-toggle > span { min-width: 0; line-height: 1.6; }
+@media (prefers-reduced-motion: reduce) {
+    :is(.rule-page, #rule-engine-entry) input[type=checkbox]::before { transition: none; }
+}
