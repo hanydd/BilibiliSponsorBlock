@@ -18,6 +18,41 @@
 #behavior>#classic-behavior,#behavior>#skip-rules{padding:0;min-height:0;border:0}
 #options #behavior.rules-enabled{width:100%;min-width:0;max-width:100%}
 
+/* The rule workspace needs the available width; the classic form keeps its original margins. */
+#options:has(> #behavior.rules-enabled:not(.hidden)) {
+    flex: 1;
+    min-width: 0;
+    padding-inline: clamp(16px, 3vw, 48px);
+    padding-bottom: 24px;
+}
+
+.rules-example-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px 18px;
+    margin-top: 14px;
+}
+
+.rules-example-modes {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    font-size: 12px;
+}
+
+.rules-example-controls .rules-modes button,
+.rules-example-controls select {
+    min-height: 32px;
+}
+
+.rules-toolbar > button,
+.rules-settings-heading > button {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
 .rules-setting-links{display:flex;flex-direction:column;align-items:flex-start;gap:8px}.rules-setting-links .rules-link{margin:0}.rule-page [data-setting-highlight]:focus{outline:2px solid var(--server-node-active);outline-offset:4px}
 
 .rules-context-settings .rules-setting-grid{grid-template-columns:1fr}.rules-card-preview{padding:16px 0}.rules-card-preview .rules-example-card{max-width:100%}.rules-tabs{flex-wrap:wrap}

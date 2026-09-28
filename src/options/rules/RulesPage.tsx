@@ -201,7 +201,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
     const filtered = ruleIds.filter(id => (filter === 'all' || (filter === 'fixed' ? !ruleInfo(id).settings.length : !!ruleInfo(id).settings.length)) &&
         [ruleName(id), ruleDescription(id), id, ...ruleInfo(id).settings.map(settingName)].join(' ').toLowerCase().includes(query.toLowerCase()));
     const currentRule = filtered.includes(selectedRule) ? selectedRule : filtered[0];
-    const modeButtons = <div className="rules-modes"><span>{t('exampleMode')}</span>{modes.map(value => <button type="button" key={value} data-rule-mode={value} aria-pressed={mode === value} onClick={() => chooseMode(value)}>{t('mode_' + value)}</button>)}<label>{t('exampleContext')}<select data-example-context value={context} onChange={event => {
+    const modeButtons = <div className="rules-example-controls"><div className="rules-example-modes"><span>{t('exampleMode')}</span><div className="rules-modes" role="group" aria-label={t('exampleMode')}>{modes.map(value => <button type="button" key={value} data-rule-mode={value} aria-pressed={mode === value} onClick={() => chooseMode(value)}>{t('mode_' + value)}</button>)}</div></div><label>{t('exampleContext')}<select data-example-context value={context} onChange={event => {
         const next = event.target.value as ExampleContext; setContext(next); setRunning(false); setHistory([]);
         commit(step(makeSimulation({ ...settings, context: next }, mode, 'preview', layout, second), { kind: 'data' }), t('initial'));
     }}>{(['ordinary', 'music', 'full', 'music-full', 'mute'] as const).map(value => <option key={value} value={value}>{t('context_' + value.replace('-', '_'))}</option>)}</select></label></div>;
