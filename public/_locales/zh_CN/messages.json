@@ -1755,7 +1755,7 @@
         "message": "状态与操作"
     },
     "rules_matrixHint": {
-        "message": "修改上方设置后，下方对照结果会立即更新。点击格子查看处理结果和生效规则，也可展开“修改相关设置”。"
+        "message": "修改上方设置后，下方对照结果会立即更新。点击格子查看处理结果和生效规则，也可展开“修改真实设置”。"
     },
     "rules_stateAxis": {
         "message": "本次状态"
@@ -2619,10 +2619,16 @@
         "message": "恢复本组默认值"
     },
     "rules_editRelatedSettings": {
-        "message": "修改相关设置"
+        "message": "修改真实设置"
     },
     "rules_realSettingsNote": {
         "message": "这里修改的是实际配置，自动保存并影响视频播放。上方示例条件不会保存为配置。"
+    },
+    "rules_matrixExamples": {
+        "message": "行为对照示例"
+    },
+    "rules_simulatorExamples": {
+        "message": "操作测试示例"
     },
     "rules_cardExamples": {
         "message": "卡片状态示例"

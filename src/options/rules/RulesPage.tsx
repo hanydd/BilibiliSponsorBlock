@@ -231,33 +231,38 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
         </section>
         <section role="tabpanel" id="rules-panel-matrix" aria-labelledby="rules-tab-matrix" hidden={tab !== 'matrix'}>
             <SettingsPanel group="matrix" update={update} />
-            {tab === 'matrix' && exampleControls}
-            <label className="rules-peer-context">{t('peerContext')}<select data-matrix-context value={matrixContext} onChange={e => setMatrixContext(e.target.value as MatrixContext)}>{matrixContexts.map(value => <option key={value} value={value}>{t('peer_' + value.replace(/-/g, '_'))}</option>)}</select></label>
-            <p>{t('peerHint')}</p><p>{t('matrixHint')}</p>
-            <div className="rules-workspace"><div><h3>{t('matrixTitle')}</h3><div className="rules-groups">{groups.map(value => <button type="button" key={value} data-rule-group={value} aria-pressed={group === value} onClick={() => {
-                setGroup(value); setOperation(operations.find(o => o.group === value && available(mode, selectedState, o.id))?.id ?? 'natural');
-            }}>{t('group_' + value)}</button>)}</div>
-                <div className="rules-table-scroll"><table className="rules-matrix"><thead><tr><th>{t('stateAxis')} ↓ / {t('operationAxis')} →</th>{operations.filter(o => o.group === group).map(o => <th key={o.id} title={t('hint_' + o.id)}>{t('op_' + o.id)}</th>)}</tr></thead>
-                    <tbody>{rows(mode).map(state => <tr key={state}><th>{t('state_' + state)}<small>{t(state === 'preview' ? 'positionBefore' : state === 'completed' ? 'positionAfter' : state === 'undo' ? 'positionStart' : 'positionInside')}</small></th>{operations.filter(o => o.group === group).map(o => {
-                        if (!available(mode, state, o.id)) return <td key={o.id} title={t('notApplicable')}>—</td>;
-                        const result = scenario(settings, mode, state, o.id, matrixContext), visible = result.cards.find(c => c.id === 'A' && c.visible);
-                        return <td key={o.id}><button type="button" data-state={state} data-operation={o.id} aria-pressed={state === selectedState && o.id === operation} onClick={() => { setSelectedState(state); setOperation(o.id); }}>
-                            <strong>{playbackText(result)}</strong><small>{visible ? t('phase_' + visible.label) : t('noCards')}</small></button></td>;
-                    })}</tr>)}</tbody></table></div><p className="small-description">{t('matrixNote')}</p></div>
-                <aside className="rules-result" aria-live="polite"><h3>{t('result')}</h3><p>{t('mode_' + mode)} · {t('state_' + selectedState)} · {t('op_' + operation)}</p>
-                    <dl><dt>{t('video')}</dt><dd>{playbackText(selected)}</dd><dt>{t('card')}</dt><dd>{selected.cards.some(c => c.visible) ? selected.cards.filter(c => c.visible).map(c => c.id + ' · ' + t('phase_' + c.label)).join(' / ') : t('noCards')}</dd>
-                        <dt>{t('countdown')}</dt><dd>{selected.cards.some(c => c.visible) ? selected.cards.filter(c => c.visible).map(clockText).join(' / ') : t('noClock')}</dd></dl>
-                    <button type="button" className="rules-primary" onClick={useResult}>{t('continueTest')}</button><h3>{t('matched')}</h3><Trace result={selected} openRule={openRule} /><ContextSettings result={selected} update={update} openSetting={openSetting} /></aside>
-            </div>
+            <section className="rules-example-section" aria-labelledby="rules-matrix-example-title">
+                <h3 id="rules-matrix-example-title">{t('matrixExamples')}</h3>
+                {tab === 'matrix' && exampleControls}
+                <label className="rules-peer-context">{t('peerContext')}<select data-matrix-context value={matrixContext} onChange={e => setMatrixContext(e.target.value as MatrixContext)}>{matrixContexts.map(value => <option key={value} value={value}>{t('peer_' + value.replace(/-/g, '_'))}</option>)}</select></label>
+                <p>{t('peerHint')}</p><p>{t('matrixHint')}</p>
+                <div className="rules-workspace"><div><h4>{t('matrixTitle')}</h4><div className="rules-groups">{groups.map(value => <button type="button" key={value} data-rule-group={value} aria-pressed={group === value} onClick={() => {
+                    setGroup(value); setOperation(operations.find(o => o.group === value && available(mode, selectedState, o.id))?.id ?? 'natural');
+                }}>{t('group_' + value)}</button>)}</div>
+                    <div className="rules-table-scroll"><table className="rules-matrix"><thead><tr><th>{t('stateAxis')} ↓ / {t('operationAxis')} →</th>{operations.filter(o => o.group === group).map(o => <th key={o.id} title={t('hint_' + o.id)}>{t('op_' + o.id)}</th>)}</tr></thead>
+                        <tbody>{rows(mode).map(state => <tr key={state}><th>{t('state_' + state)}<small>{t(state === 'preview' ? 'positionBefore' : state === 'completed' ? 'positionAfter' : state === 'undo' ? 'positionStart' : 'positionInside')}</small></th>{operations.filter(o => o.group === group).map(o => {
+                            if (!available(mode, state, o.id)) return <td key={o.id} title={t('notApplicable')}>—</td>;
+                            const result = scenario(settings, mode, state, o.id, matrixContext), visible = result.cards.find(c => c.id === 'A' && c.visible);
+                            return <td key={o.id}><button type="button" data-state={state} data-operation={o.id} aria-pressed={state === selectedState && o.id === operation} onClick={() => { setSelectedState(state); setOperation(o.id); }}>
+                                <strong>{playbackText(result)}</strong><small>{visible ? t('phase_' + visible.label) : t('noCards')}</small></button></td>;
+                        })}</tr>)}</tbody></table></div><p className="small-description">{t('matrixNote')}</p></div>
+                    <aside className="rules-result" aria-live="polite"><h4>{t('result')}</h4><p>{t('mode_' + mode)} · {t('state_' + selectedState)} · {t('op_' + operation)}</p>
+                        <dl><dt>{t('video')}</dt><dd>{playbackText(selected)}</dd><dt>{t('card')}</dt><dd>{selected.cards.some(c => c.visible) ? selected.cards.filter(c => c.visible).map(c => c.id + ' · ' + t('phase_' + c.label)).join(' / ') : t('noCards')}</dd>
+                            <dt>{t('countdown')}</dt><dd>{selected.cards.some(c => c.visible) ? selected.cards.filter(c => c.visible).map(clockText).join(' / ') : t('noClock')}</dd></dl>
+                        <button type="button" className="rules-primary" onClick={useResult}>{t('continueTest')}</button><h4>{t('matched')}</h4><Trace result={selected} openRule={openRule} /><ContextSettings result={selected} update={update} openSetting={openSetting} /></aside>
+                </div>
+            </section>
         </section>
         <section role="tabpanel" id="rules-panel-cards" aria-labelledby="rules-tab-cards" hidden={tab !== 'cards'}>
             <SettingsPanel group="cards" update={update}><NativeOptions selectors={nativeSettings.appearance} active={active} /></SettingsPanel>
             <section className="rules-settings rules-sound-settings"><NativeOptions selectors={nativeSettings.sound} active={active} /></section>
-            <h3>{t('cardExamples')}</h3><p>{t('cardExamplesNote')}</p>
-            <div className="rules-modes">{(['preview', 'pending', 'speeding', 'completed'] as const).map(phase => <button key={phase} type="button" data-card-preview={phase} aria-pressed={cardPhase === phase} onClick={() => setCardPhase(phase)}>{t('phase_' + phase)}</button>)}</div>
-            <div className="rules-card-preview">{cardExample.cards.some(card => card.visible) ? cardExample.cards.filter(card => card.visible).map(card => <Card key={card.id} card={card} />) : <p>{t('noCards')}</p>}</div>
-            <p>{t('timingDescription')}</p>
-            <button type="button" className="rules-link" onClick={() => changeTab('simulator')}>{t('continueTest')}</button>
+            <section className="rules-example-section" aria-labelledby="rules-card-example-title">
+                <h3 id="rules-card-example-title">{t('cardExamples')}</h3><p>{t('cardExamplesNote')}</p>
+                <div className="rules-modes">{(['preview', 'pending', 'speeding', 'completed'] as const).map(phase => <button key={phase} type="button" data-card-preview={phase} aria-pressed={cardPhase === phase} onClick={() => setCardPhase(phase)}>{t('phase_' + phase)}</button>)}</div>
+                <div className="rules-card-preview">{cardExample.cards.some(card => card.visible) ? cardExample.cards.filter(card => card.visible).map(card => <Card key={card.id} card={card} />) : <p>{t('noCards')}</p>}</div>
+                <p>{t('timingDescription')}</p>
+                <button type="button" className="rules-link" onClick={() => changeTab('simulator')}>{t('continueTest')}</button>
+            </section>
         </section>
         <section role="tabpanel" id="rules-panel-community" aria-labelledby="rules-tab-community" hidden={tab !== 'community'}>
             <h3>{t('videoLabels')}</h3>
@@ -266,29 +271,32 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
             <NativeOptions selectors={nativeSettings.community} active={active} />
         </section>
         <section role="tabpanel" id="rules-panel-simulator" aria-labelledby="rules-tab-simulator" hidden={tab !== 'simulator'}>
-            {tab === 'simulator' && exampleControls}
-            <div className="rules-toolbar"><p>{t('simulationDescription')}</p><button type="button" onClick={() => reset()}>{t('reset')}</button></div>
-            <div className="rules-sim-controls">
-                <label><span>{t('preset')}</span><select value={preset} onChange={e => setPreset(e.target.value as Preset)}>{(['pause', 'pauseSpeed', 'rate', 'close', 'adjacent', 'merge', 'overlapReview'] as Preset[]).map(value => <option key={value} value={value}>{t('preset_' + value)}</option>)}</select></label><button type="button" onClick={loadPreset}>{t('loadPreset')}</button>
-                <label><span>{t('layout')}</span><select data-rules-layout value={layout} onChange={e => { setLayout(e.target.value as Layout); reset(mode, e.target.value as Layout); }}>{(['single', 'adjacent', 'overlap'] as Layout[]).map(value => <option key={value} value={value}>{t('relation_' + value)}</option>)}</select></label>
-                {layout !== 'single' && <label><span>{t('secondMode')}</span><select value={second} onChange={e => { setSecond(e.target.value as Policy); reset(mode, layout, e.target.value as Policy); }}>{modes.filter(m => m !== 'fast').map(value => <option key={value} value={value}>{t('mode_' + value)}</option>)}</select></label>}
-                <label className="rules-check"><input type="checkbox" checked={failed} onChange={e => setFailed(e.target.checked)} />{t('fail')}</label>
-            </div>
-            <p data-simulation-ranges>{simulation.state.segments.map(segment => `${segment.id}: ${formatTime(segment.start)}–${formatTime(segment.end)}`).join(' · ')}</p>
-            <div className="rules-sim-layout"><div className="rules-player">
-                <div className="rules-player-meta"><strong data-rules-time>{formatTime(simulation.state.time)}</strong><span>{t(simulation.state.paused ? 'paused' : simulation.state.waiting ? 'buffering' : 'playing')} · {simulation.state.rate}× · {t(simulation.state.ownedRate ? 'ownedRate' : 'userRate')}{simulation.state.muted ? ' · ' + t('phase_muted') : ''}</span></div>
-                <div className="rules-cards">{simulation.cards.filter(c => c.visible).map(card => <Card key={card.id} card={card} action={send} hover={hover} />)}{!simulation.cards.some(c => c.visible) && <p>{t('cardsEmpty')}</p>}</div>
-                <div className="rules-timeline">{simulation.state.segments.filter(s => s.mode !== 'ignore').map(s => <div key={s.id} className={'rules-range ' + (s.id === 'B' ? 'second' : '')} style={{ left: s.start / 40 * 100 + '%', width: (s.end - s.start) / 40 * 100 + '%' }}>{s.id} · {t('mode_' + s.mode)}</div>)}<i style={{ left: simulation.state.time / 40 * 100 + '%' }} /></div>
-                <div className="rules-ticks">{[0, 10, 20, 30, 40].map(time => <span key={time}>{time}s</span>)}</div>
-                <label>{t('timeline')}<input aria-label={t('timeline')} type="range" min="0" max="40" step="0.1" value={simulation.state.time} onChange={e => send({ kind: 'seek', time: Number(e.target.value) }, t('timeline'))} /></label>
-                <div className="rules-player-controls"><button type="button" onClick={() => setRunning(!running)}>{t(running ? 'stop' : 'run')}</button><button type="button" onClick={() => send({ kind: 'pause' })}>{t('action_pause')}</button><button type="button" onClick={() => send({ kind: 'resume' })}>{t('action_resume')}</button>
-                    <button type="button" onClick={() => commit(advance(simulationRef.current.state, 1, failed), t('advance'))}>{t('advance')}</button><label>{t('rate')}<select value={simulation.state.rate} onChange={e => send({ kind: 'rate', rate: Number(e.target.value) }, t('rate'))}>{Array.from(new Set([1, 1.5, 2, 3, 4, 6, 8, 16, simulation.state.rate])).sort((a, b) => a - b).map(value => <option key={value} value={value}>{value}×</option>)}</select></label></div>
-            </div><aside className="rules-history"><h3>{t('history')}</h3><p className="small-description">{t('historyHint')}</p><div className="rules-history-list">{history.map((entry, index) => <button type="button" key={index} aria-pressed={historyIndex === index} onClick={() => setHistoryIndex(index)}>{entry.label}<small>{formatTime(entry.result.from)} → {formatTime(entry.result.state.time)} · {playbackText(entry.result)}</small></button>)}</div>
-                <div className="rules-history-detail">{activeHistory ? <><strong>{activeHistory.label}</strong><Trace result={activeHistory.result} openRule={openRule} /></> : <p>{t('historyEmpty')}</p>}</div>
-                <div className="rules-extra-actions">{(['buffer', 'playing', 'data'] as const).map(kind => <button type="button" key={kind} onClick={() => send({ kind })}>{t('action_' + kind)}</button>)}<button type="button" onClick={() => send({ kind: 'wall', seconds: 1 }, t('wall'))}>{t('wall')}</button></div>
-                <ContextSettings result={simulation} update={update} openSetting={openSetting} />
-                <details><summary>{t('timingHelp')}</summary><p>{t('timingDescription')}</p></details>
-            </aside></div>
+            <section className="rules-example-section" aria-labelledby="rules-simulator-example-title">
+                <h3 id="rules-simulator-example-title">{t('simulatorExamples')}</h3>
+                {tab === 'simulator' && exampleControls}
+                <div className="rules-toolbar"><p>{t('simulationDescription')}</p><button type="button" onClick={() => reset()}>{t('reset')}</button></div>
+                <div className="rules-sim-controls">
+                    <label><span>{t('preset')}</span><select value={preset} onChange={e => setPreset(e.target.value as Preset)}>{(['pause', 'pauseSpeed', 'rate', 'close', 'adjacent', 'merge', 'overlapReview'] as Preset[]).map(value => <option key={value} value={value}>{t('preset_' + value)}</option>)}</select></label><button type="button" onClick={loadPreset}>{t('loadPreset')}</button>
+                    <label><span>{t('layout')}</span><select data-rules-layout value={layout} onChange={e => { setLayout(e.target.value as Layout); reset(mode, e.target.value as Layout); }}>{(['single', 'adjacent', 'overlap'] as Layout[]).map(value => <option key={value} value={value}>{t('relation_' + value)}</option>)}</select></label>
+                    {layout !== 'single' && <label><span>{t('secondMode')}</span><select value={second} onChange={e => { setSecond(e.target.value as Policy); reset(mode, layout, e.target.value as Policy); }}>{modes.filter(m => m !== 'fast').map(value => <option key={value} value={value}>{t('mode_' + value)}</option>)}</select></label>}
+                    <label className="rules-check"><input type="checkbox" checked={failed} onChange={e => setFailed(e.target.checked)} />{t('fail')}</label>
+                </div>
+                <p data-simulation-ranges>{simulation.state.segments.map(segment => `${segment.id}: ${formatTime(segment.start)}–${formatTime(segment.end)}`).join(' · ')}</p>
+                <div className="rules-sim-layout"><div className="rules-player">
+                    <div className="rules-player-meta"><strong data-rules-time>{formatTime(simulation.state.time)}</strong><span>{t(simulation.state.paused ? 'paused' : simulation.state.waiting ? 'buffering' : 'playing')} · {simulation.state.rate}× · {t(simulation.state.ownedRate ? 'ownedRate' : 'userRate')}{simulation.state.muted ? ' · ' + t('phase_muted') : ''}</span></div>
+                    <div className="rules-cards">{simulation.cards.filter(c => c.visible).map(card => <Card key={card.id} card={card} action={send} hover={hover} />)}{!simulation.cards.some(c => c.visible) && <p>{t('cardsEmpty')}</p>}</div>
+                    <div className="rules-timeline">{simulation.state.segments.filter(s => s.mode !== 'ignore').map(s => <div key={s.id} className={'rules-range ' + (s.id === 'B' ? 'second' : '')} style={{ left: s.start / 40 * 100 + '%', width: (s.end - s.start) / 40 * 100 + '%' }}>{s.id} · {t('mode_' + s.mode)}</div>)}<i style={{ left: simulation.state.time / 40 * 100 + '%' }} /></div>
+                    <div className="rules-ticks">{[0, 10, 20, 30, 40].map(time => <span key={time}>{time}s</span>)}</div>
+                    <label>{t('timeline')}<input aria-label={t('timeline')} type="range" min="0" max="40" step="0.1" value={simulation.state.time} onChange={e => send({ kind: 'seek', time: Number(e.target.value) }, t('timeline'))} /></label>
+                    <div className="rules-player-controls"><button type="button" onClick={() => setRunning(!running)}>{t(running ? 'stop' : 'run')}</button><button type="button" onClick={() => send({ kind: 'pause' })}>{t('action_pause')}</button><button type="button" onClick={() => send({ kind: 'resume' })}>{t('action_resume')}</button>
+                        <button type="button" onClick={() => commit(advance(simulationRef.current.state, 1, failed), t('advance'))}>{t('advance')}</button><label>{t('rate')}<select value={simulation.state.rate} onChange={e => send({ kind: 'rate', rate: Number(e.target.value) }, t('rate'))}>{Array.from(new Set([1, 1.5, 2, 3, 4, 6, 8, 16, simulation.state.rate])).sort((a, b) => a - b).map(value => <option key={value} value={value}>{value}×</option>)}</select></label></div>
+                </div><aside className="rules-history"><h4>{t('history')}</h4><p className="small-description">{t('historyHint')}</p><div className="rules-history-list">{history.map((entry, index) => <button type="button" key={index} aria-pressed={historyIndex === index} onClick={() => setHistoryIndex(index)}>{entry.label}<small>{formatTime(entry.result.from)} → {formatTime(entry.result.state.time)} · {playbackText(entry.result)}</small></button>)}</div>
+                    <div className="rules-history-detail">{activeHistory ? <><strong>{activeHistory.label}</strong><Trace result={activeHistory.result} openRule={openRule} /></> : <p>{t('historyEmpty')}</p>}</div>
+                    <div className="rules-extra-actions">{(['buffer', 'playing', 'data'] as const).map(kind => <button type="button" key={kind} onClick={() => send({ kind })}>{t('action_' + kind)}</button>)}<button type="button" onClick={() => send({ kind: 'wall', seconds: 1 }, t('wall'))}>{t('wall')}</button></div>
+                    <ContextSettings result={simulation} update={update} openSetting={openSetting} />
+                    <details><summary>{t('timingHelp')}</summary><p>{t('timingDescription')}</p></details>
+                </aside></div>
+            </section>
         </section>
         <section role="tabpanel" id="rules-panel-rules" aria-labelledby="rules-tab-rules" hidden={tab !== 'rules'}>
             <p>{t('rulesDescription')}</p><div className="rules-search"><label>{t('search')}<input type="search" placeholder={t('searchPlaceholder')} value={query} onChange={e => setQuery(e.target.value)} /></label><label>{t('filter')}<select value={filter} onChange={e => setFilter(e.target.value)}>{['all', 'configurable', 'fixed'].map(value => <option key={value} value={value}>{t('filter_' + value)}</option>)}</select></label><span role="status">{t('ruleCount', String(filtered.length))}</span></div>
