@@ -13,7 +13,7 @@ function DurationSetting({ setting, label, disabled, update, inline }: {
     const value = Config.config[setting];
     const [draft, setDraft] = React.useState(String(value));
     React.useEffect(() => setDraft(String(value)), [value]);
-    return <label>{label}<input type="number" min="1" step="1" disabled={disabled} data-rule-setting={inline ? undefined : setting} data-inline-setting={inline ? setting : undefined} value={draft}
+    return <label><span>{label}</span><input type="number" min="1" step="1" disabled={disabled} data-rule-setting={inline ? undefined : setting} data-inline-setting={inline ? setting : undefined} value={draft}
         onChange={e => {
             setDraft(e.target.value);
             const next = Number(e.target.value);
@@ -31,7 +31,7 @@ type Update = <K extends Key>(key: K, value: typeof Config.config[K]) => void;
 export function RuleSetting({ setting, update, inline = false }: { setting: EditableSetting; update: Update; inline?: boolean }): JSX.Element {
     const attributes = inline ? { 'data-inline-setting': setting } : { 'data-rule-setting': setting };
     function select(key: 'speedUpPlaybackRate' | 'skipResumeAction' | 'speedUpResumeAction', label: string, options: Array<[string | number, string]>) {
-        return <label>{label}<select className="optionsSelector" {...attributes} value={String(Config.config[key])}
+        return <label><span>{label}</span><select className="optionsSelector" {...attributes} value={String(Config.config[key])}
             onChange={e => update(key, (typeof options[0][0] === 'number' ? Number(e.target.value) : e.target.value) as typeof Config.config[typeof key])}>
             {options.map(([value, name]) => <option key={value} value={value}>{name}</option>)}
         </select></label>;
@@ -40,7 +40,7 @@ export function RuleSetting({ setting, update, inline = false }: { setting: Edit
         return <label className="rules-toggle"><input type="checkbox" {...attributes} checked={reverse ? !Config.config[key] : Config.config[key]} onChange={e => update(key, reverse ? !e.target.checked : e.target.checked)} /><span>{label}</span></label>;
     }
     switch (setting) {
-        case 'skipOnSeekToSegment': return <label>{t('entry')}<select className="optionsSelector" {...attributes} value={String(Config.config.skipOnSeekToSegment)} onChange={e => update('skipOnSeekToSegment', e.target.value === 'true')}>
+        case 'skipOnSeekToSegment': return <label><span>{t('entry')}</span><select className="optionsSelector" {...attributes} value={String(Config.config.skipOnSeekToSegment)} onChange={e => update('skipOnSeekToSegment', e.target.value === 'true')}>
             <option value="true">{t('entry_follow')}</option><option value="false">{t('entry_ask')}</option></select></label>;
         case 'enableSpeedUp': return toggle(setting, message('enableSpeedUp'));
         case 'disableSkipping': return toggle(setting, t('enableSkipping'), true);
