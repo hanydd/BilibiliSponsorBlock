@@ -10,6 +10,7 @@ export function updateVisits(plan: RulePlan, input: RuleInput, event: RuleEvent)
             visit.inside = false;
             visit.entered = false;
             visit.excluded = undefined;
+            visit.overlapOverride = undefined;
             visit.phase = undefined;
         }
     }
@@ -33,6 +34,7 @@ export function updateVisits(plan: RulePlan, input: RuleInput, event: RuleEvent)
                 visit.phase === 'completed' ? 'completed' : undefined;
             visit.excluded = undefined;
             visit.manual = undefined;
+            visit.overlapOverride = undefined;
             visit.entered = false;
             visit.auto = true;
             plan.trace.push({ id: segment.id, rule: RULES.leave, result: visit.phase === 'completed' ? 'completed' : 'left-without-completion' });

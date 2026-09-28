@@ -73,7 +73,8 @@ export const eligibilityRules: readonly PermissionRule[] = [
     { rule: RULES.automatic, show: true, automatic: true, matches: () => true },
 ];
 
-export function eligibility(segment: RuleSegment, visit: Visit, input: RuleInput): Eligibility {
+export function eligibility(segment: RuleSegment, visit: Visit, input: RuleInput, protectedBy?: readonly string[]): Eligibility {
     const { rule, show, automatic } = eligibilityRules.find(rule => rule.matches(segment, visit, input))!;
+    if (automatic && protectedBy?.length) return { rule: RULES.overlap, show: true, automatic: false };
     return { rule, show, automatic };
 }

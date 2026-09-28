@@ -71,6 +71,30 @@ test('segment tab reuses category controls including both colors and restores th
     await expect(page.locator(`${rules} #sponsorPreviewColorOption input`)).toHaveValue('#654321');
 });
 
+test('overlap matrix explains its source and simulator releases protection at A end', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+    await writeSyncStorage(extensionServiceWorker, { speedUpPlaybackRate: 4 });
+    await open(page, extensionId, 'matrix');
+    const categories = await readSyncStorage(extensionServiceWorker, 'categorySelections');
+    await page.locator('[data-matrix-context]').selectOption('overlap-review');
+    await page.locator('[data-state="ready"][data-operation="natural"]').click();
+    await expect(page.locator('.rules-result')).toContainText('回看保护来源：B');
+    await expect(page.locator('.rules-result')).toContainText('受其他片段的回看保护');
+    await page.locator('#rules-tab-simulator').click();
+    await page.locator('.rules-sim-controls select').first().selectOption('overlapReview');
+    await page.locator('.rules-sim-controls > button').click();
+    await expect(page.locator('[data-simulation-ranges]')).toContainText('B: 15s–30s');
+    await expect(page.locator('[data-rules-time]')).toHaveText('10s');
+    const advance = page.locator('.rules-player-controls > button').nth(3);
+    for (let i = 0; i < 6; i++) await advance.click();
+    await expect(page.locator('[data-rules-time]')).toHaveText('16s');
+    await expect(page.locator('.rules-player-meta')).toContainText('1×');
+    await expect(page.locator('.rules-cards')).toContainText('受其他片段的回看保护');
+    for (let i = 0; i < 4; i++) await advance.click();
+    await expect(page.locator('[data-rules-time]')).toHaveText('20s');
+    await expect(page.locator('.rules-player-meta')).toContainText('4×');
+    expect(await readSyncStorage(extensionServiceWorker, 'categorySelections')).toEqual(categories);
+});
+
 test('matrix uses real saved settings and supports rule detail navigation', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
     await open(page, extensionId);
     await page.locator('#rules-tab-matrix').click();

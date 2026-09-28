@@ -11,18 +11,6 @@ const commands: Record<Command['kind'], CommandRule> = {
         p.state.visits[e.id].excluded = 'undo';
         const target = i.segments.find(s => s.id === e.id)!;
         if (target.action !== 'mute' || e.forceSeek) p.seek = { time: target.start, ids: [target.id], reason: 'undo' };
-        // Protect overlap before any segment projects playback or cards.
-        const action = target.action === 'mute' && !e.forceSeek ? 'mute' : 'skip';
-        for (const segment of i.segments) {
-            if (segment.id !== target.id && segment.policy === 'auto' && segment.action === action &&
-                segment.start < target.end && segment.end > target.start && !p.state.visits[segment.id].excluded) {
-                const visit = p.state.visits[segment.id];
-                visit.excluded = 'undo';
-                visit.manual = undefined;
-                if (visit.phase === 'speeding' || visit.phase === 'muted') visit.phase = 'pending';
-                p.trace.push({ id: segment.id, rule: RULES.overlap, result: 'protect-return-position' });
-            }
-        }
     },
     'pause-speed': (p, _i, e) => { Object.assign(p.state.visits[e.id], { excluded: 'pause-speed', phase: 'speed-paused' }); },
     allow: (p, _i, e) => { Object.assign(p.state.visits[e.id], { excluded: undefined, auto: true, phase: undefined }); },

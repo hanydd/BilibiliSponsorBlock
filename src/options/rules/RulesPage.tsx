@@ -3,14 +3,14 @@ import { createRoot } from 'react-dom/client';
 import Config from '../../config';
 import { ruleDefinitions } from '../../content/skipRules/rules';
 import { Policy } from '../../content/skipRules/types';
-import { Action, advance, available, cards, CardView, ExampleContext, groups, InputEvent, Layout, makeSimulation, Mode, modes, operations, Result, rows, scenario, StateName, step } from './model';
+import { Action, advance, available, cards, CardView, ExampleContext, groups, InputEvent, Layout, makeSimulation, MatrixContext, matrixContexts, Mode, modes, operations, overlapReviewExample, Result, rows, scenario, StateName, step } from './model';
 import { currentSettings, RuleSetting, SettingsPanel } from './SettingsPanel';
 import { EditableSetting, editableSettings, settingTab } from './settingsLayout';
 import { NativeOptions, nativeSettings } from './NativeOptions';
 import { playbackText, ruleDescription, ruleInfo, ruleName, settingName, t, traceText } from './text';
 
 type Tab = 'segments' | 'community' | 'matrix' | 'cards' | 'simulator' | 'rules';
-type Preset = 'pause' | 'pauseSpeed' | 'rate' | 'close' | 'adjacent' | 'merge';
+type Preset = 'pause' | 'pauseSpeed' | 'rate' | 'close' | 'adjacent' | 'merge' | 'overlapReview';
 const tabs: Tab[] = ['segments', 'matrix', 'cards', 'community', 'simulator', 'rules'];
 const ruleIds = Object.keys(ruleDefinitions);
 const formatTime = (time: number) => Number(time.toFixed(1)) + 's';
@@ -64,6 +64,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
     const [group, setGroup] = React.useState<typeof groups[number]>('movement');
     const [selectedState, setSelectedState] = React.useState<StateName>('ready');
     const [operation, setOperation] = React.useState<Action>('natural');
+    const [matrixContext, setMatrixContext] = React.useState<MatrixContext>('single');
     const [context, setContext] = React.useState<ExampleContext>('ordinary');
     const settings = React.useMemo(() => ({ ...currentSettings(), context }), [revision, context]);
     const settingsRef = React.useRef(settings); settingsRef.current = settings;
@@ -85,7 +86,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
     const [cardPhase, setCardPhase] = React.useState<'preview' | 'pending' | 'speeding' | 'completed'>('completed');
     const categoryTarget = React.useRef<HTMLDivElement>(null);
     const categoryHome = React.useRef(category.parentElement);
-    const selected = React.useMemo(() => scenario(settings, mode, selectedState, operation), [settings, mode, selectedState, operation]);
+    const selected = React.useMemo(() => scenario(settings, mode, selectedState, operation, matrixContext), [settings, mode, selectedState, operation, matrixContext]);
     const cardExample = React.useMemo(() => {
         const state = makeSimulation({ ...settings, context: 'ordinary' }, cardPhase === 'speeding' ? 'fast' : cardPhase === 'pending' ? 'manual' : 'auto',
             cardPhase === 'pending' ? 'ready' : cardPhase === 'speeding' ? 'active' : cardPhase);
@@ -172,9 +173,14 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
         reset(next);
     }
     function openRule(id: string) { setRuleOrigin(tab); setSelectedRule(id); setQuery(''); setFilter('all'); changeTab('rules'); }
-    function useResult() { setLayout('single'); setRunning(false); setHistory([]); commit(selected, t('initial')); changeTab('simulator'); }
+    function useResult() { setLayout(matrixContext === 'single' ? 'single' : matrixContext === 'adjacent-review' ? 'adjacent' : 'overlap'); setSecond('auto'); setRunning(false); setHistory([]); commit(selected, t('initial')); changeTab('simulator'); }
     function loadPreset() {
         setRunning(false); setHistory([]);
+        if (preset === 'overlapReview') {
+            setMode('fast'); setLayout('overlap'); setSecond('auto'); setContext('ordinary');
+            commit(overlapReviewExample({ ...settings, context: 'ordinary' }), t('preset_overlapReview'));
+            return;
+        }
         const nextMode: Mode = ['pauseSpeed', 'rate', 'adjacent'].includes(preset) ? 'fast' : 'auto';
         const nextLayout = ['adjacent', 'merge'].includes(preset) ? 'adjacent' : 'single';
         setMode(nextMode); setLayout(nextLayout); setSecond('auto'); setSelectedState('ready'); setOperation('natural'); setGroup('movement');
@@ -221,14 +227,15 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
         <section role="tabpanel" id="rules-panel-matrix" aria-labelledby="rules-tab-matrix" hidden={tab !== 'matrix'}>
             <SettingsPanel group="matrix" update={update} />
             {tab === 'matrix' && exampleControls}
-            <p>{t('matrixHint')}</p>
+            <label className="rules-peer-context">{t('peerContext')}<select data-matrix-context value={matrixContext} onChange={e => setMatrixContext(e.target.value as MatrixContext)}>{matrixContexts.map(value => <option key={value} value={value}>{t('peer_' + value.replace(/-/g, '_'))}</option>)}</select></label>
+            <p>{t('peerHint')}</p><p>{t('matrixHint')}</p>
             <div className="rules-workspace"><div><h3>{t('matrixTitle')}</h3><div className="rules-groups">{groups.map(value => <button type="button" key={value} data-rule-group={value} aria-pressed={group === value} onClick={() => {
                 setGroup(value); setOperation(operations.find(o => o.group === value && available(mode, selectedState, o.id))?.id ?? 'natural');
             }}>{t('group_' + value)}</button>)}</div>
                 <div className="rules-table-scroll"><table className="rules-matrix"><thead><tr><th>{t('stateAxis')} ↓ / {t('operationAxis')} →</th>{operations.filter(o => o.group === group).map(o => <th key={o.id} title={t('hint_' + o.id)}>{t('op_' + o.id)}</th>)}</tr></thead>
                     <tbody>{rows(mode).map(state => <tr key={state}><th>{t('state_' + state)}<small>{t(state === 'preview' ? 'positionBefore' : state === 'completed' ? 'positionAfter' : state === 'undo' ? 'positionStart' : 'positionInside')}</small></th>{operations.filter(o => o.group === group).map(o => {
                         if (!available(mode, state, o.id)) return <td key={o.id} title={t('notApplicable')}>—</td>;
-                        const result = scenario(settings, mode, state, o.id), visible = result.cards.find(c => c.visible);
+                        const result = scenario(settings, mode, state, o.id, matrixContext), visible = result.cards.find(c => c.id === 'A' && c.visible);
                         return <td key={o.id}><button type="button" data-state={state} data-operation={o.id} aria-pressed={state === selectedState && o.id === operation} onClick={() => { setSelectedState(state); setOperation(o.id); }}>
                             <strong>{playbackText(result)}</strong><small>{visible ? t('phase_' + visible.label) : t('noCards')}</small></button></td>;
                     })}</tr>)}</tbody></table></div><p className="small-description">{t('matrixNote')}</p></div>
@@ -257,11 +264,12 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
             {tab === 'simulator' && exampleControls}
             <div className="rules-toolbar"><p>{t('simulationDescription')}</p><button type="button" onClick={() => reset()}>{t('reset')}</button></div>
             <div className="rules-sim-controls">
-                <label>{t('preset')}<select value={preset} onChange={e => setPreset(e.target.value as Preset)}>{(['pause', 'pauseSpeed', 'rate', 'close', 'adjacent', 'merge'] as Preset[]).map(value => <option key={value} value={value}>{t('preset_' + value)}</option>)}</select></label><button type="button" onClick={loadPreset}>{t('loadPreset')}</button>
-                <label>{t('layout')}<select data-rules-layout value={layout} onChange={e => { setLayout(e.target.value as Layout); reset(mode, e.target.value as Layout); }}>{(['single', 'adjacent', 'overlap'] as Layout[]).map(value => <option key={value} value={value}>{t('layout_' + value)}</option>)}</select></label>
+                <label>{t('preset')}<select value={preset} onChange={e => setPreset(e.target.value as Preset)}>{(['pause', 'pauseSpeed', 'rate', 'close', 'adjacent', 'merge', 'overlapReview'] as Preset[]).map(value => <option key={value} value={value}>{t('preset_' + value)}</option>)}</select></label><button type="button" onClick={loadPreset}>{t('loadPreset')}</button>
+                <label>{t('layout')}<select data-rules-layout value={layout} onChange={e => { setLayout(e.target.value as Layout); reset(mode, e.target.value as Layout); }}>{(['single', 'adjacent', 'overlap'] as Layout[]).map(value => <option key={value} value={value}>{t('relation_' + value)}</option>)}</select></label>
                 {layout !== 'single' && <label>{t('secondMode')}<select value={second} onChange={e => { setSecond(e.target.value as Policy); reset(mode, layout, e.target.value as Policy); }}>{modes.filter(m => m !== 'fast').map(value => <option key={value} value={value}>{t('mode_' + value)}</option>)}</select></label>}
                 <label className="rules-check"><input type="checkbox" checked={failed} onChange={e => setFailed(e.target.checked)} />{t('fail')}</label>
             </div>
+            <p data-simulation-ranges>{simulation.state.segments.map(segment => `${segment.id}: ${formatTime(segment.start)}–${formatTime(segment.end)}`).join(' · ')}</p>
             <div className="rules-sim-layout"><div className="rules-player">
                 <div className="rules-player-meta"><strong data-rules-time>{formatTime(simulation.state.time)}</strong><span>{t(simulation.state.paused ? 'paused' : simulation.state.waiting ? 'buffering' : 'playing')} · {simulation.state.rate}× · {t(simulation.state.ownedRate ? 'ownedRate' : 'userRate')}{simulation.state.muted ? ' · ' + t('phase_muted') : ''}</span></div>
                 <div className="rules-cards">{simulation.cards.filter(c => c.visible).map(card => <Card key={card.id} card={card} action={send} hover={hover} />)}{!simulation.cards.some(c => c.visible) && <p>{t('cardsEmpty')}</p>}</div>

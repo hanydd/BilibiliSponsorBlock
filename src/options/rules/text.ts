@@ -7,7 +7,7 @@ export const message = (key: string): string => chrome.i18n.getMessage(key);
 export const ruleName = (id: string): string => t('rule_' + id.replace(/-/g, '_') + '_name') || id;
 export const ruleDescription = (id: string): string => t('rule_' + id.replace(/-/g, '_') + '_description');
 export const ruleInfo = (id: string): typeof ruleDefinitions[keyof typeof ruleDefinitions] | undefined => ruleDefinitions[id];
-export const traceText = (trace: RuleTrace): string => t('result_' + trace.result.replace(/-/g, '_')) || trace.result;
+export const traceText = (trace: RuleTrace): string => (t('result_' + trace.result.replace(/-/g, '_')) || trace.result) + (trace.relatedIds?.length ? ' · ' + t('protectionSources', trace.relatedIds.join('、')) : '');
 export function playbackText(result: Result): string {
     const last = result.effects[result.effects.length - 1];
     if (last) return t(last.reason === 'undo' ? 'returnTo' : 'jumpTo', String(last.time));

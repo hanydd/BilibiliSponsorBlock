@@ -8,6 +8,8 @@ export type Mode = Policy | 'fast';
 export type ExampleContext = 'ordinary' | 'music' | 'full' | 'music-full' | 'mute';
 export type StateName = 'preview' | 'ready' | 'active' | 'custom' | 'cancelled' | 'undo' | 'completed' | 'closed';
 export type Layout = 'single' | 'adjacent' | 'overlap';
+export type MatrixContext = 'single' | 'overlap-auto' | 'overlap-review' | 'overlap-closed' | 'adjacent-review';
+export const matrixContexts: MatrixContext[] = ['single', 'overlap-auto', 'overlap-review', 'overlap-closed', 'adjacent-review'];
 export interface Settings {
     policy?: PolicySettings;
     context?: ExampleContext;
@@ -83,7 +85,7 @@ export function makeSimulation(settings: Settings, mode: Mode, state: StateName 
     if (state === 'active') visit.phase = 'speeding';
     if (state === 'custom') { visit.excluded = 'user-rate'; visit.phase = 'speed-paused'; }
     if (state === 'cancelled') { visit.excluded = mode === 'fast' ? 'pause-speed' : 'cancel'; visit.phase = mode === 'fast' ? 'speed-paused' : 'pending'; }
-    if (state === 'undo') { visit.excluded = 'undo'; visit.phase = 'pending'; }
+    if (state === 'undo') { visit.excluded = 'undo'; visit.phase = 'pending'; rules.reviews = { A: { action: settings.context === 'mute' ? 'mute' : 'skip' } }; }
     if (state === 'completed') { visit.phase = 'completed'; visit.auto = false; }
     if (state === 'closed') visit.excluded = 'dismiss';
     return { time, muted: false, paused: false, waiting: false, rate: state === 'active' ? speedUpTarget(1, settings.rate) : state === 'custom' ? 2 : 1,
@@ -94,7 +96,7 @@ export function makeSimulation(settings: Settings, mode: Mode, state: StateName 
 export function cards(state: Simulation): CardView[] {
     return Object.entries(state.plan?.cards ?? {}).map(([id, card]) => {
         const visit = state.rules.visits[id];
-        const label = card.phase === 'speed-paused' ? visit.excluded === 'user-rate' ? 'custom' : 'cancelled' :
+        const label = card.phase === 'pending' && !visit.excluded && state.plan.protectedBy[id]?.length ? 'protected' : card.phase === 'speed-paused' ? visit.excluded === 'user-rate' ? 'custom' : 'cancelled' :
             card.phase === 'pending' ? visit.excluded === 'undo' ? 'undo' : visit.excluded === 'cancel' ? 'cancelled' : !visit.auto ? 'waiting' : 'pending' :
                 card.phase === 'preview' && !card.automatic ? 'cancelledPreview' : card.phase;
         return { ...card, id, label, visible: card.show && !state.lifetimes[id]?.expired,
@@ -146,6 +148,7 @@ export function step(previous: Simulation, event: InputEvent): Result {
         state.rules = plan.state; state.plan = plan; trace.push(...plan.trace);
         if (!state.paused && !state.waiting) state.muted = !!plan.mute.length;
         else if (!Object.values(plan.cards).some(card => card.phase === 'muted')) state.muted = false;
+        if ((state.paused || state.waiting) && state.ownedRate && !Object.values(plan.cards).some(card => card.phase === 'speeding')) { state.rate = state.baseline; state.ownedRate = false; }
         if (!state.paused && !state.waiting) {
             if (plan.speed.length) {
                 if (!state.ownedRate) state.baseline = state.rate;
@@ -172,8 +175,18 @@ export function step(previous: Simulation, event: InputEvent): Result {
     return { state, from, effects, trace, failed, cards: cards(state) };
 }
 
-export function scenario(settings: Settings, mode: Mode, state: StateName, action: Action): Result {
+export function scenario(settings: Settings, mode: Mode, state: StateName, action: Action, context: MatrixContext = 'single'): Result {
     let s = makeSimulation(settings, mode, state);
+    if (context !== 'single') {
+        const adjacent = context === 'adjacent-review';
+        const peer = { id: 'B', start: adjacent ? 0 : 5, end: adjacent ? 10 : 25, mode: 'auto' as const };
+        s.segments.push(peer);
+        s.rules.visits.B = { number: 1, inside: s.time >= peer.start && s.time < peer.end, entered: true, auto: true, start: peer.start, end: peer.end };
+        if (context.endsWith('review')) {
+            s.rules.visits.B.excluded = 'undo';
+            s.rules.reviews = { ...s.rules.reviews, B: { action: settings.context === 'mute' ? 'mute' : 'skip' } };
+        } else if (context === 'overlap-closed') s.rules.visits.B.excluded = 'dismiss';
+    }
     if (['front', 'back', 'keyboard', 'cross'].includes(action)) s = step(s, { kind: 'seek', time: action === 'back' ? 35 : 0 }).state;
     if (action === 'resume') s = step(s, { kind: 'pause' }).state;
     const events: Record<Action, InputEvent> = {
@@ -200,4 +213,14 @@ export function advance(previous: Simulation, seconds: number, fail = false): Re
     }
     const result = step(state, { kind: 'wall', seconds, fail });
     return { ...result, from: previous.time, trace: [...trace, ...result.trace], effects, failed: failed || result.failed };
+}
+
+/** Reach the reported overlap through real engine transitions, without inventing a protected snapshot. */
+export function overlapReviewExample(settings: Settings): Result {
+    let s = makeSimulation(settings, 'fast', 'preview', 'overlap', 'auto');
+    s.segments[1].end = 30;
+    s = step(s, { kind: 'time', time: 12 }).state;
+    s = step(s, { kind: 'time', time: 16 }).state;
+    const completed = step(s, { kind: 'time', time: 22 });
+    return step(completed.state, { kind: 'undo', id: 'A' });
 }

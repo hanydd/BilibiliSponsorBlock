@@ -41,6 +41,8 @@ export interface Visit {
     manual?: 'mute' | 'speed';
     resumeFrom?: 'pending' | 'speed' | 'explicit';
     excluded?: 'dismiss' | 'cancel' | 'undo' | 'pause-speed' | 'user-rate';
+    /** An explicit action on this visit can override protection from another segment. */
+    overlapOverride?: boolean;
     phase?: CardPhase;
     start: number;
     end: number;
@@ -48,6 +50,8 @@ export interface Visit {
 export interface RuleState {
     time?: number;
     visits: Record<string, Visit>;
+    /** User-created review scopes, keyed by the segment being reviewed. */
+    reviews?: Record<string, { action: 'skip' | 'mute' }>;
 }
 export type RuleEvent =
     | { kind: 'time' | 'seek' | 'resume' | 'data' | 'pause' | 'handoff' | 'edit-end' }
@@ -71,7 +75,7 @@ export interface RuleInput {
     previewId?: string;
     segments: readonly RuleSegment[];
 }
-export interface RuleTrace { id: string; rule: string; result: string }
+export interface RuleTrace { id: string; rule: string; result: string; relatedIds?: readonly string[] }
 export interface RulePlan {
     state: RuleState;
     cards: Record<string, RuleCard>;
@@ -79,6 +83,8 @@ export interface RulePlan {
     poi?: string;
     speed: string[];
     mute: string[];
+    /** Derived for this evaluation, never copied into another segment's own intent. */
+    protectedBy: Record<string, readonly string[]>;
     trace: RuleTrace[];
 }
 export function emptyRuleState(): RuleState { return { visits: {} }; }

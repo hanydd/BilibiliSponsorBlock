@@ -14,7 +14,7 @@ export function applyResumePreferences(plan: RulePlan, input: RuleInput, event: 
             visit.resumeFrom = input.paused || input.waiting ? 'explicit' : undefined;
             continue;
         }
-        if (!eligibility(segment, visit, input).automatic) {
+        if (!eligibility(segment, visit, input, plan.protectedBy[segment.id]).automatic) {
             visit.resumeFrom = undefined;
             continue;
         }

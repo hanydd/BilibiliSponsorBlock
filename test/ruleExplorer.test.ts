@@ -1,4 +1,4 @@
-import { advance, available, makeSimulation, modes, operations, rows, scenario, Settings, step } from '../src/options/rules/model';
+import { advance, available, makeSimulation, matrixContexts, modes, operations, overlapReviewExample, rows, scenario, Settings, step } from '../src/options/rules/model';
 import { ruleDefinitions } from '../src/content/skipRules/rules';
 
 const settings: Settings = { entry: true, preview: 3, duration: 4, rate: 4, showCards: true, resumeEntry: 'continue', resumeSpeed: 'continue' };
@@ -14,16 +14,44 @@ test('global disable suppresses automatic actions and cards in the explorer', ()
 
 test('all available matrix cases use known production rules without mutating settings', () => {
     const frozen = Object.freeze({ ...settings });
-    for (const mode of modes) for (const state of rows(mode)) for (const operation of operations) {
+    for (const context of matrixContexts) for (const mode of modes) for (const state of rows(mode)) for (const operation of operations) {
         if (!available(mode, state, operation.id)) continue;
-        const result = scenario(frozen, mode, state, operation.id);
+        const result = scenario(frozen, mode, state, operation.id, context);
         expect(Number.isFinite(result.state.time)).toBe(true);
         expect(result.trace.every(trace => !!ruleDefinitions[trace.rule])).toBe(true);
-        if (mode === 'ignore' || mode === 'mark') {
+        if (context === 'single' && (mode === 'ignore' || mode === 'mark')) {
             expect(result.effects).toEqual([]);
             expect(result.cards.some(card => card.visible)).toBe(false);
         }
     }
+});
+
+test('matrix distinguishes peer review from peer closure and adjacency', () => {
+    const result = scenario(settings, 'auto', 'ready', 'natural', 'overlap-review');
+    expect(result.effects).toEqual([]);
+    expect(result.cards.find(card => card.id === 'A').label).toBe('protected');
+    expect(result.trace).toContainEqual({ id: 'A', rule: 'UNDO-OVERLAP', result: 'protect-return-position', relatedIds: ['B'] });
+    for (const context of ['overlap-closed', 'adjacent-review'] as const) {
+        expect(scenario(settings, 'auto', 'ready', 'natural', context).effects[0]?.ids).toEqual(['A']);
+    }
+    // Leaving the reviewed peer before re-entering is a new visit, not an immortal guard.
+    expect(scenario(settings, 'auto', 'ready', 'back', 'overlap-review').effects.length).toBeGreaterThan(0);
+});
+
+test('overlap preset replays the actual undo chain and resumes B exactly at the A boundary', () => {
+    const start = overlapReviewExample(settings);
+    expect(start.from).toBe(22);
+    expect(start.state.time).toBe(10);
+    expect(start.state.rate).toBe(1);
+    const inside = advance(start.state, 6);
+    expect(inside.state.time).toBe(16);
+    expect(inside.state.rate).toBe(1);
+    expect(inside.cards.find(card => card.id === 'B').label).toBe('protected');
+    const boundary = advance(inside.state, 4);
+    expect(boundary.state.time).toBe(20);
+    expect(boundary.state.rate).toBe(4);
+    expect(boundary.cards.find(card => card.id === 'B').phase).toBe('speeding');
+    expect(advance(boundary.state, 2.5).state.rate).toBe(1);
 });
 
 test('simulated pause/resume and adjacent fast cards follow the real evaluator', () => {

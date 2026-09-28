@@ -91,6 +91,27 @@ test('rules undo returns the selected segment and does not skip again', async ({
     expect(await getMockVideoTime(page)).toBeLessThan(25);
 });
 
+test('review of completed A protects overlapping B until A ends, including a paused undo', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage },
+        { enableSpeedUp: true, speedUpPlaybackRate: 4, skipNoticeDuration: 60 }, [[10, 20], [15, 30]]);
+    await setMockVideoTime(page, 12, true); await play(page);
+    await expect.poll(() => rate(page)).toBe(4);
+    // Natural completion keeps A's result card; a test seek across its end would not.
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(22);
+    await pauseMockVideo(page);
+    await page.locator(first).locator('[id^="sponsorSkipUnskipButton"]').first().click();
+    await expect.poll(() => getMockVideoTime(page)).toBe(10);
+    await expect.poll(() => rate(page)).toBe(1);
+    await setMockVideoTime(page, 16, true); await play(page);
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThan(16.5);
+    expect(await rate(page)).toBe(1);
+    await expect(page.locator(second)).toBeVisible();
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(20);
+    await expect.poll(() => rate(page)).toBe(4);
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(30);
+    await expect.poll(() => rate(page)).toBe(1);
+});
+
 test('rules manual button skips immediately even when speedup is selected', async ({ extensionContext, extensionPage, extensionServiceWorker, sendContentMessage }) => {
     const fixtures = { extensionContext, extensionPage, extensionServiceWorker, sendContentMessage };
     await setup(fixtures, { enableSpeedUp: true, categorySelections: [{ name: 'sponsor', option: 1 }] }, [[10, 50]]);

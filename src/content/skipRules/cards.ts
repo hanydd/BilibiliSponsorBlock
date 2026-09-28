@@ -14,7 +14,7 @@ export function projectSegment(plan: RulePlan, segment: RuleSegment, input: Rule
             const method = playbackMethod(segment, input);
             visit.phase = method === 'mute' ? 'muted' : method === 'speed' ? 'speeding' : 'pending';
             plan.trace.push({ id, rule: RULES[method], result: method });
-        } else if (!canRun && (visit.phase === 'speeding' || visit.phase === 'muted')) {
+        } else if (!canRun && decision.automatic && (visit.phase === 'speeding' || visit.phase === 'muted')) {
             // Pausing the player retains presentation; it does not cancel this visit.
         } else if (visit.excluded === 'pause-speed' || visit.excluded === 'user-rate') visit.phase = 'speed-paused';
         else if (visit.phase !== 'muted' || event.kind !== 'skip') visit.phase = 'pending';

@@ -2381,10 +2381,10 @@
         "message": "所有受控快進成员一起交還控制权，保留用户設定的倍速。"
     },
     "rules_rule_UNDO_OVERLAP_name": {
-        "message": "保护撤销後的回看位置"
+        "message": "回看期間保護重疊片段"
     },
     "rules_rule_UNDO_OVERLAP_description": {
-        "message": "直接重叠成员在計算播放動作前先暫停自動處理。"
+        "message": "撤銷後，在本次回看片段內暫時阻止直接重疊的自動片段執行同類動作：回看阻止跳轉和快進，撤銷靜音阻止自動靜音。到達回看片段末尾或離開後解除保護，其他片段按自身設定和本次狀態繼續處理。明確點擊跳過仍立即執行；保護不會透過其他片段繼續傳遞。"
     },
     "rules_rule_EXEC_APPLIED_name": {
         "message": "實際跳转成功後才记為完成"
@@ -2498,7 +2498,7 @@
         "message": "离開片段，不记為跳過"
     },
     "rules_result_protect_return_position": {
-        "message": "保护撤销後的回看位置"
+        "message": "暫時停止自動處理，不改變片段自身狀態"
     },
     "rules_result_seek": {
         "message": "直接跳過"
@@ -2625,5 +2625,44 @@
     },
     "rules_cardExamplesNote": {
         "message": "選擇狀態查看是否顯示卡片及計時方式。這裡展示狀態示意，外觀以播放器中的實際卡片為準；連續變化可在操作測試中查看。"
+    },
+    "rules_protectionSources": {
+        "message": "回看保護來源：$1"
+    },
+    "rules_phase_protected": {
+        "message": "受其他片段的回看保護"
+    },
+    "rules_peerContext": {
+        "message": "其他片段的影響"
+    },
+    "rules_peer_single": {
+        "message": "沒有其他片段"
+    },
+    "rules_peer_overlap_auto": {
+        "message": "B（5–25 秒）：自動處理"
+    },
+    "rules_peer_overlap_review": {
+        "message": "B（5–25 秒）：正在回看"
+    },
+    "rules_peer_overlap_closed": {
+        "message": "B（5–25 秒）：已關閉卡片"
+    },
+    "rules_peer_adjacent_review": {
+        "message": "B（0–10 秒）：回看後進入 A"
+    },
+    "rules_peerHint": {
+        "message": "表格查看 A（10–20 秒）的行為。重疊片段的回看會暫時限制自動處理，不改變 A 自身的設定或取消狀態。離開回看片段後解除保護；相鄰片段不受保護。"
+    },
+    "rules_preset_overlapReview": {
+        "message": "重疊快進後撤銷回看"
+    },
+    "rules_relation_single": {
+        "message": "單個片段"
+    },
+    "rules_relation_adjacent": {
+        "message": "相鄰片段"
+    },
+    "rules_relation_overlap": {
+        "message": "重疊片段"
     }
 }
