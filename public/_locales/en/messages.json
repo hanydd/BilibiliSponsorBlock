@@ -2543,6 +2543,9 @@
     "rules_result_navigate_to_point": {
         "message": "跳转至精彩点"
     },
+    "rules_categoryDescription": {
+        "message": "类别说明"
+    },
     "rules_tab_community": {
         "message": "标签与评论"
     },

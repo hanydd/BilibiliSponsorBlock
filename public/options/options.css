@@ -1035,6 +1035,10 @@ svg {
 
 /* React styles */
 
+.categoryInlineDescription {
+	display: none;
+}
+
 .categoryTableElement {
 	font-size: 16px;
 }

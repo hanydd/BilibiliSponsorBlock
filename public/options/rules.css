@@ -104,65 +104,53 @@
     border-top: 1px solid var(--border-color);
 }
 
-/* Reserve space for the color headings instead of squeezing them beside a wide category column. */
-.rules-categories {
-    container: category-options / inline-size;
-    overflow: visible;
+/* Keep descriptions beside the controls on wide forms, without stretching selectors. */
+.rules-categories { container: category-options / inline-size; overflow: visible; }
+.rules-categories .categoryChooserTable { table-layout: fixed; border-collapse: collapse; }
+.rules-categories .categoryTableHeader th { white-space: nowrap; text-align: left; }
+.rules-categories .categoryTableElement { font-size: 13px; }
+.rules-categories .categoryTableElement > :is(th, td) { padding: 10px 12px 10px 0; vertical-align: middle; }
+.rules-categories .categoryTableElement > :last-child { padding-right: 0; }
+.rules-categories .categoryTableLabel, .rules-categories #CategoryOptionName { width: 140px; }
+.rules-categories .skipOption { width: 170px; }
+.rules-categories :is(.colorOption, .previewColorOption) { width: 90px; }
+.rules-categories .categoryInlineDescription { display: table-cell; }
+.rules-categories td.categoryInlineDescription { font-size: 12px; line-height: 1.6; }
+.rules-categories .categoryInlineDescription > div { display: flex; align-items: flex-end; gap: 8px; }
+.rules-categories .categoryInlineDescription span {
+    flex: 1;
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
 }
+.rules-categories .categoryInlineDescription a { flex-shrink: 0; font-size: 11px; }
+.rules-categories .categoryTableDescription { display: none; }
+.rules-categories #categoryChooserTable .optionsSelector { width: 100%; max-width: 158px; font-size: 13px; }
+.rules-categories .categoryExtraOptions { padding: 10px 0; }
 
-.rules-categories .categoryTableHeader th {
-    white-space: nowrap;
-}
-
-.rules-categories .skipOption {
-    width: 28%;
-}
-
-.rules-categories #categoryChooserTable .optionsSelector {
-    width: 100%;
-}
-
-.rules-categories :is(.colorOption, .previewColorOption) {
-    width: 7.5em;
-}
-
-.rules-categories .categoryTableElement > :not(:last-child) {
-    padding-right: 24px;
-}
-
-/* On narrow forms, put the two color fields on their own row without shrinking the text. */
-@container category-options (max-width: 640px) {
-    .rules-categories :is(table, tbody, tr, td) {
-        display: block;
-    }
-
+/* At higher zoom the description gets a full-width row; all controls remain visible. */
+@container category-options (max-width: 760px) {
+    .rules-categories :is(table, tbody, tr, td) { display: block; }
     .rules-categories .categoryTableElement {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) 170px 90px 90px;
         align-items: center;
-        gap: 16px;
+        gap: 8px 12px;
+        padding: 12px 0;
+        border-top: 1px solid var(--border-color);
     }
-
-    .rules-categories .categoryTableHeader {
-        display: none;
-    }
-
-    .rules-categories .categoryTableElement > td {
-        width: auto;
-        min-width: 0;
-        padding: 0;
-    }
-
-    .rules-categories [data-label]::before {
-        content: attr(data-label);
-        display: block;
-        margin-bottom: 6px;
-        font-size: 14px;
-    }
-
-    .rules-categories .categoryTableDescription > td {
-        padding: 12px 0 20px;
-    }
+    .rules-categories .categoryTableHeader, .rules-categories .categoryTableDescription { display: none; }
+    .rules-categories .categoryTableElement > td { width: auto; min-width: 0; padding: 0; border: 0; }
+    .rules-categories .categoryInlineDescription { grid-column: 1 / -1; grid-row: 2; }
+    .rules-categories [data-label]::before { content: attr(data-label); display: block; margin-bottom: 4px; font-size: 11px; }
+}
+@container category-options (max-width: 540px) {
+    .rules-categories .categoryTableElement { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .rules-categories .categoryInlineDescription { grid-row: 3; }
+    .rules-categories #categoryChooserTable .optionsSelector { max-width: 100%; }
 }
 
 .rules-setting-links{display:flex;flex-direction:column;align-items:flex-start;gap:8px}.rules-setting-links .rules-link{margin:0}.rule-page [data-setting-highlight]:focus{outline:2px solid var(--server-node-active);outline-offset:4px}
@@ -170,10 +158,6 @@
 .rules-context-settings .rules-setting-grid{grid-template-columns:1fr}.rules-card-preview{padding:16px 0}.rules-card-preview .rules-example-card{max-width:100%}.rules-tabs{flex-wrap:wrap}
 
 /* Reused controls keep their behavior, with the same density as the rule settings. */
-.rules-categories .categoryTableElement { font-size: 13px; }
-.rules-categories .categoryTableElement td { padding-top: 8px; }
-.rules-categories .categoryTableDescription > td { font-size: 12px; line-height: 1.55; padding: 6px 0 10px 12px; }
-.rules-categories #categoryChooserTable .optionsSelector { font-size: 13px; min-height: 30px; padding: 5px 8px; }
 #rules-panel-segments > .rules-native { font-size: 13px; }
 #rules-panel-segments > .rules-native > div { padding: 10px 0; }
 #rules-panel-segments > .rules-native .small-description { font-size: 12px; line-height: 1.55; padding: 0; margin: 6px 0 0; }
@@ -200,12 +184,6 @@
 .rules-example-card[data-faded=true] { opacity: .5; }
 .rules-example-card:hover, .rules-example-card:focus-within { opacity: 1; }
 .rules-example-card .rules-card-detail { color: #ddd; }
-@container category-options (max-width: 640px) {
-    .rules-categories .categoryTableElement { gap: 10px 16px; }
-    .rules-categories .categoryTableElement td { padding-top: 0; }
-    .rules-categories .categoryTableDescription > td { padding: 8px 0 12px; }
-    .rules-categories [data-label]::before { font-size: 12px; }
-}
 .rules-card-preview .rules-card-header,
 .rules-card-preview .rules-card-header strong,
 .rules-card-preview .rules-clock { color: #eee; }
@@ -273,4 +251,18 @@
 .rule-page .rules-toggle > span { min-width: 0; line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) {
     :is(.rule-page, #rule-engine-entry) input[type=checkbox]::before { transition: none; }
+}
+
+/* Native controls and rule controls share the neutral select appearance. */
+.rule-page select.optionsSelector, .rule-page select option {
+    color: var(--white);
+    background: var(--background);
+}
+.rule-page select.optionsSelector {
+    min-height: 30px;
+    max-width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 13px;
 }

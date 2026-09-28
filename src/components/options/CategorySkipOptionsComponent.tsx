@@ -66,6 +66,10 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                         {chrome.i18n.getMessage("category_" + this.props.category)}
                     </td>
 
+                    <td className="categoryInlineDescription">
+                        <div>{this.renderDescription()}</div>
+                    </td>
+
                     <td id={this.props.category + "SkipOption"} className="skipOption">
                         <select
                             className="optionsSelector"
@@ -104,16 +108,21 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                     className={`small-description categoryTableDescription`}
                 >
                     <td colSpan={2}>
-                        {chrome.i18n.getMessage("category_" + this.props.category + "_description")}{" "}
-                        <a href={CompileConfig.wikiLinks[this.props.category]} target="_blank" rel="noreferrer">
-                            {`${chrome.i18n.getMessage("LearnMore")}`}
-                        </a>
+                        {this.renderDescription()}
                     </td>
                 </tr>
 
                 {this.getExtraOptionComponents(this.props.category)}
             </>
         );
+    }
+
+    renderDescription(): JSX.Element {
+        const description = chrome.i18n.getMessage("category_" + this.props.category + "_description");
+        return <><span title={description}>{description}</span>{" "}
+            <a href={CompileConfig.wikiLinks[this.props.category]} target="_blank" rel="noreferrer">
+                {chrome.i18n.getMessage("LearnMore")}
+            </a></>;
     }
 
     skipOptionSelected(event: React.ChangeEvent<HTMLSelectElement>): void {
@@ -207,7 +216,7 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
         for (const option of this.getExtraOptions(category)) {
             result.push(
                 <tr key={option.configKey}>
-                    <td id={`${category}_${option.configKey}`} className="categoryExtraOptions">
+                    <td id={`${category}_${option.configKey}`} className="categoryExtraOptions" colSpan={5}>
                         <ToggleOptionComponent
                             configKey={option.configKey}
                             label={option.label}
