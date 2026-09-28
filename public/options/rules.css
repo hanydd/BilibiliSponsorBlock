@@ -80,6 +80,67 @@
     white-space: nowrap;
 }
 
+/* Reserve space for the color headings instead of squeezing them beside a wide category column. */
+.rules-categories {
+    container: category-options / inline-size;
+    overflow: visible;
+}
+
+.rules-categories .categoryTableHeader th {
+    white-space: nowrap;
+}
+
+.rules-categories .skipOption {
+    width: 28%;
+}
+
+.rules-categories #categoryChooserTable .optionsSelector {
+    width: 100%;
+}
+
+.rules-categories :is(.colorOption, .previewColorOption) {
+    width: 7.5em;
+}
+
+.rules-categories .categoryTableElement > :not(:last-child) {
+    padding-right: 24px;
+}
+
+/* On narrow forms, put the two color fields on their own row without shrinking the text. */
+@container category-options (max-width: 640px) {
+    .rules-categories :is(table, tbody, tr, td) {
+        display: block;
+    }
+
+    .rules-categories .categoryTableElement {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: center;
+        gap: 16px;
+    }
+
+    .rules-categories .categoryTableHeader {
+        display: none;
+    }
+
+    .rules-categories .categoryTableElement > td {
+        width: auto;
+        min-width: 0;
+        padding: 0;
+    }
+
+    .rules-categories [data-label]::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+    }
+
+    .rules-categories .categoryTableDescription > td {
+        padding: 12px 0 20px;
+    }
+}
+
 .rules-setting-links{display:flex;flex-direction:column;align-items:flex-start;gap:8px}.rules-setting-links .rules-link{margin:0}.rule-page [data-setting-highlight]:focus{outline:2px solid var(--server-node-active);outline-offset:4px}
 
 .rules-context-settings .rules-setting-grid{grid-template-columns:1fr}.rules-card-preview{padding:16px 0}.rules-card-preview .rules-example-card{max-width:100%}.rules-tabs{flex-wrap:wrap}

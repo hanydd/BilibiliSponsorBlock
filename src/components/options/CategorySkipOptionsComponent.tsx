@@ -76,20 +76,22 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                         </select>
                     </td>
 
-                    <td id={this.props.category + "ColorOption"} className="colorOption">
+                    <td id={this.props.category + "ColorOption"} className="colorOption" data-label={chrome.i18n.getMessage("seekBarColor")}>
                         <input
                             className="categoryColorTextBox option-text-box"
                             type="color"
+                            aria-label={chrome.i18n.getMessage("seekBarColor")}
                             onChange={(event) => this.setColorState(event, false)}
                             value={this.state.color}
                         />
                     </td>
 
                     {!["exclusive_access"].includes(this.props.category) && (
-                        <td id={this.props.category + "PreviewColorOption"} className="previewColorOption">
+                        <td id={this.props.category + "PreviewColorOption"} className="previewColorOption" data-label={chrome.i18n.getMessage("previewColor")}>
                             <input
                                 className="categoryColorTextBox option-text-box"
                                 type="color"
+                                aria-label={chrome.i18n.getMessage("previewColor")}
                                 onChange={(event) => this.setColorState(event, true)}
                                 value={this.state.previewColor}
                             />
