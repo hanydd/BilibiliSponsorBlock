@@ -16,7 +16,7 @@ import {
 } from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
 import { getMigratedMirrorServerAddresses } from "./config/serverConfig";
-import { migratePaddingCategory } from "./config/categoryConfig";
+import { migrateCategorySelections } from "./config/categoryConfig";
 import { HashedValue } from "./utils/hash";
 
 export interface Permission {
@@ -215,7 +215,7 @@ class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
 }
 
 function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<string>) {
-    migratePaddingCategory(config);
+    migrateCategorySelections(config, CompileConfig.categoryList as Category[]);
     // Unbind key if it matches a previous one set by the user (should be ordered oldest to newest)
     const keybinds = ["skipKeybind", "startSponsorKeybind", "submitKeybind"];
     for (let i = keybinds.length - 1; i >= 0; i--) {
@@ -435,6 +435,10 @@ const syncDefaults = {
     closeSkipNoticeKeybind: { key: "Backspace" },
 
     categorySelections: [
+        {
+            name: "filler" as Category,
+            option: CategorySkipOption.Disabled,
+        },
         {
             name: "sponsor" as Category,
             option: CategorySkipOption.AutoSkip,

@@ -1,3 +1,4 @@
+import { categoryList } from '../config.json';
 import { test, expect } from './fixtures/extension';
 import { readSyncStorage, writeSyncStorage } from './support/extensionStorage';
 import { ruleDefinitions } from '../src/content/skipRules/rules';
@@ -324,7 +325,7 @@ test('missing old padding is upgraded once without undoing a later user disable'
     await expect(page.locator('#paddingSkipOption select')).toHaveValue('autoSkip');
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'paddingCategoryMigrated')).toBe(true);
     await page.locator('#paddingSkipOption select').selectOption('disable');
-    await expect.poll(async () => (await readSyncStorage<Array<{ name: string }>>(extensionServiceWorker, 'categorySelections')).some(s => s.name === 'padding')).toBe(false);
+    await expect.poll(async () => (await readSyncStorage<Array<{ name: string; option: number }>>(extensionServiceWorker, 'categorySelections')).find(s => s.name === 'padding')?.option).toBe(-1);
     await page.reload();
     await expect(page.locator('#paddingSkipOption select')).toHaveValue('disable');
 });
@@ -502,4 +503,22 @@ test('related settings can be changed beside a matrix result and a paused simula
     await expect(simulator.locator('[data-card-action="skip"]')).toBeVisible();
     await page.locator('#rules-tab-matrix').click();
     await expect(matrix.locator('[data-rule-setting="skipResumeAction"]')).toHaveValue('manual');
+});
+
+
+test('all categories persist explicit disabling in both settings views', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+    await open(page, extensionId);
+    for (const category of categoryList) await page.locator(`#${category}SkipOption select`).selectOption('disable');
+    await expect.poll(async () => (await readSyncStorage<Array<{ name: string; option: number }>>(extensionServiceWorker, 'categorySelections'))
+        .filter(selection => categoryList.includes(selection.name) && selection.option === -1).length).toBe(categoryList.length);
+    await page.locator('label[for="rule-engine-enabled"]').click();
+    await expect(page.locator('#classic-behavior')).toBeVisible();
+    for (const category of categoryList) await expect(page.locator(`#${category}SkipOption select`)).toHaveValue('disable');
+    await writeSyncStorage(extensionServiceWorker, { paddingCategoryMigrated: false });
+    await page.reload();
+    for (const category of categoryList) await expect(page.locator(`#${category}SkipOption select`)).toHaveValue('disable');
+    await page.locator('#paddingSkipOption select').selectOption('autoSkip');
+    await page.locator('label[for="rule-engine-enabled"]').click();
+    await expect(page.locator('#paddingSkipOption select')).toHaveValue('autoSkip');
+    for (const category of categoryList.filter(category => category !== 'padding')) await expect(page.locator(`#${category}SkipOption select`)).toHaveValue('disable');
 });

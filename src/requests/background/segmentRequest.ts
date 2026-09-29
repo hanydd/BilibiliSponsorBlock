@@ -1,4 +1,5 @@
 import Config from "../../config";
+import { isCategoryEnabled } from "../../config/categoryConfig";
 import { ActionType, NewVideoID, SponsorSourceType, SponsorTime, SponsorTimeHashedID } from "../../types";
 import { getVideoIDHash } from "../../utils/hash";
 import { parseBvidAndCidFromVideoId } from "../../utils/videoIdUtils";
@@ -46,7 +47,7 @@ export async function getSegmentsBackground(
         return { segments: null, status: 404 };
     }
 
-    const categories: string[] = Config.config.categorySelections.map((category) => category.name);
+    const categories: string[] = Config.config.categorySelections.filter(isCategoryEnabled).map((category) => category.name);
     const hashPrefix = (await getVideoIDHash(bvId)).slice(0, 4);
     const response = await fetchSegmentsByHash(hashPrefix, ignoreCache);
 

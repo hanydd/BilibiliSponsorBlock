@@ -3,6 +3,7 @@ import { CheckboxChangeEvent } from "antd/es/checkbox";
 import * as React from "react";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
+import { isCategoryEnabled } from "../config/categoryConfig";
 import { keybindToString } from "../config/config";
 import { ContentContainer } from "../ContentContainerTypes";
 import { showMessage } from "../render/MessageNotice";
@@ -484,7 +485,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         // See if show more categories was pressed
         if (
             chosenCategory !== DEFAULT_CATEGORY &&
-            !Config.config.categorySelections.some((category) => category.name === chosenCategory)
+            !Config.config.categorySelections.some((category) => category.name === chosenCategory && isCategoryEnabled(category))
         ) {
             event.target.value = DEFAULT_CATEGORY;
 

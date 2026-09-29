@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import Config from "../../config";
+import { setCategorySelection } from "../../config/categoryConfig";
 import * as CompileConfig from "../../../config.json";
 import { Category, CategorySkipOption, DynamicSponsorOption } from "../../types";
 
@@ -130,10 +131,8 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
 
         switch (event.target.value) {
             case "disable":
-                Config.config.categorySelections = Config.config.categorySelections.filter(
-                    (categorySelection) => categorySelection.name !== this.props.category
-                );
-                return;
+                option = CategorySkipOption.Disabled;
+                break;
             case "showOverlay":
                 option = CategorySkipOption.ShowOverlay;
 
@@ -154,19 +153,7 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                 break;
         }
 
-        const existingSelection = Config.config.categorySelections.find(
-            (selection) => selection.name === this.props.category
-        );
-        if (existingSelection) {
-            existingSelection.option = option;
-        } else {
-            Config.config.categorySelections.push({
-                name: this.props.category,
-                option: option,
-            });
-        }
-
-        Config.forceSyncUpdate("categorySelections");
+        Config.config.categorySelections = setCategorySelection(Config.config.categorySelections, this.props.category, option);
     }
 
     getCategorySkipOptions(): JSX.Element[] {
