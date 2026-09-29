@@ -6,6 +6,7 @@ export interface RuleRuntime {
     mode: EngineMode;
     observe(): void;
     action(event: RuleEvent): void;
+    toggleSkip(id?: string, forceSeek?: boolean): boolean;
     preview(time: number, unpause: boolean, id?: string): void;
     setEditing(open: boolean): void;
     speedInfo(): { segments: SponsorTime[]; start: number; end: number; rate: number } | null;

@@ -722,6 +722,10 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     unskipAction(buttonIndex: number, index: number, forceSeek: boolean): void {
+        if (isRuleEngineEnabled()) {
+            getRuleRuntime().toggleSkip(this.segments[index].UUID, forceSeek);
+            return;
+        }
         if (this.state.playback[buttonIndex] === SegmentPlaybackState.Skipped) this.unskip(buttonIndex, index, forceSeek);
         else this.reskip(buttonIndex, index, forceSeek);
     }
@@ -751,10 +755,6 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     unskip(buttonIndex: number, index: number, forceSeek: boolean): void {
-        if (isRuleEngineEnabled()) {
-            getRuleRuntime().action({ kind: this.props.advanceSkipNotice ? "deny" : "undo", id: this.segments[index].UUID, forceSeek });
-            return;
-        }
         if (this.props.advanceSkipNotice && getVideo().currentTime < this.segments[0].segment[0]) {
             upcomingSkipDecision.set(`${getVideoID()}:${getCid()}`, this.segments.map(segment => segment.UUID), false);
         } else {
@@ -765,10 +765,6 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     reskip(buttonIndex: number, index: number, forceSeek: boolean): void {
-        if (isRuleEngineEnabled()) {
-            getRuleRuntime().action({ kind: this.props.advanceSkipNotice ? "allow" : "skip", id: this.segments[index].UUID, forceSeek });
-            return;
-        }
         if (this.props.advanceSkipNotice && getVideo().currentTime < this.segments[0].segment[0]) {
             upcomingSkipDecision.set(`${getVideoID()}:${getCid()}`, this.segments.map(segment => segment.UUID), true);
         } else {

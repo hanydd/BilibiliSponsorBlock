@@ -10,9 +10,11 @@ import { seekForSkip } from '../skipSeek';
 import { notifyAutomaticSkip } from '../skipNotification';
 import { EngineMode, installRuleRuntime, RuleRuntime } from './bridge';
 import { evaluateRules } from './engine';
-import { speedUpTarget } from './playback';
+import { transitionPlayback } from './playback';
+import { primaryAction } from './intents';
+import { NoticeClock } from '../../notices/NoticeClock';
 import { policyPreferences, rulePreferences } from './preferences';
-import { emptyRuleState, Policy, RuleEvent, RuleInput, RulePlan, RuleSegment, RuleState } from './types';
+import { emptyRuleState, Policy, RuleCard, RuleEvent, RuleInput, RulePlan, RuleSegment, RuleState } from './types';
 
 interface RuntimePorts {
     stopLegacy: () => void;
@@ -37,7 +39,7 @@ export class SkipRulesRuntime implements RuleRuntime {
     private ownedSeek?: number;
     private rate?: { original: number; target: number };
     private muted?: { original: boolean };
-    private published = new Map<string, string>();
+    private published = new Map<string, { card: RuleCard; clock?: NoticeClock }>();
     private poiId?: string;
     private previousTrace = '';
     private savings = 0;
@@ -77,6 +79,7 @@ export class SkipRulesRuntime implements RuleRuntime {
         on('seeking', () => {
             if (this.ownedSeek !== undefined && Math.abs(video.currentTime - this.ownedSeek) < 0.25) return;
             this.ownedSeek = undefined;
+            for (const entry of this.published.values()) entry.clock?.reset(0);
             this.run({ kind: 'seek' });
         });
         on('seeked', () => { this.ownedSeek = undefined; this.waiting = false; this.run({ kind: 'time' }); });
@@ -87,14 +90,14 @@ export class SkipRulesRuntime implements RuleRuntime {
         on('ratechange', () => {
             if (this.mode !== 'rules' || !this.rate || video.playbackRate === this.rate.target) return;
             this.rate = undefined; // The user's new rate becomes the next baseline.
-            const ids = Object.entries(this.plan?.cards ?? {}).filter(([, card]) => card.phase === 'speeding').map(([id]) => id);
+            const ids = Object.entries(this.state.visits).filter(([, visit]) => visit.phase === 'speeding').map(([id]) => id);
             this.action({ kind: 'user-rate', ids });
         });
         on('volumechange', () => {
             if (this.mode !== 'rules' || !this.muted || video.muted) return;
             this.muted = undefined;
-            for (const [id, card] of Object.entries(this.plan?.cards ?? {})) {
-                if (card.phase === 'muted') this.action({ kind: 'deny', id });
+            for (const [id, visit] of Object.entries(this.state.visits)) {
+                if (visit.phase === 'muted') this.action({ kind: 'deny', id });
             }
         });
         this.disposeVideo = () => listeners.forEach(([name, fn]) => video.removeEventListener(name, fn));
@@ -171,11 +174,11 @@ export class SkipRulesRuntime implements RuleRuntime {
             if (this.mode === 'rules') {
                 this.applyPlayback(plan, input);
                 const startedSpeed = plan.speed.some(id => !input.segments.find(s => s.id === id)?.draft &&
-                    (prior?.cards[id]?.phase !== 'speeding' || prior.cards[id].visit !== plan.cards[id].visit));
+                    (prior?.state.visits[id]?.phase !== 'speeding' || prior.state.visits[id].number !== plan.state.visits[id].number));
                 if (startedSpeed) notifyAutomaticSkip(this.video);
                 this.publish(plan);
-                const completed = Object.entries(plan.cards).filter(([id, card]) => card.phase === 'completed' &&
-                    (prior?.cards[id]?.phase !== 'completed' || prior.cards[id].visit !== card.visit)).map(([id]) => id);
+                const completed = Object.entries(plan.state.visits).filter(([id, visit]) => visit.phase === 'completed' &&
+                    (prior?.state.visits[id]?.phase !== 'completed' || prior.state.visits[id].number !== visit.number)).map(([id]) => id);
                 if (completed.length && this.savings > 0) {
                     this.ports.record(this.segments().filter(s => completed.includes(s.UUID)), this.savings);
                     this.savings = 0;
@@ -209,23 +212,14 @@ export class SkipRulesRuntime implements RuleRuntime {
         }
     }
 
-    private applyPlayback(plan: RulePlan, input: RuleInput): void {
-        if (input.paused || input.waiting) {
-            // Pausing retains an active effect; revoking its permission must still release it.
-            if (!Object.values(plan.cards).some(card => card.phase === 'speeding')) this.restoreRate();
-            if (!Object.values(plan.cards).some(card => card.phase === 'muted')) this.restoreMute();
-            return;
-        }
-        if (plan.speed.length) {
-            const original = this.rate?.original ?? this.video.playbackRate;
-            const target = speedUpTarget(original, Config.config.speedUpPlaybackRate);
-            this.rate = { original, target };
-            if (this.video.playbackRate !== target) this.video.playbackRate = target;
-        } else this.restoreRate();
-        if (plan.mute.length) {
-            if (!this.muted) this.muted = { original: this.video.muted };
-            if (!this.video.muted) this.video.muted = true;
-        } else this.restoreMute();
+    private applyPlayback(plan: Pick<RulePlan, 'state' | 'speed' | 'mute'>, input: Pick<RuleInput, 'paused' | 'waiting'>): void {
+        if (!this.video) return;
+        const next = transitionPlayback({ rate: this.video.playbackRate, muted: this.video.muted, speed: this.rate, mute: this.muted },
+            plan, input, Config.config.speedUpPlaybackRate);
+        // Assign ownership before DOM writes can dispatch rate/volume events.
+        this.rate = next.speed; this.muted = next.mute;
+        if (this.video.playbackRate !== next.rate) this.video.playbackRate = next.rate;
+        if (this.video.muted !== next.muted) this.video.muted = next.muted;
     }
 
     private publish(plan: RulePlan): void {
@@ -243,10 +237,13 @@ export class SkipRulesRuntime implements RuleRuntime {
             if (!plan.cards[id]?.show) notice.close();
         }
         for (const [id, card] of Object.entries(plan.cards)) {
+            const previous = this.published.get(id);
+            if (JSON.stringify(previous?.card) === JSON.stringify(card)) continue;
+            const clock = card.phase !== 'completed' ? undefined :
+                previous?.card.phase === card.phase && previous.card.visit === card.visit ? previous.clock : new NoticeClock(Config.config.skipNoticeDuration * 1000);
+            this.published.delete(id);
+            this.published.set(id, { card, clock });
             if (!card.show) continue;
-            const key = JSON.stringify(card);
-            if (this.published.get(id) === key) continue;
-            this.published.set(id, key);
             const segment = segments.find(s => s.UUID === id);
             if (!segment) continue;
             app.bus.emit(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, {
@@ -254,8 +251,21 @@ export class SkipRulesRuntime implements RuleRuntime {
                 autoSkip: card.phase === 'completed' || card.phase === 'muted' || (card.phase === 'preview' && card.automatic), startReskip: false, ruleCard: card,
             }, { source: 'skipRules' });
         }
-        for (const id of this.published.keys()) if (!plan.cards[id]?.show) this.published.delete(id);
+        for (const id of this.published.keys()) if (!plan.cards[id]) this.published.delete(id);
         app.bus.emit(CONTENT_EVENTS.SPEEDUP_STATE_CHANGED, { active: !!plan.speed.length, pausedContext: !!this.rate && this.video.paused }, { source: 'skipRules' });
+    }
+
+    /** Without a card, target the latest live interaction; completion expires in display time. */
+    toggleSkip(id?: string, forceSeek = false): boolean {
+        if (this.mode !== 'rules' || this.failed || !this.video) return false;
+        if (id === undefined) {
+            if (!Config.config.dontShowNotice) return false;
+            id = [...this.published].reverse().find(([, entry]) => !entry.clock || entry.clock.read() > 0)?.[0];
+        }
+        const visit = this.state.visits[id];
+        if (!visit?.phase) return false;
+        this.action(primaryAction(id, visit, forceSeek));
+        return true;
     }
 
     speedInfo(): ReturnType<RuleRuntime['speedInfo']> {
@@ -268,15 +278,7 @@ export class SkipRulesRuntime implements RuleRuntime {
     }
     isExcluded(id: string): boolean { return this.state.visits[id]?.excluded === "dismiss"; }
     originalRate(): number { return this.rate?.original ?? this.video?.playbackRate ?? 1; }
-    private restoreRate(): void {
-        const rate = this.rate; this.rate = undefined;
-        if (rate && this.video && this.video.playbackRate === rate.target) this.video.playbackRate = rate.original;
-    }
-    private restoreMute(): void {
-        const mute = this.muted; this.muted = undefined;
-        if (mute && this.video?.muted) this.video.muted = mute.original;
-    }
-    private restore(): void { this.restoreRate(); this.restoreMute(); }
+    private restore(): void { this.applyPlayback({ state: emptyRuleState(), speed: [], mute: [] }, { paused: false, waiting: false }); }
     reset(): void {
         clearTimeout(this.timer); this.disposeVideo?.(); this.disposeVideo = undefined;
         if (this.mode === 'rules') this.restore();

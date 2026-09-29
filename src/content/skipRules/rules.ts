@@ -54,27 +54,27 @@ export const ruleDefinitions: Record<RuleId, RuleDefinition> = {
     [RULES.hidden]: { stage: 'card', settings: ['dontShowNotice'] },
 };
 
-export interface Eligibility { rule: RuleId; show: boolean; automatic: boolean }
+export interface Eligibility { rule: RuleId; available: boolean; automatic: boolean }
 interface PermissionRule extends Eligibility { matches: (segment: RuleSegment, visit: Visit, input: RuleInput) => boolean }
 const policy = (segment: RuleSegment, input: RuleInput) => input.previewId === segment.id ? 'auto' : segment.policy;
 
 /** First matching restriction wins. A selected editor preview still passes safety gates. */
 export const eligibilityRules: readonly PermissionRule[] = [
-    { rule: RULES.invalid, show: false, automatic: false, matches: s =>
+    { rule: RULES.invalid, available: false, automatic: false, matches: s =>
         !Number.isFinite(s.start) || !Number.isFinite(s.end) || s.start < 0 || s.end <= s.start || s.action === 'full' || s.action === 'poi' },
-    { rule: RULES.excluded, show: false, automatic: false, matches: (_s, v) => v.excluded === 'dismiss' },
-    { rule: RULES.disabled, show: false, automatic: false, matches: (_s, _v, i) => i.disabled },
-    { rule: RULES.editing, show: false, automatic: false, matches: (s, _v, i) => i.editing && !i.includeOtherSegments && i.previewId !== s.id },
-    { rule: RULES.draft, show: false, automatic: false, matches: (s, _v, i) => !!s.draft && i.previewId !== s.id },
-    { rule: RULES.disabled, show: false, automatic: false, matches: (s, _v, i) => ['ignore', 'mark'].includes(policy(s, i)) },
-    { rule: RULES.cancelled, show: true, automatic: false, matches: (_s, v) => !!v.excluded },
-    { rule: RULES.visitManual, show: true, automatic: false, matches: (_s, v) => !v.auto },
-    { rule: RULES.manual, show: true, automatic: false, matches: (s, v, i) => policy(s, i) === 'manual' && !v.manual },
-    { rule: RULES.automatic, show: true, automatic: true, matches: () => true },
+    { rule: RULES.excluded, available: false, automatic: false, matches: (_s, v) => v.excluded === 'dismiss' },
+    { rule: RULES.disabled, available: false, automatic: false, matches: (_s, _v, i) => i.disabled },
+    { rule: RULES.editing, available: false, automatic: false, matches: (s, _v, i) => i.editing && !i.includeOtherSegments && i.previewId !== s.id },
+    { rule: RULES.draft, available: false, automatic: false, matches: (s, _v, i) => !!s.draft && i.previewId !== s.id },
+    { rule: RULES.disabled, available: false, automatic: false, matches: (s, _v, i) => ['ignore', 'mark'].includes(policy(s, i)) },
+    { rule: RULES.cancelled, available: true, automatic: false, matches: (_s, v) => !!v.excluded },
+    { rule: RULES.visitManual, available: true, automatic: false, matches: (_s, v) => !v.auto },
+    { rule: RULES.manual, available: true, automatic: false, matches: (s, v, i) => policy(s, i) === 'manual' && !v.manual },
+    { rule: RULES.automatic, available: true, automatic: true, matches: () => true },
 ];
 
 export function eligibility(segment: RuleSegment, visit: Visit, input: RuleInput, protectedBy?: readonly string[]): Eligibility {
-    const { rule, show, automatic } = eligibilityRules.find(rule => rule.matches(segment, visit, input))!;
-    if (automatic && protectedBy?.length) return { rule: RULES.overlap, show: true, automatic: false };
-    return { rule, show, automatic };
+    const { rule, available, automatic } = eligibilityRules.find(rule => rule.matches(segment, visit, input))!;
+    if (automatic && protectedBy?.length) return { rule: RULES.overlap, available: true, automatic: false };
+    return { rule, available, automatic };
 }

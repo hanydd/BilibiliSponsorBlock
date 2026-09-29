@@ -1,5 +1,5 @@
 import { evaluateRules } from '../../content/skipRules/engine';
-import { speedUpTarget } from '../../content/skipRules/playback';
+import { PlaybackState, speedUpTarget, transitionPlayback } from '../../content/skipRules/playback';
 import { rulePreferences } from '../../content/skipRules/preferences';
 import { emptyRuleState, Policy, PolicySettings, RuleCard, RuleEvent, RulePlan, RuleState } from '../../content/skipRules/types';
 import { NoticeClock, secondsUntilSegment } from '../../notices/NoticeClock';
@@ -23,14 +23,10 @@ export interface Settings {
     resumeSpeed: 'continue' | 'manual';
 }
 export interface ExampleSegment { id: string; start: number; end: number; mode: Mode }
-export interface Simulation {
-    muted: boolean;
+export interface Simulation extends PlaybackState {
     time: number;
     paused: boolean;
     waiting: boolean;
-    rate: number;
-    baseline: number;
-    ownedRate: boolean;
     hovered: boolean;
     speedUp: boolean;
     settings: Settings;
@@ -89,7 +85,7 @@ export function makeSimulation(settings: Settings, mode: Mode, state: StateName 
     if (state === 'completed') { visit.phase = 'completed'; visit.auto = false; }
     if (state === 'closed') visit.excluded = 'dismiss';
     return { time, muted: false, paused: false, waiting: false, rate: state === 'active' ? speedUpTarget(1, settings.rate) : state === 'custom' ? 2 : 1,
-        baseline: state === 'custom' ? 2 : 1, ownedRate: state === 'active', hovered: false, speedUp: mode === 'fast',
+        speed: state === 'active' ? { original: 1, target: speedUpTarget(1, settings.rate) } : undefined, hovered: false, speedUp: mode === 'fast',
         settings: { ...settings }, segments, rules, lifetimes: {} };
 }
 
@@ -125,7 +121,7 @@ export function step(previous: Simulation, event: InputEvent): Result {
         case 'allow': command = { kind: ['pause-speed', 'user-rate'].includes(state.rules.visits[id]?.excluded) ? 'resume-speed' : 'allow', id }; break;
         case 'rate': {
             const ids = Object.entries(state.rules.visits).filter(([, v]) => v.phase === 'speeding').map(([key]) => key);
-            state.rate = event.rate; state.baseline = state.rate; state.ownedRate = false;
+            state.rate = event.rate; state.speed = undefined;
             command = { kind: 'user-rate', ids }; break;
         }
         case 'buffer': command = { kind: 'pause' }; break;
@@ -146,15 +142,7 @@ export function step(previous: Simulation, event: InputEvent): Result {
             segments: state.segments.map(s => ({ id: s.id, start: s.start, end: s.end, category: 'sponsor',
                 action: settings.context === 'mute' ? 'mute' : 'skip', policy: s.mode === 'fast' ? 'auto' : s.mode })) }, command);
         state.rules = plan.state; state.plan = plan; trace.push(...plan.trace);
-        if (!state.paused && !state.waiting) state.muted = !!plan.mute.length;
-        else if (!Object.values(plan.cards).some(card => card.phase === 'muted')) state.muted = false;
-        if ((state.paused || state.waiting) && state.ownedRate && !Object.values(plan.cards).some(card => card.phase === 'speeding')) { state.rate = state.baseline; state.ownedRate = false; }
-        if (!state.paused && !state.waiting) {
-            if (plan.speed.length) {
-                if (!state.ownedRate) state.baseline = state.rate;
-                state.ownedRate = true; state.rate = speedUpTarget(state.baseline, settings.rate);
-            } else if (state.ownedRate) { state.rate = state.baseline; state.ownedRate = false; }
-        }
+        Object.assign(state, transitionPlayback(state, plan, state, settings.rate));
         if (!plan.seek) break;
         if (event.fail) { failed = true; break; }
         state.time = plan.seek.time; effects.push(plan.seek);

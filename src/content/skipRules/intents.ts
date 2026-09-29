@@ -1,5 +1,5 @@
 import { RULES } from './rules';
-import { RuleEvent, RuleInput, RulePlan } from './types';
+import { RuleEvent, RuleInput, RulePlan, Visit } from './types';
 
 type Command = Extract<RuleEvent, { id: string }>;
 type CommandRule = (plan: RulePlan, input: RuleInput, event: Command) => void;
@@ -35,4 +35,11 @@ export function applyUserIntent(plan: RulePlan, input: RuleInput, event: RuleEve
         plan.trace.push({ id: event.id, rule: RULES.explicit, result: event.kind });
         commands[event.kind](plan, input, event);
     }
+}
+
+/** Card buttons and the hidden-notice shortcut share the same primary action. */
+export function primaryAction(id: string, visit: Pick<Visit, 'phase' | 'automatic'>, forceSeek = false): Command {
+    const kind = visit.phase === 'preview' ? (visit.automatic && !forceSeek ? 'deny' : 'allow') :
+        !forceSeek && (visit.phase === 'completed' || visit.phase === 'muted') ? 'undo' : 'skip';
+    return { kind, id, forceSeek };
 }

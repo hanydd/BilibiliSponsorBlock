@@ -445,3 +445,42 @@ test('music and full-video facts survive display and category filtering and comp
     await writeSyncStorage(extensionServiceWorker, { manualSkipOnFullVideo: false });
     await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(50);
 });
+
+for (const option of [1, 2]) {
+    test(`hidden notices retain Enter skip/undo for ${option === 1 ? 'manual' : 'automatic'} segments`, async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+        await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }, {
+            dontShowNotice: true, categorySelections: [{ name: 'sponsor', option }],
+        }, [[10, 50]]);
+        await setMockVideoTime(page, 12, true);
+        if (option === 1) await page.keyboard.press('Enter');
+        else await play(page);
+        await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(50);
+        await pauseMockVideo(page);
+        await expect(page.locator(cards)).toHaveCount(0);
+        await page.keyboard.press('Enter');
+        await expect.poll(() => getMockVideoTime(page)).toBe(10);
+        await play(page); await page.waitForTimeout(300); await pauseMockVideo(page);
+        expect(await getMockVideoTime(page)).toBeLessThan(15);
+        await expect(page.locator(cards)).toHaveCount(0);
+    });
+}
+
+test('hidden Enter ignores text inputs, expires, and does not swallow player arrows', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }, { dontShowNotice: true, skipNoticeDuration: 2 }, [[10, 50]]);
+    await setMockVideoTime(page, 12, true); await play(page);
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(50);
+    await pauseMockVideo(page);
+    await page.evaluate(() => { const input = document.createElement('input'); input.id = 'typing-test'; document.body.append(input); input.focus(); });
+    await page.keyboard.press('Enter');
+    expect(await getMockVideoTime(page)).toBeGreaterThanOrEqual(50);
+    await page.locator('#typing-test').evaluate((input: HTMLInputElement) => input.blur());
+    await page.waitForTimeout(2100);
+    const time = await getMockVideoTime(page);
+    await page.keyboard.press('Enter');
+    expect(await getMockVideoTime(page)).toBe(time);
+    const prevented = await page.evaluate(() => {
+        const event = new KeyboardEvent('keydown', { key: 'ArrowLeft', code: 'ArrowLeft', bubbles: true, cancelable: true });
+        document.body.dispatchEvent(event); return event.defaultPrevented;
+    });
+    expect(prevented).toBe(false);
+});

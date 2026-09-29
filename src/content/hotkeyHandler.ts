@@ -4,6 +4,7 @@ import Utils from "../utils";
 import { addCleanupListener } from "../utils/cleanup";
 import { getFrameRate, getVideo } from "../utils/video";
 import { getContentApp } from "./app";
+import { getRuleRuntime } from "./skipRules/bridge";
 import { contentState } from "./state";
 
 const utils = new Utils();
@@ -68,8 +69,9 @@ function hotkeyListener(e: KeyboardEvent): void {
     const openSubmissionMenuKey = Config.config.submitKeybind;
 
     if (keybindEquals(key, skipKey)) {
-        if (contentState.activeSkipKeybindElement) {
-            contentState.activeSkipKeybindElement.toggleSkip.call(contentState.activeSkipKeybindElement);
+        const hiddenAction = getRuleRuntime()?.toggleSkip();
+        if (hiddenAction || contentState.activeSkipKeybindElement) {
+            if (!hiddenAction) contentState.activeSkipKeybindElement.toggleSkip.call(contentState.activeSkipKeybindElement);
 
             /*
              * 视频播放器全屏或网页全屏时，快捷键`Enter`会聚焦到弹幕输入框

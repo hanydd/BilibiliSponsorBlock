@@ -38,6 +38,8 @@ export interface Visit {
     inside: boolean;
     entered: boolean;
     auto: boolean;
+    /** Effective permission after policy, visit intent and overlap restrictions. */
+    automatic?: boolean;
     manual?: 'mute' | 'speed';
     resumeFrom?: 'pending' | 'speed' | 'explicit';
     excluded?: 'dismiss' | 'cancel' | 'undo' | 'pause-speed' | 'user-rate';

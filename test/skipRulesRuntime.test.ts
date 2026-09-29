@@ -151,3 +151,86 @@ test('a rejected seek neither plays a notification nor records a completed skip'
     expect(ports.record).not.toHaveBeenCalled();
     runtime.reset();
 });
+
+test('hidden completion remains undoable, without publishing a notice', async () => {
+    const { video, runtime, contentState } = await setup({ dontShowNotice: true, enableSpeedUp: false });
+    contentState.sponsorTimes = [makeSegment('A', 10, 50)];
+    const { getContentApp } = await import('../src/content/app');
+    const { CONTENT_EVENTS } = await import('../src/content/app/events');
+    const notices = jest.fn();
+    getContentApp().bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, notices);
+    runtime.observe();
+    expect(video.currentTime).toBe(50);
+    expect(runtime.toggleSkip()).toBe(true);
+    expect(video.currentTime).toBe(10);
+    jest.advanceTimersByTime(500);
+    expect(video.currentTime).toBe(10);
+    expect(notices).not.toHaveBeenCalled();
+    runtime.reset();
+    expect(runtime.toggleSkip()).toBe(false);
+});
+
+test.each(['expiry', 'seek', 'video', 'mode', 'dismiss'] as const)('hidden undo target is released on %s', async reason => {
+    const { video, runtime, contentState, Config } = await setup({ dontShowNotice: true, enableSpeedUp: false, skipNoticeDuration: 1 });
+    contentState.sponsorTimes = [makeSegment('A', 10, 50)];
+    runtime.observe();
+    expect(video.currentTime).toBe(50);
+    if (reason === 'expiry') {
+        jest.advanceTimersByTime(600);
+        Config.config.dontShowNotice = false; runtime.observe();
+        Config.config.dontShowNotice = true; runtime.observe();
+        jest.advanceTimersByTime(450);
+    } else if (reason === 'seek') {
+        video.currentTime = 70;
+        video.dispatchEvent(new Event('seeking'));
+    } else if (reason === 'mode') {
+        Config.config.skipEngineMode = 'legacy'; runtime.observe();
+    } else if (reason === 'video') {
+        const { getVideoID } = await import('../src/utils/video');
+        (getVideoID as jest.Mock).mockReturnValue('BV2test');
+        runtime.observe();
+    } else runtime.action({ kind: 'dismiss', id: 'A' });
+    expect(runtime.toggleSkip()).toBe(false);
+    runtime.reset();
+});
+
+test('hidden paused pending segment can be skipped and undone without playing', async () => {
+    const { video, runtime, contentState } = await setup({ dontShowNotice: true, enableSpeedUp: false });
+    contentState.sponsorTimes = [makeSegment('A', 10, 50)];
+    Object.defineProperty(video, 'paused', { configurable: true, value: true });
+    runtime.observe();
+    expect(video.currentTime).toBe(12);
+    expect(runtime.toggleSkip()).toBe(true);
+    expect(video.currentTime).toBe(50);
+    expect(runtime.toggleSkip()).toBe(true);
+    expect(video.currentTime).toBe(10);
+    expect(video.paused).toBe(true);
+    runtime.reset();
+});
+
+test('hidden preview shortcut cancels the upcoming visit and later Enter skips explicitly', async () => {
+    const { video, runtime, contentState } = await setup({ dontShowNotice: true, enableSpeedUp: false, advanceSkipNotice: true, skipNoticeDurationBefore: 3 });
+    contentState.sponsorTimes = [makeSegment('A', 10, 50)];
+    video.currentTime = 8;
+    runtime.observe();
+    expect(runtime.toggleSkip()).toBe(true);
+    video.currentTime = 10; runtime.observe();
+    expect(video.currentTime).toBe(10);
+    expect(runtime.toggleSkip()).toBe(true);
+    expect(video.currentTime).toBe(50);
+    runtime.reset();
+});
+
+test('hidden shortcut follows the newest segment and drops removed data', async () => {
+    const { video, runtime, contentState } = await setup({ dontShowNotice: true, enableSpeedUp: false });
+    contentState.sponsorTimes = [makeSegment('A', 10, 20), makeSegment('B', 30, 40)];
+    runtime.observe();
+    expect(video.currentTime).toBe(20);
+    video.currentTime = 31; runtime.observe();
+    expect(video.currentTime).toBe(40);
+    expect(runtime.toggleSkip()).toBe(true);
+    expect(video.currentTime).toBe(30);
+    contentState.sponsorTimes = []; runtime.observe();
+    expect(runtime.toggleSkip()).toBe(false);
+    runtime.reset();
+});

@@ -1,6 +1,6 @@
 import { eligibility, RULES } from './rules';
 import { mergeSeek } from './planner';
-import { canAutomaticallyPlay, playbackMethod } from './playback';
+import { canAutomaticallyPlay, playbackMethod, planSegmentPlayback } from './playback';
 import { updateVisits } from './visits';
 import { applyUserIntent } from './intents';
 import { applyResumePreferences } from './resume';
@@ -21,8 +21,8 @@ export function evaluateRules(previous: RuleState, input: RuleInput, event: Rule
     applyResumePreferences(plan, input, event);
     for (const segment of input.segments) {
         const decision = eligibility(segment, visits[segment.id], input, plan.protectedBy[segment.id]);
-        plan.trace.push({ id: segment.id, rule: decision.rule, result: decision.automatic ? 'automatic' : decision.show ? 'manual' : 'excluded' });
-        projectSegment(plan, segment, input, event, decision);
+        plan.trace.push({ id: segment.id, rule: decision.rule, result: decision.automatic ? 'automatic' : decision.available ? 'manual' : 'excluded' });
+        planSegmentPlayback(plan, segment, input, event, decision);
     }
     // Point navigation is deliberately separate from interval merging.
     const highlights = input.segments.filter(s => s.action === 'poi' && s.end > input.time &&
@@ -36,7 +36,7 @@ export function evaluateRules(previous: RuleState, input: RuleInput, event: Rule
     }
     if (!plan.seek && canAutomaticallyPlay(input) && !input.disabled) {
         const candidates = input.segments.filter(s => s.action === 'skip' && s.end > input.time &&
-            eligibility(s, visits[s.id], input, plan.protectedBy[s.id]).automatic && visits[s.id].phase !== 'completed' && playbackMethod(s, input) === 'seek');
+            visits[s.id].automatic && visits[s.id].phase !== 'completed' && playbackMethod(s, input) === 'seek');
         const start = candidates.find(s => contains(s, input.time));
         if (start) {
             const members = mergeSeek(start, candidates);
@@ -44,5 +44,6 @@ export function evaluateRules(previous: RuleState, input: RuleInput, event: Rule
             plan.trace.push({ id: start.id, rule: RULES.merged, result: members.map(s => s.id).join(',') });
         }
     }
+    for (const segment of input.segments) projectSegment(plan, segment, input);
     return plan;
 }

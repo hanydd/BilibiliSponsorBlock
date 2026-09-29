@@ -7,7 +7,7 @@ test('global disable suppresses automatic actions and cards in the explorer', ()
     for (const mode of ['auto', 'fast'] as const) {
         const result = scenario({ ...settings, disabled: true }, mode, 'ready', 'natural');
         expect(result.effects).toEqual([]);
-        expect(result.state.ownedRate).toBe(false);
+        expect(result.state.speed).toBeUndefined();
         expect(result.cards.some(card => card.visible)).toBe(false);
     }
 });
