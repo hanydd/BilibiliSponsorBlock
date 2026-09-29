@@ -14,11 +14,12 @@ function DurationSetting({ setting, label, disabled, update, inline }: {
     const [draft, setDraft] = React.useState(String(value));
     React.useEffect(() => setDraft(String(value)), [value]);
     return <label><span>{label}</span><input type="number" min="1" step="1" disabled={disabled} data-rule-setting={inline ? undefined : setting} data-inline-setting={inline ? setting : undefined} value={draft}
-        onChange={e => {
-            setDraft(e.target.value);
-            const next = Number(e.target.value);
+        onChange={e => setDraft(e.target.value)} onBlur={e => {
+            // Save the completed edit, not intermediate digits echoed back by storage.
+            const next = Number(e.currentTarget.value);
             if (Number.isFinite(next) && next >= 1) update(setting, Math.round(next));
-        }} onBlur={() => setDraft(String(Config.config[setting]))} /></label>;
+            setDraft(String(Config.config[setting]));
+        }} /></label>;
 }
 export function currentSettings(): Settings {
     return { entry: Config.config.skipOnSeekToSegment, preview: Config.config.advanceSkipNotice ? Number(Config.config.skipNoticeDurationBefore) : 0,

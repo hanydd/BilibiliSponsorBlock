@@ -400,6 +400,15 @@ test('users can replace countdown values and configure fast-forward beside its s
     const settings = page.locator('#rules-panel-cards .rules-settings');
     await page.locator('#rules-tab-cards').click();
     await settings.locator('[data-rule-setting="advanceSkipNotice"]').check();
+    await page.evaluate(() => {
+        const changes = (window as unknown as { durationWrites: Record<string, number[]> }).durationWrites = {};
+        chrome.storage.onChanged.addListener((updates, area) => {
+            if (area !== 'sync') return;
+            for (const key of ['skipNoticeDurationBefore', 'skipNoticeDuration']) {
+                if (updates[key]) (changes[key] ??= []).push(updates[key].newValue);
+            }
+        });
+    });
     for (const key of ['skipNoticeDurationBefore', 'skipNoticeDuration']) {
         const input = settings.locator(`[data-rule-setting="${key}"]`);
         await input.fill('');
@@ -408,6 +417,9 @@ test('users can replace countdown values and configure fast-forward beside its s
         await input.blur();
         await expect(input).toHaveValue('12');
         await expect.poll(() => readSyncStorage(extensionServiceWorker, key)).toBe(12);
+        // Intermediate digits must never be saved and echoed over the current edit.
+        await expect.poll(() => page.evaluate(key =>
+            (window as unknown as { durationWrites: Record<string, number[]> }).durationWrites[key], key)).toEqual([12]);
         await input.fill('0');
         await input.blur();
         await expect(input).toHaveValue('12');
