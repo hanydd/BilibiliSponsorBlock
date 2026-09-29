@@ -1,6 +1,11 @@
 import { AID, BVID, CID } from "../types";
 import { waitFor } from "../utils/";
-import { InjectedScriptMessageSend, sourceId } from "../utils/injectedScriptMessageUtils";
+import {
+    InjectedScriptMessageSend,
+    VideoMatchContext,
+    readPageVideoMatchContext,
+    sourceId,
+} from "../utils/injectedScriptMessageUtils";
 import { getBvid } from "./aidMap";
 import { getCidFromBvIdPage, getCidMap } from "./cidListMap";
 import { getFrameRate } from "./frameRateUtils";
@@ -77,6 +82,9 @@ async function windowMessageListener(message: MessageEvent) {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.upData?.mid);
         } else if (data.type === "getDescription") {
             sendMessageToContent(data, window?.__INITIAL_STATE__?.videoData?.desc);
+        } else if (data.type === "getVideoMatchContext") {
+            const context = readPageVideoMatchContext();
+            sendMessageToContent(data, context as VideoMatchContext);
         } else if (data.type === "convertAidToBvid") {
             sendMessageToContent(data, await getBvid(data.payload as string));
         } else if (data.type === "getCidFromBvid") {

@@ -3,6 +3,8 @@
 //
 
 import { BVID, NewVideoID, PortVideo, SegmentUUID, SponsorHideType, SponsorTime, YTID } from "./types";
+import type { BackendInfoMap } from "./backends/types";
+import type { VideoMatchContext } from "./backends/types";
 
 interface BaseMessage {
     from?: string;
@@ -41,6 +43,8 @@ interface SubmitVoteMessage {
     message: "submitVote";
     type: number;
     UUID: SegmentUUID;
+    backendId?: string;
+    videoContext?: VideoMatchContext;
 }
 
 interface HideSegmentMessage {
@@ -113,6 +117,7 @@ export interface IsInfoFoundMessageResponse {
     found: boolean;
     status: number;
     sponsorTimes: SponsorTime[];
+    backendInfo?: BackendInfoMap;
     portVideo: PortVideo;
     time: number;
 }
@@ -185,6 +190,23 @@ interface ImportSegmentsResponse {
 
 export interface RefreshSegmentsResponse {
     hasVideo: boolean;
+}
+
+export interface UserWorkStats {
+    userName?: string;
+    viewCount?: number;
+    minutesSaved?: number;
+    segmentCount?: number;
+    vip?: boolean;
+    permissions?: Record<string, unknown>;
+}
+
+export interface UserWorkStatsResponse {
+    ok: boolean;
+    partial: boolean;
+    stats?: UserWorkStats;
+    successfulBackendIds: string[];
+    failedBackendIds: string[];
 }
 
 export interface TimeUpdateMessage {

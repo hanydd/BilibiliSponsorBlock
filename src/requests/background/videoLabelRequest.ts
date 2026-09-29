@@ -2,16 +2,26 @@ import Config from "../../config";
 import { BVID, Category, CategorySkipOption, NewVideoID } from "../../types";
 import { getVideoIDHash } from "../../utils/hash";
 import { parseBvidAndCidFromVideoId } from "../../utils/videoIdUtils";
-import { callAPI } from "../background-request-proxy";
+import { callAPIWithOptions } from "../background-request-proxy";
 import { LabelBlock } from "../type/requestType";
 import { videoLabelCache } from "./backgroundCache";
 
-async function fetchLabelBlock(prefix: string, skipServerCache: boolean): Promise<LabelBlock | null> {
-    const response = await callAPI("GET", `/api/videoLabels/${prefix}`, {}, skipServerCache);
+async function fetchLabelBlock(prefix: string, skipServerCache: boolean): Promise<LabelBlock> {
+    const response = await callAPIWithOptions(
+        "GET",
+        `/api/videoLabels/${prefix}`,
+        {},
+        { operation: "queryVideoLabelsByHash", skipServerCache }
+    );
 
     if (!response.ok || response.status !== 200) return null;
 
-    const data = JSON.parse(response.responseText) as Array<{ videoID: BVID; segments: Array<{ category: Category }> }>;
+    let data: Array<{ videoID: BVID; segments: Array<{ category: Category }> }>;
+    try {
+        data = JSON.parse(response.responseText);
+    } catch {
+        return {} as LabelBlock;
+    }
     const block: LabelBlock = Object.fromEntries(
         (data || []).map((video) => [video.videoID, video.segments?.[0]?.category]).filter(([, c]) => !!c)
     ) as LabelBlock;

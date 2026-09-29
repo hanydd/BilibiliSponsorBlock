@@ -505,12 +505,6 @@
     "showUploadButton": {
         "message": "Show upload button"
     },
-    "customServerAddress": {
-        "message": "SponsorBlock server address"
-    },
-    "customServerAddressDescription": {
-        "message": "The address SponsorBlock uses to make calls to the server.\nUnless you have your own server instance, this should not be changed."
-    },
     "dataFetchingServerAddress": {
         "message": "Data fetching server address"
     },
@@ -564,6 +558,12 @@
     },
     "confirmNoticeTitle": {
         "message": "Submit Segment"
+    },
+    "backend": {
+        "message": "Backend"
+    },
+    "backendNoSubmissionBackend": {
+        "message": "No backend is available for this video submission. Check backend matching, capabilities, and enabled states."
     },
     "submit": {
         "message": "Submit"
@@ -839,15 +839,6 @@
     "skipOption": {
         "message": "Skip option",
         "description": "Used on the options page to describe the ways to skip the segment (auto skip, manual, etc.)"
-    },
-    "enableTestingServer": {
-        "message": "Enable beta testing server"
-    },
-    "whatEnableTestingServer": {
-        "message": "Your submissions and votes WILL NOT COUNT towards the main server. Only use this for testing."
-    },
-    "testingServerWarning": {
-        "message": "All submissions and votes WILL NOT COUNT towards the main server while connecting to the test server. Make sure to disable this when you want to make real submissions."
     },
     "bracketNow": {
         "message": "(Now)"
@@ -1147,9 +1138,6 @@
     },
     "youtubeKeybindWarning": {
         "message": "This is a built-in YouTube shortcut. Are you sure you want to use it?"
-    },
-    "betaServerWarning": {
-        "message": "BETA Server is enabled!"
     },
     "openOptionsPage": {
         "message": "Open options page"
@@ -1776,5 +1764,116 @@
     "areYouSureOriginalVote": {
         "message": "Are you sure that this original thumbnail follows the DeArrow guidelines? If you just prefer seeing original thumbnails in general, consider changing the \"When no submitted thumbnail exists\" option in the DeArrow settings.",
         "description": "Appears when voting for the original thumbnail for the first time in DeArrow"
+    },
+    "optionsTabBackendConfig": {
+        "message": "Backend"
+    },
+    "backendConfigTitle": {
+        "message": "Backend"
+    },
+    "backendConfigDescription": {
+        "message": "Configure multiple backends in priority order. Subscription sync replaces the configuration without changing per-backend enabled states."
+    },
+    "backendSubscriptionTitle": {
+        "message": "Backend Subscription"
+    },
+    "backendSubscriptionUrl": {
+        "message": "Subscription URL"
+    },
+    "backendSubscriptionInterval": {
+        "message": "Sync interval"
+    },
+    "backendSubscriptionMinutes": {
+        "message": "minutes"
+    },
+    "backendSubscriptionEnabled": {
+        "message": "Enable scheduled sync"
+    },
+    "backendSubscriptionSyncNow": {
+        "message": "Sync now"
+    },
+    "backendSubscriptionSyncing": {
+        "message": "Syncing..."
+    },
+    "backendSubscriptionUrlRequired": {
+        "message": "Enter a subscription URL first."
+    },
+    "backendSubscriptionPermissionDenied": {
+        "message": "Permission to access the subscription address was not granted."
+    },
+    "backendConfigJsonLabel": {
+        "message": "Backend configuration JSON"
+    },
+    "backendConfigFormat": {
+        "message": "Format and normalize conflicts"
+    },
+    "backendConfigFormatted": {
+        "message": "Backend configuration formatted and conflicts normalized."
+    },
+    "backendConfigSave": {
+        "message": "Save JSON"
+    },
+    "backendConfigRestoreDefault": {
+        "message": "Restore default"
+    },
+    "backendConfigSaved": {
+        "message": "Backend configuration saved."
+    },
+    "backendConfigRestored": {
+        "message": "Default backend configuration restored."
+    },
+    "backendConfigSynced": {
+        "message": "Backend configuration synced."
+    },
+    "backendConfigInvalidJson": {
+        "message": "The JSON is not valid."
+    },
+    "backendConfigInvalidShape": {
+        "message": "The configuration must be an object containing a backends array."
+    },
+    "backendConfigInvalidBackend": {
+        "message": "A backend entry is missing a valid name."
+    },
+    "backendConfigInvalidId": {
+        "message": "Backend IDs may contain only lowercase letters, underscores, and hyphens, and must be unique."
+    },
+    "backendConfigInvalidUrl": {
+        "message": "Backend addresses must be http:// or https:// URLs."
+    },
+    "backendConfigInvalidMirrors": {
+        "message": "mirrors must be an array of URLs."
+    },
+    "backendConfigInvalidCapabilities": {
+        "message": "capabilities must be an array."
+    },
+    "backendConfigInvalidConflicts": {
+        "message": "conflicts must be an array of existing backend IDs."
+    },
+    "backendConfigId": {
+        "message": "ID"
+    },
+    "backendConfigName": {
+        "message": "Name"
+    },
+    "backendConfigDescriptionColumn": {
+        "message": "Description"
+    },
+    "backendConfigApiUrl": {
+        "message": "API URL"
+    },
+    "backendConfigEnabled": {
+        "message": "Enabled"
+    },
+    "backendConfigDefault": {
+        "message": "Default"
+    },
+    "backendConfigEnabledValue": {
+        "message": "Enabled"
+    },
+    "backendConfigDisabledValue": {
+        "message": "Disabled"
+    },
+    "backendConfigEmpty": {
+        "message": "No backend configuration."
     }
 }

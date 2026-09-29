@@ -10,7 +10,7 @@
 - `https://www.bsbsb.top/**` 默认返回按端点构造的本地响应，避免后台接口让页面测试变得不稳定；单个用例可以覆盖默认响应，例如为跳过测试返回指定片段。
 - 每条测试使用独立的 Chromium 用户目录。fixture 会处理 MV3 service worker 重启、首次安装帮助页和固定测试用户，防止标签页及存储状态在用例之间泄漏。
 - 标有 `@real` 的用例单独访问真实 Bilibili，只用于人工或定时冒烟检查，不应作为提交合并的稳定门禁。
-- 标有 `@local-server` 的用例还会把扩展切换到 `config.json` 的 `testingServerAddress`，向预先启动的本地测试服务真实提交数据。
+- 标有 `@local-server` 的用例会把扩展切换到独立的 `testing` backend，向预先启动的本地测试服务真实提交数据；地址默认为 `http://127.0.0.1:9876`，可用 `BSB_E2E_LOCAL_SERVER_URL` 覆盖。
 
 ## 当前覆盖
 
@@ -43,10 +43,10 @@
 
 - 在 `BV1hUvpewEYD` 的真实播放器上使用插件控件记录一个动态时间段。
 - 打开提交编辑器、预览片段并点击提交。
-- 验证扩展向 `testingServerAddress` 发出真实的 `POST /api/skipSegments`，服务端返回 UUID，客户端清空本地草稿。
+- 验证扩展向 `testing` backend 发出真实的 `POST /api/skipSegments`，服务端返回 UUID，客户端清空本地草稿。
 - 通过本地服务的 `/api/segmentInfo` 回查 PostgreSQL 中的 BV、CID、时间、分类、动作类型和客户端版本。
 
-该用例会在本地测试数据库中新增一条使用独立 E2E 用户 ID 的 `sponsor/skip` 片段，不连接或写入 `serverAddress` 指向的线上服务。
+该用例会在本地测试数据库中新增一条使用独立 E2E 用户 ID 的 `sponsor/skip` 片段，不连接或写入线上 backend。
 
 ## 首次安装
 
@@ -66,7 +66,7 @@ npm run test:e2e
 # 单独运行真实 Bilibili 冒烟测试
 npm run test:e2e:real
 
-# SponsorBlockServer 已在 testingServerAddress 启动后，运行真实提交联调
+# SponsorBlockServer 已在本地地址启动后，运行真实提交联调
 npm run test:e2e:local-server
 
 # 已经构建过 dist/ 时，直接选择用例迭代

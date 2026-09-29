@@ -12,7 +12,7 @@ class SubmissionNotice {
     // Contains functions and variables from the content script needed by the skip notice
     contentContainer: () => unknown;
 
-    callback: () => Promise<boolean>;
+    callback: (backendId?: string) => Promise<boolean>;
 
     noticeRef: React.MutableRefObject<SubmissionNoticeComponent>;
 
@@ -20,7 +20,7 @@ class SubmissionNotice {
 
     root: Root;
 
-    constructor(contentContainer: ContentContainer, callback: () => Promise<boolean>) {
+    constructor(contentContainer: ContentContainer, callback: (backendId?: string) => Promise<boolean>) {
         this.noticeRef = React.createRef();
 
         this.contentContainer = contentContainer;

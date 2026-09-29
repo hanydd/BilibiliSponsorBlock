@@ -2,6 +2,7 @@ import Config from "../config";
 import { getHash } from "../utils/hash";
 import { asyncRequestToServer } from "./requests";
 import { FetchResponse } from "./type/requestType";
+import { UserWorkStatsResponse } from "../messageTypes";
 
 export async function setUsername(inputUserName: string): Promise<FetchResponse> {
     const response = asyncRequestToServer(
@@ -27,4 +28,21 @@ export async function getUserInfo(userID: string, ignoreServerCache: boolean = f
         },
         ignoreServerCache
     );
+}
+
+export function getUserWorkStats(userID: string, ignoreServerCache = false): Promise<UserWorkStatsResponse> {
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage(
+            { message: "getUserWorkStats", publicUserID: userID, skipServerCache: ignoreServerCache },
+            (response: UserWorkStatsResponse | undefined) =>
+                resolve(
+                    response ?? {
+                        ok: false,
+                        partial: false,
+                        successfulBackendIds: [],
+                        failedBackendIds: [],
+                    }
+                )
+        );
+    });
 }

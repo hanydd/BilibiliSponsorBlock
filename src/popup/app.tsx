@@ -115,7 +115,7 @@ function app() {
         submitBoxRef.current?.showSubmitBox();
         controlMenuRef.current.setState({ hasVideo: true });
 
-        displayDownloadedSponsorTimes(request.sponsorTimes ?? [], request.time);
+        displayDownloadedSponsorTimes(request.sponsorTimes ?? [], request.time, request.backendInfo ?? {});
         displayPortVideo(request.portVideo);
         if (request.found) {
             videoInfoRef.current.displayVideoWithMessage();
@@ -139,8 +139,8 @@ function app() {
     }
 
     //display the video times from the array at the top, in a different section
-    function displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
-        videoInfoRef.current.displayDownloadedSponsorTimes(sponsorTimes, time);
+    function displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number, backendInfo = {}) {
+        videoInfoRef.current.displayDownloadedSponsorTimes(sponsorTimes, time, backendInfo);
     }
 
     function displayPortVideo(portVideo: PortVideo) {
@@ -255,7 +255,7 @@ function app() {
                 // Clear segments list & start loading animation
                 // We'll get a ping once they're loaded
                 startLoadingAnimation();
-                displayDownloadedSponsorTimes([], 0);
+                displayDownloadedSponsorTimes([], 0, {});
                 displayPortVideo(null);
                 break;
         }
@@ -272,16 +272,6 @@ function app() {
                 >
                     <img src="icons/close.png" width="15" height="15" alt="Close icon" />
                 </button>
-
-                {Config.config.testingServer && (
-                    <div
-                        id="sbBetaServerWarning"
-                        title={chrome.i18n.getMessage("openOptionsPage")}
-                        onClick={() => openOptionsAt("advanced")}
-                    >
-                        {chrome.i18n.getMessage("betaServerWarning")}
-                    </div>
-                )}
 
                 {!Config.config.cleanPopup && (
                     <header className={"sbPopupLogo"}>

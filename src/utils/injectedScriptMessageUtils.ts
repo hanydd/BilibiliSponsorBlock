@@ -2,6 +2,61 @@ import { AID, BVID, CID } from "../types";
 
 export const sourceId = "biliSponsorBlock";
 
+export interface VideoMatchContext {
+    bvid: string;
+    title: string;
+    description: string;
+    up_mid: string;
+    up_name: string;
+}
+
+function readText(value: unknown): string {
+    return typeof value === "string" ? value.trim() : value == null ? "" : String(value).trim();
+}
+
+function readRecord(value: unknown): Record<string, unknown> {
+    return value && typeof value === "object" ? value as Record<string, unknown> : {};
+}
+
+/** Read metadata already rendered by Bilibili without introducing an API request. */
+export function readPageVideoMatchContext(): VideoMatchContext {
+    const initialState = readRecord(window.__INITIAL_STATE__);
+    const videoData = readRecord(initialState.videoData);
+    const videoInfo = readRecord(initialState.videoInfo);
+    const upData = readRecord(initialState.upData);
+    const owner = readRecord(videoData.owner);
+    const videoDetails = readRecord(videoData.videoDetails);
+
+    const title =
+        readText(videoData.title) ||
+        readText(videoInfo.title) ||
+        document.querySelector("h1.video-title, h1[title]")?.textContent?.trim() ||
+        document.title.trim();
+    const description =
+        readText(videoData.desc) ||
+        readText(videoData.description) ||
+        document.querySelector('meta[name="description"]')?.getAttribute("content")?.trim() ||
+        "";
+    const upMid = readText(upData.mid) || readText(owner.mid) || readText(videoData.mid) || readText(videoData.up_mid);
+    const upName =
+        readText(upData.name) ||
+        readText(upData.uname) ||
+        readText(owner.name) ||
+        readText(owner.uname) ||
+        readText(videoData.up_name) ||
+        readText(videoDetails.author) ||
+        document.querySelector("a.up-name, .up-info .name, a[href*='space.bilibili.com']")?.textContent?.trim() ||
+        "";
+
+    return {
+        bvid: readText(initialState.bvid) || readText(initialState.toBvid),
+        title,
+        description,
+        up_mid: upMid,
+        up_name: upName,
+    };
+}
+
 interface InjectedScriptMessageBase {
     source: string;
     id: string;
@@ -65,6 +120,13 @@ export async function getVideoDescriptionFromWindow(): Promise<string | null> {
         sendType: "getDescription",
         responseType: "returnDescription",
     });
+}
+
+export async function getVideoMatchContextFromWindow(): Promise<VideoMatchContext | null> {
+    return getPropertyFromWindow<VideoMatchContext>({
+        sendType: "getVideoMatchContext",
+        responseType: "returnVideoMatchContext",
+    }, undefined, 500);
 }
 
 export async function getBvidFromAidFromWindow(aid: string): Promise<BVID | null> {

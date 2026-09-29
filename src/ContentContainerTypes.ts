@@ -1,4 +1,6 @@
 import SkipNoticeComponent from "./components/SkipNoticeComponent";
+import { SubmissionBackend } from "./content/backendService";
+import { VideoMatchContext } from "./utils/injectedScriptMessageUtils";
 import { SegmentUUID, Category, SponsorTime, VideoInfo, ChannelIDInfo } from "./types";
 
 export interface ContentContainer {
@@ -18,5 +20,9 @@ export interface ContentContainer {
         getRealCurrentTime: () => number;
         lockedCategories: string[];
         channelIDInfo: ChannelIDInfo;
+        getVideoMatchContext: () => Promise<VideoMatchContext>;
+        getSubmissionBackends: (context: VideoMatchContext) => Promise<SubmissionBackend[]>;
+        getLastSubmissionBackendId: () => Promise<string | null>;
+        setLastSubmissionBackendId: (backendId: string) => Promise<void>;
     };
 }

@@ -7,10 +7,16 @@ import { FetchResponse } from "./type/requestType";
  * @param address The address to add to the SponsorBlock server address
  * @param callback
  */
-function asyncRequestToCustomServer(type: string, endpoint: string, data = {}, headers = {}): Promise<FetchResponse> {
+function asyncRequestToCustomServer(
+    type: string,
+    endpoint: string,
+    data = {},
+    headers = {},
+    backendId?: string
+): Promise<FetchResponse> {
     return new Promise((resolve, reject) => {
         // Ask the background script to do the work
-        chrome.runtime.sendMessage({ message: "sendRequest", type, endpoint, data, headers }, (response) => {
+        chrome.runtime.sendMessage({ message: "sendRequest", type, endpoint, backendId, data, headers }, (response) => {
             if (response.status !== -1) {
                 resolve(response);
             } else {
@@ -32,7 +38,8 @@ export async function asyncRequestToServer(
     address: string,
     data = {},
     ignoreServerCache = false,
-    customHeaders = {}
+    customHeaders = {},
+    backendId?: string
 ): Promise<FetchResponse> {
     // Only add cache-related headers when explicitly skipping cache to avoid CORS preflight
     const headers = ignoreServerCache
@@ -42,7 +49,18 @@ export async function asyncRequestToServer(
           }
         : customHeaders;
 
-    return await asyncRequestToCustomServer(type, address, data, headers);
+    return await asyncRequestToCustomServer(type, address, data, headers, backendId);
+}
+
+export async function asyncRequestToBackend(
+    backendId: string,
+    type: string,
+    address: string,
+    data = {},
+    ignoreServerCache = false,
+    customHeaders = {}
+): Promise<FetchResponse> {
+    return asyncRequestToServer(type, address, data, ignoreServerCache, customHeaders, backendId);
 }
 
 /**

@@ -1,10 +1,3 @@
-import fs from "fs";
-import path from "path";
-
-type CompileConfig = {
-    testingServerAddress: string;
-};
-
 export type LocalServerSegment = {
     UUID: string;
     videoID: string;
@@ -18,11 +11,10 @@ export type LocalServerSegment = {
     userAgent: string;
 };
 
-const compileConfig = JSON.parse(
-    fs.readFileSync(path.resolve(__dirname, "../../config.json"), "utf8")
-) as CompileConfig;
-
-export const localSponsorBlockServerUrl = compileConfig.testingServerAddress.replace(/\/$/, "");
+export const localSponsorBlockServerUrl = (process.env.BSB_E2E_LOCAL_SERVER_URL || "http://127.0.0.1:9876").replace(
+    /\/$/,
+    ""
+);
 const localServerHostname = new URL(localSponsorBlockServerUrl).hostname;
 if (!["127.0.0.1", "localhost", "[::1]"].includes(localServerHostname)) {
     throw new Error(
