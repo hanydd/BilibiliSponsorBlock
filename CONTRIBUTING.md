@@ -5,7 +5,7 @@
 本插件是在 [SponsorBlock](https://github.com/ajayyy/SponsorBlock) v5.4 版本基础上开发而来，从 SponsorBlock v5.5.9 版本开始不再进行功能同步，部分原项目中有价值的功能会手动添加到本项目中。
 
 ## 环境和准备
-1. 安装 Node.js 20 及以上版本（建议使用 Node.js 20 LTS）
+1. 安装 Node.js 20 或以上版本。
 1. 了解 Git，Node.js，npm 和命令行工具的基本使用方法
 1. 安装主流浏览器（Chrome以及Chromium内核的浏览器、Edge、Firefox、Safari……）
 
@@ -36,6 +36,8 @@
 
 执行 `npm run dev` (Chrome) 或者 `npm run dev:firefox` (火狐)，npm 会打开一个安装好测试版插件的浏览器窗口，并且支持代码修改热加载。这里使用了[`web-ext run`](https://extensionworkshop.com/documentation/develop/web-ext-command-reference/#commands)。
 
-Playwright 页面集成测试的安装、运行方式和 Bilibili 风控排查见 [docs/playwright-e2e.md](docs/playwright-e2e.md)。
+规则引擎的运行机制、代码分工、扩展步骤和回归测试见[跳过规则引擎技术设计与开发](docs/skip-rules-implementation.md)。
+
+Playwright 页面集成测试的安装、运行方式和 Bilibili 风控排查见 [Playwright 页面集成测试](docs/playwright-e2e.md)。
 
 插件有可能在初次打开的时候不正常加载。如果你发现有问题，可以打开浏览器的插件管理，并手动重新加载插件。
