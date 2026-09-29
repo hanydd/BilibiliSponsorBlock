@@ -53,14 +53,29 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
     }
 
     configProxy(): StorageObjects<T, U> {
+        const pendingSync = new Map<string, { value: unknown }>();
+        const writeSync = (items: Map<string, { value: unknown }>) => {
+            const values = Object.fromEntries([...items].map(([key, entry]) => [key, entry.value]));
+            chrome.storage.sync.set(values, () => {
+                if (chrome.runtime.lastError) console.error("Could not save settings:", chrome.runtime.lastError.message);
+                for (const [key, entry] of items) {
+                    if (pendingSync.get(key) === entry) pendingSync.delete(key);
+                }
+            });
+        };
         chrome.storage.onChanged.addListener((changes: { [key: string]: chrome.storage.StorageChange }, areaName) => {
             if (areaName === "sync") {
+                const currentChanges: StorageChangesObject = {};
                 for (const key in changes) {
+                    const pending = pendingSync.get(key);
+                    // An older write may finish while a newer local edit is queued or in flight.
+                    if (pending && JSON.stringify(pending.value) !== JSON.stringify(changes[key].newValue)) continue;
                     this.cachedSyncConfig![key] = changes[key].newValue;
+                    currentChanges[key] = changes[key];
                 }
 
-                for (const callback of this.configSyncListeners) {
-                    callback(changes);
+                if (Object.keys(currentChanges).length) for (const callback of this.configSyncListeners) {
+                    callback(currentChanges);
                 }
             } else if (areaName === "local") {
                 for (const key in changes) {
@@ -78,29 +93,23 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
         });
 
         let lastSet = 0;
-        const nextToUpdate: Set<string> = new Set();
+        const nextToUpdate = new Map<string, { value: unknown }>();
         let activeTimeout: NodeJS.Timeout | null = null;
 
         const self = this;
         const syncHandler: ProxyHandler<SyncStorage> = {
             set<K extends keyof SyncStorage>(obj: SyncStorage, prop: K, value: SyncStorage[K]) {
                 self.cachedSyncConfig![prop] = value;
+                const entry = { value };
+                pendingSync.set(prop, entry);
 
                 if (Date.now() - lastSet < 100) {
-                    nextToUpdate.add(prop);
+                    nextToUpdate.set(prop, entry);
                     if (!activeTimeout) {
                         const delayUpdate = () => {
-                            const items = [...nextToUpdate];
+                            const items = new Map(nextToUpdate);
                             nextToUpdate.clear();
-
-                            void chrome.storage.sync.set(
-                                items
-                                    .map((v) => [v, self.cachedSyncConfig![v]])
-                                    .reduce((acc, [k, v]) => {
-                                        acc[k] = v;
-                                        return acc;
-                                    }, {})
-                            );
+                            if (items.size) writeSync(items);
 
                             activeTimeout = null;
                         };
@@ -111,7 +120,8 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
                     return true;
                 }
 
-                void chrome.storage.sync.set({ [prop]: value });
+                nextToUpdate.delete(prop);
+                writeSync(new Map([[prop, entry]]));
 
                 lastSet = Date.now();
 
@@ -125,6 +135,8 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             },
 
             deleteProperty(obj: SyncStorage, prop: keyof SyncStorage) {
+                nextToUpdate.delete(prop);
+                pendingSync.delete(prop);
                 void chrome.storage.sync.remove(<string>prop);
 
                 return true;
@@ -160,8 +172,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
     }
 
     forceSyncUpdate(prop: string): void {
-        const value = this.cachedSyncConfig![prop];
-        void chrome.storage.sync.set({ [prop]: value });
+        this.config![prop] = this.cachedSyncConfig![prop];
     }
 
     forceLocalUpdate(prop: string): void {
