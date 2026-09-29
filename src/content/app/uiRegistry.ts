@@ -6,7 +6,6 @@ function createInitialState(): ContentUIRegistryState {
         playerButtons: {},
         descriptionPill: null,
         submissionNotice: null,
-        popupInitialised: false,
         skipButtonControlBar: null,
         categoryPill: null,
         previewBar: null,

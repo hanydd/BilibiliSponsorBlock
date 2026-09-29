@@ -6,7 +6,7 @@ export async function waitFor<T>(
     predicate?: (obj: T) => boolean
 ): Promise<T> {
     return await new Promise((resolve, reject) => {
-        setTimeout(() => {
+        const timeoutTimer = setTimeout(() => {
             clearTimeout(interval);
             reject(`TIMEOUT waiting for ${condition?.toString()}: ${Error().stack}`);
         }, timeout);
@@ -16,14 +16,18 @@ export async function waitFor<T>(
             if (predicate ? predicate(result) : result) {
                 resolve(result);
                 clearTimeout(interval);
+                clearTimeout(timeoutTimer);
+                return true;
             }
+            return false;
         };
 
         let interval: NodeJS.Timeout;
         const timeoutCheck = () => {
             return setTimeout(() => {
-                intervalCheck();
-                interval = timeoutCheck();
+                if (!intervalCheck()) {
+                    interval = timeoutCheck();
+                }
             }, check);
         };
         interval = timeoutCheck();

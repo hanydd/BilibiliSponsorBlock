@@ -7,27 +7,23 @@ import { getPageType } from "../utils/video";
 import {
     getParentElement,
     getThumbnailContainerElements,
-    getThumbnailSelectors,
     isShadowRoot,
 } from "./thumbnail-selectors";
-import { insertSBIconDefinition, labelThumbnail } from "./thumbnails";
+import { insertSBIconDefinition } from "./thumbnails";
+import { ThumbnailObserver } from "./thumbnailObserver";
 
 export type ThumbnailListener = (newThumbnails: HTMLElement[]) => void;
-
-interface ObservedThumbnailContainer {
-    container: Element;
-    observer: MutationObserver;
-}
 
 interface ResolvedThumbnailContainer {
     container: Element;
     root: Document | ShadowRoot;
 }
 
-const observedContainers = new Map<string, ObservedThumbnailContainer>();
+const observedContainers = new Map<string, ThumbnailObserver>();
 const pendingContainers = new Map<string, Promise<void>>();
 
 let refreshTimeout: NodeJS.Timeout | null = null;
+let invalidateLabelsOnRefresh = false;
 let listenerSetup = false;
 let listenerActive = false;
 let thumbnailReady: Promise<boolean> | null = null;
@@ -46,7 +42,7 @@ export function setupThumbnailListener(): void {
             refreshTimeout = null;
         }
 
-        for (const { observer } of observedContainers.values()) {
+        for (const observer of observedContainers.values()) {
             observer.disconnect();
         }
         observedContainers.clear();
@@ -54,16 +50,19 @@ export function setupThumbnailListener(): void {
     });
 }
 
-export function checkPageForNewThumbnails(): void {
+export function checkPageForNewThumbnails(invalidateLabels = false): void {
+    invalidateLabelsOnRefresh ||= invalidateLabels;
     if (refreshTimeout) return;
 
     refreshTimeout = setTimeout(() => {
         refreshTimeout = null;
-        refreshThumbnailContainers();
+        const invalidate = invalidateLabelsOnRefresh;
+        invalidateLabelsOnRefresh = false;
+        refreshThumbnailContainers(invalidate);
     }, 100);
 }
 
-function refreshThumbnailContainers(): void {
+function refreshThumbnailContainers(invalidateLabels = false): void {
     if (!listenerActive) return;
 
     // disable on live pages to prevent memory leaks
@@ -74,7 +73,7 @@ function refreshThumbnailContainers(): void {
 
     for (const [containerType, observed] of observedContainers) {
         if (!activeContainerTypes.has(containerType)) {
-            observed.observer.disconnect();
+            observed.disconnect();
             observedContainers.delete(containerType);
         }
     }
@@ -82,10 +81,10 @@ function refreshThumbnailContainers(): void {
     for (const { containerType, selector } of targets) {
         const observed = observedContainers.get(containerType);
         if (observed?.container.isConnected) {
-            labelNewThumbnails(observed.container, containerType);
+            observed.refresh(invalidateLabels);
         } else {
             if (observed) {
-                observed.observer.disconnect();
+                observed.disconnect();
                 observedContainers.delete(containerType);
             }
             setupThumbnailContainer(containerType, selector);
@@ -102,10 +101,10 @@ function setupThumbnailContainer(containerType: string, selector: string): void 
 
             const existing = observedContainers.get(containerType);
             if (existing?.container === resolved.container) {
-                labelNewThumbnails(existing.container, containerType);
+                existing.refresh();
                 return;
             }
-            existing?.observer.disconnect();
+            existing?.disconnect();
 
             if (resolved.root instanceof ShadowRoot) {
                 insertShadowRootAssets(resolved.root);
@@ -113,29 +112,10 @@ function setupThumbnailContainer(containerType: string, selector: string): void 
                 insertSBIconDefinition();
             }
 
-            labelNewThumbnails(resolved.container, containerType);
-
-            const observer = new MutationObserver(() => {
-                if (resolved.container.isConnected) {
-                    labelNewThumbnails(resolved.container, containerType);
-                } else {
-                    checkPageForNewThumbnails();
-                }
-            });
-            observer.observe(resolved.container, {
-                attributes: true,
-                attributeFilter: ["href"],
-                childList: true,
-                subtree: true,
-            });
-            if (resolved.container.parentNode) {
-                observer.observe(resolved.container.parentNode, { childList: true });
-            }
-
-            observedContainers.set(containerType, {
-                container: resolved.container,
-                observer,
-            });
+            observedContainers.set(
+                containerType,
+                new ThumbnailObserver(resolved.container, containerType, checkPageForNewThumbnails)
+            );
         })
         .catch(() => undefined)
         .finally(() => pendingContainers.delete(containerType));
@@ -192,13 +172,4 @@ function insertShadowRootAssets(root: ShadowRoot): void {
         root.appendChild(stylesheet);
     }
     insertSBIconDefinition(root);
-}
-
-function labelNewThumbnails(container: Element, containerType: string): void {
-    if (!container.isConnected) return;
-
-    const thumbnails = container.querySelectorAll(getThumbnailSelectors(containerType)) as NodeListOf<HTMLElement>;
-    thumbnails.forEach((thumbnail) => {
-        void labelThumbnail(thumbnail, containerType).catch(() => undefined);
-    });
 }

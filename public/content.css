@@ -19,6 +19,23 @@
 	width: 100%;
 }
 
+#sponsorBlockPopupContainer.sb-popup-wide {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	width: min(374px, calc(100% - 24px));
+	height: min(500px, calc(100% - 72px));
+	margin: 0;
+	z-index: 80;
+	border-radius: 6px;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+#sponsorBlockPopupContainer.sb-popup-wide iframe {
+	display: block;
+	height: 100%;
+}
+
 .sbhidden {
 	display: none;
 }
@@ -35,7 +52,8 @@
 	transition: transform 0.1s cubic-bezier(0, 0, 0.2, 1);
 }
 
-#shadowPreviewbar {
+#shadowPreviewbar,
+#miniPreviewbar {
 	overflow: hidden;
 	padding: 0;
 	margin: 0;
@@ -45,6 +63,12 @@
 	z-index: 1;
 
 	transition: transform 0.1s cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* The mini player's native played/buffered layers must not cover segment colors. */
+#miniPreviewbar {
+    inset: 0;
+    pointer-events: none;
 }
 
 .progress-bar-line > #previewbar {
@@ -164,11 +188,6 @@
 	height: 18px;
 
 	float: left;
-}
-
-#categoryPill .sbPillNoText .sponsorSkipLogo {
-	margin-top: calc(2.6rem - 18px);
-	margin-bottom: calc(2.6rem - 18px);
 }
 
 @keyframes fadeIn {
@@ -752,6 +771,7 @@ input::-webkit-inner-spin-button {
 }
 
 #categoryPill {
+	flex-shrink: 0;
 	height: fit-content;
 	margin-top: auto;
 	margin-bottom: auto;
@@ -761,13 +781,13 @@ input::-webkit-inner-spin-button {
 }
 
 .sponsorBlockCategoryPill {
-	border-radius: 25px;
-	padding-left: 8px;
-	padding-right: 8px;
-	margin-right: 3px;
+	border-radius: 999px;
+	padding: 0.2em 0.55em;
+	margin-right: 0.5em;
 	cursor: pointer;
 	font-size: 75%;
-	height: 100%;
+	font-weight: 400;
+	line-height: 1.3;
 	align-items: center;
 	inline-size: max-content;
 }
@@ -775,6 +795,16 @@ input::-webkit-inner-spin-button {
 .sponsorBlockCategoryPillTitleSection {
 	display: flex;
 	align-items: center;
+	gap: 0.3em;
+}
+
+#categoryPill .sponsorSkipLogo {
+	display: block;
+	float: none;
+	flex-shrink: 0;
+	width: 1.2em;
+	height: 1.2em;
+	margin: 0;
 }
 
 .sponsorBlockCategoryPillTitle {
@@ -839,6 +869,24 @@ input::-webkit-inner-spin-button {
 	position: relative;
 	margin: 0 0 0 0.5em;
 	box-shadow: none;
+}
+
+.pod-item.simple .sponsorThumbnailLabel {
+	flex-shrink: 0;
+	align-items: center;
+	margin: 0 6px;
+	padding: 2px;
+	background-color: transparent;
+}
+
+.pod-item.simple .sponsorThumbnailLabel svg {
+	width: 18px;
+	height: 18px;
+	fill: var(--category-color, #000);
+}
+
+.pod-item.simple .sponsorThumbnailLabel span {
+	color: var(--category-color, #000);
 }
 
 .sponsorblock-chapter-visible {
@@ -1080,3 +1128,130 @@ input::-webkit-inner-spin-button {
 #commentSponsorLabel .Match {
 	margin-top: 5px;
 }
+
+/* B1 changes positioning and motion. Reuse the existing notice typography, icons and controls. */
+.sponsorSkipStack {
+    position: absolute;
+    right: 12px;
+    width: min(440px, calc(100% - 24px));
+    /* Below Bilibili's control menus (75), above its video overlays. */
+    z-index: 74;
+    overflow: hidden;
+    overscroll-behavior: contain;
+}
+.sponsorSkipStackBody { position: relative; width: 100%; }
+.sponsorSkipStackReviewing, .sponsorSkipStackScrollable { overflow-y: auto; }
+/* Keep scrolling available without flashing scrollbars as details animate open. */
+.sponsorSkipStack, .sponsorSkipStackCard .sponsorSkipStackDetail { scrollbar-width: none; }
+.sponsorSkipStack::-webkit-scrollbar,
+.sponsorSkipStackCard .sponsorSkipStackDetail::-webkit-scrollbar { display: none; }
+.sponsorSkipStackCompact { right: 8px; width: calc(100% - 16px); max-width: 360px; }
+.sponsorSkipStack .sponsorSkipStackCard {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    pointer-events: auto;
+    transition: transform var(--sb-move-duration) ease-out, opacity var(--sb-exit-duration) ease-out;
+    --sb-detail-height: 0px;
+    height: 40px;
+    min-width: 0;
+}
+.sponsorSkipStackSettling .sponsorSkipStackCard {
+    transition: transform var(--sb-settle-duration) ease-in-out, opacity var(--sb-exit-duration) ease-out;
+}
+.sponsorSkipStackCard .sponsorSkipNoticeTableContainer { overflow: hidden; }
+.sponsorSkipStackCard .sponsorSkipStackHeader {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-sizing: border-box;
+    height: 40px;
+    padding: 4px 8px;
+}
+.sponsorSkipStackCard .sponsorSkipStackHeader .sponsorSkipMessage {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sponsorSkipStackCard .sponsorSkipLogo { flex-shrink: 0; }
+.sponsorSkipStackCard .sponsorSkipNoticeUnskipSection { flex-shrink: 0; margin-right: auto; }
+.sponsorSkipStackCard .sponsorSkipNoticeTimeLeft {
+    /* Include the unit, border and padding; keep this space when showing pause/stop. */
+    flex: 0 0 48px;
+    box-sizing: border-box;
+    justify-content: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    background: none;
+    cursor: pointer;
+}
+.sponsorSkipStackCard .sbhidden { display: none; }
+.sponsorSkipStackCard .sponsorSkipNoticeCloseButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    float: none;
+}
+.sponsorSkipStackCard .sponsorSkipNoticeCloseButton img { width: 100%; height: 100%; }
+.sponsorSkipStackCard .sponsorSkipStackDetail {
+    height: var(--sb-detail-height);
+    overflow: hidden auto;
+    transition: height var(--sb-move-duration) ease-out;
+    overscroll-behavior: contain;
+}
+.sponsorSkipStackCard[aria-expanded="false"] .sponsorSkipStackDetail { visibility: hidden; }
+.sponsorSkipStackCard .sponsorSkipStackDetailInner {
+    width: 100%;
+    max-width: none;
+    table-layout: auto;
+    padding: 0 5px;
+    margin: 0;
+    transition: none;
+}
+.sponsorSkipStackDetailInner > tbody > tr { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.sponsorSkipStackDetailInner > tbody > tr:empty { display: none; }
+.sponsorSkipStackDetailInner > tbody > tr > td { min-width: 0; }
+.sponsorSkipStackCard .sponsorSkipNoticeRightSection { position: static; margin: 0 0 0 auto; float: none; }
+.sponsorSkipStackCard .sponsorTimesVoteButtonsContainer { float: none; }
+.sponsorSkipStackCard button.voteButton {
+    display: inline-block;
+    border: 0;
+    padding: 0 5px;
+    background: none;
+    color: inherit;
+    font: inherit;
+}
+.sponsorSkipStackCard .sponsorSkipStackCount {
+    margin: 0;
+    box-sizing: border-box;
+    flex: 0 0 24px;
+}
+.sponsorSkipStackCard .sponsorSkipStackCount[hidden] { display: block; visibility: hidden; pointer-events: none; }
+.sponsorSkipStackFolded > * { pointer-events: none; }
+.sponsorSkipStack .sponsorSkipStackExiting { opacity: 0; pointer-events: none; }
+.sponsorSkipStackArriving .sponsorSkipNoticeTableContainer { animation: sb-stack-arrive var(--sb-move-duration) ease-out; }
+.sponsorSkipStackCompact .sponsorSkipStackCard { height: 34px; }
+.sponsorSkipStackCompact .sponsorSkipStackHeader { height: 34px; padding: 2px 5px; gap: 2px; }
+.sponsorSkipStackCompact .sponsorSkipStackDetailInner { padding: 0 2px; }
+.sponsorSkipStackCompact .sponsorSkipNoticeTimeLeft { flex-basis: 40px; }
+@keyframes sb-stack-arrive {
+    from { opacity: 0; transform: translateY(-40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .sponsorSkipStack .sponsorSkipStackCard, .sponsorSkipStackCard .sponsorSkipStackDetail { transition: none; }
+    .sponsorSkipStackArriving .sponsorSkipNoticeTableContainer { animation: none; }
+}
+
+/* Expanded/hovered cards stay clear across skip/undo state changes. */
+.sponsorSkipStackCard[aria-expanded="true"] > .sponsorSkipNoticeFaded,
+.sponsorSkipStackCard:hover > .sponsorSkipNoticeFaded { opacity: 1; }

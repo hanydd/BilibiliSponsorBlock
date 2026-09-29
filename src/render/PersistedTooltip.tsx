@@ -100,6 +100,16 @@ class PersistedTooltip {
     close() {
         this.tooltipToHidden();
     }
+
+    destroy(): void {
+        if (this.persistEndTimer) {
+            clearTimeout(this.persistEndTimer);
+            this.persistEndTimer = null;
+        }
+        this.tooltip.container.remove();
+        // This tooltip owns a separate React root; unmount it after the parent finishes unmounting.
+        queueMicrotask(() => this.tooltip.close());
+    }
 }
 
 export default PersistedTooltip;

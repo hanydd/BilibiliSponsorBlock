@@ -1,6 +1,7 @@
 import Config from "./config";
 import { createContentApp } from "./content/app";
 import { CONTENT_EVENTS } from "./content/app/events";
+import { registerPopupManager } from "./content/popupManager";
 import { waitForPlayerUiReady } from "./content/playerUi";
 import {
     getPreviewBar,
@@ -25,6 +26,7 @@ import {
     resetSchedulerState,
     resetSponsorSkipped,
 } from "./content/skipScheduler";
+import { registerSpeedUpManager, resetSpeedUpState } from "./content/speedUpManager";
 import { setupMessageListener } from "./content/messageHandler";
 import { addHotkeyListener } from "./content/hotkeyHandler";
 import { setupVideoListeners } from "./content/videoListeners";
@@ -110,8 +112,10 @@ function init(): void {
 
     registerPreviewBarManager();
     registerSegmentSubmission();
+    registerPopupManager();
     registerSkipUIManager();
     registerSkipScheduler();
+    registerSpeedUpManager();
     app.commands.register("config/applyCategoryColors", () => setCategoryColorCSSVariables());
 
     waitFor(() => Config.isReady(), 5000, 10).then(() => {
@@ -164,6 +168,7 @@ function init(): void {
 
 function resetValues() {
     resetSchedulerState();
+    resetSpeedUpState();
     resetSubmissionState();
 
     contentState.previewedSegment = false;

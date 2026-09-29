@@ -172,7 +172,11 @@ async function createOrGetThumbnail(
         (await waitFor(() => thumbnail.querySelector(getLabelAnchorSelector(containerType)), 10000, 100).catch(() => null)) ??
         thumbnail.lastElementChild;
     if (!labelAnchor?.parentNode || !thumbnail.isConnected) return null;
-    labelAnchor.after(overlay);
+    if (containerType === "playerListPod") {
+        labelAnchor.before(overlay);
+    } else {
+        labelAnchor.after(overlay);
+    }
 
     return {
         overlay,

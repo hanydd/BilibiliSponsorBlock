@@ -1,8 +1,7 @@
 import Config from "../config";
 import { waitFor } from "../utils/";
 import { DynamicSponsorOption, DynamicSponsorSelection } from "../types";
-import { getPageType } from "../utils/video";
-import { PageType } from "../types";
+import { addCleanupListener } from "../utils/cleanup";
 import { insertSBIconDefinition } from "../thumbnail-utils/thumbnails";
 
 export { DynamicListener, CommentListener };
@@ -60,62 +59,82 @@ async function DynamicListener() {
     });
 }
 
-async function CommentListener() {
-    let commentElementsRoot: HTMLElement;
-    if ([PageType.Dynamic, PageType.Channel].includes(getPageType())) {
-        //可能会有多个评论区 所以没有默认的根节点
-    } else if ([PageType.Video, PageType.List, PageType.Opus, PageType.Festival].includes(getPageType())) {
-        commentElementsRoot = await getElementWaitFor(() => document.querySelector('bili-comments')) as HTMLElement;
+let scanComments: (() => void) | null = null;
+let commentCompensationScheduled = false;
+
+function CommentListener() {
+    if (scanComments) {
+        scanComments();
+        return;
     }
 
-    const init = new MutationObserver(async () => {
-        SponsorComment(commentElementsRoot);
+    const observers = new Map<HTMLElement, { shadow: ShadowRoot; observer: MutationObserver }>();
+    const scan = () => {
+        for (const [root, entry] of observers) {
+            if (!root.isConnected) {
+                entry.observer.disconnect();
+                observers.delete(root);
+            }
+        }
+        if (document.hidden || !Config.config.dynamicAndCommentSponsorBlocker || !Config.config.commentSponsorBlock) return;
 
-        (await getElementWaitFor(() => commentElementsRoot?.shadowRoot.querySelector("bili-comments-header-renderer")?.shadowRoot.querySelector("#sort-actions"))).addEventListener("click", async () => {
-            init_1.disconnect();
-            init_1.observe(commentElementsRoot.shadowRoot.querySelector("#feed"), {
-                childList: true
-            });
-            SponsorComment(commentElementsRoot);
-        });
-
-        init.disconnect();
-        init_1.observe(commentElementsRoot.shadowRoot.querySelector("#feed"), {
-            childList: true
-        });
-    });
-    const init_1 = new MutationObserver(async () => {
-       SponsorComment(commentElementsRoot);
-    });
-
-    let dynListClickHandler: (event: Event) => void;
-    if ([PageType.Dynamic,PageType.Channel].includes(getPageType())) {
-        const dynList = await getElementWaitFor(() => document.querySelector(".bili-dyn-list__items"));
-
-        dynListClickHandler = async (event) => {
-            const target = (event.target as HTMLElement).closest(".bili-dyn-item");
-            if (target) {
-                commentElementsRoot = await getElementWaitFor(() => target.querySelector('bili-comments'));
-                init.observe(commentElementsRoot?.shadowRoot, {
-                    childList: true
+        const observeComments = (host: HTMLElement) => {
+            const shadow = host.shadowRoot;
+            if (!shadow) return;
+            if (observers.get(host)?.shadow !== shadow) {
+                observers.get(host)?.observer.disconnect();
+                const observer = new MutationObserver(scan);
+                observer.observe(shadow, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ["data-type", "data-user-profile-id"],
                 });
+                observers.set(host, { shadow, observer });
+            }
+            // MutationObserver does not cross into nested shadow roots.
+            for (const child of shadow.querySelectorAll<HTMLElement>(
+                "bili-comment-thread-renderer, bili-comment-renderer, bili-rich-text, " +
+                "bili-comment-user-info, bili-comment-action-buttons-renderer, " +
+                "bili-comment-replies-renderer, bili-text-button"
+            )) {
+                observeComments(child);
             }
         };
+        for (const root of document.querySelectorAll<HTMLElement>("bili-comments")) {
+            if (!root.shadowRoot) continue;
+            observeComments(root);
+            SponsorComment(root);
+        }
+    };
 
-        dynList.addEventListener("click", dynListClickHandler, true);
-
-        (await getElementWaitFor(() => document.querySelector(".bili-dyn-up-list__content, .nav-bar__main-left"))).addEventListener("click", async () => {
-            init_1.disconnect();
-            const newDynList = await getElementWaitFor(() => document.querySelector(".bili-dyn-list__items"));
-
-            dynList.removeEventListener("click", dynListClickHandler, true);
-            newDynList.addEventListener("click", dynListClickHandler, true);
-        });
-    } else if ([PageType.Video, PageType.List, PageType.Opus, PageType.Festival].includes(getPageType())) {
-        init.observe(commentElementsRoot.shadowRoot, {
-            childList: true
-        });
+    scanComments = scan;
+    // Discover comment sections opened later or replaced along with their container.
+    const pageObserver = new MutationObserver((mutations) => {
+        const containsComments = (node: Node) => node instanceof Element &&
+            (node.matches("bili-comments") || node.querySelector("bili-comments") !== null);
+        if (mutations.some(({ addedNodes, removedNodes }) =>
+            [...addedNodes, ...removedNodes].some(containsComments))) {
+            scan();
+        }
+    });
+    pageObserver.observe(document.documentElement, { childList: true, subtree: true });
+    // Schedule at most one delayed scan per page, even if the listener is restarted.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (!commentCompensationScheduled) {
+        commentCompensationScheduled = true;
+        timer = setTimeout(scan, 5000);
     }
+    document.addEventListener("visibilitychange", scan);
+    addCleanupListener(() => {
+        clearTimeout(timer);
+        pageObserver.disconnect();
+        document.removeEventListener("visibilitychange", scan);
+        for (const { observer } of observers.values()) observer.disconnect();
+        observers.clear();
+        scanComments = null;
+    });
+    scan();
 }
 
 async function getElementWaitFor<T>(element: () => T): Promise<T> {
@@ -368,52 +387,56 @@ function regexFromString(string: string) {
     return new RegExp(string);
 }
 
-async function SponsorComment(root: HTMLElement) {
-    await getElementWaitFor(() => {
-        const comment = root?.shadowRoot?.querySelector("bili-comment-thread-renderer");
-        const anchor = comment?.shadowRoot?.querySelector("bili-comment-renderer")?.shadowRoot
-            ?.querySelector("bili-rich-text")?.shadowRoot?.querySelectorAll("span");
-        return anchor || null;
-    });
+const expandedReplyThreads = new WeakSet<HTMLElement>();
+const wiredReplyButtons = new WeakSet<HTMLButtonElement>();
 
-    const comments = root?.shadowRoot?.querySelectorAll("bili-comment-thread-renderer");
-    for (const element of comments) {
-        const comment = element?.shadowRoot?.querySelector("bili-comment-renderer");
-        const reply = element;
-        if (comment.classList.contains("BSB-Processed")) continue;
-        comment.classList.add("BSB-Processed");
+function SponsorComment(root: HTMLElement) {
+    const action = getCategorySelection("dynamicSponsor_sponsor")?.option;
+    if (action === DynamicSponsorOption.Disabled) return;
 
-        const isSponsor = Array.from(comment?.shadowRoot.querySelector("bili-rich-text")?.shadowRoot.querySelectorAll("a")).some(link =>
-            link.getAttribute("data-type") === "goods"
-        );
-        const action = getCategorySelection("dynamicSponsor_sponsor")?.option;
-        const inWhitelist = Config.config.whitelistedChannels.some(ch => ch.id === comment?.shadowRoot.querySelector("#user-avatar")?.getAttribute("data-user-profile-id")) && !Config.config.dynamicAndCommentSponsorWhitelistedChannels;
+    for (const thread of root.shadowRoot.querySelectorAll<HTMLElement>("bili-comment-thread-renderer")) {
+        const comment = thread.shadowRoot?.querySelector("bili-comment-renderer");
+        const shadow = comment?.shadowRoot;
+        const richText = shadow?.querySelector("bili-rich-text")?.shadowRoot;
+        if (!richText?.querySelector('a[data-type="goods"]')) continue;
 
-        if (!isSponsor || inWhitelist || action == DynamicSponsorOption.Disabled) continue;//这里借用动态屏蔽的那套方式
-        labelSponsorStyle(
-            "commentSponsorLabel"
-            , comment.shadowRoot.querySelector("bili-comment-user-info").shadowRoot.querySelector("#user-up")
-            || comment.shadowRoot.querySelector("bili-comment-user-info").shadowRoot.querySelector("#user-level")
-            , "dynamicSponsor_sponsor"
-            , false
-            , null
-            , true
-        );
+        const avatar = shadow.querySelector("#user-avatar");
+        // A delayed avatar must not cause a whitelisted author's comment to be hidden.
+        if (Config.config.whitelistedChannels.length && !Config.config.dynamicAndCommentSponsorWhitelistedChannels) {
+            const author = avatar?.getAttribute("data-user-profile-id");
+            if (!author || Config.config.whitelistedChannels.some(ch => ch.id === author)) continue;
+        }
+
+        const userInfo = shadow.querySelector("bili-comment-user-info")?.shadowRoot;
+        const labelAnchor = userInfo?.querySelector<HTMLElement>("#user-up, #user-level");
+        if (labelAnchor && !userInfo.querySelector("#commentSponsorLabel")) {
+            labelSponsorStyle("commentSponsorLabel", labelAnchor, "dynamicSponsor_sponsor", false, null, true);
+        }
 
         if (action !== DynamicSponsorOption.Hide) continue;
-        hideSponsorContent(
-            comment.shadowRoot.querySelector("#content")
-            , comment.shadowRoot.querySelector('#main').querySelector("bili-comment-action-buttons-renderer").shadowRoot.querySelector("#reply")
-            , true
-        );
+        const content = shadow.querySelector<HTMLElement>("#content");
+        const actions = shadow.querySelector("bili-comment-action-buttons-renderer")?.shadowRoot;
+        const replyButton = actions?.querySelector<HTMLElement>("#reply");
+        if (content && replyButton && !actions.querySelector("#showDynamicSponsor")) {
+            hideSponsorContent(content, replyButton, true);
+        }
 
-        if (Config.config.dynamicAndCommentSponsorBlocker === true && Config.config.commentSponsorBlock === true && Config.config.commentSponsorReplyBlock === true) {
-            const replys = reply.shadowRoot.querySelector("bili-comment-replies-renderer").shadowRoot.querySelectorAll("bili-comment-reply-renderer");
-            replys.forEach((e) => { (e as HTMLElement).style.display = "none" });
-
-            reply.shadowRoot.querySelector("bili-comment-replies-renderer").shadowRoot.querySelector("bili-text-button").shadowRoot.querySelector("button").addEventListener("click", () => {
-                replys.forEach((e) => { (e as HTMLElement).style.display = null });
-            }, { once: true });
+        if (Config.config.commentSponsorReplyBlock && !expandedReplyThreads.has(thread)) {
+            const repliesRoot = thread.shadowRoot.querySelector("bili-comment-replies-renderer")?.shadowRoot;
+            if (!repliesRoot) continue;
+            for (const reply of repliesRoot.querySelectorAll<HTMLElement>("bili-comment-reply-renderer")) {
+                if (reply.style.display !== "none") reply.style.display = "none";
+            }
+            const expandButton = repliesRoot.querySelector("bili-text-button")?.shadowRoot?.querySelector("button");
+            if (expandButton && !wiredReplyButtons.has(expandButton)) {
+                wiredReplyButtons.add(expandButton);
+                expandButton.addEventListener("click", () => {
+                    expandedReplyThreads.add(thread);
+                    for (const reply of repliesRoot.querySelectorAll<HTMLElement>("bili-comment-reply-renderer")) {
+                        reply.style.display = "";
+                    }
+                }, { once: true });
+            }
         }
     }
 }

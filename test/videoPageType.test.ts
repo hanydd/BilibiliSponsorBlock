@@ -95,4 +95,46 @@ describe("video page type state", () => {
         expect(getPageType()).toBe(PageType.Main);
         expect(getVideoID()).toBeNull();
     });
+
+    test("initializes replacement videos once and recognizes a detached video when reused", async () => {
+        parsedVideoID = null;
+        jest.doMock("../src/utils/dom", () => ({
+            getElement: jest.fn(() => null),
+            isVisible: jest.fn(() => true),
+            waitForElement: jest.fn(async (selector: string) => document.querySelector(selector)),
+        }));
+        const { createContentApp } = await import("../src/content/app");
+        const { CONTENT_EVENTS } = await import("../src/content/app/events");
+        const { getVideo } = await import("../src/utils/video");
+        const app = createContentApp();
+        const changes: Array<{ newVideo: boolean; video: HTMLVideoElement | null }> = [];
+        app.bus.on(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, (event) => changes.push(event));
+
+        document.body.innerHTML = '<div id="bilibili-player"></div>';
+        const player = document.getElementById("bilibili-player");
+        const first = document.createElement("video");
+        const replacement = document.createElement("video");
+        const clone = first.cloneNode() as HTMLVideoElement;
+        let now = Date.now();
+        // Advance past the discovery throttle without installing a real player observer.
+        const clock = jest.spyOn(Date, "now").mockImplementation(() => now += 3000);
+        try {
+            for (const element of [first, first, replacement, first, clone]) {
+                player.replaceChildren(element);
+                getVideo();
+                await new Promise((resolve) => setTimeout(resolve, 0));
+                expect(getVideo()).toBe(element);
+            }
+
+            expect(changes).toEqual([
+                { video: first, newVideo: true },
+                { video: replacement, newVideo: true },
+                { video: first, newVideo: false },
+                { video: clone, newVideo: true },
+            ]);
+        } finally {
+            clock.mockRestore();
+            document.body.innerHTML = "";
+        }
+    });
 });

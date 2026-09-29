@@ -1,4 +1,4 @@
-import { test as base, chromium, type BrowserContext, type Page, type Worker } from "@playwright/test";
+import { test as base, chromium, expect, type BrowserContext, type Page, type Worker } from "@playwright/test";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -11,7 +11,7 @@ type ExtensionFixtures = {
     sendContentMessage: <TResponse = unknown>(message: unknown) => Promise<TResponse>;
 };
 
-const extensionPath = path.resolve(__dirname, "../../dist");
+const extensionPath = process.env.BSB_E2E_EXTENSION_PATH || path.resolve(__dirname, "../../dist");
 const contentMessageTimeoutMs = 30_000;
 const contentMessageRetryMs = 100;
 const sponsorBlockApiPattern = "https://www.bsbsb.top/**";
@@ -60,7 +60,9 @@ export const test = base.extend<ExtensionFixtures>({
         }
 
         const context = await chromium.launchPersistentContext(userDataDir, {
-            channel: "chromium",
+            ...(process.env.BSB_E2E_EXECUTABLE_PATH
+                ? { executablePath: process.env.BSB_E2E_EXECUTABLE_PATH }
+                : { channel: "chromium" }),
             headless: process.env.BSB_E2E_HEADED !== "1" && !process.env.PWDEBUG,
             args: launchArgs,
             proxy,
@@ -69,6 +71,7 @@ export const test = base.extend<ExtensionFixtures>({
         try {
             const serviceWorker =
                 context.serviceWorkers()[0] ?? (await context.waitForEvent("serviceworker"));
+            await expect.poll(() => serviceWorker.evaluate(() => Boolean(globalThis.chrome?.storage?.local))).toBe(true);
             await serviceWorker.evaluate(async () => {
                 const chromeApi = (globalThis as { chrome: typeof chrome }).chrome;
                 await Promise.all([

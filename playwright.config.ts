@@ -8,7 +8,7 @@ export default defineConfig({
     },
     fullyParallel: false,
     forbidOnly: Boolean(process.env.CI),
-    workers: 1,
+    workers: process.env.CI ? 3 : 1,
     reporter: [["list"]],
     use: {
         screenshot: "only-on-failure",

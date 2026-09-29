@@ -9,6 +9,7 @@ import { getBilibiliVideoID } from "../utils/parseVideoID";
 import { checkVideoIDChange, getChannelIDInfo, getVideo, getVideoID } from "../utils/video";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
+import { handlePopupInfoRequest } from "./popupManager";
 import { contentState, syncContentStateStore } from "./state";
 
 const utils = new Utils();
@@ -26,7 +27,6 @@ export function handleContentMessage(
     sendResponse: (response: MessageResponse) => void
 ): void | boolean {
     const app = getContentApp();
-    const uiState = app.ui.getState();
     switch (request.message) {
         case "update":
             checkVideoIDChange();
@@ -51,15 +51,7 @@ export function handleContentMessage(
                 time: getVideo()?.currentTime ?? 0,
             });
 
-            if (
-                !request.updating &&
-                uiState.popupInitialised &&
-                document.getElementById("sponsorBlockPopupContainer") != null
-            ) {
-                void app.commands.execute("popup/closeInfoMenu", undefined);
-            }
-
-            app.ui.patchState({ popupInitialised: true });
+            handlePopupInfoRequest(request.updating);
             return;
         case "getVideoID":
             (async () => {
@@ -256,13 +248,16 @@ function contentConfigUpdateListener(changes: StorageChangesObject) {
                 break;
             case "categorySelections":
                 void app.commands.execute("segments/lookup", {});
+                checkPageForNewThumbnails(true);
                 break;
             case "barTypes":
                 void app.commands.execute("config/applyCategoryColors", undefined);
+                void app.commands.execute("ui/updatePreviewBar", undefined);
                 break;
             case "fullVideoSegments":
             case "fullVideoLabelsOnThumbnails":
-                checkPageForNewThumbnails();
+            case "fullVideoLabelsOnThumbnailsMode":
+                checkPageForNewThumbnails(true);
                 break;
         }
     }

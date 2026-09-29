@@ -29,8 +29,8 @@ const embedTitleSelector = "h1.video-title";
 let video: HTMLVideoElement | null = null;
 let videoMutationObserver: MutationObserver | null = null;
 let videoMutationListenerElement: HTMLElement | null = null;
-// What videos have run through setup so far
-const videosSetup: HTMLVideoElement[] = [];
+// Remember reused elements without keeping discarded player videos alive.
+const videosSetup = new WeakSet<HTMLVideoElement>();
 let waitingForNewVideo = false;
 
 let videoID: NewVideoID | null = null;
@@ -460,10 +460,10 @@ async function refreshVideoAttachments(trigger = "unknown"): Promise<void> {
     if (video === newVideo) return;
 
     video = newVideo;
-    const isNewVideo = !videosSetup.includes(video);
+    const isNewVideo = !videosSetup.has(video);
 
     if (isNewVideo) {
-        videosSetup.push(video);
+        videosSetup.add(video);
     }
     logUiLifecycle("video", "state", {
         action: "attachmentsChanged",

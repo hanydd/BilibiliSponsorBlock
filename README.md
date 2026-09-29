@@ -12,9 +12,9 @@
 [![LICENSE](https://img.shields.io/github/license/hanydd/BilibiliSponsorBlock)](LICENSE)
 [![CI Status](https://img.shields.io/github/actions/workflow/status/hanydd/BilibiliSponsorBlock/ci.yml)](https://github.com/hanydd/BilibiliSponsorBlock/actions/workflows/ci.yml)
 
-[![用户数量](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fbsbsb.top%2Fapi%2FgetTotalStats&query=activeUsers&suffix=人&label=用户&color=green&cacheSeconds=3600)](https://www.bsbsb.top/stats/)
-[![片段数量](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fbsbsb.top%2Fapi%2FgetTotalStats&query=totalSubmissions&label=共提交了&suffix=个片段&color=red&cacheSeconds=3600)](https://www.bsbsb.top/stats/)
-[![节省时间](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fbsbsb.top%2Fapi%2FgetTotalStats&query=minutesSaved&suffix=%E5%88%86%E9%92%9F&label=%E5%85%B1%E8%8A%82%E7%9C%81&color=orange&cacheSeconds=3600)](https://www.bsbsb.top/stats/)
+[![用户数量](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fwww.bsbsb.top%2Fapi%2FgetTotalStats&query=activeUsers&suffix=人&label=用户&color=green&cacheSeconds=3600)](https://www.bsbsb.top/stats/)
+[![片段数量](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fwww.bsbsb.top%2Fapi%2FgetTotalStats&query=totalSubmissions&label=共提交了&suffix=个片段&color=red&cacheSeconds=3600)](https://www.bsbsb.top/stats/)
+[![节省时间](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fwww.bsbsb.top%2Fapi%2FgetTotalStats&query=minutesSaved&suffix=%E5%88%86%E9%92%9F&label=%E5%85%B1%E8%8A%82%E7%9C%81&color=orange&cacheSeconds=3600)](https://www.bsbsb.top/stats/)
 
 
 | Chrome | FireFox | 讨论群 |
@@ -37,6 +37,8 @@
 
 # 安装
 
+- Chrome、Edge 及其他 Chromium 浏览器需要 102 或更新的内核版本。
+
 - 目前上架了[Chrome 应用商店](https://chromewebstore.google.com/detail/eaoelafamejbnggahofapllmfhlhajdd)，[火狐应用商店](https://addons.mozilla.org/en-US/firefox/addon/bilisponsorblock/)。如果你知道更多流行的浏览器插件商店，欢迎留言~
 
 - 如果你无法打开上面的商店，可以尝试从 [GitHub Release](https://github.com/hanydd/BilibiliSponsorBlock/releases/latest) 页面获取未打包的插件。
@@ -45,7 +47,34 @@
 
     1. 打开浏览器的插件管理页面，启用“开发者模式”，点击`加载已解压的扩展程序`，选择刚刚下载解压的插件文件夹，就可以完成安装。
 
-## macOS Safari 安装（源码构建）
+## macOS Safari 安装（开发测试包或源码构建）
+
+### GitHub Actions 测试应用
+
+新版本发布时，Release 工作流会从该版本 tag 自动构建并上传 `Safari-macOS-universal.zip`，
+解压后可获得包含扩展的 macOS 应用。原有 `SafariExtension.zip` 仍保留，它仅包含网页扩展资源，不是 macOS 应用。
+下面的签名限制和启用步骤同时适用于 Release 和 Actions 中的测试应用。
+
+仓库的 **Actions → Safari macOS** 工作流会在 push、PR 时构建，也支持手动运行。
+运行成功后，登录 GitHub，在该次运行的 Artifacts 中下载 `Safari-macOS-universal`，
+解压其中的 `Safari-macOS-universal.zip` 即可得到包含扩展的 `.app`，同时支持 Intel 和 Apple Silicon。
+
+这是采用 ad-hoc 签名、未经 Apple 公证的开发测试包，不是 App Store 安装包。
+macOS 可能阻止打开；仅在确认来源可信后按系统提示允许打开。
+测试时还需要在 Safari 开发设置中启用“允许未签名的扩展”，然后在“设置 → 扩展”中启用扩展并授予网站权限。
+Safari 重启后可能需要重新允许未签名扩展。请只启用一个同名扩展副本。
+CI 构建成功仅代表编译、签名完整性和双架构检查通过，不代表 Safari 功能测试通过。
+
+本机构建同样的测试包（需要完整 Xcode、Node.js 22 和已安装的 npm 依赖及 `config.json`）：
+
+```bash
+npm run build:safari:app
+```
+
+输出位于 `safari/artifacts/Safari-macOS-universal.zip`。
+正式面向普通用户分发仍需 Developer ID 签名及公证，或通过 App Store 发布。
+
+### 自行生成 Xcode 工程
 
 Safari 版本通过 Safari Web Extension 打包。项目已提供一键脚本：
 

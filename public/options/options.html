@@ -197,6 +197,51 @@
 					</div>
 
 					<div class="small-description">__MSG_audioNotificationDescription__</div>
+
+					<div data-type="custom-skip-sound" data-dependent-on="audioNotificationOnSkip">
+						<br />
+
+						<label class="optionLabel">__MSG_customSkipSound__</label>
+
+						<div class="small-description">__MSG_customSkipSoundDescription__</div>
+
+						<div class="custom-sound-buttons">
+							<div class="option-button trigger-button custom-sound-choose">__MSG_customSkipSoundChoose__</div>
+							<div class="option-button trigger-button custom-sound-play">__MSG_customSkipSoundPlay__</div>
+							<div class="option-button trigger-button custom-sound-reset">__MSG_customSkipSoundReset__</div>
+							<span class="custom-sound-status"></span>
+						</div>
+
+						<input class="custom-sound-file-input hidden" type="file" accept="audio/*" />
+					</div>
+
+					<div data-type="skip-sound-volume" data-sync="skipSoundVolume"
+						data-dependent-on="audioNotificationOnSkip">
+						<br />
+
+						<label class="optionLabel">__MSG_skipSoundVolume__</label>
+
+						<div class="volume-control">
+							<input class="volume-slider" type="range" min="0" max="100" step="1" />
+							<span class="volume-value"></span>
+						</div>
+
+						<div class="small-description">__MSG_skipSoundVolumeDescription__</div>
+					</div>
+
+					<div data-type="skip-sound-fade" data-sync="skipSoundFadeStart"
+						data-dependent-on="audioNotificationOnSkip">
+						<br />
+
+						<label class="optionLabel">__MSG_skipSoundFade__</label>
+
+						<div class="volume-control">
+							<input class="fade-slider" type="range" min="0" max="100" step="1" />
+							<span class="fade-value"></span>
+						</div>
+
+						<div class="small-description">__MSG_skipSoundFadeDescription__</div>
+					</div>
 				</div>
 
 				<div data-type="toggle" data-sync="fullVideoSegments">
@@ -254,7 +299,7 @@
 				<div data-type="toggle" data-sync="skipOnSeekToSegment">
 					<div class="switch-container">
 						<label class="switch">
-							<input id="skipOnSeekToSegment" type="checkbox" checked />
+							<input id="skipOnSeekToSegment" type="checkbox" />
 							<span class="slider round"></span>
 						</label>
 						<label class="switch-label" for="skipOnSeekToSegment"> __MSG_enableSkipOnSeekToSegment__
@@ -274,6 +319,33 @@
 					</div>
 
 					<div class="small-description">__MSG_whatForceChannelCheck__</div>
+				</div>
+
+				<div data-type="toggle" data-sync="enableSpeedUp">
+					<div class="switch-container">
+						<label class="switch">
+							<input id="enableSpeedUp" type="checkbox" />
+							<span class="slider round"></span>
+						</label>
+						<label class="switch-label" for="enableSpeedUp"> __MSG_enableSpeedUp__ </label>
+					</div>
+
+					<div class="small-description">__MSG_whatEnableSpeedUp__</div>
+
+					<div data-type="selector" data-sync="speedUpPlaybackRate" data-dependent-on="enableSpeedUp">
+						<br />
+						<label class="optionLabel" for="speedUpPlaybackRate">__MSG_speedUpPlaybackRate__:</label>
+						<select id="speedUpPlaybackRate" class="selector-element optionsSelector">
+							<option value="2">2x</option>
+							<option value="3">3x</option>
+							<option value="4">4x</option>
+							<option value="6">6x</option>
+							<option value="8">8x</option>
+							<option value="16">16x</option>
+						</select>
+
+						<div class="small-description">__MSG_speedUpPlaybackRateDescription__</div>
+					</div>
 				</div>
 
 				<div data-type="toggle" data-sync="showCategoryWithoutPermission">
@@ -767,6 +839,16 @@
 				</div>
 
 				<h2>__MSG_danmakuMatchingTitle__</h2>
+
+				<div data-type="toggle" data-sync="enableClickableTimeDanmaku" class="no-bottom-border">
+					<div class="switch-container">
+						<label class="switch">
+							<input id="enableClickableTimeDanmaku" type="checkbox" />
+							<span class="slider round"></span>
+						</label>
+						<label class="switch-label" for="enableClickableTimeDanmaku"> __MSG_clickableTimeDanmaku__</label>
+					</div>
+				</div>
 
 				<div data-type="toggle" data-sync="enableDanmakuSkip" class="no-bottom-border">
 					<div class="switch-container">

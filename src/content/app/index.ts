@@ -11,7 +11,6 @@ const initialContentState: ContentAppState = {
     sponsorTimes: [],
     backendInfo: {},
     skipNotices: [],
-    advanceSkipNotices: null,
     activeSkipKeybindElement: null,
     shownSegmentFailedToFetchWarning: false,
     previewedSegment: false,

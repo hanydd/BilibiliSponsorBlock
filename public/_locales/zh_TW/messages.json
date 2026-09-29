@@ -1,4 +1,7 @@
 {
+    "expandSkipNotices": {
+        "message": "展開堆疊的提示"
+    },
     "fullName": {
         "message": "小电视空降助手",
         "description": "Name of the extension."
@@ -344,6 +347,12 @@
     "skip": {
         "message": "跳過"
     },
+    "pauseSpeedUp": {
+        "message": "暫停快進"
+    },
+    "resumeSpeedUp": {
+        "message": "恢復快進"
+    },
     "mute": {
         "message": "靜音"
     },
@@ -392,6 +401,61 @@
     },
     "audioNotificationDescription": {
         "message": "在跳過片段時播放聲音。如果停用（或停用自動跳過），則不會播放聲音。"
+    },
+    "customSkipSound": {
+        "message": "自訂跳過提示音"
+    },
+    "customSkipSoundDescription": {
+        "message": "自動跳過片段時播放你自己的音效檔案，代替預設提示音。請選擇不超過 2MB 且不超過 10 秒的音訊檔案。"
+    },
+    "customSkipSoundChoose": {
+        "message": "選擇音效檔案"
+    },
+    "customSkipSoundPlay": {
+        "message": "試聽"
+    },
+    "customSkipSoundStop": {
+        "message": "停止"
+    },
+    "customSkipSoundReset": {
+        "message": "恢復預設"
+    },
+    "customSkipSoundEnabled": {
+        "message": "自訂音效：$SOUND_NAME$",
+        "placeholders": {
+            "sound_name": {
+                "content": "$1"
+            }
+        }
+    },
+    "customSkipSoundDefault": {
+        "message": "目前使用預設提示音"
+    },
+    "customSkipSoundTooLarge": {
+        "message": "所選檔案過大，請選擇不超過 2MB 的音訊檔案。"
+    },
+    "customSkipSoundTooLong": {
+        "message": "所選音效超過 $MAX_SECONDS$ 秒，請更換更短的檔案。",
+        "placeholders": {
+            "max_seconds": {
+                "content": "$1"
+            }
+        }
+    },
+    "customSkipSoundInvalid": {
+        "message": "所選檔案無法作為音訊解碼，請更換檔案。"
+    },
+    "skipSoundVolume": {
+        "message": "提示音音量"
+    },
+    "skipSoundVolumeDescription": {
+        "message": "跳過提示音的播放音量（0-100%）。試聽與實際跳過時使用相同音量。"
+    },
+    "skipSoundFade": {
+        "message": "提示音淡出"
+    },
+    "skipSoundFadeDescription": {
+        "message": "音效播放到指定進度後逐漸淡出到靜音（如 75% 表示最後 25% 淡出）。100% 表示不淡出。試聽與實際跳過時使用相同淡出。"
     },
     "showTimeWithSkips": {
         "message": "顯示減去可跳片段後的影片時長"
@@ -834,8 +898,11 @@
     "autoSkipOnMusicVideos": {
         "message": "自動跳過所有音樂影片中的非音樂片段"
     },
+    "clickableTimeDanmaku": {
+        "message": "點擊彈幕跳轉到對應時間"
+    },
     "danmakuSkip": {
-        "message": "從彈幕中匹配空降時間"
+        "message": "匹配彈幕時間顯示空降提示"
     },
     "autoSkipDanmakuSkip": {
         "message": "匹配成功後自動跳過"
@@ -968,6 +1035,18 @@
     },
     "forceChannelCheckPopup": {
         "message": "請考慮啟用「跳過前強制進行頻道檢查」"
+    },
+    "enableSpeedUp": {
+        "message": "將跳過替換為倍速快進"
+    },
+    "whatEnableSpeedUp": {
+        "message": "啟用後，自動跳過的片段將不會被直接跳過，而是以設定的倍速快速播放。快進過程中可照常觀看內容，適合不想完全錯過但希望快速略過的場景。"
+    },
+    "speedUpPlaybackRate": {
+        "message": "快進倍速"
+    },
+    "speedUpPlaybackRateDescription": {
+        "message": "設定快進時的播放倍速，範圍 2x ~ 16x。例如 3x 表示以 3 倍速播放廣告片段，結束後自動恢復原速。當前播放倍速與設定倍速相同時改為疊加快進（如當前 2x、設定 2x，則以 4x 快進）。拖動進度條或手動調整倍速會立即退出快進狀態。"
     },
     "downvoteDescription": {
         "message": "不正確/錯誤的時間"

@@ -43,6 +43,8 @@ declare global {
         __playinfo__?: BilibiliResponse<BiliPlayInfo>;
         player?: {
             getManifest?: () => { aid: AID | null; cid: CID | null; bvid: BVID | null; p: number };
+            setPlaybackRate?: (rate: number) => void;
+            getPlaybackRate?: () => number;
         };
     }
 }

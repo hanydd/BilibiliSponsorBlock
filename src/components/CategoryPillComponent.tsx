@@ -7,7 +7,6 @@ import { showMessage } from "../render/MessageNotice";
 import PersistedTooltip from "../render/PersistedTooltip";
 import ThumbsDownSvg from "../svg-icons/thumbs_down_svg";
 import ThumbsUpSvg from "../svg-icons/thumbs_up_svg";
-import { waitFor } from "../utils/";
 import { AnimationUtils } from "../utils/animationUtils";
 import { getErrorMessage } from "../utils/formating";
 import { downvoteButtonColor, SkipNoticeAction } from "../utils/noticeUtils";
@@ -26,6 +25,7 @@ export interface CategoryPillState {
 
 class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryPillState> {
     tooltip?: PersistedTooltip;
+    private tooltipWaitTimer?: ReturnType<typeof setTimeout>;
 
     constructor(props: CategoryPillProps) {
         super(props);
@@ -35,10 +35,24 @@ class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryP
             show: false,
             open: false,
         };
+    }
 
-        waitFor(() => document.querySelector("#viewbox_report").childNodes[1], 10000)
-            .then(() => {
-                const tooltipMount = document.querySelector("#viewbox_report") as HTMLElement;
+    componentDidMount(): void {
+        const deadline = Date.now() + 10000;
+        const initializeTooltip = () => {
+            this.tooltipWaitTimer = undefined;
+            const tooltipMount = document.querySelector<HTMLElement>("#viewbox_report");
+            const prependElement = tooltipMount?.childNodes[1] as HTMLElement | undefined;
+            if (!tooltipMount || !prependElement) {
+                if (Date.now() < deadline) {
+                    this.tooltipWaitTimer = setTimeout(initializeTooltip, 100);
+                } else {
+                    console.warn("等待查找category tooltip 挂载点时超时");
+                }
+                return;
+            }
+
+            try {
                 this.tooltip = new PersistedTooltip({
                     text: this.getTitleText(),
                     referenceNode: tooltipMount,
@@ -48,7 +62,7 @@ class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryP
                     displayTriangle: false,
                     showLogo: false,
                     showGotIt: false,
-                    prependElement: tooltipMount.childNodes[1] as HTMLElement,
+                    prependElement,
                     elements: [
                         <>
                             <div className="voteRequestContainer sponsorSkipObject">
@@ -77,10 +91,18 @@ class CategoryPillComponent extends React.Component<CategoryPillProps, CategoryP
                         </>,
                     ],
                 });
-            })
-            .catch(() => {
-                console.warn("等待查找category tooltip 挂载点时超时");
-            });
+            } catch (error) {
+                console.warn("初始化 category tooltip 失败", error);
+            }
+        };
+        initializeTooltip();
+    }
+
+    componentWillUnmount(): void {
+        clearTimeout(this.tooltipWaitTimer);
+        this.tooltipWaitTimer = undefined;
+        this.tooltip?.destroy();
+        this.tooltip = undefined;
     }
 
     render(): React.ReactElement {

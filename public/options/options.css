@@ -19,6 +19,12 @@
 	--backend-node-available: #52c77a;
 	--backend-node-checking: #d6a84b;
 	--backend-node-unavailable: #e06c75;
+	--server-node-active: #00a1d6;
+	--server-node-active-glow-soft: #00a1d626;
+	--server-node-active-glow-strong: #00a1d659;
+	--server-node-available: #52c77a;
+	--server-node-checking: #d6a84b;
+	--server-node-unavailable: #e06c75;
 	--black: black;
 	--white: white;
 }
@@ -42,6 +48,12 @@
 	--backend-node-available: #14804a;
 	--backend-node-checking: #9a6700;
 	--backend-node-unavailable: #c23b43;
+	--server-node-active: #008fbe;
+	--server-node-active-glow-soft: #008fbe26;
+	--server-node-active-glow-strong: #008fbe59;
+	--server-node-available: #14804a;
+	--server-node-checking: #9a6700;
+	--server-node-unavailable: #c23b43;
 	--black: white;
 	--white: black;
 }
@@ -487,7 +499,134 @@ input[type="number"] {
 	opacity: 0.6;
 }
 
-.backend-node-add {
+.server-settings button.option-button {
+	border: 0;
+	font-family: inherit;
+}
+
+.server-mirror-heading {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 120px 210px;
+	align-items: center;
+	gap: 10px;
+	min-height: 38px;
+	padding-left: 10px;
+	border-left: 3px solid var(--server-node-state-color, var(--border-color));
+}
+
+.server-mirror-title-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0;
+	border: 0;
+	color: var(--white);
+	background: none;
+	cursor: pointer;
+	font: inherit;
+}
+
+.server-mirror-title-toggle:hover {
+	color: #00a1d6;
+}
+
+.server-mirror-caret {
+	font-size: 11px;
+}
+
+#serverNodeList {
+	margin-top: 6px;
+}
+
+.server-node-row {
+	display: grid;
+	grid-template-columns: minmax(200px, 1fr) 120px 210px;
+	gap: 10px;
+	align-items: center;
+	min-height: 52px;
+	padding: 7px 0 7px 10px;
+	border-top: 1px solid var(--border-color);
+	border-left: 3px solid var(--server-node-state-color, var(--border-color));
+}
+
+@keyframes server-node-active-breathe {
+	0%,
+	100% {
+		box-shadow:
+			inset 0 0 0 1px var(--server-node-active),
+			0 0 3px var(--server-node-active-glow-soft);
+	}
+
+	50% {
+		box-shadow:
+			inset 0 0 0 1px var(--server-node-active),
+			0 0 7px var(--server-node-active-glow-strong);
+	}
+}
+
+.server-primary-row.active,
+.server-node-row.active {
+	animation: server-node-active-breathe 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.server-primary-row.active,
+	.server-node-row.active {
+		animation: none;
+		box-shadow:
+			inset 0 0 0 1px var(--server-node-active),
+			0 0 5px var(--server-node-active-glow-soft);
+	}
+}
+
+.server-primary-row.available,
+.server-mirror-heading.available,
+.server-node-row.available {
+	--server-node-state-color: var(--server-node-available);
+}
+
+.server-primary-row.open,
+.server-mirror-heading.open,
+.server-node-row.open {
+	--server-node-state-color: var(--server-node-unavailable);
+}
+
+.server-primary-row.recovering,
+.server-primary-row.checking,
+.server-mirror-heading.recovering,
+.server-mirror-heading.checking,
+.server-node-row.recovering,
+.server-node-row.checking {
+	--server-node-state-color: var(--server-node-checking);
+}
+
+.server-node-address {
+	overflow: hidden;
+	color: var(--white);
+	font-family: Consolas, "SFMono-Regular", monospace;
+	font-size: 12px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.server-node-status {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.server-node-row .server-node-actions {
+	grid-column: auto;
+	grid-row: auto;
+}
+
+.server-empty-state {
+	padding: 12px 0;
+	border-top: 1px solid var(--border-color);
+}
+
+.backend-node-add,
+.server-add-row {
 	display: flex;
 	gap: 8px;
 	align-items: center;
@@ -1147,4 +1286,51 @@ svg {
 .cache-stats-table td,
 .cache-stats-table th {
 	padding: 10px;
+}
+
+.custom-sound-buttons {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 5px;
+}
+
+.custom-sound-file-input {
+	display: none;
+}
+
+.custom-sound-status {
+	color: var(--description);
+	font-size: 13px;
+
+	max-width: 260px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.volume-control {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 5px;
+}
+
+.volume-slider,
+.fade-slider {
+	width: 200px;
+}
+
+.volume-value {
+	color: var(--description);
+	font-size: 13px;
+
+	min-width: 40px;
+}
+
+.fade-value {
+	color: var(--description);
+	font-size: 13px;
+
+	min-width: 40px;
 }

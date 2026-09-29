@@ -27,6 +27,7 @@ export interface NoticeProps {
     bottomRow?: React.ReactElement[];
 
     smaller?: boolean;
+    compact?: boolean;
     limitWidth?: boolean;
     extraClass?: string;
     hideLogo?: boolean;
@@ -41,8 +42,6 @@ export interface NoticeProps {
     style?: React.CSSProperties;
     biggerCloseButton?: boolean;
     children?: React.ReactNode;
-
-    advanceSkipNoticeShow: boolean;
 }
 
 interface MouseDownInfo {
@@ -88,7 +87,6 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
         this.parentRef = React.createRef();
 
         const maxCountdownTime = () => {
-            if (this.props.advanceSkipNoticeShow) return Number(Config.config.skipNoticeDurationBefore) + 1;
             if (this.props.maxCountdownTime) return this.props.maxCountdownTime();
             else return Config.config.skipNoticeDuration;
         };
@@ -129,6 +127,11 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
             bottom: this.state.bottom,
             userSelect: this.state.mouseDownInfo && this.state.mouseMoved ? "none" : "auto",
             ...(this.props.style ?? {}),
+            ...(this.props.compact ? {
+                right: 6,
+                bottom: this.props.showInSecondSlot ? 92 : 38,
+                maxHeight: `calc(100% - ${this.props.showInSecondSlot ? 98 : 44}px)`,
+            } : {}),
         };
 
         return (
@@ -137,13 +140,15 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
                 className={
                     "sponsorSkipObject sponsorSkipNoticeParent" +
                     (this.props.showInSecondSlot ? " secondSkipNotice" : "") +
-                    (this.props.extraClass ? ` ${this.props.extraClass}` : "")
+                    (this.props.extraClass ? ` ${this.props.extraClass}` : "") +
+                    (this.props.compact ? " sponsorSkipNoticeCompact" : "")
                 }
                 onMouseEnter={(e) => this.onMouseEnter(e)}
                 onMouseLeave={() => {
                     this.timerMouseLeave();
                 }}
                 onMouseDown={(e) => {
+                    if (this.props.compact) return;
                     document.addEventListener("mousemove", this.handleMouseMoveBinded);
 
                     this.setState({
@@ -243,7 +248,7 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
                 </div>
 
                 {/* Add as a hidden table to keep the height constant */}
-                {this.props.smaller && this.props.bottomRow ? (
+                {this.props.smaller && !this.props.compact && this.props.bottomRow ? (
                     <table style={{ visibility: "hidden", paddingTop: "14px" }}>
                         <tbody>{this.props.bottomRow}</tbody>
                     </table>
@@ -335,6 +340,8 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
     countdown(): void {
         if (!this.props.timed) return;
 
+        if (this.state.countdownMode === CountdownMode.Stopped) return;
+
         const countdownTime = Math.min(this.state.countdownTime - 1, this.state.maxCountdownTime());
 
         if (countdownTime <= 0) {
@@ -362,8 +369,8 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
     removeFadeAnimation(): void {
         //remove the fade out class if it exists
         const notice = document.getElementById("sponsorSkipNotice" + this.idSuffix);
-        notice.classList.remove("sponsorSkipNoticeFadeOut");
-        notice.style.animation = "none";
+        notice?.classList.remove("sponsorSkipNoticeFadeOut");
+        if (notice) notice.style.animation = "none";
     }
 
     pauseCountdown(): void {
@@ -373,12 +380,12 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
         if (this.countdownInterval) clearInterval(this.countdownInterval);
         this.countdownInterval = null;
 
-        //reset countdown and inform the user
-        this.setState({
-            countdownTime: this.state.maxCountdownTime(),
+        // Generic notices restart their display duration after interaction.
+        this.setState((state) => ({
+            countdownTime: state.maxCountdownTime(),
             countdownMode:
-                this.state.countdownMode === CountdownMode.Timer ? CountdownMode.Paused : this.state.countdownMode,
-        });
+                state.countdownMode === CountdownMode.Timer ? CountdownMode.Paused : state.countdownMode,
+        }));
 
         this.removeFadeAnimation();
     }
@@ -389,10 +396,10 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
         //if it has already started, don't start it again
         if (this.countdownInterval !== null) return;
 
-        this.setState({
-            countdownTime: this.state.maxCountdownTime(),
+        this.setState((state) => ({
+            countdownTime: state.maxCountdownTime(),
             countdownMode: CountdownMode.Timer,
-        });
+        }));
 
         this.setupInterval();
     }
@@ -405,7 +412,6 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
 
     resetCountdown(): void {
         if (!this.props.timed) return;
-
         this.setupInterval();
 
         this.setState({
@@ -470,7 +476,12 @@ class NoticeComponent extends React.Component<NoticeProps, NoticeState> {
     }
 
     componentWillUnmount(): void {
+        if (this.countdownInterval !== null) clearInterval(this.countdownInterval);
         document.removeEventListener("mousemove", this.handleMouseMoveBinded);
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
     }
 
     // For dragging around notice

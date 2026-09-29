@@ -1,4 +1,6 @@
+import { upcomingSkipDecision } from "../notices/UpcomingSkipDecision";
 import Config from "../config";
+import { isSkipSeek, seekForSkip } from "./skipSeek";
 import {
     ActionType,
     CategorySkipOption,
@@ -13,6 +15,7 @@ import Utils from "../utils";
 import { isFirefox, isFirefoxOrSafari, isSafari, waitFor } from "../utils/";
 import { GenericUtils } from "../utils/genericUtils";
 import { logDebug, logUiLifecycle } from "../utils/logger";
+import { applyFadeOut, clamp01 } from "../utils/soundFade";
 import { isPlayingPlaylist } from "../utils/pageUtils";
 import { getBilibiliVideoID } from "../utils/parseVideoID";
 import { getStartTimeFromUrl } from "../utils/urlParser";
@@ -20,6 +23,7 @@ import {
     checkIfNewVideoID,
     checkVideoIDChange,
     getChannelIDInfo,
+    getCid,
     getVideo,
     getVideoID,
 } from "../utils/video";
@@ -29,17 +33,21 @@ import { CONTENT_EVENTS } from "./app/events";
 import {
     contentState,
     endTimeSkipBuffer,
+    executedRangeEndTolerance,
+    executedRangeStartTolerance,
     manualSkipPercentCount,
+    maxExecutedSkipRanges,
     skipBuffer,
 } from "./state";
+import { cancelSpeedUp, clearManuallyCancelled, getSpeedUpOriginalRate, isManuallyCancelled, isNearSpeedUpEnd, isRecentProgrammaticRateChange, isSpeedUpActive, shouldUseSpeedUp, startSpeedUp, tryResumeSpeedUpAt } from "./speedUpManager";
 
 const utils = new Utils();
 
 // --- Module-private state (formerly on contentState) ---
-let currentSkipSchedule: NodeJS.Timeout = null;
-let currentSkipInterval: NodeJS.Timeout = null;
-let currentVirtualTimeInterval: NodeJS.Timeout = null;
-let currentAdvanceSkipSchedule: NodeJS.Timeout = null;
+let currentSkipSchedule: ReturnType<typeof setTimeout> | null = null;
+let currentSkipInterval: ReturnType<typeof setInterval> | null = null;
+let currentVirtualTimeInterval: ReturnType<typeof setInterval> | null = null;
+let currentAdvanceSkipSchedule: ReturnType<typeof setTimeout> | null = null;
 let lastTimeFromWaitingEvent: number = null;
 let lastCheckTime = 0;
 let lastCheckVideoTime = -1;
@@ -52,11 +60,55 @@ const lastKnownVideoTime: { videoTime: number; preciseTime: number; fromPause: b
     fromPause: false,
     approximateDelay: null,
 };
-let sponsorSkipped: boolean[] = [];
+// 已执行（瞬时跳过 / 快进完成）的合并区间，用于抑制后续调度对同一合并体的重复 notice（合并重复弹窗）
+let executedSkipRanges: Array<{ start: number; end: number }> = [];
+// 调度代际：startSponsorSchedule 内部有多个 await，两次并发调用会交错。
+// 旧调用恢复执行后若代际已过期，其闭包（含 skippingFunction 与迟到赋值的定时器）必须全部失效，
+// 否则两个活调度并存导致重复跳过/重复 notice。
+let scheduleGeneration = 0;
+// 段内 seek（intersecting）意图：代际机制让"最新调用获胜"，而缓冲后的 PLAYING 重启
+// 不带 intersecting 参数，会把 seek 触发的调度作废，段内跳过/notice 永远不会发生。
+// 因此记录未消费的 intersecting 意图，由获胜调用在扫描前继承（仅当自身未显式指定扫描参数）。
+let pendingIncludeIntersecting = false;
 
 export function getLastKnownVideoTime() { return lastKnownVideoTime; }
-export function getSponsorSkipped() { return sponsorSkipped; }
-export function resetSponsorSkipped() { sponsorSkipped = []; }
+export function resetSponsorSkipped() { countedSponsorUuids.clear(); executedSkipRanges = []; }
+function isManuallyCancelledFor(segment: SponsorTime): boolean {
+    return isManuallyCancelled(segment);
+}
+
+function clearSpeedUpManualCancel(segment: SponsorTime): void {
+    clearManuallyCancelled(segment);
+}
+
+function markRangeExecuted(start: number, end: number): void {
+    // 与已有区间重叠/相邻时合并，避免重入场景把容量额度耗在小碎片上
+    let mergedStart = start;
+    let mergedEnd = end;
+    const remaining: Array<{ start: number; end: number }> = [];
+    for (const r of executedSkipRanges) {
+        const overlaps = mergedStart - executedRangeStartTolerance <= r.end + executedRangeEndTolerance
+            && r.start - executedRangeStartTolerance <= mergedEnd + executedRangeEndTolerance;
+        if (overlaps) {
+            mergedStart = Math.min(mergedStart, r.start);
+            mergedEnd = Math.max(mergedEnd, r.end);
+        } else {
+            remaining.push(r);
+        }
+    }
+    remaining.push({ start: mergedStart, end: mergedEnd });
+    executedSkipRanges = remaining;
+    if (executedSkipRanges.length > maxExecutedSkipRanges) {
+        executedSkipRanges.splice(0, executedSkipRanges.length - maxExecutedSkipRanges);
+    }
+}
+
+/** 该调度起点是否落在已执行区间内：是则抑制重复 notice。 */
+function isInsideExecutedRange(start: number, end: number): boolean {
+    return executedSkipRanges.some(
+        (r) => start >= r.start - executedRangeStartTolerance && end <= r.end + executedRangeEndTolerance
+    );
+}
 
 export function resetSchedulerState(): void {
     if (currentSkipSchedule !== null) {
@@ -85,7 +137,8 @@ export function resetSchedulerState(): void {
     lastKnownVideoTime.preciseTime = null;
     lastKnownVideoTime.fromPause = false;
     lastKnownVideoTime.approximateDelay = null;
-    sponsorSkipped = [];
+    executedSkipRanges = [];
+    pendingIncludeIntersecting = false;
 }
 
 function getCategoryPill() {
@@ -113,12 +166,13 @@ function emitSkipNoticeRequested(
     );
 }
 
-function emitSkipButtonStateChanged(enabled: boolean, segment: SponsorTime | null, source: string): void {
+function emitSkipButtonStateChanged(enabled: boolean, segment: SponsorTime | null, duration: number | undefined, source: string): void {
     getContentApp().bus.emit(
         CONTENT_EVENTS.SKIP_BUTTON_STATE_CHANGED,
         {
             enabled,
             segment,
+            duration,
         },
         { source }
     );
@@ -162,7 +216,10 @@ export function registerSkipScheduler(): void {
     app.commands.register("skip/cancelSchedule", () => cancelSponsorSchedule());
     app.commands.register("skip/getVirtualTime", () => getVirtualTime());
     app.commands.register("skip/getLastKnownVideoTime", () => getLastKnownVideoTime());
-    app.commands.register("skip/getSponsorSkipped", () => getSponsorSkipped());
+    app.commands.register("skip/markRangeExecuted", ({ start, end }) => markRangeExecuted(start, end));
+    app.commands.register("skip/recordSkipped", ({ segments, rate }) =>
+        recordSkippedSegments(segments, (segment) => (segment.segment[1] - segment.segment[0]) * (1 - 1 / rate), true)
+    );
     app.commands.register("skip/isSegmentMarkedNearCurrentTime", ({ currentTime, range }) =>
         isSegmentMarkedNearCurrentTime(currentTime, range)
     );
@@ -200,9 +257,14 @@ export function registerSkipScheduler(): void {
     app.bus.on(CONTENT_EVENTS.PLAYER_VIDEO_READY, () => {
         updatePoiSkipButtonForCurrentTime();
     });
-    app.bus.on(CONTENT_EVENTS.PLAYER_RATE_CHANGED, () => {
+    app.bus.on(CONTENT_EVENTS.PLAYER_RATE_CHANGED, ({ playbackRate }) => {
         updateVirtualTime();
         clearWaitingTime();
+        // 快进起止写倍速也会触发 ratechange：程序性变更不重排，避免与快进互相触发震荡
+        if (isRecentProgrammaticRateChange()) {
+            logDebug(`[SB] Skipping schedule rebuild for programmatic rate change to ${playbackRate}`);
+            return;
+        }
         void startSponsorSchedule();
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_PLAY, ({ video }) => {
@@ -237,6 +299,14 @@ export function registerSkipScheduler(): void {
         scheduleIfPlaybackMoved(video);
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_SEEKING, ({ video }) => {
+        // UI suppression belongs to one playback pass. A user seek may replay
+        // the same range; UUID-based statistics remain independently deduplicated.
+        if (!isSkipSeek(video)) {
+            executedSkipRanges = [];
+            // A paused seek is scheduled on resume. Zero may be snapped to the
+            // first decoded frame, so lastPausedAtZero alone is not sufficient.
+            pendingIncludeIntersecting = Config.config.skipOnSeekToSegment;
+        }
         lastKnownVideoTime.fromPause = false;
         updatePoiSkipButtonForCurrentTime();
 
@@ -332,12 +402,21 @@ export async function startSponsorSchedule(
     currentTime?: number,
     includeNonIntersectingSegments = true
 ): Promise<void> {
+    // 未显式指定扫描参数的调用（PLAYING 重启等）继承尚未消费的 seek 意图
+    if (includeIntersectingSegments) {
+        pendingIncludeIntersecting = true;
+    } else if (currentTime === undefined && pendingIncludeIntersecting) {
+        includeIntersectingSegments = true;
+    }
     cancelSponsorSchedule();
+    const generation = ++scheduleGeneration;
+    const stale = () => generation !== scheduleGeneration;
 
     // Give up if video changed, and trigger a videoID change if so
     if (await checkIfNewVideoID()) {
         return;
     }
+    if (stale()) return;
 
     const video = getVideo();
     logDebug(`Considering to start skipping: ${!video}, ${video?.paused}`);
@@ -373,7 +452,10 @@ export async function startSponsorSchedule(
     }
 
     logDebug(`Ready to start skipping: ${skipInfo.index} at ${currentTime}`);
-    if (skipInfo.index === -1) return;
+    if (skipInfo.index === -1) {
+        pendingIncludeIntersecting = false;
+        return;
+    }
 
     if (
         Config.config.disableSkipping ||
@@ -384,6 +466,7 @@ export async function startSponsorSchedule(
     }
 
     if (await incorrectVideoCheck()) return;
+    if (stale()) return;
 
     // Find all indexes in between the start and end
     let skippingSegments = [skipInfo.array[skipInfo.index]];
@@ -413,7 +496,12 @@ export async function startSponsorSchedule(
         let forcedIncludeIntersectingSegments = false;
         let forcedIncludeNonIntersectingSegments = true;
 
+        if (stale()) return;
         if (await incorrectVideoCheck(videoID, currentSkip)) return;
+        if (stale()) return;
+        // Consume the seek only after the last asynchronous check. Buffering can
+        // replace this schedule while it waits; the successor must inherit it.
+        pendingIncludeIntersecting = false;
         forceVideoTime ||= Math.max(getVideo().currentTime, getVirtualTime());
 
         if (
@@ -421,6 +509,15 @@ export async function startSponsorSchedule(
             contentState.sponsorTimesSubmitting?.some((segment) => segment.segment === currentSkip.segment)
         ) {
             if (forceVideoTime >= skipTime[0] - skipBuffer && forceVideoTime < skipTime[1]) {
+                // 用户手动取消过此段的快进后又 seek 回段内：恢复倍速而不是瞬时跳过
+                if (!isSpeedUpActive() && isManuallyCancelledFor(currentSkip) && shouldUseSpeedUp(currentSkip, true)) {
+                    clearSpeedUpManualCancel(currentSkip);
+                    if (tryResumeSpeedUpAt(forceVideoTime)) {
+                        logDebug(`[SB] Resumed speedUp after in-segment seek at ${forceVideoTime}`);
+                        return;
+                    }
+                }
+                const wasSpeedUpBefore = isSpeedUpActive();
                 skipToTime({
                     v: getVideo(),
                     skipTime,
@@ -428,15 +525,27 @@ export async function startSponsorSchedule(
                     openNotice: skipInfo.openNotice,
                 });
 
+                // If speedUp was triggered, don't treat as instant skip – let speedUpManager handle progression
+                const isNowSpeedUp = isSpeedUpActive();
+                if (isNowSpeedUp && !wasSpeedUpBefore) {
+                    logDebug(`[SB] SpeedUp started for ${skipTime[0]} -> ${skipTime[1]}, deferring next schedule to speedUpManager`);
+                    return;
+                }
+
                 for (const extra of skipInfo.extraIndexes) {
                     const extraSkip = skipInfo.array[extra];
                     if (shouldSkip(extraSkip)) {
+                        const extraWasSpeedUp = isSpeedUpActive();
                         skipToTime({
                             v: getVideo(),
                             skipTime: [extraSkip.scheduledTime, extraSkip.segment[1]],
                             skippingSegments: [extraSkip],
                             openNotice: skipInfo.openNotice,
                         });
+                        if (isSpeedUpActive() && !extraWasSpeedUp) {
+                            logDebug(`[SB] SpeedUp started for extra ${extraSkip.scheduledTime} -> ${extraSkip.segment[1]}`);
+                            return;
+                        }
                     }
                 }
 
@@ -464,22 +573,28 @@ export async function startSponsorSchedule(
             forcedSkipTime = forceVideoTime;
         }
 
-        startSponsorSchedule(forcedIncludeIntersectingSegments, forcedSkipTime, forcedIncludeNonIntersectingSegments);
+        void startSponsorSchedule(forcedIncludeIntersectingSegments, forcedSkipTime, forcedIncludeNonIntersectingSegments);
     };
 
     if (timeUntilSponsor < skipBuffer) {
         await skippingFunction(currentTime);
     } else {
-        let delayTime = (timeUntilSponsor * 1000) / getVideo().playbackRate;
+        // 快进激活时，下一个片段的跳过会在倍速恢复为原始值后进行，
+        // 因此 delayTime 应使用原始倍速计算，避免用快进倍速导致提前 notice 过早弹出
+        const effectiveRate = isSpeedUpActive() ? getSpeedUpOriginalRate() : getVideo().playbackRate;
+        let delayTime = (timeUntilSponsor * 1000) / effectiveRate;
         if (delayTime < (isFirefox() ? 750 : 300) && shouldAutoSkip(skippingSegments[0])) {
             let forceStartIntervalTime: number | null = null;
             if (isFirefox() && delayTime > 300) {
                 forceStartIntervalTime = await waitForNextTimeChange();
+                if (stale()) return;
             }
 
             const startIntervalTime = forceStartIntervalTime || performance.now();
             const startVideoTime = Math.max(currentTime, getVideo().currentTime);
-            delayTime = (skipTime?.[0] - startVideoTime) * 1000 * (1 / getVideo().playbackRate);
+            // 分母与初始计算保持一致（effectiveRate）：
+            // 若用实时 playbackRate（快进中=快进倍速），同一延时会被缩短约一个数量级
+            delayTime = ((skipTime?.[0] - startVideoTime) * 1000) / effectiveRate;
 
             let startWaitingForReportedTimeToChange = true;
             const reportedVideoTimeAtStart = getVideo().currentTime;
@@ -519,9 +634,13 @@ export async function startSponsorSchedule(
 
             const offset = isFirefoxOrSafari() && !isSafari() ? 600 : 150;
             const offsetDelayTime = Math.max(0, delayTime - offset);
+            if (stale()) return;
+            // 并发交错时旧句柄可能仍存活，直接覆盖会丢失它（两个调度并存）
+            if (currentSkipSchedule !== null) clearTimeout(currentSkipSchedule);
             currentSkipSchedule = setTimeout(skippingFunction, offsetDelayTime);
 
             if (
+                !Config.config.dontShowNotice &&
                 Config.config.advanceSkipNotice &&
                 Config.config.skipNoticeDurationBefore > 0 &&
                 getVideo().currentTime < skippingSegments[0].segment[0] &&
@@ -544,7 +663,6 @@ export async function startSponsorSchedule(
                         false,
                         "skipScheduler.startSponsorSchedule.advanceNotice"
                     );
-                    sessionStorage.setItem("SKIPPING", "true");
                 }, timeUntilPopup);
             }
         }
@@ -557,7 +675,16 @@ export async function startSponsorSchedule(
  */
 function waitForNextTimeChange(): Promise<DOMHighResTimeStamp | null> {
     return new Promise((resolve) => {
-        getVideo().addEventListener("timeupdate", () => resolve(performance.now()), { once: true });
+        // 视频不变（暂停/卡住）时 timeupdate 永不到来：超时兜底，避免 promise 永久 pending 与监听器泄漏
+        const timeout = setTimeout(() => {
+            getVideo().removeEventListener("timeupdate", onTimeUpdate);
+            resolve(null);
+        }, 1000);
+        const onTimeUpdate = () => {
+            clearTimeout(timeout);
+            resolve(performance.now());
+        };
+        getVideo().addEventListener("timeupdate", onTimeUpdate, { once: true });
     });
 }
 
@@ -840,7 +967,8 @@ function getStartTimes(
         (minimum === undefined ||
             (includeNonIntersectingSegments && segment.scheduledTime >= minimum) ||
             (includeIntersectingSegments &&
-                segment.scheduledTime < minimum &&
+                // A skip can land exactly on the next segment's inclusive start.
+                segment.scheduledTime <= minimum &&
                 segment.segment[1] > minimum &&
                 shouldSkip(segment))) &&
         (!hideHiddenSponsors || segment.hidden === SponsorHideType.Visible) &&
@@ -884,8 +1012,39 @@ export function previewTime(time: number, unpause = true): void {
     }
 }
 
-function sendTelemetryAndCount(skippingSegments: SponsorTime[], secondsSkipped: number, fullSkip: boolean): void {
-    for (const segment of skippingSegments) {
+// 跳过计数/上报按 UUID 去重：瞬时跳过与倍速完成两条路径共用一份状态，
+// 同一片段只计一次/上报一次（不能用 index，sponsorTimes 数组可能被整体替换）
+const countedSponsorUuids = new Set<string>();
+
+export function isSponsorCounted(uuid: string): boolean {
+    return countedSponsorUuids.has(uuid);
+}
+
+export function unmarkSponsorCounted(uuid: string): void {
+    countedSponsorUuids.delete(uuid);
+}
+
+function reportViewedSponsorTime(segment: SponsorTime): void {
+    try {
+        requestWithBackendId(
+            "POST",
+            "/api/viewedVideoSponsorTime?UUID=" + segment.UUID,
+            {},
+            getBackendIdFromSegment(segment)
+        ).catch((error) =>
+            logDebug("[SB Telemetry] viewedVideoSponsorTime error: " + String(error))
+        );
+    } catch (error) {
+        logDebug("[SB Telemetry] error: " + String(error));
+    }
+}
+
+function recordSkippedSegments(
+    segments: SponsorTime[],
+    secondsSaved: (segment: SponsorTime) => number,
+    fullSkip: boolean
+): void {
+    for (const segment of segments) {
         if (!contentState.previewedSegment && contentState.sponsorTimesSubmitting.some((s) => s.segment === segment.segment)) {
             contentState.previewedSegment = true;
         }
@@ -898,25 +1057,16 @@ function sendTelemetryAndCount(skippingSegments: SponsorTime[], secondsSkipped: 
         return;
 
     let counted = false;
-    for (const segment of skippingSegments) {
-        const index = contentState.sponsorTimes?.findIndex((s) => s.segment === segment.segment);
-        if (index !== -1 && !sponsorSkipped[index]) {
-            sponsorSkipped[index] = true;
-            if (!counted) {
-                Config.config.minutesSaved = Config.config.minutesSaved + secondsSkipped / 60;
-                Config.config.skipCount = Config.config.skipCount + 1;
-                counted = true;
-            }
-
-            if (fullSkip) {
-                void requestWithBackendId(
-                    "POST",
-                    "/api/viewedVideoSponsorTime?UUID=" + segment.UUID,
-                    {},
-                    getBackendIdFromSegment(segment)
-                );
-            }
+    for (const segment of segments) {
+        if (countedSponsorUuids.has(segment.UUID)) continue;
+        countedSponsorUuids.add(segment.UUID);
+        if (!counted) {
+            Config.config.minutesSaved = Config.config.minutesSaved + secondsSaved(segment) / 60;
+            Config.config.skipCount = Config.config.skipCount + 1;
+            counted = true;
         }
+
+        if (fullSkip) reportViewedSponsorTime(segment);
     }
 }
 
@@ -988,7 +1138,9 @@ export function startSkipScheduleCheckingForStartSponsors(): void {
         }
 
         if (startingSegmentTime !== -1) {
-            startSponsorSchedule(undefined, startingSegmentTime);
+            // Initial playback can already be inside an opening segment. Carry
+            // that intent through the PLAY/PLAYING and buffering restarts too.
+            startSponsorSchedule(true, startingSegmentTime);
         } else {
             startSponsorSchedule();
         }
@@ -998,7 +1150,7 @@ export function startSkipScheduleCheckingForStartSponsors(): void {
 function updatePoiSkipButtonForCurrentTime(): void {
     const video = getVideo();
     if (!video || !contentState.sponsorTimes) {
-        emitSkipButtonStateChanged(false, null, "skipScheduler.updatePoiButton.missingState");
+        emitSkipButtonStateChanged(false, null, undefined, "skipScheduler.updatePoiButton.missingState");
         return;
     }
 
@@ -1036,7 +1188,7 @@ function updatePoiSkipButtonForCurrentTime(): void {
     }
 
     if (!manualPoiEnabled) {
-        emitSkipButtonStateChanged(false, null, "skipScheduler.updatePoiButton.noFuturePoi");
+        emitSkipButtonStateChanged(false, null, undefined, "skipScheduler.updatePoiButton.noFuturePoi");
     }
     logUiLifecycle("skipButton", "state", {
         action: "poiResult",
@@ -1089,8 +1241,7 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
     if (Config.config.disableSkipping) return;
 
     let autoSkip: boolean;
-    if (sessionStorage.getItem("SKIPPING") === "false") {
-        sessionStorage.setItem("SKIPPING", "null");
+    if (upcomingSkipDecision.consume(`${getVideoID()}:${getCid()}`, skippingSegments.map(segment => segment.UUID))) {
         autoSkip = false;
     } else {
         autoSkip = forceAutoSkip || shouldAutoSkip(skippingSegments[0]);
@@ -1098,32 +1249,59 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
 
     const isSubmittingSegment = contentState.sponsorTimesSubmitting.some((time) => time.segment === skippingSegments[0].segment);
 
+    // Speed-up owns per-segment card transitions while playback spans a merged range.
+    const originalAutoSkip = autoSkip;
+    let speedUpDelegated = false;
+    if (autoSkip && !isSubmittingSegment && skippingSegments[0].actionType === ActionType.Skip && shouldUseSpeedUp(skippingSegments[0])) {
+        if (!isNearSpeedUpEnd(v.currentTime, skipTime[1])) {
+            logDebug(`[SB] skipToTime delegating to SpeedUp ${skipTime[0]} -> ${skipTime[1]}`);
+            let capturedOriginalRate: number | undefined;
+            try {
+                // 快进已激活时 v.playbackRate 是快进倍速，须取会话记录的原速作基准，
+                // 否则链式委托会把快进倍速当原速传入，叠加翻倍且恢复倍速被抬高
+                capturedOriginalRate = isSpeedUpActive() ? getSpeedUpOriginalRate() : v?.playbackRate;
+            } catch {
+                capturedOriginalRate = undefined;
+            }
+
+            void startSpeedUp(skippingSegments, skipTime as [number, number], capturedOriginalRate, openNotice);
+            // The manager emits each segment card at its own playback boundary.
+            speedUpDelegated = true;
+            autoSkip = false;
+        } else {
+            const timeLeftToEnd = skipTime[1] - v.currentTime;
+            logDebug(`[SB] skipToTime skip SpeedUp (near end, ${timeLeftToEnd}s left), fallback to instant skip`);
+        }
+    }
+
+    // 注意 seek/键位/遥测三处必须用改写后的 autoSkip（委托时为 false），
+    // 否则委托后会执行瞬时 seek，破坏快进语义
     if ((autoSkip || isSubmittingSegment) && v.currentTime !== skipTime[1]) {
         switch (skippingSegments[0].actionType) {
             case ActionType.Poi:
             case ActionType.Skip: {
                 if (v.loop && v.duration > 1 && skipTime[1] >= v.duration - 1) {
-                    v.currentTime = 0;
+                    seekForSkip(v, 0);
                 } else if (
                     v.duration > 1 &&
                     skipTime[1] >= v.duration &&
                     (navigator.vendor === "Apple Computer, Inc." || isPlayingPlaylist())
                 ) {
-                    v.currentTime = v.duration - 0.001;
+                    seekForSkip(v, v.duration - 0.001);
                 } else if (
                     v.duration > 1 &&
                     Math.abs(skipTime[1] - v.duration) < endTimeSkipBuffer &&
                     isFirefoxOrSafari() &&
                     !isSafari()
                 ) {
-                    v.currentTime = v.duration;
+                    seekForSkip(v, v.duration);
                 } else {
                     if (inMuteSegment(skipTime[1], true)) {
                         v.muted = true;
                         videoMuted = true;
                     }
 
-                    v.currentTime = skipTime[1];
+                    seekForSkip(v, skipTime[1]);
                 }
 
                 break;
@@ -1138,25 +1316,21 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
         }
     }
 
-    if (autoSkip && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted) {
-        const beep = new Audio(chrome.runtime.getURL("icons/beep.ogg"));
-        beep.volume = getVideo().volume * 0.1;
-        const oldMetadata = navigator.mediaSession.metadata;
-        beep.play();
-        beep.addEventListener("ended", () => {
-            navigator.mediaSession.metadata = null;
-            setTimeout(() => {
-                navigator.mediaSession.metadata = oldMetadata;
-                beep.remove();
-            });
-        });
+    if ((originalAutoSkip || speedUpDelegated) && Config.config.audioNotificationOnSkip && !isSubmittingSegment && !getVideo()?.muted && !wasSkipBeepRecently()) {
+        playSkipBeep();
     }
 
-    if (!autoSkip && skippingSegments.length === 1 && skippingSegments[0].actionType === ActionType.Poi) {
-        emitSkipButtonStateChanged(true, skippingSegments[0], "skipScheduler.skipToTime.poi");
+    if (!originalAutoSkip && skippingSegments.length === 1 && skippingSegments[0].actionType === ActionType.Poi) {
+        emitSkipButtonStateChanged(true, skippingSegments[0], undefined, "skipScheduler.skipToTime.poi");
     } else {
-        if (openNotice) {
-            if (!Config.config.dontShowNotice || !autoSkip) {
+        // 合并重复弹窗：起点落在已执行区间内时抑制重复 notice（第二段及以后不再周期性重弹）
+        const suppressRepeatNotice = openNotice && isInsideExecutedRange(skipTime[0], skipTime[1]);
+        if (openNotice && !suppressRepeatNotice) {
+            // 手动 notice 不受 dontShowNotice 限制；倍速委托复用手动路径但应尊重该设置
+            const showNotice = speedUpDelegated
+                ? !Config.config.dontShowNotice
+                : (!Config.config.dontShowNotice || !originalAutoSkip);
+            if (showNotice && !speedUpDelegated) {
                 emitSkipNoticeRequested(
                     "skip",
                     skippingSegments,
@@ -1186,23 +1360,67 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
         }
     }
 
-    emitSkipExecuted(skipTime as [number, number], skippingSegments, autoSkip, openNotice, unskipTime, "skipScheduler.skipToTime");
+    emitSkipExecuted(skipTime as [number, number], skippingSegments, speedUpDelegated ? true : autoSkip, openNotice, unskipTime, "skipScheduler.skipToTime");
 
-    if (autoSkip || isSubmittingSegment) sendTelemetryAndCount(skippingSegments, skipTime[1] - skipTime[0], true);
+    if ((autoSkip && !speedUpDelegated) || isSubmittingSegment) {
+        recordSkippedSegments(skippingSegments, () => skipTime[1] - skipTime[0], true);
+        markRangeExecuted(skipTime[0], skipTime[1]);
+    }
+    // 倍速委托不在此处标记：快进可能被用户取消，过早标记会吞掉取消后的同段 notice，
+    // 已执行区间由 speedUpManager 在快进完成时经 skip/markRangeExecuted 命令补记
+}
+
+let lastSkipBeepAt = -Infinity;
+/** extras 循环会连续多次进入 skipToTime，短窗内只响一次提示音。 */
+function wasSkipBeepRecently(): boolean {
+    return performance.now() - lastSkipBeepAt < 50;
+}
+
+function playSkipBeep(): void {
+    lastSkipBeepAt = performance.now();
+    const customSound = Config.local?.customSkipSound?.dataUrl;
+    const beep = new Audio(customSound || chrome.runtime.getURL("icons/beep.ogg"));
+    // 音量与设置页试听一致，均取 skipSoundVolume；存储值异常时回退默认
+    const baseVolume = clamp01(Config.config.skipSoundVolume, 0.1);
+    beep.volume = baseVolume;
+    // 淡出起点同样与试听共用 skipSoundFadeStart 配置
+    const stopFade = applyFadeOut(beep, baseVolume, Config.config.skipSoundFadeStart);
+    const oldMetadata = navigator.mediaSession.metadata;
+    beep.play().catch(() => stopFade());
+    beep.addEventListener("ended", () => {
+        stopFade();
+        navigator.mediaSession.metadata = null;
+        setTimeout(() => {
+            navigator.mediaSession.metadata = oldMetadata;
+            beep.remove();
+        });
+    });
+    beep.addEventListener("error", stopFade, { once: true });
 }
 
 export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = null, forceSeek = false): void {
+    // If currently speeding up this segment, cancel speedUp as manual interaction
+    if (isSpeedUpActive()) {
+        void cancelSpeedUp(true, true);
+    }
+
     if (segment.actionType === ActionType.Mute) {
         getVideo().muted = false;
         videoMuted = false;
     }
 
     if (forceSeek || segment.actionType === ActionType.Skip) {
-        getVideo().currentTime = unskipTime ?? segment.segment[0] + 0.001;
+        seekForSkip(getVideo(), unskipTime ?? segment.segment[0] + 0.001);
     }
 }
 
 export function reskipSponsorTime(segment: SponsorTime, forceSeek = false): void {
+    // If speeding, cancel first (reskip means instant skip, not speedUp)
+    // reskip 随后自行调度，取消时不再触发 cancel 内部的重排
+    if (isSpeedUpActive()) {
+        void cancelSpeedUp(true, false, false);
+    }
+
     if (segment.actionType === ActionType.Mute && !forceSeek) {
         getVideo().muted = true;
         videoMuted = true;
@@ -1211,8 +1429,9 @@ export function reskipSponsorTime(segment: SponsorTime, forceSeek = false): void
         const segmentDuration = segment.segment[1] - segment.segment[0];
         const fullSkip = skippedTime / segmentDuration > manualSkipPercentCount;
 
-        getVideo().currentTime = segment.segment[1];
-        sendTelemetryAndCount([segment], skippedTime, fullSkip);
-        startSponsorSchedule(true, segment.segment[1], false);
+        seekForSkip(getVideo(), segment.segment[1]);
+        recordSkippedSegments([segment], () => skippedTime, fullSkip);
+        markRangeExecuted(segment.segment[0], segment.segment[1]);
+        void startSponsorSchedule(true, segment.segment[1], false);
     }
 }

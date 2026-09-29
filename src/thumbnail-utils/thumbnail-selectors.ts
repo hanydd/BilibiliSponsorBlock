@@ -31,6 +31,8 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
         // 主页
         containerSelector: ".recommended-container_floor-aside .container",
         thumbnailSelector: ".bili-video-card",
+        // Keep the label visible when Bilibili-Evolved hides the original picture.
+        labelAnchorSelector: ".bili-video-card__image picture",
     },
     "playerSideRecommendation": {
         // 播放页推荐
@@ -87,7 +89,7 @@ const thumbnailSelectors: { [key: string]: ThumbnailSelector } = {
     },
     "dynamic": {
         // 动态首页页面
-        containerSelector: "section:has(.bili-dyn-list)",
+        containerSelector: ".bili-dyn-list",
         thumbnailSelector: ".bili-dyn-content",
     },
     "channelDynamic": {

@@ -60,8 +60,11 @@ interface SBConfig {
     submissionCountSinceCategories: number; // New count used to show the "Read The Guidelines!!" message
     showTimeWithSkips: boolean;
     disableSkipping: boolean;
+    enableSpeedUp: boolean;
+    speedUpPlaybackRate: number;
     enableDanmakuSkip: boolean;
     enableAutoSkipDanmakuSkip: boolean;
+    enableClickableTimeDanmaku: boolean;
     enableMenuDanmakuSkip: boolean;
     danmakuOffsetMatchingRegexPattern: string;
     checkTimeDanmakuSkip: boolean;
@@ -88,6 +91,8 @@ interface SBConfig {
     skipNoticeDurationBefore: number;
     advanceSkipNotice: boolean;
     audioNotificationOnSkip: boolean;
+    skipSoundVolume: number;
+    skipSoundFadeStart: number;
     checkForUnlistedVideos: boolean;
     ytInfoPermissionGranted: boolean;
     allowExperiments: boolean;
@@ -196,6 +201,10 @@ interface SBStorage {
 
     // Used when sync storage disabled
     alreadyInstalled: boolean;
+
+    // 自定义跳过提示音，name 用于设置页展示；null 表示使用内置 beep.ogg。
+    // 放在 local 而非 sync，避免超出 chrome.storage.sync 单条 8KB 限额
+    customSkipSound: { dataUrl: string; name: string } | null;
 
     /* Contains unsubmitted segments that the user has created. */
     unsubmittedSegments: Record<string, SponsorTime[]>;
@@ -310,8 +319,11 @@ const syncDefaults = {
     submissionCountSinceCategories: 0,
     showTimeWithSkips: true,
     disableSkipping: false,
+    enableSpeedUp: false,
+    speedUpPlaybackRate: 2,
 
     // danmaku skip
+    enableClickableTimeDanmaku: false,
     enableDanmakuSkip: false,
     enableAutoSkipDanmakuSkip: false,
     enableMenuDanmakuSkip: false,
@@ -341,6 +353,8 @@ const syncDefaults = {
     skipNoticeDurationBefore: 3,
     advanceSkipNotice: false,
     audioNotificationOnSkip: false,
+    skipSoundVolume: 0.1,
+    skipSoundFadeStart: 1,
     checkForUnlistedVideos: false,
     ytInfoPermissionGranted: false,
     allowExperiments: true,
@@ -359,7 +373,7 @@ const syncDefaults = {
     showCategoryWithoutPermission: false,
     showSegmentNameInChapterBar: true,
     useVirtualTime: true,
-    skipOnSeekToSegment: true,
+    skipOnSeekToSegment: false,
     showSegmentFailedToFetchWarning: true,
     allowScrollingToEdit: true,
     showPreviewYoutubeButton: true,
@@ -600,6 +614,7 @@ const localDefaults = {
         lastError: null,
     },
     lastSubmissionBackendId: null,
+    customSkipSound: null,
 };
 
 const Config = new ConfigClass(syncDefaults, localDefaults, migrateOldSyncFormats);

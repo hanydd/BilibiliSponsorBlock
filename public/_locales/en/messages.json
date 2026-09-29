@@ -1,4 +1,7 @@
 {
+    "expandSkipNotices": {
+        "message": "展开堆叠的提示"
+    },
     "fullName": {
         "message": "小电视空降助手",
         "description": "Name of the extension."
@@ -344,6 +347,12 @@
     "skip": {
         "message": "跳过"
     },
+    "pauseSpeedUp": {
+        "message": "暂停快进"
+    },
+    "resumeSpeedUp": {
+        "message": "恢复快进"
+    },
     "mute": {
         "message": "静音"
     },
@@ -392,6 +401,61 @@
     },
     "audioNotificationDescription": {
         "message": "在跳过片段时播放音频提醒。如果禁用（或禁用自动跳过），则不会播放声音。"
+    },
+    "customSkipSound": {
+        "message": "Custom Skip Sound"
+    },
+    "customSkipSoundDescription": {
+        "message": "Play your own sound file when a segment is auto-skipped, instead of the default beep. Select an audio file up to 2MB and 10 seconds."
+    },
+    "customSkipSoundChoose": {
+        "message": "Choose Sound File"
+    },
+    "customSkipSoundPlay": {
+        "message": "Preview"
+    },
+    "customSkipSoundStop": {
+        "message": "Stop"
+    },
+    "customSkipSoundReset": {
+        "message": "Reset to Default"
+    },
+    "customSkipSoundEnabled": {
+        "message": "Custom sound: $SOUND_NAME$",
+        "placeholders": {
+            "sound_name": {
+                "content": "$1"
+            }
+        }
+    },
+    "customSkipSoundDefault": {
+        "message": "Using default sound"
+    },
+    "customSkipSoundTooLarge": {
+        "message": "The selected file is too large. Please choose an audio file of 2MB or less."
+    },
+    "customSkipSoundTooLong": {
+        "message": "The selected sound is longer than $MAX_SECONDS$ seconds. Please choose a shorter file.",
+        "placeholders": {
+            "max_seconds": {
+                "content": "$1"
+            }
+        }
+    },
+    "customSkipSoundInvalid": {
+        "message": "The selected file could not be decoded as audio. Please choose a different file."
+    },
+    "skipSoundVolume": {
+        "message": "Skip Sound Volume"
+    },
+    "skipSoundVolumeDescription": {
+        "message": "Playback volume of the skip notification sound. The preview uses the same volume as the actual skip."
+    },
+    "skipSoundFade": {
+        "message": "Skip Sound Fade-Out"
+    },
+    "skipSoundFadeDescription": {
+        "message": "Gradually fade the skip sound to silence after it reaches the chosen progress of playback (e.g. 75% fades out the last quarter). 100% disables the fade."
     },
     "showTimeWithSkips": {
         "message": "显示去除可跳片段后的视频时长"
@@ -840,8 +904,11 @@
     "autoSkipOnMusicVideos": {
         "message": "自动跳过所有音乐视频中的非音乐片段"
     },
+    "clickableTimeDanmaku": {
+        "message": "点击弹幕跳转到对应时间"
+    },
     "danmakuSkip": {
-        "message": "从弹幕中匹配空降时间"
+        "message": "匹配弹幕时间显示空降提示"
     },
     "autoSkipDanmakuSkip": {
         "message": "匹配成功后自动跳过"
@@ -975,6 +1042,18 @@
     },
     "forceChannelCheckPopup": {
         "message": "请考虑启用“跳过前强制进行频道检查”"
+    },
+    "enableSpeedUp": {
+        "message": "将跳过替换为倍速快进"
+    },
+    "whatEnableSpeedUp": {
+        "message": "启用后，自动跳过的片段将不会被直接跳过，而是以设定的倍速快速播放。快进过程中可照常观看内容，适合不想完全错过但希望快速略过的场景。"
+    },
+    "speedUpPlaybackRate": {
+        "message": "快进倍速"
+    },
+    "speedUpPlaybackRateDescription": {
+        "message": "设置快进时的播放倍速，范围 2x ~ 16x。例如 3x 表示以 3 倍速播放广告片段，结束后自动恢复原速。当前播放倍速与设置倍速相同时改为叠加快进（如当前 2x、设置 2x，则以 4x 快进）。拖动进度条或手动调整倍速会立即退出快进状态。"
     },
     "downvoteDescription": {
         "message": "不正确/错误的时间"
