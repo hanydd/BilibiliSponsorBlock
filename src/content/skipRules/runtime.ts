@@ -243,12 +243,13 @@ export class SkipRulesRuntime implements RuleRuntime {
                 previous?.card.phase === card.phase && previous.card.visit === card.visit ? previous.clock : new NoticeClock(Config.config.skipNoticeDuration * 1000);
             this.published.delete(id);
             this.published.set(id, { card, clock });
-            if (!card.show) continue;
+            if (!card.show) clock?.setPaused(false);
+            if (!card.show || clock?.read() === 0) continue;
             const segment = segments.find(s => s.UUID === id);
             if (!segment) continue;
             app.bus.emit(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, {
                 noticeKind: card.phase === 'preview' ? 'advance' : 'skip', skippingSegments: [segment],
-                autoSkip: card.phase === 'completed' || card.phase === 'muted' || (card.phase === 'preview' && card.automatic), startReskip: false, ruleCard: card,
+                autoSkip: card.phase === 'completed' || card.phase === 'muted' || (card.phase === 'preview' && card.automatic), startReskip: false, ruleCard: card, noticeClock: clock,
             }, { source: 'skipRules' });
         }
         for (const id of this.published.keys()) if (!plan.cards[id]) this.published.delete(id);

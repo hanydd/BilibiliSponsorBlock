@@ -141,11 +141,13 @@ runtime 每次评估先取消上一轮调度。播放中按下一个片段边界
 
 [NoticeClock.ts](../src/notices/NoticeClock.ts) 分开处理两种时间。媒体倒计时读取视频当前位置和倍速，视频暂停时不会自行减少。完成提示按实际经过的时间退出，悬停会暂停计时而不重置剩余时间。
 
-`publish()` 只在卡片投影变化时发送 `SKIP_NOTICE_REQUESTED`。[skipUIManager.ts](../src/content/skipUIManager.ts) 负责选择或更新 notice。[SkipNotice.tsx](../src/render/SkipNotice.tsx) 保留已有 notice 的 React 实例，[SkipNoticeStack.ts](../src/render/SkipNoticeStack.ts) 负责堆叠位置和动画。尚未销毁的同片段卡片可以从预告更新为完成，不需要再次入场。
+规则模式下，runtime 与实际卡片共用同一个完成计时器，通过 notice 参数传递，不放进纯数据 `RuleCard`。隐藏提醒后计时继续；重新显示保留剩余时间，已到期的完成卡片不再发布。模拟器也按本次经过和卡片阶段保留计时，不因展示开关变化重置。
+
+`publish()` 只在卡片投影变化时发送 `SKIP_NOTICE_REQUESTED`。[skipUIManager.ts](../src/content/skipUIManager.ts) 负责选择或更新 notice。[SkipNotice.tsx](../src/render/SkipNotice.tsx) 保留已有 notice 的 React 实例，[SkipNoticeStack.ts](../src/render/SkipNoticeStack.ts) 负责堆叠位置和动画。尚未销毁的同片段卡片可以从预告更新为完成，不需要再次入场。规则模式下各片段的预告独立保留，创建新预告不会关闭其他片段的取消入口。经典模式仍只保留一个预告。
 
 `dontShowNotice` 只控制展示。隐藏时 runtime 仍缓存可操作目标，`toggleSkip()` 选择最近更新且仍有效的目标。完成状态的撤销按 `skipNoticeDuration` 到期，用户拖动会使旧完成目标失效。显示卡片时沿用焦点、悬停及现有 notice 目标选择。
 
-卡片按钮与隐藏提示快捷键共用 `primaryAction()`。快捷键入口在 [hotkeyHandler.ts](../src/content/hotkeyHandler.ts)，输入控件和非插件绑定的按键继续交给页面。
+卡片按钮与隐藏提示快捷键共用 `primaryAction()`。模拟器取消静音也复用该判断，通过 `undo` 解除当前静音并保护重叠片段；取消预告和暂停快进仍分别使用 `deny`、`pause-speed`。快捷键入口在 [hotkeyHandler.ts](../src/content/hotkeyHandler.ts)，输入控件和非插件绑定的按键继续交给页面。
 
 ## 灰度开关与经典模式
 

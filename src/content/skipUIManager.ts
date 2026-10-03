@@ -1,8 +1,7 @@
 import { getRuleRuntime, isRuleEngineEnabled } from "./skipRules/bridge";
-import type { RuleCard } from "./skipRules/types";
 import Config from "../config";
 import { isSkipSeek } from "./skipSeek";
-import SkipNotice from "../render/SkipNotice";
+import SkipNotice, { SkipNoticeUpdate } from "../render/SkipNotice";
 import { SponsorTime } from "../types";
 import { waitFor } from "../utils/";
 import { getContentApp } from "./app";
@@ -57,11 +56,11 @@ function dontShowNoticeAgain(): void {
     closeSkipNotices(true);
 }
 
-function showNotice(skippingSegments: SponsorTime[], autoSkip: boolean, unskipTime: number,
-    startReskip: boolean, upcoming: boolean, updateOnly = false, ruleCard?: RuleCard): void {
+function showNotice(update: SkipNoticeUpdate, updateOnly = false): void {
+    const { segments: skippingSegments, autoSkip, upcoming, ruleCard } = update;
     if (skippingSegments.length > 1) {
         for (const segment of [...skippingSegments].sort((a, b) => a.segment[0] - b.segment[0])) {
-            showNotice([segment], autoSkip, unskipTime, startReskip, upcoming, updateOnly, ruleCard);
+            showNotice({ ...update, segments: [segment] }, updateOnly);
         }
         return;
     }
@@ -69,13 +68,12 @@ function showNotice(skippingSegments: SponsorTime[], autoSkip: boolean, unskipTi
         (notice.sameNotice(skippingSegments) || (!upcoming && notice.upcoming && notice.contains(skippingSegments))));
     if (updateOnly && !existing) return;
     if (existing && existing.upcoming === upcoming && existing.props.autoSkip === autoSkip && JSON.stringify(existing.props.ruleCard) === JSON.stringify(ruleCard)) return;
-    const update = { segments: skippingSegments, autoSkip, unskipTime, startReskip, upcoming, ruleCard };
     if (existing) {
         existing.update(update);
         selectNoticeTarget(existing);
         return;
     }
-    closeAdvanceSkipNotice();
+    if (!ruleCard) closeAdvanceSkipNotice();
     const notice = new SkipNotice(update, getSkipNoticeContentContainer, removeSkipNotice, () => selectNoticeTarget());
     if (notice.closed) return;
     contentState.skipNotices.push(notice);
@@ -134,15 +132,10 @@ export function registerSkipUIManager(): void {
     app.commands.register("skip/closeNoticesForSegments", ({ segments }) => closeSkipNoticesForSegments(segments));
     app.commands.register("skip/dontShowNoticeAgain", () => dontShowNoticeAgain());
 
-    app.bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, ({ noticeKind, skippingSegments, autoSkip, unskipTime, startReskip, updateOnly, ruleCard }) => {
-        if (Config.config.dontShowNotice) return;
-        if (noticeKind === "advance") {
-            if (!Config.config.advanceSkipNotice || Config.config.skipNoticeDurationBefore <= 0) return;
-            showNotice(skippingSegments, autoSkip, unskipTime, startReskip, true, false, ruleCard);
-            return;
-        }
-
-        showNotice(skippingSegments, autoSkip, unskipTime, startReskip, false, updateOnly, ruleCard);
+    app.bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, ({ noticeKind, skippingSegments, autoSkip, unskipTime, startReskip, updateOnly, ruleCard, noticeClock }) => {
+        const upcoming = noticeKind === "advance";
+        if (Config.config.dontShowNotice || (upcoming && (!Config.config.advanceSkipNotice || Config.config.skipNoticeDurationBefore <= 0))) return;
+        showNotice({ segments: skippingSegments, autoSkip, unskipTime, startReskip, upcoming, ruleCard, noticeClock }, !upcoming && updateOnly);
     });
 
     app.bus.on(CONTENT_EVENTS.CONFIG_CHANGED, ({ changes }) => {

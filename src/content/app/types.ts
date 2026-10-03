@@ -1,3 +1,4 @@
+import type { NoticeClock } from "../../notices/NoticeClock";
 import type { RuleCard } from "../skipRules/types";
 import SkipNoticeComponent from "../../components/SkipNoticeComponent";
 import PreviewBar from "../../js-components/previewBar";
@@ -110,6 +111,7 @@ export interface ContentEventMap {
     [CONTENT_EVENTS.SKIP_NOTICE_REQUESTED]: {
         noticeKind: "skip" | "advance";
         ruleCard?: RuleCard;
+        noticeClock?: NoticeClock;
         /** Completion must not recreate a card the user already dismissed. */
         updateOnly?: boolean;
         skippingSegments: SponsorTime[];

@@ -1,3 +1,4 @@
+import type { NoticeClock } from "../notices/NoticeClock";
 import { getRuleRuntime, isRuleEngineEnabled } from "../content/skipRules/bridge";
 import type { RuleCard } from "../content/skipRules/types";
 import * as React from "react";
@@ -29,6 +30,7 @@ import { SegmentPlaybackState, initialPlayback, noticePresentation } from "../no
 
 export interface SkipNoticeProps {
     ruleCard?: RuleCard;
+    noticeClock?: NoticeClock;
     segments: SponsorTime[];
 
     autoSkip: boolean;
@@ -155,6 +157,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 idSuffix={this.idSuffix}
                 startFaded={this.isFadedNotice()}
                 maxCountdownTime={this.state.maxCountdownTime}
+                noticeClock={this.props.noticeClock}
                 ref={this.noticeRef}
                 closeListener={() => this.closeListener()}
                 onDismiss={() => { if (isRuleEngineEnabled()) getRuleRuntime().action({ kind: "dismiss", id: this.segments[0].UUID }); }}

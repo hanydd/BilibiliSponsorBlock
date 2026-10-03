@@ -236,7 +236,6 @@ test('hidden shortcut follows the newest segment and drops removed data', async 
     runtime.reset();
 });
 
-
 test.each(['pause', 'waiting'])('disabling speed during %s restores baseline without seeking', async event => {
     const { video, runtime, Config } = await setup();
     video.playbackRate = 1.5;
@@ -305,5 +304,53 @@ test('rules preview entry marks a draft as previewed and executes that draft', a
     video.currentTime = 10;
     video.dispatchEvent(new Event('timeupdate'));
     expect(video.currentTime).toBe(20);
+    runtime.reset();
+});
+
+test.each([500, 1500])('unhiding completion preserves its clock, suppressing expired notices (elapsed=%s)', async elapsed => {
+    const { Config, runtime, contentState } = await setup({ dontShowNotice: true, enableSpeedUp: false, skipNoticeDuration: 1 });
+    contentState.sponsorTimes = [makeSegment('A', 10, 50)];
+    const { getContentApp } = await import('../src/content/app');
+    const { CONTENT_EVENTS } = await import('../src/content/app/events');
+    const notices = jest.fn();
+    getContentApp().bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, notices);
+    runtime.observe();
+    jest.advanceTimersByTime(elapsed);
+    Config.config.dontShowNotice = false; runtime.observe();
+    expect(notices).toHaveBeenCalledTimes(elapsed < 1000 ? 1 : 0);
+    if (elapsed < 1000) {
+        const clock = notices.mock.calls[0][0].noticeClock;
+        expect(clock.read()).toBe(500);
+        clock.setPaused(true); // The visible card owns hover/pause, using the same clock.
+        jest.advanceTimersByTime(2000);
+        expect(clock.read()).toBe(500);
+        Config.config.dontShowNotice = true; runtime.observe();
+        jest.advanceTimersByTime(600);
+        expect(runtime.toggleSkip()).toBe(false);
+        Config.config.dontShowNotice = false; runtime.observe();
+        expect(notices).toHaveBeenCalledTimes(1);
+    }
+    runtime.reset();
+});
+
+test('real and simulated mute cancellation protect overlapping peers until the target ends', async () => {
+    const { video, runtime, contentState } = await setup({ muteSegments: true });
+    contentState.sponsorTimes = [makeSegment('A', 10, 20, ActionType.Mute), makeSegment('B', 15, 25, ActionType.Mute)];
+    video.currentTime = 16; runtime.observe();
+    expect(video.muted).toBe(true);
+    runtime.toggleSkip('A');
+    expect(video.muted).toBe(false);
+    expect(video.currentTime).toBe(16);
+    const { makeSimulation, step } = await import('../src/options/rules/model');
+    const settings = { entry: true, preview: 3, duration: 4, rate: 4, showCards: true, resumeEntry: 'continue', resumeSpeed: 'continue', context: 'mute' } as const;
+    let simulated = step(makeSimulation(settings, 'auto', 'ready', 'overlap', 'auto'), { kind: 'time', time: 16 }).state;
+    expect(simulated.muted).toBe(true);
+    simulated = step(simulated, { kind: 'cancel', id: 'A' }).state;
+    expect(simulated.muted).toBe(video.muted);
+    expect(simulated.time).toBe(video.currentTime);
+    video.currentTime = 20; runtime.observe();
+    simulated = step(simulated, { kind: 'time', time: 20 }).state;
+    expect(simulated.muted).toBe(true);
+    expect(video.muted).toBe(true);
     runtime.reset();
 });

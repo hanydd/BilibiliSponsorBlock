@@ -565,3 +565,54 @@ for (const action of ['skip', 'mute']) test(`removing a paused ${action} segment
     expect(await getMockVideoTime(page)).toBe(position);
     await expect(page.locator(first)).toHaveCount(0);
 });
+
+test('overlapping previews keep independent cancellation buttons', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage },
+        { advanceSkipNotice: true, skipNoticeDurationBefore: 3 }, [[10, 20], [12, 40]]);
+    await setMockVideoTime(page, 9, true);
+    await expect(page.locator(first)).toHaveClass(/sponsorSkipUpcomingNotice/);
+    await expect(page.locator(second)).toHaveClass(/sponsorSkipUpcomingNotice/);
+    for (const selector of [first, second]) {
+        await page.locator(selector).locator('[id^="sponsorSkipUnskipButton"]').first().click();
+    }
+    // Natural entry retains both cancellations; neither preview was lost from the cache.
+    await page.locator('video').evaluate((v: HTMLVideoElement) => { v.currentTime = 13; v.dispatchEvent(new Event('timeupdate')); });
+    await play(page);
+    await page.waitForTimeout(250);
+    expect(await getMockVideoTime(page)).toBeLessThan(20);
+    await expect(page.locator(cards)).toHaveCount(2);
+});
+
+test('enabling notices cannot resurrect an expired hidden completion', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage },
+        { dontShowNotice: true, skipNoticeDuration: 1 }, [[10, 50]]);
+    await setMockVideoTime(page, 12, true); await play(page);
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(50);
+    await pauseMockVideo(page);
+    await page.waitForTimeout(1200);
+    await writeSyncStorage(extensionServiceWorker, { dontShowNotice: false });
+    await page.waitForTimeout(300);
+    await expect(page.locator(cards)).toHaveCount(0);
+    // Returning to the segment is still a new visit and may display another card.
+    await setMockVideoTime(page, 12, true);
+    await expect(page.locator(first)).toBeVisible();
+});
+
+test('unhiding a live completion keeps remaining time and hover pauses that same clock', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage },
+        { dontShowNotice: true, skipNoticeDuration: 5 }, [[10, 50]]);
+    await setMockVideoTime(page, 12, true); await play(page);
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(50);
+    await pauseMockVideo(page);
+    await page.waitForTimeout(2100);
+    await writeSyncStorage(extensionServiceWorker, { dontShowNotice: false });
+    const card = page.locator(first);
+    await expect(card).toBeVisible();
+    const timer = card.locator('[id^="skipNoticeTimerText"]');
+    await expect(timer).toContainText(/[123]/);
+    await card.hover();
+    await page.waitForTimeout(3200);
+    await expect(card).toBeVisible();
+    await page.mouse.move(0, 0);
+    await expect(card).toHaveCount(0, { timeout: 4000 });
+});

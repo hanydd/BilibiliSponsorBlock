@@ -702,6 +702,7 @@ describe("合并片段 notice 去重", () => {
                 });
                 constructor(update, _container, onClosed) {
                     this.segments = update.segments;
+                    this.upcoming = update.upcoming;
                     this.props = update;
                     this.onClosed = onClosed;
                     createdNotices.push(this);
@@ -710,7 +711,7 @@ describe("合并片段 notice 去重", () => {
         }));
         jest.doMock("../src/config", () => ({
             __esModule: true,
-            default: { config: { dontShowNotice: false, skipKeybind: null } },
+            default: { config: { dontShowNotice: false, skipKeybind: null, advanceSkipNotice: true, skipNoticeDurationBefore: 3 } },
         }));
         jest.doMock("../src/utils/", () => ({
             waitFor: jest.fn(async () => null),
@@ -747,6 +748,20 @@ describe("合并片段 notice 去重", () => {
             startReskip: false,
         }, { source: "test" });
     }
+
+    test.each([false, true])("previews coexist only in rule mode (rules=%s)", async rules => {
+        await setup();
+        const { getContentApp } = await import("../src/content/app");
+        const { CONTENT_EVENTS } = await import("../src/content/app/events");
+        for (const segment of [makeSeg("A", 10, 20), makeSeg("B", 12, 40)]) {
+            getContentApp().bus.emit(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, {
+                noticeKind: "advance", skippingSegments: [segment], autoSkip: true, startReskip: false,
+                ruleCard: rules ? { visit: 1, phase: "preview", automatic: true, show: true,
+                    clock: { kind: "media", deadline: segment.segment[0], boundary: "start" } } : undefined,
+            }, { source: "test" });
+        }
+        expect(createdNotices.map(notice => notice.segments[0].UUID)).toEqual(rules ? ["A", "B"] : ["B"]);
+    });
 
     test("合并播放范围分别显示 A、B，再请求 B 不重复创建", async () => {
         await setup();

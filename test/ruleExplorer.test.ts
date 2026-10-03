@@ -116,3 +116,28 @@ test('explorer composes music, full-video, minimum duration and mute using the p
     const cancelled = step(mute.state, { kind: 'cancel' });
     expect(cancelled.state.muted).toBe(false);
 });
+
+test('visibility changes neither restart nor freeze a completion lifetime', () => {
+    let result = step(makeSimulation({ ...settings, showCards: false }, 'auto', 'ready'), { kind: 'skip' });
+    result.state.hovered = true; // A hidden card cannot hold its timer.
+    result = step(result.state, { kind: 'wall', seconds: 1 });
+    result.state.settings.showCards = true;
+    result = step(result.state, { kind: 'data' });
+    expect(result.cards[0].visible).toBe(true);
+    expect(result.cards[0].seconds).toBe(3);
+    result.state.settings.showCards = false;
+    result = step(result.state, { kind: 'wall', seconds: 4 });
+    result.state.settings.showCards = true;
+    result = step(result.state, { kind: 'data' });
+    expect(result.cards[0].visible).toBe(false);
+});
+
+test('cancelling previews and fast-forward keeps their distinct actions', () => {
+    const preview = scenario(settings, 'auto', 'preview', 'cancel');
+    expect(preview.effects).toEqual([]);
+    expect(preview.state.rules.visits.A.excluded).toBe('cancel');
+    expect(step(preview.state, { kind: 'time', time: 10 }).effects).toEqual([]);
+    const fast = scenario(settings, 'fast', 'active', 'cancel');
+    expect(fast.state.rules.visits.A.excluded).toBe('pause-speed');
+    expect(fast.state.rate).toBe(1);
+});

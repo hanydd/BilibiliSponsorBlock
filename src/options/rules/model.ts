@@ -1,3 +1,4 @@
+import { primaryAction } from '../../content/skipRules/intents';
 import { evaluateRules } from '../../content/skipRules/engine';
 import { PlaybackState, speedUpTarget, transitionPlayback } from '../../content/skipRules/playback';
 import { rulePreferences } from '../../content/skipRules/preferences';
@@ -117,7 +118,9 @@ export function step(previous: Simulation, event: InputEvent): Result {
     switch (event.kind) {
         case 'skip': case 'undo': command = { kind: event.kind, id }; break;
         case 'close': command = { kind: 'dismiss', id }; break;
-        case 'cancel': command = { kind: state.rules.visits[id]?.phase === 'speeding' ? 'pause-speed' : 'deny', id }; break;
+        case 'cancel': command = state.rules.visits[id]?.phase === 'muted'
+            ? primaryAction(id, state.rules.visits[id])
+            : { kind: state.rules.visits[id]?.phase === 'speeding' ? 'pause-speed' : 'deny', id }; break;
         case 'allow': command = { kind: ['pause-speed', 'user-rate'].includes(state.rules.visits[id]?.excluded) ? 'resume-speed' : 'allow', id }; break;
         case 'rate': {
             const ids = Object.entries(state.rules.visits).filter(([, v]) => v.phase === 'speeding').map(([key]) => key);
@@ -149,13 +152,13 @@ export function step(previous: Simulation, event: InputEvent): Result {
         command = plan.seek.reason === 'skip' ? { kind: 'applied', ids: plan.seek.ids } : { kind: 'handoff' };
     }
     for (const [key, card] of Object.entries(state.plan.cards)) {
-        const signature = JSON.stringify(card);
+        const signature = `${card.visit}:${card.phase}`;
         if (state.lifetimes[key]?.key !== signature) state.lifetimes[key] = { key: signature, remaining: state.settings.duration * 1000, expired: false };
         const lifetime = state.lifetimes[key];
-        if (event.kind === 'wall' && card.clock.kind === 'display' && card.show && !lifetime.expired) {
+        if (event.kind === 'wall' && card.clock.kind === 'display' && !lifetime.expired) {
             let now = 0;
             const clock = new NoticeClock(lifetime.remaining, () => now);
-            clock.setPaused(state.hovered); now = (event.seconds ?? 0) * 1000;
+            clock.setPaused(card.show && state.hovered); now = (event.seconds ?? 0) * 1000;
             lifetime.remaining = clock.read(); lifetime.expired = lifetime.remaining <= 0;
         }
     }
