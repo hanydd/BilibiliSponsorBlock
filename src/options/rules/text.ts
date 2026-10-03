@@ -18,12 +18,7 @@ export function playbackText(result: Result): string {
     return result.state.rate === 1 ? t('playing') : t('keepRate', String(result.state.rate));
 }
 const settingMessages: Record<string, string> = {
-    categorySelections: 'skipOption', enableSpeedUp: 'enableSpeedUp', speedUpPlaybackRate: 'speedUpPlaybackRate',
-    skipOnSeekToSegment: 'enableSkipOnSeekToSegment', advanceSkipNotice: 'advanceSkipNotice', skipNoticeDurationBefore: 'skipNoticeDurationBefore',
-    skipNoticeDuration: 'skipNoticeDuration', dontShowNotice: 'showSkipNotice', skipResumeAction: 'skipResumeAction', speedUpResumeAction: 'speedUpResumeAction',
-    noticeVisibilityMode: 'noticeVisibilityLabel', previewIncludeOtherSegments: 'previewIncludeOtherSegments',
-    autoSkipOnMusicVideos: 'autoSkipOnMusicVideos', manualSkipOnFullVideo: 'enableManualSkipOnFullVideo', muteSegments: 'muteSegments',
-    disableSkipping: 'disableSkipping', whitelistedChannels: 'whitelistManagement', forceChannelCheck: 'forceChannelCheck',
-    minDuration: 'minDuration',
+    categorySelections: 'skipOption', skipOnSeekToSegment: 'enableSkipOnSeekToSegment', dontShowNotice: 'showSkipNotice',
+    noticeVisibilityMode: 'noticeVisibilityLabel', manualSkipOnFullVideo: 'enableManualSkipOnFullVideo', whitelistedChannels: 'whitelistManagement',
 };
 export const settingName = (key: string): string => message(settingMessages[key] ?? key) || key;

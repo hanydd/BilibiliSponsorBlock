@@ -20,9 +20,6 @@
     "resumeManual": {
         "message": "改为手动跳过"
     },
-    "skipResumeActionDescription": {
-        "message": "仅在规则引擎模式下生效。恢复播放时，对尚未自动处理的片段等待手动操作；只影响本次经过。"
-    },
     "speedUpResumeAction": {
         "message": "快进过程中暂停，恢复播放后"
     },
@@ -31,9 +28,6 @@
     },
     "resumeSpeedManual": {
         "message": "取消本次快进"
-    },
-    "speedUpResumeActionDescription": {
-        "message": "仅在规则引擎模式下生效。可选择继续快进，或恢复原倍速并保留操作卡片。缓冲结束不受此设置影响。"
     },
     "expandSkipNotices": {
         "message": "展开堆叠的提示"
@@ -1661,21 +1655,6 @@
     "copyPageLogsFailed": {
         "message": "复制页面日志失败"
     },
-    "skipEngineMode": {
-        "message": "跳过逻辑（实验功能）"
-    },
-    "skipEngineLegacy": {
-        "message": "旧版（默认）"
-    },
-    "skipEngineShadow": {
-        "message": "旧版播放，新规则仅记录判断"
-    },
-    "skipEngineRules": {
-        "message": "新版规则引擎（灰度体验）"
-    },
-    "skipEngineDescription": {
-        "message": "旧版使用现有调度；仅对照模式记录规则结果但不接管播放；规则模式按新规则执行。切换后立即生效。"
-    },
     "previewIncludeOtherSegments": {
         "message": "编辑预览时包含其他片段"
     },
@@ -1697,9 +1676,6 @@
     "rules_active": {
         "message": "规则引擎已启用"
     },
-    "rules_refresh": {
-        "message": "切换后立即生效，无需刷新视频页面。"
-    },
     "rules_tab_segments": {
         "message": "片段设置"
     },
@@ -1714,12 +1690,6 @@
     },
     "rules_segmentDescription": {
         "message": "设置各类片段的处理方式及进度条颜色。切换新旧引擎时保留这些设置。"
-    },
-    "rules_sharedSettings": {
-        "message": "行为与提醒设置"
-    },
-    "rules_settingsDescription": {
-        "message": "修改后自动保存。对照与测试使用当前设置。"
     },
     "rules_previewSwitch": {
         "message": "提前显示提醒弹窗"
@@ -1780,9 +1750,6 @@
     },
     "rules_countdown": {
         "message": "倒计时"
-    },
-    "rules_subsequent": {
-        "message": "后续状态"
     },
     "rules_matched": {
         "message": "生效规则"
@@ -1861,15 +1828,6 @@
     },
     "rules_layout": {
         "message": "片段关系"
-    },
-    "rules_layout_single": {
-        "message": "单个 A · 10–20 秒"
-    },
-    "rules_layout_adjacent": {
-        "message": "相连 A 10–20 / B 20–30"
-    },
-    "rules_layout_overlap": {
-        "message": "重叠 A 10–20 / B 15–25"
     },
     "rules_secondMode": {
         "message": "B 的处理方式"
@@ -2009,18 +1967,6 @@
     "rules_scopeDescription": {
         "message": "操作测试使用示例片段，不连接真实视频。可测试跳过、快进和静音；精彩点和编辑预览未在模拟器中展示。快进使用全局设置，暂不支持逐类独立快进。"
     },
-    "rules_clockHeld": {
-        "message": "暂停隐藏"
-    },
-    "rules_untilStart": {
-        "message": "距片段开始"
-    },
-    "rules_untilEnd": {
-        "message": "距片段结束"
-    },
-    "rules_expires": {
-        "message": "后隐藏"
-    },
     "rules_phase_preview": {
         "message": "准备处理"
     },
@@ -2102,9 +2048,6 @@
     "rules_state_closed": {
         "message": "用户已关闭卡片"
     },
-    "rules_visitManual": {
-        "message": "本次手动处理"
-    },
     "rules_positionBefore": {
         "message": "开始前 8 秒"
     },
@@ -2134,12 +2077,6 @@
     },
     "rules_saved": {
         "message": "设置自动保存"
-    },
-    "rules_resetSettings": {
-        "message": "恢复行为设置默认值"
-    },
-    "rules_testSettings": {
-        "message": "模拟使用当前行为设置；预设场景只改变示例状态。"
     },
     "rules_op_natural": {
         "message": "自然播放"
@@ -2557,9 +2494,6 @@
     },
     "rules_whitelistSettings": {
         "message": "频道白名单"
-    },
-    "rules_editSettings": {
-        "message": "修改跳过设置"
     },
     "rules_enableSkipping": {
         "message": "启用片段跳过"
