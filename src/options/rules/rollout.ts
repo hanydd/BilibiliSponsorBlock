@@ -16,7 +16,7 @@ export function setupRuleRollout(updateMode: () => void, openBehavior: () => voi
         const enabled = Config.config.skipEngineMode === 'rules';
         toggle.checked = enabled;
         invitation.hidden = embedded || enabled || !Config.config.showNewFeaturePopups ||
-            Config.config.skipRulesRollout !== 'invite' || Config.config.skipRulesNotice !== 'unseen';
+            Config.config.skipRulesNotice !== 'unseen';
         document.getElementById('rules-welcome-auto').hidden = Config.config.skipRulesRollout !== 'auto';
         if (!enabled || !Config.config.showNewFeaturePopups) dialog.close();
         else if (Config.config.skipRulesRollout === 'auto') showWelcome();

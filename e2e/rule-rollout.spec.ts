@@ -101,6 +101,20 @@ test('turning off feature announcements immediately hides the invitation in anot
     await expect(page.locator('#classic-behavior')).toBeVisible();
 });
 
+test('an existing classic preference can receive an invitation without being automatically switched', async ({ extensionPage: page, extensionId, extensionServiceWorker: worker }) => {
+    await writeSyncStorage(worker, { skipEngineMode: 'legacy', skipRulesNotice: 'unseen', showNewFeaturePopups: true });
+    await worker.evaluate(async () => chrome.storage.sync.remove('skipRulesRollout'));
+    await page.goto(options(extensionId));
+    await expect.poll(() => readSyncStorage(worker, 'skipRulesRollout')).toBe('existing');
+    await expect(page.locator('#classic-behavior')).toBeVisible();
+    await expect(page.locator('#rules-invitation')).toBeVisible();
+    expect(await readSyncStorage(worker, 'skipEngineMode')).toBe('legacy');
+    await page.locator('#rules-invitation-dismiss').click();
+    await expect.poll(() => readSyncStorage(worker, 'skipRulesNotice')).toBe('welcome-dismissed');
+    await page.reload();
+    await expect(page.locator('#rules-invitation')).toBeHidden();
+});
+
 test('not interested suppresses all onboarding after reload and a later intentional opt-in', async ({ extensionContext, extensionPage: page, extensionId, extensionServiceWorker: worker }) => {
     await upgrade(worker, false);
     await page.goto(options(extensionId));
