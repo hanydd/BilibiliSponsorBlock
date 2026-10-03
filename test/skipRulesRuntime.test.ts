@@ -1,4 +1,5 @@
 /** @jest-environment jsdom */
+import { ActionType } from '../src/types';
 import { installChromeMock, installCoreModuleMocks, makeSegment, makeVideo } from './helpers/contentHarness';
 
 async function setup(settings = {}) {
@@ -232,5 +233,77 @@ test('hidden shortcut follows the newest segment and drops removed data', async 
     expect(video.currentTime).toBe(30);
     contentState.sponsorTimes = []; runtime.observe();
     expect(runtime.toggleSkip()).toBe(false);
+    runtime.reset();
+});
+
+
+test.each(['pause', 'waiting'])('disabling speed during %s restores baseline without seeking', async event => {
+    const { video, runtime, Config } = await setup();
+    video.playbackRate = 1.5;
+    runtime.observe();
+    expect(video.playbackRate).toBe(4);
+    if (event === 'pause') Object.defineProperty(video, 'paused', { configurable: true, value: true });
+    video.dispatchEvent(new Event(event));
+    expect(video.playbackRate).toBe(4);
+    Config.config.enableSpeedUp = false;
+    runtime.observe();
+    expect(video.playbackRate).toBe(1.5);
+    expect(video.currentTime).toBe(12);
+    Object.defineProperty(video, 'paused', { configurable: true, value: false });
+    video.dispatchEvent(new Event('playing'));
+    expect(video.currentTime).toBe(40);
+    runtime.reset();
+});
+
+test.each([ActionType.Skip, ActionType.Mute])('removing paused %s owners releases only their effect', async action => {
+    const { video, runtime, contentState } = await setup({ muteSegments: true });
+    video.playbackRate = 1.5;
+    const a = makeSegment('A', 10, 50, action);
+    const b = makeSegment('B', 10, 60, action);
+    contentState.sponsorTimes = [a, b];
+    runtime.observe();
+    const active = action === ActionType.Skip ? { playbackRate: 4, muted: false } : { playbackRate: 1.5, muted: true };
+    expect(video).toMatchObject(active);
+    Object.defineProperty(video, 'paused', { configurable: true, value: true });
+    video.dispatchEvent(new Event('pause'));
+    contentState.sponsorTimes = [b]; runtime.observe();
+    expect(video).toMatchObject(active);
+    contentState.sponsorTimes = []; runtime.observe();
+    expect(video).toMatchObject({ playbackRate: 1.5, muted: false, currentTime: 12 });
+    contentState.sponsorTimes = [a]; runtime.observe();
+    expect(video).toMatchObject({ playbackRate: 1.5, muted: false, currentTime: 12 });
+    Object.defineProperty(video, 'paused', { configurable: true, value: false });
+    video.dispatchEvent(new Event('playing'));
+    expect(video).toMatchObject(active);
+    runtime.reset();
+});
+
+test('temporarily missing data preserves same-pass dismissal without keeping an effect', async () => {
+    const { video, runtime, contentState } = await setup();
+    runtime.observe();
+    runtime.action({ kind: 'dismiss', id: 'A' });
+    const segments = contentState.sponsorTimes;
+    contentState.sponsorTimes = []; runtime.observe();
+    contentState.sponsorTimes = segments; runtime.observe();
+    expect(video.playbackRate).toBe(1);
+    expect(runtime.isExcluded('A')).toBe(true);
+    runtime.reset();
+});
+
+test('rules preview entry marks a draft as previewed and executes that draft', async () => {
+    const { video, runtime, contentState } = await setup();
+    const { installRuleRuntime } = await import('../src/content/skipRules/bridge');
+    installRuleRuntime(runtime);
+    contentState.sponsorTimesSubmitting = [makeSegment('draft', 10, 20)];
+    contentState.sponsorTimes = [];
+    runtime.observe();
+    contentState.previewedSegment = false;
+    const { previewTime } = await import('../src/content/skipScheduler');
+    previewTime(8, true, 'draft');
+    expect(contentState.previewedSegment).toBe(true);
+    expect(video.currentTime).toBe(8);
+    video.currentTime = 10;
+    video.dispatchEvent(new Event('timeupdate'));
+    expect(video.currentTime).toBe(20);
     runtime.reset();
 });

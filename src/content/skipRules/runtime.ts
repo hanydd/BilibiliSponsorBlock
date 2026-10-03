@@ -212,7 +212,7 @@ export class SkipRulesRuntime implements RuleRuntime {
         }
     }
 
-    private applyPlayback(plan: Pick<RulePlan, 'state' | 'speed' | 'mute'>, input: Pick<RuleInput, 'paused' | 'waiting'>): void {
+    private applyPlayback(plan: Pick<RulePlan, 'retain' | 'speed' | 'mute'>, input: Pick<RuleInput, 'paused' | 'waiting'>): void {
         if (!this.video) return;
         const next = transitionPlayback({ rate: this.video.playbackRate, muted: this.video.muted, speed: this.rate, mute: this.muted },
             plan, input, Config.config.speedUpPlaybackRate);
@@ -278,7 +278,7 @@ export class SkipRulesRuntime implements RuleRuntime {
     }
     isExcluded(id: string): boolean { return this.state.visits[id]?.excluded === "dismiss"; }
     originalRate(): number { return this.rate?.original ?? this.video?.playbackRate ?? 1; }
-    private restore(): void { this.applyPlayback({ state: emptyRuleState(), speed: [], mute: [] }, { paused: false, waiting: false }); }
+    private restore(): void { this.applyPlayback({ retain: { speed: false, mute: false }, speed: [], mute: [] }, { paused: false, waiting: false }); }
     reset(): void {
         clearTimeout(this.timer); this.disposeVideo?.(); this.disposeVideo = undefined;
         if (this.mode === 'rules') this.restore();

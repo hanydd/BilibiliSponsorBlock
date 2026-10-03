@@ -97,7 +97,7 @@ function hotkeyListener(e: KeyboardEvent): void {
 
         return;
     } else if (keybindEquals(key, closeSkipNoticeKey)) {
-        void getContentApp().commands.execute("skip/closeNotices", { includeAdvance: false });
+        void getContentApp().commands.execute("skip/closeNotices", { includeAdvance: false, dismiss: true });
 
         return;
     } else if (keybindEquals(key, startSponsorKey)) {

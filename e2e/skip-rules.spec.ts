@@ -484,3 +484,84 @@ test('hidden Enter ignores text inputs, expires, and does not swallow player arr
     });
     expect(prevented).toBe(false);
 });
+
+test('preview shortcut selects a recorded draft and allows submission', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage },
+        { defaultCategory: 'sponsor', autoHideInfoButton: false, previewKeybind: { key: 'p', code: 'KeyP' } }, []);
+    // Record instead of importing: imports already count as previewed.
+    await setMockVideoTime(page, 10, true);
+    await page.locator('#startSegmentButton').click();
+    await expect(page.locator('#cancelSegmentButton')).toBeVisible();
+    await setMockVideoTime(page, 20, true);
+    await page.locator('#startSegmentButton').click();
+    await expect(page.locator('#cancelSegmentButton')).toBeHidden();
+    await expect(page.locator('#submitButton')).toBeVisible();
+    await page.locator('#submitButton').click();
+    const editor = page.locator('#submissionNoticeContainer');
+    await expect(editor).toHaveCount(1);
+    await page.keyboard.press('p');
+    await expect.poll(() => getMockVideoTime(page)).toBeLessThan(10);
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(20);
+    let submitted: { segments: Array<{ segment: number[] }> } | undefined;
+    await extensionContext.route('https://www.bsbsb.top/api/skipSegments', async route => {
+        submitted = route.request().postDataJSON();
+        // Stop at the API boundary; never send a submission to the real server.
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+    });
+    const label = await extensionServiceWorker.evaluate(() => chrome.i18n.getMessage('submit'));
+    await editor.getByRole('button', { name: label, exact: true }).click();
+    await expect.poll(() => submitted?.segments[0]?.segment).toEqual([10, 20]);
+    await expect(editor).toHaveCount(0);
+});
+
+test('Backspace dismisses every active fast-forward card and cancels only this pass', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage },
+        { enableSpeedUp: true, speedUpPlaybackRate: 4 }, [[10, 90], [15, 100]]);
+    await setMockVideoTime(page, 20, true); await play(page);
+    await expect.poll(() => rate(page)).toBe(4);
+    await expect(page.locator(cards)).toHaveCount(2);
+    await page.keyboard.press('Backspace');
+    await expect.poll(() => rate(page)).toBe(1);
+    await expect(page.locator(cards)).toHaveCount(0);
+    await setMockVideoTime(page, 30, true);
+    await page.waitForTimeout(300);
+    expect(await rate(page)).toBe(1);
+    await expect(page.locator(cards)).toHaveCount(0);
+    await setMockVideoTime(page, 5, true); await setMockVideoTime(page, 20, true);
+    await expect.poll(() => rate(page)).toBe(4);
+    await expect(page.locator(cards)).toHaveCount(2);
+});
+
+test('turning off fast-forward while paused restores speed without an automatic jump', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage },
+        { enableSpeedUp: true, speedUpPlaybackRate: 4 }, [[10, 90]]);
+    await page.locator('video').evaluate((v: HTMLVideoElement) => { v.playbackRate = 1.5; });
+    await setMockVideoTime(page, 12, true); await play(page);
+    await expect.poll(() => rate(page)).toBe(4);
+    await pauseMockVideo(page);
+    const position = await getMockVideoTime(page);
+    await writeSyncStorage(extensionServiceWorker, { enableSpeedUp: false });
+    await expect.poll(() => rate(page)).toBe(1.5);
+    expect(await getMockVideoTime(page)).toBe(position);
+    await play(page);
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(90);
+});
+
+for (const action of ['skip', 'mute']) test(`removing a paused ${action} segment releases its playback effect`, async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage },
+        { enableSpeedUp: true, speedUpPlaybackRate: 4, muteSegments: true }, [[10, 90]], [action]);
+    const muted = () => page.locator('video').evaluate((v: HTMLVideoElement) => v.muted);
+    await page.locator('video').evaluate((v: HTMLVideoElement) => { v.playbackRate = 1.5; v.muted = false; });
+    await setMockVideoTime(page, 12, true); await play(page);
+    if (action === 'skip') await expect.poll(() => rate(page)).toBe(4);
+    else await expect.poll(muted).toBe(true);
+    await pauseMockVideo(page);
+    const position = await getMockVideoTime(page);
+    await routeMockSponsorSegments(extensionContext, defaultMockBvid, []);
+    await sendContentMessage({ message: 'refreshSegments' });
+    await expect.poll(async () => (await sendContentMessage({ message: 'isInfoFound', updating: true })).sponsorTimes?.length).toBe(0);
+    await expect.poll(() => rate(page)).toBe(1.5);
+    await expect.poll(muted).toBe(false);
+    expect(await getMockVideoTime(page)).toBe(position);
+    await expect(page.locator(first)).toHaveCount(0);
+});

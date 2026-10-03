@@ -13,7 +13,7 @@ import { contains, RuleEvent, RuleInput, RulePlan, RuleState } from './types';
 export function evaluateRules(previous: RuleState, input: RuleInput, event: RuleEvent): RulePlan {
     input = prepareSegmentPolicies(input);
     const visits = Object.fromEntries(Object.entries(previous.visits).map(([id, visit]) => [id, { ...visit }]));
-    const plan: RulePlan = { state: { time: input.time, visits, reviews: { ...previous.reviews } }, cards: {}, speed: [], mute: [], protectedBy: {},
+    const plan: RulePlan = { state: { time: input.time, visits, reviews: { ...previous.reviews } }, cards: {}, speed: [], mute: [], retain: { speed: false, mute: false }, protectedBy: {},
         trace: input.segments.flatMap(segment => segment.policyTrace ?? []) };
     updateVisits(plan, input, event);
     applyUserIntent(plan, input, event);

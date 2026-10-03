@@ -1,11 +1,10 @@
 import { PlaybackState, transitionPlayback } from '../src/content/skipRules/playback';
 import { primaryAction } from '../src/content/skipRules/intents';
-import { emptyRuleState, RulePlan } from '../src/content/skipRules/types';
+import { RulePlan } from '../src/content/skipRules/types';
 
 const playing = { paused: false, waiting: false };
-const idle: Pick<RulePlan, 'state' | 'speed' | 'mute'> = { state: emptyRuleState(), speed: [], mute: [] };
-const active = { state: { visits: { A: { number: 1, inside: true, entered: true, auto: true, start: 10, end: 20, phase: 'speeding' as const },
-    B: { number: 1, inside: true, entered: true, auto: true, start: 10, end: 20, phase: 'muted' as const } } }, speed: ['A'], mute: ['B'] };
+const idle: Pick<RulePlan, 'retain' | 'speed' | 'mute'> = { retain: { speed: false, mute: false }, speed: [], mute: [] };
+const active = { retain: { speed: true, mute: true }, speed: ['A'], mute: ['B'] };
 
 test.each([false, true])('shared playback restores the original speed and mute=%s after overlapping effects', muted => {
     const original: PlaybackState = { rate: 1.5, muted };

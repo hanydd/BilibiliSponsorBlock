@@ -1020,8 +1020,8 @@ function getStartTimes(
 }
 
 export function previewTime(time: number, unpause = true, segmentId?: string): void {
-    if (isRuleEngineEnabled()) { getRuleRuntime().preview(time, unpause, segmentId); return; }
     contentState.previewedSegment = true;
+    if (isRuleEngineEnabled()) { getRuleRuntime().preview(time, unpause, segmentId); return; }
     getVideo().currentTime = time;
 
     if (unpause && getVideo().paused) {

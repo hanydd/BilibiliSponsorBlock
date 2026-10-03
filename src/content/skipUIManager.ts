@@ -1,4 +1,4 @@
-import { isRuleEngineEnabled } from "./skipRules/bridge";
+import { getRuleRuntime, isRuleEngineEnabled } from "./skipRules/bridge";
 import type { RuleCard } from "./skipRules/types";
 import Config from "../config";
 import { isSkipSeek } from "./skipSeek";
@@ -35,9 +35,11 @@ function closeAdvanceSkipNotice(): void {
     contentState.advanceSkipNotices?.close();
 }
 
-function closeSkipNotices(includeAdvance = false): void {
+function closeSkipNotices(includeAdvance = false, dismiss = false): void {
     for (const notice of [...contentState.skipNotices]) {
-        if (includeAdvance || !notice.upcoming) notice.close();
+        if (!includeAdvance && notice.upcoming) continue;
+        if (dismiss && isRuleEngineEnabled()) getRuleRuntime().action({ kind: "dismiss", id: notice.segments[0].UUID });
+        notice.close();
     }
 }
 
@@ -128,7 +130,7 @@ export function registerSkipUIManager(): void {
         }
     });
 
-    app.commands.register("skip/closeNotices", ({ includeAdvance }) => closeSkipNotices(includeAdvance));
+    app.commands.register("skip/closeNotices", ({ includeAdvance, dismiss }) => closeSkipNotices(includeAdvance, dismiss));
     app.commands.register("skip/closeNoticesForSegments", ({ segments }) => closeSkipNoticesForSegments(segments));
     app.commands.register("skip/dontShowNoticeAgain", () => dontShowNoticeAgain());
 

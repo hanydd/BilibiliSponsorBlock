@@ -25,15 +25,18 @@ export function planSegmentPlayback(plan: RulePlan, segment: RuleSegment, input:
     if (!decision.available) { visit.phase = undefined; return; }
     const canRun = canAutomaticallyPlay(input);
     if (visit.inside && visit.phase !== 'completed') {
+        const method = playbackMethod(segment, input);
         if (!canRun && decision.automatic) plan.trace.push({ id, rule: RULES.paused, result: 'wait-for-playback' });
         if (decision.automatic && canRun) {
-            const method = playbackMethod(segment, input);
             visit.phase = method === 'mute' ? 'muted' : method === 'speed' ? 'speeding' : 'pending';
             plan.trace.push({ id, rule: RULES[method], result: method });
-        } else if (!canRun && decision.automatic && (visit.phase === 'speeding' || visit.phase === 'muted')) {
-            // Pausing the player retains presentation; it does not cancel this visit.
+        } else if (!canRun && decision.automatic &&
+            ((visit.phase === 'speeding' && method === 'speed') || (visit.phase === 'muted' && method === 'mute'))) {
+            // Retain only effects still allowed by the current segment and settings.
         } else if (visit.excluded === 'pause-speed' || visit.excluded === 'user-rate') visit.phase = 'speed-paused';
         else if (visit.phase !== 'muted' || event.kind !== 'skip') visit.phase = 'pending';
+        plan.retain.speed ||= visit.phase === 'speeding';
+        plan.retain.mute ||= visit.phase === 'muted';
         if (canRun && visit.phase === 'speeding') plan.speed.push(id);
         if (canRun && visit.phase === 'muted') plan.mute.push(id);
     } else if (!visit.inside && input.time < segment.start) {
@@ -51,23 +54,22 @@ export interface PlaybackState {
 }
 
 /** Shared by the video adapter and simulator. Only restore values still owned by us. */
-export function transitionPlayback(current: PlaybackState, plan: Pick<RulePlan, 'state' | 'speed' | 'mute'>,
+export function transitionPlayback(current: PlaybackState, plan: Pick<RulePlan, 'retain' | 'speed' | 'mute'>,
     input: Pick<RuleInput, 'paused' | 'waiting'>, configuredRate: number): PlaybackState {
     const next = { ...current };
     const running = canAutomaticallyPlay(input);
-    const phases = Object.values(plan.state.visits).map(visit => visit.phase);
     if (running && plan.speed.length) {
         const original = current.speed?.original ?? current.rate;
         next.speed = { original, target: speedUpTarget(original, configuredRate) };
         next.rate = next.speed.target;
-    } else if (running || !phases.includes('speeding')) {
+    } else if (running || !plan.retain.speed) {
         if (current.speed && current.rate === current.speed.target) next.rate = current.speed.original;
         next.speed = undefined;
     }
     if (running && plan.mute.length) {
         next.mute = current.mute ?? { original: current.muted };
         next.muted = true;
-    } else if (running || !phases.includes('muted')) {
+    } else if (running || !plan.retain.mute) {
         if (current.mute && current.muted) next.muted = current.mute.original;
         next.mute = undefined;
     }

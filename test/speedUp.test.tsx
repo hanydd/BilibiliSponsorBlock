@@ -672,13 +672,14 @@ describe("倍速控制按钮渲染", () => {
 });
 
 describe("合并片段 notice 去重", () => {
-    let createdNotices: Array<{ segments: Array<{ UUID: string }>; close: jest.Mock }>;
+    let createdNotices: Array<{ segments: Array<{ UUID: string }>; upcoming: boolean; close: jest.Mock }>;
 
     function makeSeg(uuid: string, start: number, end: number): SponsorTime {
         return { UUID: uuid, segment: [start, end], category: "sponsor", actionType: ActionType.Skip, source: 0 } as SponsorTime;
     }
 
     async function setup(): Promise<void> {
+        jest.resetModules();
         createdNotices = [];
         jest.doMock("../src/render/SkipNotice", () => ({
             __esModule: true,
@@ -783,6 +784,25 @@ describe("合并片段 notice 去重", () => {
         await emitNotice([segA]);
         await emitNotice([segB]);
         expect(createdNotices).toHaveLength(2);
+    });
+
+    test("explicit close cancels all non-preview visits; cleanup only removes presentation", async () => {
+        await setup();
+        const { installRuleRuntime } = await import("../src/content/skipRules/bridge");
+        const action = jest.fn();
+        installRuleRuntime({ mode: "rules", action } as never);
+        const { getContentApp } = await import("../src/content/app");
+        await emitNotice([makeSeg("active-a", 10, 20)]);
+        await emitNotice([makeSeg("active-b", 15, 25)]);
+        await emitNotice([makeSeg("upcoming", 30, 40)]);
+        createdNotices[2].upcoming = true;
+        await getContentApp().commands.execute("skip/closeNotices", { dismiss: true });
+        expect(action.mock.calls).toEqual([[{ kind: "dismiss", id: "active-a" }], [{ kind: "dismiss", id: "active-b" }]]);
+        expect(createdNotices.map(notice => notice.segments[0].UUID)).toEqual(["upcoming"]);
+        action.mockClear();
+        await getContentApp().commands.execute("skip/closeNotices", { includeAdvance: true });
+        expect(action).not.toHaveBeenCalled();
+        expect(createdNotices).toHaveLength(0);
     });
 
     test("closeNoticesForSegments 只关闭含对应 UUID 的 notice", async () => {

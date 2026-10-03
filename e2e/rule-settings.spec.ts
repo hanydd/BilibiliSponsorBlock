@@ -58,7 +58,7 @@ test('segment tab reuses category controls including both colors and restores th
     await expect(page.locator(`${rules} #sponsorSkipOption select`)).toBeVisible();
     await expect(page.locator('#sponsorSkipOption')).toHaveCount(1);
     await page.locator('#sponsorSkipOption select').selectOption('manualSkip');
-    await expect.poll(async () => (await readSyncStorage<Array<{ name: string; option: number }>>(extensionServiceWorker, 'categorySelections')).find(s => s.name === 'sponsor')?.option).toBe(1);
+    await expect.poll(async () => (await readSyncStorage<Array<{ name: string; option: number }>>(extensionServiceWorker, 'categorySelections'))?.find(s => s.name === 'sponsor')?.option).toBe(1);
     await page.locator('#sponsorColorOption input').fill('#123456');
     await page.locator('#sponsorPreviewColorOption input').fill('#654321');
     await expect.poll(async () => (await readSyncStorage<Record<string, { color: string }>>(extensionServiceWorker, 'barTypes'))?.sponsor?.color).toBe('#123456');
@@ -325,7 +325,7 @@ test('missing old padding is upgraded once without undoing a later user disable'
     await expect(page.locator('#paddingSkipOption select')).toHaveValue('autoSkip');
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'paddingCategoryMigrated')).toBe(true);
     await page.locator('#paddingSkipOption select').selectOption('disable');
-    await expect.poll(async () => (await readSyncStorage<Array<{ name: string; option: number }>>(extensionServiceWorker, 'categorySelections')).find(s => s.name === 'padding')?.option).toBe(-1);
+    await expect.poll(async () => (await readSyncStorage<Array<{ name: string; option: number }>>(extensionServiceWorker, 'categorySelections'))?.find(s => s.name === 'padding')?.option).toBe(-1);
     await page.reload();
     await expect(page.locator('#paddingSkipOption select')).toHaveValue('disable');
 });
@@ -522,7 +522,7 @@ test('all categories persist explicit disabling in both settings views', async (
     await open(page, extensionId);
     for (const category of categoryList) await page.locator(`#${category}SkipOption select`).selectOption('disable');
     await expect.poll(async () => (await readSyncStorage<Array<{ name: string; option: number }>>(extensionServiceWorker, 'categorySelections'))
-        .filter(selection => categoryList.includes(selection.name) && selection.option === -1).length).toBe(categoryList.length);
+        ?.filter(selection => categoryList.includes(selection.name) && selection.option === -1).length).toBe(categoryList.length);
     await page.locator('label[for="rule-engine-enabled"]').click();
     await expect(page.locator('#classic-behavior')).toBeVisible();
     for (const category of categoryList) await expect(page.locator(`#${category}SkipOption select`)).toHaveValue('disable');

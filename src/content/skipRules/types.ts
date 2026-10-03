@@ -85,6 +85,8 @@ export interface RulePlan {
     poi?: string;
     speed: string[];
     mute: string[];
+    /** Existing effects still valid while playback is paused or buffering. Does not start new effects. */
+    retain: { speed: boolean; mute: boolean };
     /** Derived for this evaluation, never copied into another segment's own intent. */
     protectedBy: Record<string, readonly string[]>;
     trace: RuleTrace[];

@@ -851,9 +851,11 @@ export function openSubmissionMenu(): void {
 
 export function previewRecentSegment(): void {
     if (contentState.sponsorTimesSubmitting !== undefined && contentState.sponsorTimesSubmitting.length > 0) {
+        const segment = contentState.sponsorTimesSubmitting[contentState.sponsorTimesSubmitting.length - 1];
         void getContentApp().commands.execute("skip/previewTime", {
-            time: contentState.sponsorTimesSubmitting[contentState.sponsorTimesSubmitting.length - 1].segment[0] - defaultPreviewTime,
+            time: segment.segment[0] - defaultPreviewTime,
             unpause: true,
+            segmentId: segment.UUID,
         });
 
         const { submissionNotice } = getUIState();

@@ -6,12 +6,14 @@ export function updateVisits(plan: RulePlan, input: RuleInput, event: RuleEvent)
     const visits = plan.state.visits;
     const known = new Set(input.segments.map(segment => segment.id));
     for (const [id, visit] of Object.entries(visits)) {
-        if (!known.has(id) && !contains(visit, input.time)) {
+        if (known.has(id)) continue;
+        // Missing data cannot own playback effects. Keep same-pass user intent if it reappears.
+        visit.phase = undefined;
+        if (!contains(visit, input.time)) {
             visit.inside = false;
             visit.entered = false;
             visit.excluded = undefined;
             visit.overlapOverride = undefined;
-            visit.phase = undefined;
         }
     }
     const applied = event.kind === 'applied' ? new Set(event.ids) : new Set<string>();

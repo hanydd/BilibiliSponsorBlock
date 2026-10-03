@@ -173,7 +173,7 @@ export interface ContentCommandMap {
         currentTime?: number;
         includeNonIntersectingSegments?: boolean;
     }, void>;
-    "skip/closeNotices": ContentCommandDefinition<{ includeAdvance?: boolean }, void>;
+    "skip/closeNotices": ContentCommandDefinition<{ includeAdvance?: boolean; dismiss?: boolean }, void>;
     "skip/closeNoticesForSegments": ContentCommandDefinition<{ segments: SponsorTime[] }, void>;
     "skip/dontShowNoticeAgain": ContentCommandDefinition<void, void>;
     "skip/checkStartSponsors": ContentCommandDefinition<void, void>;
