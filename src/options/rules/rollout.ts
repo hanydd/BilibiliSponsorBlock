@@ -34,6 +34,7 @@ export function setupRuleRollout(updateMode: () => void, openBehavior: () => voi
         changeMode(true);
         openBehavior();
     });
+    document.getElementById('rules-invitation-dismiss').addEventListener('click', () => { closeWelcome(); refresh(); });
     document.getElementById('rules-invitation-close').addEventListener('click', () => {
         Config.config.skipRulesNotice = 'invitation-dismissed';
         refresh();

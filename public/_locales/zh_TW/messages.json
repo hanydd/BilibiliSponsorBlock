@@ -2706,5 +2706,11 @@
     },
     "rules_startUsing": {
         "message": "查看規則設定"
+    },
+    "rules_notInterested": {
+        "message": "不感興趣"
+    },
+    "rules_declineWelcome": {
+        "message": "不感興趣，使用經典模式"
     }
 }

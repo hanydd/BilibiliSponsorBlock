@@ -1058,7 +1058,10 @@
         <h3 id="rules-invitation-title">__MSG_rules_invitationTitle__</h3>
         <p>__MSG_rules_invitationDescription__</p>
         <p class="rules-onboarding-note">__MSG_rules_invitationLocation__</p>
-        <button id="rules-invitation-enable" class="option-button" type="button">__MSG_rules_tryEngine__</button>
+        <div class="rules-onboarding-actions">
+            <button id="rules-invitation-dismiss" class="option-button rules-onboarding-secondary" type="button">__MSG_rules_notInterested__</button>
+            <button id="rules-invitation-enable" class="option-button" type="button">__MSG_rules_tryEngine__</button>
+        </div>
     </aside>
     <dialog id="rules-welcome" class="rules-onboarding" aria-labelledby="rules-welcome-title" aria-describedby="rules-welcome-description">
         <button id="rules-welcome-close" class="rules-onboarding-close" type="button" aria-label="__MSG_close__">×</button>
@@ -1072,7 +1075,7 @@
             <li>__MSG_rules_welcomeRestore__</li>
         </ul>
         <div class="rules-onboarding-actions">
-            <button id="rules-welcome-classic" class="option-button rules-onboarding-secondary" type="button">__MSG_rules_useClassic__</button>
+            <button id="rules-welcome-classic" class="option-button rules-onboarding-secondary" type="button">__MSG_rules_declineWelcome__</button>
             <button id="rules-welcome-start" class="option-button" type="button" autofocus>__MSG_rules_startUsing__</button>
         </div>
     </dialog>

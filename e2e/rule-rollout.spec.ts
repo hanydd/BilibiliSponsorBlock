@@ -101,6 +101,25 @@ test('turning off feature announcements immediately hides the invitation in anot
     await expect(page.locator('#classic-behavior')).toBeVisible();
 });
 
+test('not interested suppresses all onboarding after reload and a later intentional opt-in', async ({ extensionContext, extensionPage: page, extensionId, extensionServiceWorker: worker }) => {
+    await upgrade(worker, false);
+    await page.goto(options(extensionId));
+    await page.locator('#rules-invitation-dismiss').click();
+    await expect(page.locator('#rules-invitation')).toBeHidden();
+    await expect.poll(() => readSyncStorage(worker, 'skipRulesNotice')).toBe('welcome-dismissed');
+    await page.reload();
+    await expect(page.locator('#rules-invitation')).toBeHidden();
+    await page.locator('[data-for="experiment"]').click();
+    await page.locator('label[for="rule-engine-enabled"]').click();
+    await expect.poll(() => readSyncStorage(worker, 'skipEngineMode')).toBe('rules');
+    await expect(page.locator('#rules-welcome')).toBeHidden();
+    const other = await extensionContext.newPage();
+    await other.goto(options(extensionId));
+    await expect(other.locator('#skip-rules')).toBeVisible();
+    await expect(other.locator('#rules-welcome')).toBeHidden();
+    await other.close();
+});
+
 for (const darkMode of [true, false]) test(`onboarding fits narrow and wide settings pages in ${darkMode ? 'dark' : 'light'} mode`, async ({ extensionPage: page, extensionId, extensionServiceWorker: worker }, testInfo) => {
     await writeSyncStorage(worker, { darkMode });
     for (const automatic of [true, false]) {
