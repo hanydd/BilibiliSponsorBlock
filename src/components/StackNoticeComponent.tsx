@@ -14,10 +14,12 @@ interface StackNoticeProps {
     firstColumn: React.ReactElement;
     bottomRow: React.ReactElement[];
     maxCountdownTime: () => number;
+    noticeClock?: NoticeClock;
     upcomingStart?: number;
     playbackEnd?: number;
     dismissalPaused?: boolean;
     closeListener: () => void;
+    onDismiss?: () => void;
     onInteractionChange: () => void;
 }
 
@@ -29,7 +31,8 @@ interface StackNoticeState {
 /** Presentation and lifetime clock for B1 cards; generic draggable notices are separate. */
 export default class StackNoticeComponent extends React.Component<StackNoticeProps, StackNoticeState> {
     private parentRef = React.createRef<HTMLDivElement>();
-    private clock: NoticeClock;
+    private localClock: NoticeClock;
+    private get clock(): NoticeClock { return this.props.noticeClock ?? this.localClock; }
     private interval: ReturnType<typeof setInterval>;
     private unregister: () => void;
     private stackPaused = false;
@@ -40,7 +43,7 @@ export default class StackNoticeComponent extends React.Component<StackNoticePro
 
     constructor(props: StackNoticeProps) {
         super(props);
-        this.clock = new NoticeClock(props.maxCountdownTime() * 1000);
+        this.localClock = new NoticeClock(props.maxCountdownTime() * 1000);
         this.state = { seconds: Math.ceil(props.maxCountdownTime()), mode: "running" };
     }
 
@@ -65,7 +68,7 @@ export default class StackNoticeComponent extends React.Component<StackNoticePro
     }
 
     componentDidUpdate(previous: StackNoticeProps): void {
-        if (previous.dismissalPaused !== this.props.dismissalPaused || previous.playbackEnd !== this.props.playbackEnd) {
+        if (previous.noticeClock !== this.props.noticeClock || previous.dismissalPaused !== this.props.dismissalPaused || previous.playbackEnd !== this.props.playbackEnd) {
             this.clock.setPaused(this.stackPaused || this.stopped || !!this.props.dismissalPaused || this.props.playbackEnd !== undefined);
             this.tick();
         }
@@ -96,7 +99,8 @@ export default class StackNoticeComponent extends React.Component<StackNoticePro
 
     resetCountdown(): void {
         this.stopped = false;
-        this.clock.reset(this.props.maxCountdownTime() * 1000);
+        // A rule completion keeps its lifetime across presentation updates.
+        if (!this.props.noticeClock) this.clock.reset(this.props.maxCountdownTime() * 1000);
         this.clock.setPaused(this.stackPaused || !!this.props.dismissalPaused || this.props.playbackEnd !== undefined);
         this.tick();
     }
@@ -113,6 +117,7 @@ export default class StackNoticeComponent extends React.Component<StackNoticePro
         if (this.closing) return;
         this.closing = true;
         clearInterval(this.interval);
+        this.clock.setPaused(false);
         this.props.closeListener();
     }
 
@@ -150,7 +155,7 @@ export default class StackNoticeComponent extends React.Component<StackNoticePro
                             disabled={this.props.upcomingStart !== undefined}
                             onClick={() => this.toggleManualPause()}>{this.getCountdownElements()}</button>
                         <button type="button" className="sponsorSkipNoticeButton sponsorSkipNoticeCloseButton sponsorSkipNoticeRightButton"
-                            aria-label={chrome.i18n.getMessage("close") || "关闭"} onClick={() => this.close()}>
+                            aria-label={chrome.i18n.getMessage("close") || "关闭"} onClick={() => { this.props.onDismiss?.(); this.close(); }}>
                             <img src={chrome.runtime.getURL("icons/close.png")} alt="" />
                         </button>
                     </div>

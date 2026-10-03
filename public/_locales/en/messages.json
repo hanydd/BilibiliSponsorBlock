@@ -1,4 +1,34 @@
 {
+    "0": {
+        "message": "连接超时。请检查您的网络连接。如果您的网络运行正常，则可能是服务器宕机。"
+    },
+    "400": {
+        "message": "此请求无效"
+    },
+    "409": {
+        "message": "已经提交过了"
+    },
+    "502": {
+        "message": "服务器似乎已过载。请稍后再试。"
+    },
+    "skipResumeAction": {
+        "message": "暂停时进入片段，恢复播放后"
+    },
+    "resumeFollowPolicy": {
+        "message": "按片段设置处理"
+    },
+    "resumeManual": {
+        "message": "改为手动跳过"
+    },
+    "speedUpResumeAction": {
+        "message": "快进过程中暂停，恢复播放后"
+    },
+    "resumeSpeedContinue": {
+        "message": "继续快进"
+    },
+    "resumeSpeedManual": {
+        "message": "取消本次快进"
+    },
     "expandSkipNotices": {
         "message": "展开堆叠的提示"
     },
@@ -12,12 +42,6 @@
     "Description": {
         "message": "恰饭？桌子都给你掀了(/= _ =)/~┴┴ 带你精准空降到赞助广告结束或者高能时刻，自动跳过视频中的赞助广告、订阅提醒等片段。你也可以亲自标记视频中的广告并上传，所有人都会从您的贡献中受益。",
         "description": "Description of the extension."
-    },
-    "400": {
-        "message": "此请求无效"
-    },
-    "409": {
-        "message": "已经提交过了"
     },
     "confirm": {
         "message": "确定"
@@ -325,9 +349,6 @@
     "keybindDescription": {
         "message": "请按下想绑定的按键。如果您想使用组合快捷键，请勾选左侧的选项。"
     },
-    "0": {
-        "message": "连接超时。请检查您的网络连接。如果您的网络运行正常，则可能是服务器宕机。"
-    },
     "disableSkipping": {
         "message": "已启用跳过"
     },
@@ -337,9 +358,6 @@
     "yourWork": {
         "message": "您的信息",
         "description": "Used to describe the section that will show you the statistics from your submissions."
-    },
-    "502": {
-        "message": "服务器似乎已过载。请稍后再试。"
     },
     "errorCode": {
         "message": "错误代码： "
@@ -403,25 +421,25 @@
         "message": "在跳过片段时播放音频提醒。如果禁用（或禁用自动跳过），则不会播放声音。"
     },
     "customSkipSound": {
-        "message": "Custom Skip Sound"
+        "message": "自定义跳过提示音"
     },
     "customSkipSoundDescription": {
-        "message": "Play your own sound file when a segment is auto-skipped, instead of the default beep. Select an audio file up to 2MB and 10 seconds."
+        "message": "自动跳过片段时播放你自己的音效文件，代替默认提示音。请选择不超过 2MB 且不超过 10 秒的音频文件。"
     },
     "customSkipSoundChoose": {
-        "message": "Choose Sound File"
+        "message": "选择音效文件"
     },
     "customSkipSoundPlay": {
-        "message": "Preview"
+        "message": "试听"
     },
     "customSkipSoundStop": {
-        "message": "Stop"
+        "message": "停止"
     },
     "customSkipSoundReset": {
-        "message": "Reset to Default"
+        "message": "恢复默认"
     },
     "customSkipSoundEnabled": {
-        "message": "Custom sound: $SOUND_NAME$",
+        "message": "自定义音效：$SOUND_NAME$",
         "placeholders": {
             "sound_name": {
                 "content": "$1"
@@ -429,13 +447,13 @@
         }
     },
     "customSkipSoundDefault": {
-        "message": "Using default sound"
+        "message": "当前使用默认提示音"
     },
     "customSkipSoundTooLarge": {
-        "message": "The selected file is too large. Please choose an audio file of 2MB or less."
+        "message": "所选文件过大，请选择不超过 2MB 的音频文件。"
     },
     "customSkipSoundTooLong": {
-        "message": "The selected sound is longer than $MAX_SECONDS$ seconds. Please choose a shorter file.",
+        "message": "所选音效超过 $MAX_SECONDS$ 秒，请更换更短的文件。",
         "placeholders": {
             "max_seconds": {
                 "content": "$1"
@@ -443,19 +461,19 @@
         }
     },
     "customSkipSoundInvalid": {
-        "message": "The selected file could not be decoded as audio. Please choose a different file."
+        "message": "所选文件无法作为音频解码，请更换文件。"
     },
     "skipSoundVolume": {
-        "message": "Skip Sound Volume"
+        "message": "提示音音量"
     },
     "skipSoundVolumeDescription": {
-        "message": "Playback volume of the skip notification sound. The preview uses the same volume as the actual skip."
+        "message": "跳过提示音的播放音量（0-100%）。试听与实际跳过时使用相同音量。"
     },
     "skipSoundFade": {
-        "message": "Skip Sound Fade-Out"
+        "message": "提示音淡出"
     },
     "skipSoundFadeDescription": {
-        "message": "Gradually fade the skip sound to silence after it reaches the chosen progress of playback (e.g. 75% fades out the last quarter). 100% disables the fade."
+        "message": "音效播放到指定进度后逐渐淡出到静音（如 75% 表示最后 25% 淡出）。100% 表示不淡出。试听与实际跳过时使用相同淡出。"
     },
     "showTimeWithSkips": {
         "message": "显示去除可跳片段后的视频时长"
@@ -1636,5 +1654,1007 @@
     },
     "copyPageLogsFailed": {
         "message": "复制页面日志失败"
+    },
+    "previewIncludeOtherSegments": {
+        "message": "编辑预览时包含其他片段"
+    },
+    "rules_title": {
+        "message": "新版片段规则引擎（测试版）"
+    },
+    "rules_enable": {
+        "message": "启用新版片段规则引擎（测试版）"
+    },
+    "rules_enableDescription": {
+        "message": "启用后将使用新的片段处理逻辑和设置页面。已有设置会保留，可随时切回经典模式。"
+    },
+    "rules_inactive": {
+        "message": "规则引擎未启用。以下设置仍会保存，对照与测试展示规则引擎启用后的行为。"
+    },
+    "rules_shadow": {
+        "message": "当前为仅对照模式，不接管视频播放。"
+    },
+    "rules_active": {
+        "message": "已启用"
+    },
+    "rules_tab_segments": {
+        "message": "片段设置"
+    },
+    "rules_tab_matrix": {
+        "message": "播放行为"
+    },
+    "rules_tab_simulator": {
+        "message": "操作测试"
+    },
+    "rules_tab_rules": {
+        "message": "规则说明"
+    },
+    "rules_segmentDescription": {
+        "message": "设置各类片段的处理方式及进度条颜色。切换新旧引擎时保留这些设置。"
+    },
+    "rules_previewSwitch": {
+        "message": "提前显示提醒弹窗"
+    },
+    "rules_previewSeconds": {
+        "message": "预告提前时间（秒）"
+    },
+    "rules_duration": {
+        "message": "跳过后提醒时长（秒）"
+    },
+    "rules_showCards": {
+        "message": "显示提醒弹窗"
+    },
+    "rules_entry": {
+        "message": "拖入片段时的处理"
+    },
+    "rules_entry_follow": {
+        "message": "按片段设置处理"
+    },
+    "rules_entry_ask": {
+        "message": "不自动处理"
+    },
+    "rules_exampleMode": {
+        "message": "示例片段处理方式"
+    },
+    "rules_exampleDescription": {
+        "message": "这里选择的是示例，不会修改真实设置。测试快进时，示例会临时启用快进；实际播放需在“片段设置”中开启。"
+    },
+    "rules_resumeNote": {
+        "message": "恢复偏好仅影响当前经过；明确点击跳过仍立即执行，缓冲结束不受影响。"
+    },
+    "rules_matrixTitle": {
+        "message": "状态与操作"
+    },
+    "rules_matrixHint": {
+        "message": "修改上方设置后，下方对照结果会立即更新。点击格子查看处理结果和生效规则，也可展开“修改真实设置”。"
+    },
+    "rules_stateAxis": {
+        "message": "本次状态"
+    },
+    "rules_operationAxis": {
+        "message": "视频操作"
+    },
+    "rules_notApplicable": {
+        "message": "此状态不适用该操作"
+    },
+    "rules_matrixNote": {
+        "message": "默认待处理表示尚未执行判断。段内拖动保留本次状态；离开后重新进入将重新判断。"
+    },
+    "rules_result": {
+        "message": "处理结果"
+    },
+    "rules_video": {
+        "message": "视频"
+    },
+    "rules_card": {
+        "message": "卡片"
+    },
+    "rules_countdown": {
+        "message": "倒计时"
+    },
+    "rules_matched": {
+        "message": "生效规则"
+    },
+    "rules_continueTest": {
+        "message": "在操作测试中继续"
+    },
+    "rules_noCards": {
+        "message": "无操作卡片"
+    },
+    "rules_noClock": {
+        "message": "不计时"
+    },
+    "rules_mediaStart": {
+        "message": "视频时间 · 至开头"
+    },
+    "rules_mediaEnd": {
+        "message": "视频时间 · 至结尾"
+    },
+    "rules_displayTime": {
+        "message": "实际显示时间"
+    },
+    "rules_seconds": {
+        "message": "$1 秒"
+    },
+    "rules_jumpTo": {
+        "message": "跳至 $1 秒"
+    },
+    "rules_returnTo": {
+        "message": "回到 $1 秒"
+    },
+    "rules_playing": {
+        "message": "继续播放"
+    },
+    "rules_paused": {
+        "message": "视频暂停"
+    },
+    "rules_buffering": {
+        "message": "等待缓冲"
+    },
+    "rules_fastRate": {
+        "message": "$1 倍快进"
+    },
+    "rules_keepRate": {
+        "message": "保持 $1 倍"
+    },
+    "rules_simulationDescription": {
+        "message": "模拟播放、拖动及卡片操作，查看连续操作的处理结果。模拟操作不修改分类设置或影响视频。"
+    },
+    "rules_reset": {
+        "message": "重置测试"
+    },
+    "rules_preset": {
+        "message": "预设场景"
+    },
+    "rules_loadPreset": {
+        "message": "载入场景"
+    },
+    "rules_preset_pause": {
+        "message": "暂停后拖入片段"
+    },
+    "rules_preset_pauseSpeed": {
+        "message": "快进暂停后恢复"
+    },
+    "rules_preset_rate": {
+        "message": "快进时调整倍速"
+    },
+    "rules_preset_close": {
+        "message": "关闭提醒后继续播放"
+    },
+    "rules_preset_adjacent": {
+        "message": "连续快进片段"
+    },
+    "rules_preset_merge": {
+        "message": "合并跳过相连片段"
+    },
+    "rules_layout": {
+        "message": "片段关系"
+    },
+    "rules_secondMode": {
+        "message": "B 的处理方式"
+    },
+    "rules_fail": {
+        "message": "模拟跳转失败"
+    },
+    "rules_failed": {
+        "message": "跳转未成功，片段未标记为已完成。"
+    },
+    "rules_run": {
+        "message": "连续播放"
+    },
+    "rules_stop": {
+        "message": "停止测试"
+    },
+    "rules_advance": {
+        "message": "播放 1 秒"
+    },
+    "rules_wall": {
+        "message": "显示计时前进 1 秒"
+    },
+    "rules_timeline": {
+        "message": "视频进度"
+    },
+    "rules_rate": {
+        "message": "播放器倍速"
+    },
+    "rules_ownedRate": {
+        "message": "插件控制倍速"
+    },
+    "rules_userRate": {
+        "message": "播放器控制倍速"
+    },
+    "rules_cardsEmpty": {
+        "message": "当前没有操作卡片"
+    },
+    "rules_action_skip": {
+        "message": "跳过"
+    },
+    "rules_action_cancel": {
+        "message": "取消本次处理"
+    },
+    "rules_action_allow": {
+        "message": "恢复处理"
+    },
+    "rules_action_undo": {
+        "message": "撤销"
+    },
+    "rules_action_close": {
+        "message": "关闭卡片"
+    },
+    "rules_action_pause": {
+        "message": "暂停视频"
+    },
+    "rules_action_resume": {
+        "message": "恢复播放"
+    },
+    "rules_action_buffer": {
+        "message": "进入缓冲"
+    },
+    "rules_action_playing": {
+        "message": "缓冲结束"
+    },
+    "rules_action_data": {
+        "message": "刷新片段数据"
+    },
+    "rules_history": {
+        "message": "操作记录"
+    },
+    "rules_historyHint": {
+        "message": "保留最近 30 条，选择记录查看生效规则。"
+    },
+    "rules_historyEmpty": {
+        "message": "操作后显示处理结果和生效规则。"
+    },
+    "rules_initial": {
+        "message": "初始状态"
+    },
+    "rules_boundary": {
+        "message": "播放进度更新"
+    },
+    "rules_timingHelp": {
+        "message": "提醒计时说明"
+    },
+    "rules_timingDescription": {
+        "message": "悬停时暂停提醒的隐藏计时；媒体倒计时仍随视频进度变化。视频暂停不影响已完成提醒的显示计时。"
+    },
+    "rules_rulesDescription": {
+        "message": "查看规则的适用条件和处理结果。点击“相关设置”可直接前往修改；固定规则不能配置。"
+    },
+    "rules_search": {
+        "message": "搜索规则"
+    },
+    "rules_searchPlaceholder": {
+        "message": "搜索名称、说明或设置"
+    },
+    "rules_filter": {
+        "message": "规则类型"
+    },
+    "rules_filter_all": {
+        "message": "全部规则"
+    },
+    "rules_filter_configurable": {
+        "message": "可配置规则"
+    },
+    "rules_filter_fixed": {
+        "message": "固定规则"
+    },
+    "rules_ruleCount": {
+        "message": "$1 条规则"
+    },
+    "rules_emptyRules": {
+        "message": "未找到匹配的规则。"
+    },
+    "rules_relatedSettings": {
+        "message": "相关设置"
+    },
+    "rules_fixed": {
+        "message": "固定行为，无需配置。"
+    },
+    "rules_configurable": {
+        "message": "对应现有设置"
+    },
+    "rules_identifier": {
+        "message": "规则标识"
+    },
+    "rules_returnMatrix": {
+        "message": "返回播放行为"
+    },
+    "rules_returnTest": {
+        "message": "返回操作测试"
+    },
+    "rules_scope": {
+        "message": "适用范围"
+    },
+    "rules_scopeDescription": {
+        "message": "操作测试使用示例片段，不连接真实视频。可测试跳过、快进和静音；精彩点和编辑预览未在模拟器中展示。快进使用全局设置，暂不支持逐类独立快进。"
+    },
+    "rules_phase_preview": {
+        "message": "准备处理"
+    },
+    "rules_phase_cancelledPreview": {
+        "message": "已取消预告"
+    },
+    "rules_phase_pending": {
+        "message": "等待跳过"
+    },
+    "rules_phase_waiting": {
+        "message": "等待手动跳过"
+    },
+    "rules_phase_speeding": {
+        "message": "正在快进"
+    },
+    "rules_phase_custom": {
+        "message": "按用户倍速播放"
+    },
+    "rules_phase_cancelled": {
+        "message": "本次已取消"
+    },
+    "rules_phase_undo": {
+        "message": "正在回看"
+    },
+    "rules_phase_completed": {
+        "message": "已完成"
+    },
+    "rules_phase_muted": {
+        "message": "已静音"
+    },
+    "rules_mode_auto": {
+        "message": "自动跳过"
+    },
+    "rules_mode_manual": {
+        "message": "手动跳过"
+    },
+    "rules_mode_fast": {
+        "message": "快进"
+    },
+    "rules_mode_mark": {
+        "message": "仅展示标记"
+    },
+    "rules_mode_ignore": {
+        "message": "忽略"
+    },
+    "rules_group_movement": {
+        "message": "进入与移动"
+    },
+    "rules_group_playback": {
+        "message": "暂停与恢复"
+    },
+    "rules_group_exit": {
+        "message": "离开与跨越"
+    },
+    "rules_group_controls": {
+        "message": "卡片与倍速"
+    },
+    "rules_state_preview": {
+        "message": "片段开始前"
+    },
+    "rules_state_ready": {
+        "message": "默认待处理"
+    },
+    "rules_state_active": {
+        "message": "插件正在快进"
+    },
+    "rules_state_custom": {
+        "message": "用户已调整倍速"
+    },
+    "rules_state_cancelled": {
+        "message": "本次已取消"
+    },
+    "rules_state_undo": {
+        "message": "撤销后回看"
+    },
+    "rules_state_completed": {
+        "message": "处理已完成"
+    },
+    "rules_state_closed": {
+        "message": "用户已关闭卡片"
+    },
+    "rules_positionBefore": {
+        "message": "开始前 8 秒"
+    },
+    "rules_positionAfter": {
+        "message": "结束后 20 秒"
+    },
+    "rules_positionStart": {
+        "message": "片段开头 10 秒"
+    },
+    "rules_positionInside": {
+        "message": "段内 15 秒"
+    },
+    "rules_stage_eligibility": {
+        "message": "执行资格"
+    },
+    "rules_stage_visit": {
+        "message": "本次经过"
+    },
+    "rules_stage_intent": {
+        "message": "用户意图"
+    },
+    "rules_stage_playback": {
+        "message": "播放动作"
+    },
+    "rules_stage_card": {
+        "message": "卡片与时钟"
+    },
+    "rules_saved": {
+        "message": "设置自动保存"
+    },
+    "rules_op_natural": {
+        "message": "自然播放"
+    },
+    "rules_hint_natural": {
+        "message": "在当前位置继续播放；未进入时到达片段开头。"
+    },
+    "rules_op_front": {
+        "message": "从前方拖入"
+    },
+    "rules_hint_front": {
+        "message": "从片段开始前拖入。已处理过的片段会开启新一次经过。"
+    },
+    "rules_op_back": {
+        "message": "从后方拖回"
+    },
+    "rules_hint_back": {
+        "message": "从片段结束后拖回内部；同样视为进入。"
+    },
+    "rules_op_within": {
+        "message": "段内拖动"
+    },
+    "rules_hint_within": {
+        "message": "起点和终点都在当前片段内，保留本次意图。"
+    },
+    "rules_op_keyboard": {
+        "message": "方向键进入"
+    },
+    "rules_hint_keyboard": {
+        "message": "视频方向键快进进入，按位置变化判断，与拖入相同。"
+    },
+    "rules_op_pause": {
+        "message": "暂停视频"
+    },
+    "rules_hint_pause": {
+        "message": "暂停期间不启动自动跳转或快进。"
+    },
+    "rules_op_resume": {
+        "message": "恢复播放"
+    },
+    "rules_hint_resume": {
+        "message": "只判断最终位置，不执行暂停期间积累的操作。"
+    },
+    "rules_op_buffer": {
+        "message": "视频缓冲"
+    },
+    "rules_hint_buffer": {
+        "message": "等待视频恢复；媒体时钟停止。"
+    },
+    "rules_op_data": {
+        "message": "刷新片段数据"
+    },
+    "rules_hint_data": {
+        "message": "边界不变时，保留本次取消、回看或关闭状态。"
+    },
+    "rules_op_exitNatural": {
+        "message": "播放到结尾"
+    },
+    "rules_hint_exitNatural": {
+        "message": "快进完成时保留完成卡片；自然看完不伪装成跳过。"
+    },
+    "rules_op_exitSeek": {
+        "message": "向后拖出"
+    },
+    "rules_hint_exitSeek": {
+        "message": "直接拖到片段后方，结束本次经过，不记为处理完成。"
+    },
+    "rules_op_keyboardExit": {
+        "message": "方向键移出"
+    },
+    "rules_hint_keyboardExit": {
+        "message": "键盘快进使位置离开片段，与直接拖出一样，不算插件完成。"
+    },
+    "rules_op_exitBack": {
+        "message": "向前拖出"
+    },
+    "rules_hint_exitBack": {
+        "message": "拖回片段前方，离开当前经过；再次进入可重新处理。"
+    },
+    "rules_op_cross": {
+        "message": "一次跨过整段"
+    },
+    "rules_hint_cross": {
+        "message": "用户从片段外直接跳到另一侧，不算插件跳过。"
+    },
+    "rules_op_skip": {
+        "message": "点击跳过"
+    },
+    "rules_hint_skip": {
+        "message": "明确跳到选中片段的结尾；暂停时点击仍可跳转。"
+    },
+    "rules_op_cancel": {
+        "message": "取消本次处理"
+    },
+    "rules_hint_cancel": {
+        "message": "保留卡片，停止自动处理；离开后再进入才重置。"
+    },
+    "rules_op_close": {
+        "message": "关闭卡片"
+    },
+    "rules_hint_close": {
+        "message": "本次不再展示卡片或自动处理。"
+    },
+    "rules_op_undo": {
+        "message": "撤销 / 回看"
+    },
+    "rules_hint_undo": {
+        "message": "仅在处理完成时提供，回到该片段开头。"
+    },
+    "rules_op_rate": {
+        "message": "改成 2×"
+    },
+    "rules_hint_rate": {
+        "message": "使用播放器菜单修改倍速；插件不抢回快进速率。"
+    },
+    "rules_op_allow": {
+        "message": "恢复自动处理"
+    },
+    "rules_hint_allow": {
+        "message": "清除取消状态；自动跳过和快进遵循原来的处理方式。"
+    },
+    "rules_rule_SOURCE_MUSIC_name": {
+        "message": "音乐视频自动策略"
+    },
+    "rules_rule_SOURCE_MUSIC_description": {
+        "message": "符合现有音乐视频设置时覆盖原策略。"
+    },
+    "rules_rule_SOURCE_FULL_VIDEO_name": {
+        "message": "全片标签改为手动"
+    },
+    "rules_rule_SOURCE_FULL_VIDEO_description": {
+        "message": "按现有优先级，在音乐策略之后判断。"
+    },
+    "rules_rule_SOURCE_EXCLUDED_name": {
+        "message": "排除隐藏或不支持的来源"
+    },
+    "rules_rule_SOURCE_EXCLUDED_description": {
+        "message": "隐藏片段和外部来源不参与自动处理。"
+    },
+    "rules_rule_POLICY_INVALID_name": {
+        "message": "无效区间不参与处理"
+    },
+    "rules_rule_POLICY_INVALID_description": {
+        "message": "先过滤非法时间范围；精彩点与全片标签由专用路径处理。"
+    },
+    "rules_rule_USER_EXCLUDED_name": {
+        "message": "用户关闭，本次不再处理"
+    },
+    "rules_rule_USER_EXCLUDED_description": {
+        "message": "只排除当前经过；离开后重新进入再判断。"
+    },
+    "rules_rule_EDIT_TARGET_name": {
+        "message": "编辑时是否包含其他片段"
+    },
+    "rules_rule_EDIT_TARGET_description": {
+        "message": "由现有编辑预览开关决定。"
+    },
+    "rules_rule_EDIT_PREVIEW_name": {
+        "message": "草稿只按明确预览执行"
+    },
+    "rules_rule_EDIT_PREVIEW_description": {
+        "message": "未选择预览的草稿不自动处理。"
+    },
+    "rules_rule_POLICY_DISABLED_name": {
+        "message": "检查禁用、白名单与展示策略"
+    },
+    "rules_rule_POLICY_DISABLED_description": {
+        "message": "禁用、仅标记和忽略都不产生自动播放动作。"
+    },
+    "rules_rule_USER_CANCELLED_name": {
+        "message": "保留本次取消或回看意图"
+    },
+    "rules_rule_USER_CANCELLED_description": {
+        "message": "段内移动、暂停或刷新都不会自动清除。"
+    },
+    "rules_rule_VISIT_MANUAL_name": {
+        "message": "本次等待明确操作"
+    },
+    "rules_rule_VISIT_MANUAL_description": {
+        "message": "拖入未授权、编辑结束或已经完成时，不立即重新自动处理。"
+    },
+    "rules_rule_POLICY_AUTO_name": {
+        "message": "本次允许自动处理"
+    },
+    "rules_rule_POLICY_AUTO_description": {
+        "message": "后续仍需满足暂停限制，再决定跳转或快进。"
+    },
+    "rules_rule_POLICY_MANUAL_name": {
+        "message": "手动片段等待点击"
+    },
+    "rules_rule_POLICY_MANUAL_description": {
+        "message": "不自动跳转或提速。"
+    },
+    "rules_rule_ENTER_OUTSIDE_IN_name": {
+        "message": "从片段外进入，判断本次权限"
+    },
+    "rules_rule_ENTER_OUTSIDE_IN_description": {
+        "message": "前方、后方进入都遵守同一个拖入设置。"
+    },
+    "rules_rule_ENTER_INSIDE_IN_name": {
+        "message": "段内移动保留本次状态"
+    },
+    "rules_rule_ENTER_INSIDE_IN_description": {
+        "message": "不因为段内 seek 重新开始已取消的处理。"
+    },
+    "rules_rule_EXIT_SEGMENT_name": {
+        "message": "离开结束本次经过"
+    },
+    "rules_rule_EXIT_SEGMENT_description": {
+        "message": "快进自然完成会保留完成卡片；直接拖出不记为处理完成。"
+    },
+    "rules_rule_RESUME_ENTRY_name": {
+        "message": "暂停时进入片段后的处理"
+    },
+    "rules_rule_RESUME_ENTRY_description": {
+        "message": "恢复播放后可按片段设置处理，或等待手动跳过。只影响本次经过。"
+    },
+    "rules_rule_RESUME_SPEED_name": {
+        "message": "快进暂停后的处理"
+    },
+    "rules_rule_RESUME_SPEED_description": {
+        "message": "恢复播放后可继续快进，或恢复原倍速并保留卡片。缓冲结束不触发此规则。"
+    },
+    "rules_rule_PLAY_PAUSED_name": {
+        "message": "暂停或缓冲时等待"
+    },
+    "rules_rule_PLAY_PAUSED_description": {
+        "message": "不执行自动动作；明确点击跳过仍可执行。"
+    },
+    "rules_rule_USER_EXPLICIT_name": {
+        "message": "执行用户明确操作"
+    },
+    "rules_rule_USER_EXPLICIT_description": {
+        "message": "跳过、取消、恢复、关闭和撤销分别更新本次意图。"
+    },
+    "rules_rule_USER_RATE_name": {
+        "message": "保留用户选择的速度"
+    },
+    "rules_rule_USER_RATE_description": {
+        "message": "所有受控快进成员一起交还控制权，保留用户设置的倍速。"
+    },
+    "rules_rule_UNDO_OVERLAP_name": {
+        "message": "回看期间保护重叠片段"
+    },
+    "rules_rule_UNDO_OVERLAP_description": {
+        "message": "撤销后，在本次回看片段内暂时阻止直接重叠的自动片段执行同类动作：回看阻止跳转和快进，撤销静音阻止自动静音。到达回看片段末尾或离开后解除保护，其他片段按自身配置和本次状态继续处理。明确点击跳过仍立即执行；保护不会通过其他片段继续传递。"
+    },
+    "rules_rule_EXEC_APPLIED_name": {
+        "message": "实际跳转成功后才记为完成"
+    },
+    "rules_rule_EXEC_APPLIED_description": {
+        "message": "模拟执行失败时，不向真实引擎发送成功确认。"
+    },
+    "rules_rule_PLAN_MERGED_name": {
+        "message": "合并相连的自动跳过成员"
+    },
+    "rules_rule_PLAN_MERGED_description": {
+        "message": "只合并授权成员，不跨越普通内容间隙。"
+    },
+    "rules_rule_PLAN_POINT_name": {
+        "message": "精彩点导航"
+    },
+    "rules_rule_PLAN_POINT_description": {
+        "message": "与普通区间跳过独立。"
+    },
+    "rules_rule_METHOD_SEEK_name": {
+        "message": "采用直接跳过"
+    },
+    "rules_rule_METHOD_SEEK_description": {
+        "message": "全局快进关闭、片段不足 0.5 秒或草稿预览时直接跳转。"
+    },
+    "rules_rule_METHOD_SPEED_name": {
+        "message": "采用全局快进方式"
+    },
+    "rules_rule_METHOD_SPEED_description": {
+        "message": "这是自动策略与全局快进开关的组合，不是独立分类选项。"
+    },
+    "rules_rule_METHOD_MUTE_name": {
+        "message": "执行静音片段"
+    },
+    "rules_rule_METHOD_MUTE_description": {
+        "message": "静音与跳转分开。"
+    },
+    "rules_rule_CARD_PREVIEW_name": {
+        "message": "提前展示预告"
+    },
+    "rules_rule_CARD_PREVIEW_description": {
+        "message": "使用实际预告开关和提前视频时间。"
+    },
+    "rules_rule_CARD_MEDIA_name": {
+        "message": "卡片计时跟随视频边界"
+    },
+    "rules_rule_CARD_MEDIA_description": {
+        "message": "预告到开头，进行中到结尾；除以当前倍速，暂停不前进。"
+    },
+    "rules_rule_CARD_DISPLAY_name": {
+        "message": "完成卡片按实际停留时间退出"
+    },
+    "rules_rule_CARD_DISPLAY_description": {
+        "message": "使用跳过提示持续时间；悬停不重置剩余时间。"
+    },
+    "rules_rule_CARD_HIDDEN_name": {
+        "message": "全局隐藏仅影响展示"
+    },
+    "rules_rule_CARD_HIDDEN_description": {
+        "message": "播放决定和统计仍保留，重新开启展示可以重新发布卡片。"
+    },
+    "rules_result_manual_for_this_visit": {
+        "message": "本次改为手动处理，保留操作卡片"
+    },
+    "rules_result_follow_segment_policy": {
+        "message": "恢复后按片段原有设置处理"
+    },
+    "rules_result_manual": {
+        "message": "本次等待用户操作"
+    },
+    "rules_result_automatic": {
+        "message": "允许继续判断自动动作"
+    },
+    "rules_result_excluded": {
+        "message": "当前不处理这个片段"
+    },
+    "rules_result_preserve_visit": {
+        "message": "保留本次状态"
+    },
+    "rules_result_evaluate_policy": {
+        "message": "进入后按策略判断"
+    },
+    "rules_result_manual_entry": {
+        "message": "拖入后等待点击"
+    },
+    "rules_result_keep_user_rate": {
+        "message": "使用用户选择的速度，不再接管"
+    },
+    "rules_result_configured_display_duration": {
+        "message": "按提示持续时间退出"
+    },
+    "rules_result_until_start": {
+        "message": "跟随视频，到片段开始"
+    },
+    "rules_result_until_end": {
+        "message": "跟随视频，到片段结束"
+    },
+    "rules_result_before_start": {
+        "message": "进入预告范围"
+    },
+    "rules_result_wait_for_playback": {
+        "message": "等待视频恢复播放"
+    },
+    "rules_result_display_only_hidden": {
+        "message": "隐藏卡片，播放决定不变"
+    },
+    "rules_result_completed": {
+        "message": "实际处理完成"
+    },
+    "rules_result_left_without_completion": {
+        "message": "离开片段，不记为跳过"
+    },
+    "rules_result_protect_return_position": {
+        "message": "暂时停止自动处理，不改变片段自身状态"
+    },
+    "rules_result_seek": {
+        "message": "直接跳过"
+    },
+    "rules_result_speed": {
+        "message": "全局快进"
+    },
+    "rules_result_mute": {
+        "message": "静音"
+    },
+    "rules_result_dismiss": {
+        "message": "关闭本次卡片"
+    },
+    "rules_result_deny": {
+        "message": "取消本次预告"
+    },
+    "rules_result_allow": {
+        "message": "恢复预告中的自动处理"
+    },
+    "rules_result_skip": {
+        "message": "立即跳过"
+    },
+    "rules_result_undo": {
+        "message": "撤销回看"
+    },
+    "rules_result_pause_speed": {
+        "message": "取消本次快进"
+    },
+    "rules_result_resume_speed": {
+        "message": "恢复本次快进"
+    },
+    "rules_result_auto": {
+        "message": "自动跳过"
+    },
+    "rules_result_mark": {
+        "message": "仅标记"
+    },
+    "rules_result_ignore": {
+        "message": "忽略"
+    },
+    "rules_result_navigate_to_point": {
+        "message": "跳转至精彩点"
+    },
+    "rules_categoryDescription": {
+        "message": "类别说明"
+    },
+    "rules_tab_community": {
+        "message": "标签与评论"
+    },
+    "rules_videoLabels": {
+        "message": "视频标签"
+    },
+    "rules_feedAndComments": {
+        "message": "动态与评论"
+    },
+    "rules_whitelistSettings": {
+        "message": "频道白名单"
+    },
+    "rules_enableSkipping": {
+        "message": "启用片段跳过"
+    },
+    "rules_rule_POLICY_SHORT_name": {
+        "message": "片段短于最短时长"
+    },
+    "rules_rule_POLICY_SHORT_description": {
+        "message": "片段短于设定时长时，不自动处理或显示提醒。修改时长后重新判断，不保留为用户关闭状态。"
+    },
+    "rules_rule_POLICY_MUTE_DISABLED_name": {
+        "message": "未启用静音片段"
+    },
+    "rules_rule_POLICY_MUTE_DISABLED_description": {
+        "message": "不执行标记为静音的片段。普通跳过片段不受这个开关影响。"
+    },
+    "rules_exampleContext": {
+        "message": "示例条件"
+    },
+    "rules_context_ordinary": {
+        "message": "普通视频 · 跳过片段"
+    },
+    "rules_context_music": {
+        "message": "音乐视频 · 跳过片段"
+    },
+    "rules_context_full": {
+        "message": "同类全片标记 · 跳过片段"
+    },
+    "rules_context_music_full": {
+        "message": "音乐视频＋同类全片标记"
+    },
+    "rules_context_mute": {
+        "message": "静音片段"
+    },
+    "rules_settingsGuide": {
+        "message": "这里设置片段的默认处理方式。拖动、暂停恢复等选项在“播放行为”，提醒开关和计时在“卡片提醒”。修改后自动保存。"
+    },
+    "rules_countdownHelp": {
+        "message": "预告按视频进度倒计时，暂停视频时也会暂停；跳过后的提醒按实际显示时间计时，鼠标悬停时暂停。"
+    },
+    "rules_speedHelp": {
+        "message": "开启快进后，设为自动跳过的片段将按所选倍速播放，结束后恢复原倍速。仅修改倍速不会开启快进；手动跳过仍立即跳至片段结尾。"
+    },
+    "rules_tab_cards": {
+        "message": "卡片提醒"
+    },
+    "rules_settings_segments": {
+        "message": "默认处理方式"
+    },
+    "rules_settings_matrix": {
+        "message": "播放操作设置"
+    },
+    "rules_settings_cards": {
+        "message": "提醒设置"
+    },
+    "rules_resetSection": {
+        "message": "恢复本组默认值"
+    },
+    "rules_editRelatedSettings": {
+        "message": "修改真实设置"
+    },
+    "rules_realSettingsNote": {
+        "message": "这里修改的是实际配置，自动保存并影响视频播放。上方示例条件不会保存为配置。"
+    },
+    "rules_matrixExamples": {
+        "message": "行为对照示例"
+    },
+    "rules_simulatorExamples": {
+        "message": "操作测试示例"
+    },
+    "rules_cardExamples": {
+        "message": "卡片状态示例"
+    },
+    "rules_cardExamplesNote": {
+        "message": "外观随上方设置更新。切换状态可查看展开、收起及半透明效果；鼠标移入可展开卡片并恢复不透明。"
+    },
+    "rules_protectionSources": {
+        "message": "回看保护来源：$1"
+    },
+    "rules_phase_protected": {
+        "message": "受其他片段的回看保护"
+    },
+    "rules_peerContext": {
+        "message": "其他片段的影响"
+    },
+    "rules_peer_single": {
+        "message": "没有其他片段"
+    },
+    "rules_peer_overlap_auto": {
+        "message": "B（5–25 秒）：自动处理"
+    },
+    "rules_peer_overlap_review": {
+        "message": "B（5–25 秒）：正在回看"
+    },
+    "rules_peer_overlap_closed": {
+        "message": "B（5–25 秒）：已关闭卡片"
+    },
+    "rules_peer_adjacent_review": {
+        "message": "B（0–10 秒）：回看后进入 A"
+    },
+    "rules_peerHint": {
+        "message": "表格查看 A（10–20 秒）的行为。重叠片段的回看会暂时限制自动处理，不改变 A 自身的设置或取消状态。离开回看片段后解除保护；相邻片段不受保护。"
+    },
+    "rules_preset_overlapReview": {
+        "message": "重叠快进后撤销回看"
+    },
+    "rules_relation_single": {
+        "message": "单个片段"
+    },
+    "rules_relation_adjacent": {
+        "message": "相邻片段"
+    },
+    "rules_relation_overlap": {
+        "message": "重叠片段"
+    },
+    "rules_rolloutActive": {
+        "message": "正在使用新版片段规则引擎（测试版）"
+    },
+    "rules_useClassic": {
+        "message": "使用经典模式"
+    },
+    "rules_invitationTitle": {
+        "message": "试用新版片段规则引擎（测试版）"
+    },
+    "rules_invitationDescription": {
+        "message": "在同一页面调整跳过、快进和卡片提醒，并用示例查看拖动、暂停和撤销后的处理方式。"
+    },
+    "rules_invitationLocation": {
+        "message": "已有设置会保留。选择「不再提示」后，仍可在「实验功能」中启用。"
+    },
+    "rules_tryEngine": {
+        "message": "启用"
+    },
+    "rules_rolloutBadge": {
+        "message": "测试版"
+    },
+    "rules_welcomeTitle": {
+        "message": "新版片段规则引擎（测试版）已启用"
+    },
+    "rules_welcomeDescription": {
+        "message": "统一管理跳过、快进和静音，并可查看各类操作对应的处理规则。"
+    },
+    "rules_welcomeAuto": {
+        "message": "已为你自动启用本功能。若暂不使用，可选择「使用经典模式」。"
+    },
+    "rules_welcomePlayback": {
+        "message": "改进连续片段、暂停恢复和撤销后的处理，减少重复跳过。"
+    },
+    "rules_welcomeSettings": {
+        "message": "原有分类、倍速、白名单和提醒设置继续生效。在「行为」页面可以调整规则并查看操作示例。"
+    },
+    "rules_welcomeRestore": {
+        "message": "可在设置页上方点击「使用经典模式」退出。退出后不会再次自动启用，已有设置也会保留。"
+    },
+    "rules_startUsing": {
+        "message": "查看规则设置"
+    },
+    "rules_notInterested": {
+        "message": "不再提示"
+    },
+    "rules_declineWelcome": {
+        "message": "使用经典模式"
     }
 }

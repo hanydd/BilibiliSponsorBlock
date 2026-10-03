@@ -38,8 +38,8 @@ export const getSkipNoticeContentContainer: ContentContainer = () => ({
             source: "skipNoticeContentContainer.removeSubmittingSegment",
         });
     },
-    previewTime: (time: number, unpause?: boolean) =>
-        getContentApp().commands.execute("skip/previewTime", { time, unpause }),
+    previewTime: (time: number, unpause?: boolean, segmentId?: string) =>
+        getContentApp().commands.execute("skip/previewTime", { time, unpause, segmentId }),
     videoInfo: contentState.videoInfo,
     getRealCurrentTime: () => getContentApp().commands.execute("segment/getRealCurrentTime", undefined) as number,
     lockedCategories: contentState.lockedCategories,

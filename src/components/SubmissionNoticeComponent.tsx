@@ -1,3 +1,4 @@
+import { getRuleRuntime, isRuleEngineEnabled } from "../content/skipRules/bridge";
 import * as React from "react";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
@@ -67,6 +68,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
     }
 
     componentDidMount(): void {
+        getRuleRuntime()?.setEditing(true);
         // Catch and rerender when the video size changes
         //TODO: Use ResizeObserver when it is supported in TypeScript
         this.videoObserver = new MutationObserver(() => {
@@ -90,6 +92,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
     }
 
     componentWillUnmount(): void {
+        getRuleRuntime()?.setEditing(false);
         if (this.videoObserver) {
             this.videoObserver.disconnect();
         }
@@ -152,6 +155,19 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                     >
                         {/* Text Boxes */}
                         {this.getMessageBoxes()}
+
+                        {isRuleEngineEnabled() && <tr><td>
+                            <label>
+                                <input type="checkbox" id="previewIncludeOtherSegments"
+                                    checked={Config.config.previewIncludeOtherSegments}
+                                    onChange={event => {
+                                        Config.config.previewIncludeOtherSegments = event.target.checked;
+                                        getRuleRuntime()?.observe();
+                                        this.forceUpdate();
+                                    }} />
+                                {chrome.i18n.getMessage("previewIncludeOtherSegments")}
+                            </label>
+                        </td></tr>}
 
                         {/* Sponsor Time List */}
                         <tr

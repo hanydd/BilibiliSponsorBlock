@@ -1,3 +1,6 @@
+import type { NoticeClock } from "../notices/NoticeClock";
+import { getRuleRuntime, isRuleEngineEnabled } from "../content/skipRules/bridge";
+import type { RuleCard } from "../content/skipRules/types";
 import * as React from "react";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
@@ -26,6 +29,8 @@ import { CONTENT_EVENTS } from "../content/app/events";
 import { SegmentPlaybackState, initialPlayback, noticePresentation } from "../notices/SkipNoticeModel";
 
 export interface SkipNoticeProps {
+    ruleCard?: RuleCard;
+    noticeClock?: NoticeClock;
     segments: SponsorTime[];
 
     autoSkip: boolean;
@@ -71,7 +76,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     private playerResizeObserver?: ResizeObserver;
     private video?: HTMLVideoElement;
     private expirePending = (event: Event): void => {
-        if (this.props.autoSkip || this.isSpeedUpForCurrentSegment() || this.props.advanceSkipNotice || this.state.playback[0] !== SegmentPlaybackState.Pending) return;
+        if (this.props.ruleCard || this.props.autoSkip || this.isSpeedUpForCurrentSegment() || this.props.advanceSkipNotice || this.state.playback[0] !== SegmentPlaybackState.Pending) return;
         if (this.segments.every((segment) => segment.actionType === ActionType.Skip &&
             // The scheduler can hand off slightly before the native media time
             // reaches this segment. Only an explicit seek cancels that lead-in.
@@ -134,7 +139,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             voted: new Array(this.props.segments.length).fill(SkipNoticeAction.None),
             copied: new Array(this.props.segments.length).fill(SkipNoticeAction.None),
 
-            speedUpPaused: false,
+            speedUpPaused: props.ruleCard?.phase === "speed-paused",
         };
     }
 
@@ -152,10 +157,13 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 idSuffix={this.idSuffix}
                 startFaded={this.isFadedNotice()}
                 maxCountdownTime={this.state.maxCountdownTime}
+                noticeClock={this.props.noticeClock}
                 ref={this.noticeRef}
                 closeListener={() => this.closeListener()}
+                onDismiss={() => { if (isRuleEngineEnabled()) getRuleRuntime().action({ kind: "dismiss", id: this.segments[0].UUID }); }}
                 onInteractionChange={this.props.onInteractionChange}
-                playbackEnd={this.props.autoSkip ? undefined : getSpeedUpNoticeEnd(this.segments)}
+                playbackEnd={this.props.ruleCard ? (this.props.ruleCard.clock.kind === "media" ? this.props.ruleCard.clock.deadline : undefined)
+                    : this.props.autoSkip ? undefined : getSpeedUpNoticeEnd(this.segments)}
                 dismissalPaused={this.state.speedUpPaused}
                 upcomingStart={this.props.advanceSkipNotice ? this.segments[0].segment[0] : undefined}
                 smaller={this.isSmallNotice()}
@@ -216,6 +224,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     onSpeedUpStateChanged = (): void => {
+        if (this.props.ruleCard) return;
         if (this.state.speedUpPaused && !this.isSpeedUpForCurrentSegment() && !getActiveSpeedUpInfo()) {
             // 快进已被外部路径取消（非用户暂停流程），退出“已暂停”显示
             this.setState({ speedUpPaused: false });
@@ -455,6 +464,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
 
     /** 当前 notice 的片段是否正处于倍速快进中 */
     isSpeedUpForCurrentSegment(): boolean {
+        if (this.props.ruleCard) return this.props.ruleCard.phase === "speeding";
         const activeInfo = getActiveSpeedUpInfo();
         return !this.props.autoSkip && !!activeInfo && noticeSegmentsIntersect(activeInfo.segments, this.segments);
     }
@@ -477,6 +487,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
 
     /** 暂停快进：恢复原始倍速*/
     pauseSpeedUp(): void {
+        if (isRuleEngineEnabled()) { getRuleRuntime().action({ kind: "pause-speed", id: this.segments[0].UUID }); return; }
         void cancelSpeedUp(true, true);
         this.setState({ speedUpPaused: true });
 
@@ -484,6 +495,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
 
     /** 恢复快进：重新以快进倍速播放 */
     async resumeSpeedUp(): Promise<void> {
+        if (isRuleEngineEnabled()) { getRuleRuntime().action({ kind: "resume-speed", id: this.segments[0].UUID }); return; }
         // 清除手动取消标记，允许同一片段重新快进
         for (const seg of this.segments) {
             clearManuallyCancelled(seg);
@@ -544,7 +556,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             const mute = this.segments[0].actionType === ActionType.Mute;
             this.setState({
                 playback: initialPlayback(this.props.autoSkip, this.props.startReskip, this.segments[0].actionType),
-                speedUpPaused: false,
+                speedUpPaused: this.props.ruleCard?.phase === "speed-paused",
                 showSkipButton: [true, true],
                 maxCountdownTime: mute || !this.props.autoSkip ? this.getFullDurationCountdown(0) : () => Config.config.skipNoticeDuration,
                 voted: this.segments.map(segment => previous.voted[previousProps.segments.findIndex(old => old.UUID === segment.UUID)] ?? SkipNoticeAction.None),
@@ -713,6 +725,10 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     unskipAction(buttonIndex: number, index: number, forceSeek: boolean): void {
+        if (isRuleEngineEnabled()) {
+            getRuleRuntime().toggleSkip(this.segments[index].UUID, forceSeek);
+            return;
+        }
         if (this.state.playback[buttonIndex] === SegmentPlaybackState.Skipped) this.unskip(buttonIndex, index, forceSeek);
         else this.reskip(buttonIndex, index, forceSeek);
     }

@@ -183,6 +183,20 @@ describe("segment submission business events", () => {
         document.body.innerHTML = "<div></div>";
     });
 
+    test("preview shortcut selects the latest draft by UUID", async () => {
+        const { createContentApp } = await import("../src/content/app");
+        const app = createContentApp();
+        const preview = jest.fn();
+        app.commands.register("skip/previewTime", preview);
+        const { contentState } = await import("../src/content/state");
+        contentState.sponsorTimesSubmitting = [
+            { UUID: "first", segment: [10, 20] }, { UUID: "latest", segment: [30, 40] },
+        ] as SponsorTime[];
+        const { previewRecentSegment } = await import("../src/content/segmentSubmission");
+        previewRecentSegment();
+        expect(preview).toHaveBeenCalledWith({ time: 28, unpause: true, segmentId: "latest" });
+    });
+
     test("voteAsync emits segment/updated after a successful vote updates local state", async () => {
         try {
             const { createContentApp } = await import("../src/content/app");

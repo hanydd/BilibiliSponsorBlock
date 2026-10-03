@@ -78,6 +78,9 @@ export const test = base.extend<ExtensionFixtures>({
                     chromeApi.storage.local.set({ alreadyInstalled: true }),
                     chromeApi.storage.sync.set({
                         userID: "00000000-0000-4000-8000-000000000001",
+                        skipEngineMode: "legacy",
+                        skipRulesRollout: "existing",
+                        skipRulesNotice: "welcome-dismissed",
                     }),
                 ]);
             });

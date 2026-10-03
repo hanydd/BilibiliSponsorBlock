@@ -18,6 +18,7 @@ for (const speedup of [false, true]) {
         }, testInfo) => {
             test.setTimeout(70_000);
             await writeSyncStorage(extensionServiceWorker, {
+                skipEngineMode: process.env.BSB_E2E_SKIP_ENGINE || "legacy",
                 enableSpeedUp: speedup, speedUpPlaybackRate: 4,
                 categorySelections: [{ name: 'intro', option: intro }, { name: 'outro', option: outro }],
                 // The extension's own skip must hand off independently of user-seek settings.

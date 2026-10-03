@@ -672,13 +672,14 @@ describe("倍速控制按钮渲染", () => {
 });
 
 describe("合并片段 notice 去重", () => {
-    let createdNotices: Array<{ segments: Array<{ UUID: string }>; close: jest.Mock }>;
+    let createdNotices: Array<{ segments: Array<{ UUID: string }>; upcoming: boolean; close: jest.Mock }>;
 
     function makeSeg(uuid: string, start: number, end: number): SponsorTime {
         return { UUID: uuid, segment: [start, end], category: "sponsor", actionType: ActionType.Skip, source: 0 } as SponsorTime;
     }
 
     async function setup(): Promise<void> {
+        jest.resetModules();
         createdNotices = [];
         jest.doMock("../src/render/SkipNotice", () => ({
             __esModule: true,
@@ -701,6 +702,7 @@ describe("合并片段 notice 去重", () => {
                 });
                 constructor(update, _container, onClosed) {
                     this.segments = update.segments;
+                    this.upcoming = update.upcoming;
                     this.props = update;
                     this.onClosed = onClosed;
                     createdNotices.push(this);
@@ -709,7 +711,7 @@ describe("合并片段 notice 去重", () => {
         }));
         jest.doMock("../src/config", () => ({
             __esModule: true,
-            default: { config: { dontShowNotice: false, skipKeybind: null } },
+            default: { config: { dontShowNotice: false, skipKeybind: null, advanceSkipNotice: true, skipNoticeDurationBefore: 3 } },
         }));
         jest.doMock("../src/utils/", () => ({
             waitFor: jest.fn(async () => null),
@@ -747,6 +749,20 @@ describe("合并片段 notice 去重", () => {
         }, { source: "test" });
     }
 
+    test.each([false, true])("previews coexist only in rule mode (rules=%s)", async rules => {
+        await setup();
+        const { getContentApp } = await import("../src/content/app");
+        const { CONTENT_EVENTS } = await import("../src/content/app/events");
+        for (const segment of [makeSeg("A", 10, 20), makeSeg("B", 12, 40)]) {
+            getContentApp().bus.emit(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, {
+                noticeKind: "advance", skippingSegments: [segment], autoSkip: true, startReskip: false,
+                ruleCard: rules ? { visit: 1, phase: "preview", automatic: true, show: true,
+                    clock: { kind: "media", deadline: segment.segment[0], boundary: "start" } } : undefined,
+            }, { source: "test" });
+        }
+        expect(createdNotices.map(notice => notice.segments[0].UUID)).toEqual(rules ? ["A", "B"] : ["B"]);
+    });
+
     test("合并播放范围分别显示 A、B，再请求 B 不重复创建", async () => {
         await setup();
         const segA = makeSeg("uuid-merge-a", 10, 20);
@@ -783,6 +799,25 @@ describe("合并片段 notice 去重", () => {
         await emitNotice([segA]);
         await emitNotice([segB]);
         expect(createdNotices).toHaveLength(2);
+    });
+
+    test("explicit close cancels all non-preview visits; cleanup only removes presentation", async () => {
+        await setup();
+        const { installRuleRuntime } = await import("../src/content/skipRules/bridge");
+        const action = jest.fn();
+        installRuleRuntime({ mode: "rules", action } as never);
+        const { getContentApp } = await import("../src/content/app");
+        await emitNotice([makeSeg("active-a", 10, 20)]);
+        await emitNotice([makeSeg("active-b", 15, 25)]);
+        await emitNotice([makeSeg("upcoming", 30, 40)]);
+        createdNotices[2].upcoming = true;
+        await getContentApp().commands.execute("skip/closeNotices", { dismiss: true });
+        expect(action.mock.calls).toEqual([[{ kind: "dismiss", id: "active-a" }], [{ kind: "dismiss", id: "active-b" }]]);
+        expect(createdNotices.map(notice => notice.segments[0].UUID)).toEqual(["upcoming"]);
+        action.mockClear();
+        await getContentApp().commands.execute("skip/closeNotices", { includeAdvance: true });
+        expect(action).not.toHaveBeenCalled();
+        expect(createdNotices).toHaveLength(0);
     });
 
     test("closeNoticesForSegments 只关闭含对应 UUID 的 notice", async () => {

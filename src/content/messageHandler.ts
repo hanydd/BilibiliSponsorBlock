@@ -1,3 +1,5 @@
+import { getRuleRuntime, isRuleEngineEnabled } from "./skipRules/bridge";
+import { SponsorHideType } from "../types";
 import Config from "../config";
 import { StorageChangesObject } from "../config/config";
 import { Message, MessageResponse } from "../messageTypes";
@@ -11,6 +13,7 @@ import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
 import { handlePopupInfoRequest } from "./popupManager";
 import { contentState, syncContentStateStore } from "./state";
+import { refreshMinimumDuration } from "./segmentVisibility";
 
 const utils = new Utils();
 
@@ -45,7 +48,9 @@ export function handleContentMessage(
             sendResponse({
                 found: contentState.sponsorDataFound,
                 status: contentState.lastResponseStatus,
-                sponsorTimes: contentState.sponsorTimes,
+                sponsorTimes: isRuleEngineEnabled() ? contentState.sponsorTimes.map(segment =>
+                    getRuleRuntime().isExcluded(segment.UUID) ? { ...segment, hidden: SponsorHideType.Hidden } : segment
+                ) : contentState.sponsorTimes,
                 portVideo: contentState.portVideo,
                 time: getVideo()?.currentTime ?? 0,
             });
@@ -167,6 +172,13 @@ export function handleContentMessage(
         case "hideSegment":
             {
                 const segment = utils.getSponsorTimeFromUUID(contentState.sponsorTimes, request.UUID);
+                if (!segment) return;
+                if (isRuleEngineEnabled() && segment.hidden === undefined &&
+                    (request.type === SponsorHideType.Hidden || request.type === SponsorHideType.Visible)) {
+                    getRuleRuntime().action({ kind: request.type === SponsorHideType.Hidden ? "dismiss" : "allow", id: segment.UUID });
+                    sendResponse({});
+                    return;
+                }
                 segment.hidden = request.type;
                 utils.addHiddenSegment(getVideoID(), request.UUID, request.type);
                 syncContentStateStore("messageHandler.hideSegment");
@@ -227,6 +239,10 @@ export function handleContentMessage(
 
 function contentConfigUpdateListener(changes: StorageChangesObject) {
     const app = getContentApp();
+    if ("minDuration" in changes) {
+        refreshMinimumDuration(contentState.sponsorTimes, Config.config.minDuration);
+        syncContentStateStore("messageHandler.minimumDuration");
+    }
     app.bus.emit(CONTENT_EVENTS.CONFIG_CHANGED, { changes }, { source: "messageHandler.configSyncListener" });
 
     for (const key in changes) {
@@ -237,14 +253,21 @@ function contentConfigUpdateListener(changes: StorageChangesObject) {
                 void app.commands.execute("ui/updatePlayerButtons", undefined);
                 break;
             case "categorySelections":
+            case "muteSegments":
                 void app.commands.execute("segments/lookup", {});
                 checkPageForNewThumbnails(true);
+                break;
+            case "minDuration":
+                void app.commands.execute("ui/updatePreviewBar", undefined);
                 break;
             case "barTypes":
                 void app.commands.execute("config/applyCategoryColors", undefined);
                 void app.commands.execute("ui/updatePreviewBar", undefined);
                 break;
             case "fullVideoSegments":
+                void app.commands.execute("segments/lookup", {});
+                checkPageForNewThumbnails(true);
+                break;
             case "fullVideoLabelsOnThumbnails":
             case "fullVideoLabelsOnThumbnailsMode":
                 checkPageForNewThumbnails(true);
