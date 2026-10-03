@@ -1659,13 +1659,13 @@
         "message": "编辑预览时包含其他片段"
     },
     "rules_title": {
-        "message": "跳过规则"
+        "message": "新版片段规则引擎（测试版）"
     },
     "rules_enable": {
-        "message": "启用新版规则引擎（灰度体验）"
+        "message": "启用新版片段规则引擎（测试版）"
     },
     "rules_enableDescription": {
-        "message": "启用新版跳过逻辑和规则设置页面。已有分类、倍速和提醒配置会保留，可随时切回经典模式。"
+        "message": "启用后将使用新的片段处理逻辑和设置页面。已有设置会保留，可随时切回经典模式。"
     },
     "rules_inactive": {
         "message": "规则引擎未启用。以下设置仍会保存，对照与测试展示规则引擎启用后的行为。"
@@ -1674,7 +1674,7 @@
         "message": "当前为仅对照模式，不接管视频播放。"
     },
     "rules_active": {
-        "message": "规则引擎已启用"
+        "message": "已启用"
     },
     "rules_tab_segments": {
         "message": "片段设置"
@@ -2610,51 +2610,51 @@
         "message": "重叠片段"
     },
     "rules_rolloutActive": {
-        "message": "正在使用新版规则引擎 · 灰度体验"
+        "message": "正在使用新版片段规则引擎（测试版）"
     },
     "rules_useClassic": {
         "message": "使用经典模式"
     },
     "rules_invitationTitle": {
-        "message": "试用新版跳过规则"
+        "message": "试用新版片段规则引擎（测试版）"
     },
     "rules_invitationDescription": {
-        "message": "统一管理跳过、快进和卡片提醒，也可以用示例查看拖动、暂停和撤销后的处理结果。"
+        "message": "在同一页面调整跳过、快进和卡片提醒，并用示例查看拖动、暂停和撤销后的处理方式。"
     },
     "rules_invitationLocation": {
-        "message": "已有设置会保留，也可稍后在「实验功能」中启用。"
+        "message": "已有设置会保留。选择「不再提示」后，仍可在「实验功能」中启用。"
     },
     "rules_tryEngine": {
-        "message": "启用并体验"
+        "message": "启用"
     },
     "rules_rolloutBadge": {
-        "message": "灰度体验"
+        "message": "测试版"
     },
     "rules_welcomeTitle": {
-        "message": "新版跳过规则已启用"
+        "message": "新版片段规则引擎（测试版）已启用"
     },
     "rules_welcomeDescription": {
-        "message": "新版引擎统一处理跳过、快进和静音，并提供对应的规则设置页面。"
+        "message": "统一管理跳过、快进和静音，并可查看各类操作对应的处理规则。"
     },
     "rules_welcomeAuto": {
-        "message": "本次升级已为你自动开启灰度体验，当前开放比例为 20%。"
+        "message": "已为你自动启用本功能。若暂不使用，可选择「使用经典模式」。"
     },
     "rules_welcomePlayback": {
-        "message": "拖动、暂停、恢复和撤销都会按片段当前状态重新判断，避免打断回看。"
+        "message": "改进连续片段、暂停恢复和撤销后的处理，减少重复跳过。"
     },
     "rules_welcomeSettings": {
         "message": "原有分类、倍速、白名单和提醒设置继续生效。在「行为」页面可以调整规则并查看操作示例。"
     },
     "rules_welcomeRestore": {
-        "message": "可在新版页面上方点击「使用经典模式」退出。退出后不会再次自动开启，也不会重置已有配置。"
+        "message": "可在设置页上方点击「使用经典模式」退出。退出后不会再次自动启用，已有设置也会保留。"
     },
     "rules_startUsing": {
         "message": "查看规则设置"
     },
     "rules_notInterested": {
-        "message": "不感兴趣"
+        "message": "不再提示"
     },
     "rules_declineWelcome": {
-        "message": "不感兴趣，使用经典模式"
+        "message": "使用经典模式"
     }
 }

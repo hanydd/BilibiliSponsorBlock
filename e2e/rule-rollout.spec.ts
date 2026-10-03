@@ -16,7 +16,8 @@ test('automatic cohort gets a welcome once and can opt out without losing prefer
     await page.goto(options(extensionId));
     const dialog = page.locator('#rules-welcome');
     await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText('20%');
+    await expect(dialog).toContainText('新版片段规则引擎（测试版）已启用');
+    await expect(dialog).not.toContainText('20%');
     await expect.poll(() => readSyncStorage(worker, 'skipRulesRollout')).toBe('auto');
     await expect.poll(() => readSyncStorage(worker, 'skipEngineMode')).toBe('rules');
     await expect(page.locator('#rules-invitation')).toBeHidden();
