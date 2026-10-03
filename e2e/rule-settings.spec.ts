@@ -1,3 +1,4 @@
+import { toggleRuleEngine } from './support/ruleEngine';
 import { categoryList } from '../config.json';
 import { test, expect } from './fixtures/extension';
 import { readSyncStorage, writeSyncStorage } from './support/extensionStorage';
@@ -11,7 +12,7 @@ const settingTabs: Record<string, string> = {
 };
 async function open(page, extensionId: string, tab = 'segments') {
     await page.goto(`chrome-extension://${extensionId}/options/options.html?rulesTab=${tab}#skip-rules`);
-    if (!await page.locator('#rule-engine-enabled').isChecked()) await page.locator('label[for="rule-engine-enabled"]').click();
+    if (!await page.locator('#rule-engine-enabled').isChecked()) await toggleRuleEngine(page);
     await expect(page.locator('#skip-rules')).toBeVisible();
     await expect(page.locator('#rules-tab-' + tab)).toHaveAttribute('aria-selected', 'true');
 }
@@ -23,13 +24,13 @@ test('one rollout switch controls both views and engines across reloads and sett
     await expect(page.locator(rules)).toBeHidden();
     await expect(page.locator('#rule-engine-enabled')).toHaveCount(1);
     await expect(page.locator('#skipEngineMode, .options-view-switch, [data-for="skip-rules"]')).toHaveCount(0);
-    await page.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(page);
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
     await expect(page.locator(rules)).toBeVisible();
     await expect(page.locator('#classic-behavior')).toBeHidden();
     await expect(page.locator('.rules-tabs [role="tab"]')).toHaveCount(6);
     await page.locator('#rules-tab-matrix').click();
-    await expect(page.locator('#rule-engine-entry')).toBeVisible();
+    await expect(page.locator('#rule-engine-disable')).toBeVisible();
     await page.reload();
     await expect(page.locator('#rule-engine-enabled')).toBeChecked();
     await expect(page.locator('#rules-tab-matrix')).toHaveAttribute('aria-selected', 'true');
@@ -40,7 +41,7 @@ test('one rollout switch controls both views and engines across reloads and sett
     const other = await extensionContext.newPage();
     await other.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
     await expect(other.locator('#rule-engine-enabled')).toBeChecked();
-    await other.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(other);
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('legacy');
     await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
     await expect(page.locator('#classic-behavior')).toBeVisible();
@@ -63,10 +64,10 @@ test('segment tab reuses category controls including both colors and restores th
     await page.locator('#sponsorPreviewColorOption input').fill('#654321');
     await expect.poll(async () => (await readSyncStorage<Record<string, { color: string }>>(extensionServiceWorker, 'barTypes'))?.sponsor?.color).toBe('#123456');
     await expect.poll(async () => (await readSyncStorage<Record<string, { color: string }>>(extensionServiceWorker, 'barTypes'))?.['preview-sponsor']?.color).toBe('#654321');
-    await page.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(page);
     await expect(page.locator('#category-home #sponsorSkipOption select')).toHaveValue('manualSkip');
     await expect(page.locator('#category-home #sponsorColorOption input')).toHaveValue('#123456');
-    await page.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(page);
     await expect(page.locator(`${rules} #sponsorSkipOption select`)).toHaveValue('manualSkip');
     await page.reload();
     await expect(page.locator(`${rules} #sponsorPreviewColorOption input`)).toHaveValue('#654321');
@@ -196,7 +197,7 @@ test('settings tabs cover every classic behavior setting and keep native control
     const communityKeys = await page.locator('#classic-behavior [data-sync="fullVideoSegments"], #classic-behavior [data-sync="fullVideoSegments"] [data-sync], #classic-behavior [data-sync="dynamicAndCommentSponsorBlocker"], #classic-behavior [data-sync="dynamicAndCommentSponsorBlocker"] [data-sync]').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-sync')));
     // Include rule-only preferences and controls whose original home is the interface page.
     const allKeys = new Set([...originalKeys, ...Object.keys(settingTabs), 'enableSpeedUp', 'speedUpPlaybackRate', 'disableSkipping']);
-    await page.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(page);
     const panel = page.locator('#rules-panel-segments');
     for (const key of allKeys) {
         await expect(page.locator(rules).locator(`[data-sync="${key}"], [data-rule-setting="${key}"]`)).toHaveCount(1);
@@ -218,7 +219,7 @@ test('settings tabs cover every classic behavior setting and keep native control
         }, null, 2), contentType: 'application/json',
     });
     await expect(page.locator('.rules-settings[data-settings-group]')).toHaveCount(3);
-    await expect(page.locator('#rule-engine-entry')).toBeVisible();
+    await expect(page.locator('#rule-engine-disable')).toBeVisible();
     await panel.locator('label[for="forceChannelCheck"]').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'forceChannelCheck')).toBe(true);
     await page.locator('#rules-tab-cards').click();
@@ -245,17 +246,17 @@ test('settings tabs cover every classic behavior setting and keep native control
     await community.locator('#dynamicAndCommentSponsorRegexPattern').fill('migration-test');
     await community.locator('[data-sync="dynamicAndCommentSponsorRegexPattern"] .text-change-set').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'dynamicAndCommentSponsorRegexPattern')).toBe('migration-test');
-    await page.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(page);
     await expect(page.locator('#behavior #audioNotificationOnSkip')).toBeChecked();
     await expect(page.locator('#behavior #dynamicAndCommentSponsorRegexPattern')).toHaveValue('migration-test');
     await expect(page.locator('#behavior #fullVideoLabelsOnThumbnailsMode')).toHaveValue('1');
-    await page.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(page);
     await page.reload();
     await expect(page.locator('#rules-panel-cards #audioNotificationOnSkip')).toBeChecked();
     for (const tab of ['community', 'matrix', 'cards', 'simulator', 'rules']) {
         await page.locator('#rules-tab-' + tab).click();
         await expect(page.locator('.rules-settings[data-settings-group]:visible')).toHaveCount(['matrix', 'cards'].includes(tab) ? 1 : 0);
-        await expect(page.locator('#rule-engine-entry')).toBeVisible();
+        await expect(page.locator('#rule-engine-disable')).toBeVisible();
     }
 });
 
@@ -470,7 +471,7 @@ test('notice appearance is in the settings grid and previews every visibility mo
     await expect(card).toHaveCSS('opacity', '0.5');
     await panel.getByRole('button', { name: '恢复本组默认值' }).click();
     await expect(appearance).toHaveValue('3');
-    await page.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(page);
     await page.locator('[data-for="interface"]').click();
     await expect(page.locator('#interface #noticeVisibilityMode')).toBeVisible();
     await expect(page.locator('#noticeVisibilityMode')).toHaveCount(1);
@@ -523,14 +524,14 @@ test('all categories persist explicit disabling in both settings views', async (
     for (const category of categoryList) await page.locator(`#${category}SkipOption select`).selectOption('disable');
     await expect.poll(async () => (await readSyncStorage<Array<{ name: string; option: number }>>(extensionServiceWorker, 'categorySelections'))
         ?.filter(selection => categoryList.includes(selection.name) && selection.option === -1).length).toBe(categoryList.length);
-    await page.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(page);
     await expect(page.locator('#classic-behavior')).toBeVisible();
     for (const category of categoryList) await expect(page.locator(`#${category}SkipOption select`)).toHaveValue('disable');
     await writeSyncStorage(extensionServiceWorker, { paddingCategoryMigrated: false });
     await page.reload();
     for (const category of categoryList) await expect(page.locator(`#${category}SkipOption select`)).toHaveValue('disable');
     await page.locator('#paddingSkipOption select').selectOption('autoSkip');
-    await page.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(page);
     await expect(page.locator('#paddingSkipOption select')).toHaveValue('autoSkip');
     for (const category of categoryList.filter(category => category !== 'padding')) await expect(page.locator(`#${category}SkipOption select`)).toHaveValue('disable');
 });

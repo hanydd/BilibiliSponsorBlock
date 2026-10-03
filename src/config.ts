@@ -16,6 +16,7 @@ import {
 } from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
 import { getMigratedMirrorServerAddresses } from "./config/serverConfig";
+import { migrateSkipRulesRollout, SkipRulesRollout, SkipRulesNotice } from "./config/skipRulesRollout";
 import { migrateCategorySelections } from "./config/categoryConfig";
 import { HashedValue } from "./utils/hash";
 
@@ -40,6 +41,8 @@ interface SBConfig {
     disableSkipping: boolean;
     enableSpeedUp: boolean;
     skipEngineMode: "legacy" | "shadow" | "rules";
+    skipRulesRollout: SkipRulesRollout;
+    skipRulesNotice: SkipRulesNotice;
     previewIncludeOtherSegments: boolean;
     skipResumeAction: 'continue' | 'manual';
     speedUpResumeAction: 'continue' | 'manual';
@@ -215,6 +218,7 @@ class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
 }
 
 function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<string>) {
+    migrateSkipRulesRollout(config, initialSyncKeys);
     migrateCategorySelections(config, CompileConfig.categoryList as Category[]);
     // Unbind key if it matches a previous one set by the user (should be ordered oldest to newest)
     const keybinds = ["skipKeybind", "startSponsorKeybind", "submitKeybind"];
@@ -322,6 +326,8 @@ const syncDefaults = {
     disableSkipping: false,
     enableSpeedUp: false,
     skipEngineMode: "legacy" as const,
+    skipRulesRollout: "pending" as SkipRulesRollout,
+    skipRulesNotice: "unseen" as SkipRulesNotice,
     previewIncludeOtherSegments: false,
     skipResumeAction: 'continue' as const,
     speedUpResumeAction: 'continue' as const,

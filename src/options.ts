@@ -30,6 +30,7 @@ import { getHash } from "./utils/hash";
 import { localizeHtmlPage } from "./utils/setup";
 import { applyFadeOut, clamp01 } from "./utils/soundFade";
 
+import { setupRuleRollout } from "./options/rules/rollout";
 import { mountRulesPage } from "./options/rules/RulesPage";
 
 let embed = false;
@@ -381,13 +382,6 @@ async function init() {
     }
 
     mountRulesPage(document.getElementById("skip-rules-root"), document.getElementById("category-type"));
-    const engineSwitch = document.getElementById("rule-engine-enabled") as HTMLInputElement;
-    engineSwitch.checked = Config.config.skipEngineMode === "rules";
-    engineSwitch.addEventListener("change", () => {
-        Config.config.skipEngineMode = engineSwitch.checked ? "rules" : "legacy";
-        updateBehaviorMode();
-    });
-
     // Tab interaction
     const tabElements = document.getElementsByClassName("tab-heading");
     for (let i = 0; i < tabElements.length; i++) {
@@ -415,12 +409,12 @@ async function init() {
     window.addEventListener("scroll", () => createStickyHeader());
 
     optionsContainer.classList.add("animated");
+    setupRuleRollout(updateBehaviorMode, () => document.querySelector<HTMLElement>('[data-for="behavior"]').click(), embed);
 }
 
 /** The saved engine choice is also the only source of truth for the behavior page. */
 function updateBehaviorMode(): void {
     const enabled = Config.config.skipEngineMode === "rules";
-    (document.getElementById("rule-engine-enabled") as HTMLInputElement).checked = enabled;
     document.getElementById("classic-behavior").classList.toggle("hidden", enabled);
     document.getElementById("skip-rules").classList.toggle("hidden", !enabled);
     document.getElementById("behavior").classList.toggle("rules-enabled", enabled);

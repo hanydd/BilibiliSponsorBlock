@@ -1,3 +1,4 @@
+import { toggleRuleEngine } from './support/ruleEngine';
 import type { Page, Worker } from "@playwright/test";
 import path from "path";
 import { expect, test } from "./fixtures/extension";
@@ -75,7 +76,7 @@ test(`customizes the skip sound in ${mode} settings only while audio notificatio
     await openOptions(extensionPage, extensionId);
 
     if (mode === "rules") {
-        await extensionPage.locator('label[for="rule-engine-enabled"]').click();
+        await toggleRuleEngine(extensionPage);
         await extensionPage.locator('#rules-tab-cards').click();
     }
     const block = extensionPage.locator("[data-type='custom-skip-sound']");
@@ -143,7 +144,7 @@ test(`customizes the skip sound in ${mode} settings only while audio notificatio
     await extensionServiceWorker.evaluate(async () => { const { customSkipSound } = await chrome.storage.local.get('customSkipSound'); await chrome.storage.local.set({ customSkipSound: { ...customSkipSound, name: 'other-window.wav' } }); });
     await expect(status).toContainText('other-window.wav');
     // Moving between classic and rules keeps the original controls and their saved values.
-    await extensionPage.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(extensionPage);
     if (mode === 'legacy') await extensionPage.locator('#rules-tab-cards').click();
     await expect(block).toBeVisible();
     await expect(block).toHaveCount(1);
@@ -544,7 +545,7 @@ test("removes individual channels and clears the whitelist", async ({
 
 test('persists independent rule-engine resume preferences', async ({ extensionId, extensionPage, extensionServiceWorker }) => {
     await openOptions(extensionPage, extensionId);
-    await extensionPage.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(extensionPage);
     await expect(extensionPage.locator('[data-rule-setting="skipResumeAction"]')).toHaveValue('continue');
     await expect(extensionPage.locator('[data-rule-setting="speedUpResumeAction"]')).toHaveValue('continue');
     await extensionPage.locator('#rules-tab-matrix').click();

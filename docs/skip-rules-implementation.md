@@ -149,7 +149,7 @@ runtime 每次评估先取消上一轮调度。播放中按下一个片段边界
 
 ## 灰度开关与经典模式
 
-`skipEngineMode` 默认是 `legacy`。行为页顶部的开关同时切换配置界面与执行引擎，配置值在两种模式间共享。
+`skipEngineMode` 默认是 `legacy`。手动启用入口位于「实验功能」，新版行为页面顶部提供「使用经典模式」按钮。两处都修改同一个配置值，同时切换配置界面与执行引擎，其他配置在两种模式间共享。
 
 `legacy` 由 `skipScheduler` 和 `speedUpManager` 执行。`rules` 由 `SkipRulesRuntime` 执行，旧模块的相关入口通过 `isRuleEngineEnabled()` 退出或转交。内部 `shadow` 模式让旧引擎执行，新引擎只计算和记录计划。打开设置页会把 `shadow` 归为 `legacy`，用户界面不提供 shadow 选项。
 
@@ -157,7 +157,9 @@ runtime 每次评估先取消上一轮调度。播放中按下一个片段边界
 
 [content.ts](../src/content.ts) 注入 `stopLegacy`、`startLegacy` 和统计回调。切换涉及 rules 模式时，会释放原模式的调度和播放效果，关闭旧卡片，再按当前位置运行所选引擎。已经打开的视频无需刷新。模式切换不迁移两种引擎各自的临时经过状态。
 
-当前灰度由用户手动开启，没有远程百分比分组。经典执行链仍是可用的回退路径。
+[skipRulesRollout.ts](../src/config/skipRulesRollout.ts) 在配置迁移时按用户 ID 的固定哈希分配 0–99 的桶，前 20 个桶自动启用。没有用户 ID 时推迟到下次配置加载，不使用随机数。`skipRulesRollout` 记录一次性结果：`auto` 为自动入选，`invite` 为未入选，`excluded` 为关闭新功能提示，`existing` 为已有明确引擎配置；初始值为 `pending`。迁移读取添加默认值前的键集合，已有 `skipEngineMode` 时保留用户选择。分组完成后，即使用户退出或更换 ID，也不会重新启用。
+
+[rollout.ts](../src/options/rules/rollout.ts) 只负责设置页引导。自动入选者首次打开完整设置页时看到欢迎说明；未入选者看到可关闭的邀请气泡。`showNewFeaturePopups=false` 同时阻止自动入选和引导提示，仍允许在实验功能中主动启用。`skipRulesNotice` 区分未提示、已关闭邀请和已关闭欢迎说明，跨窗口与设备同步；关闭邀请后仍可手动启用并查看欢迎说明。嵌入式设置页不显示引导。经典执行链仍是可用的回退路径。
 
 ## 设置页面与持久化
 

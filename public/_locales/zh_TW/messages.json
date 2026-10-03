@@ -1685,7 +1685,7 @@
         "message": "啟用新版規則引擎（灰度體驗）"
     },
     "rules_enableDescription": {
-        "message": "關閉時使用經典設定頁面和舊跳過邏輯；開啟時使用新規則頁面和新跳過引擎。切換立即生效，既有設定會保留。"
+        "message": "啟用新版跳過邏輯和規則設定頁面。既有分類、倍速和提醒設定會保留，可隨時切回經典模式。"
     },
     "rules_inactive": {
         "message": "規則引擎未啟用。以下設定仍會保存，對照與測試展示規則引擎啟用後的行為。"
@@ -2664,5 +2664,47 @@
     },
     "rules_relation_overlap": {
         "message": "重疊片段"
+    },
+    "rules_rolloutActive": {
+        "message": "正在使用新版規則引擎 · 灰度體驗"
+    },
+    "rules_useClassic": {
+        "message": "使用經典模式"
+    },
+    "rules_invitationTitle": {
+        "message": "試用新版跳過規則"
+    },
+    "rules_invitationDescription": {
+        "message": "統一管理跳過、快進和卡片提醒，也可以用範例查看拖曳、暫停和復原後的處理結果。"
+    },
+    "rules_invitationLocation": {
+        "message": "既有設定會保留，也可稍後在「實驗功能」中啟用。"
+    },
+    "rules_tryEngine": {
+        "message": "啟用並體驗"
+    },
+    "rules_rolloutBadge": {
+        "message": "灰度體驗"
+    },
+    "rules_welcomeTitle": {
+        "message": "新版跳過規則已啟用"
+    },
+    "rules_welcomeDescription": {
+        "message": "新版引擎統一處理跳過、快進和靜音，並提供對應的規則設定頁面。"
+    },
+    "rules_welcomeAuto": {
+        "message": "本次升級已為你自動開啟灰度體驗，目前開放比例為 20%。"
+    },
+    "rules_welcomePlayback": {
+        "message": "拖曳、暫停、恢復和復原都會按片段目前狀態重新判斷，避免打斷回看。"
+    },
+    "rules_welcomeSettings": {
+        "message": "原有分類、倍速、白名單和提醒設定繼續生效。在「行為」頁面可以調整規則並查看操作範例。"
+    },
+    "rules_welcomeRestore": {
+        "message": "可在新版頁面上方點擊「使用經典模式」退出。退出後不會再次自動開啟，也不會重設既有設定。"
+    },
+    "rules_startUsing": {
+        "message": "查看規則設定"
     }
 }

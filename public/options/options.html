@@ -50,13 +50,6 @@
 
 		<div id="options">
 			<div id="behavior" class="option-group hidden">
-				<div id="rule-engine-entry">
-                    <div class="switch-container">
-                        <label class="switch"><input id="rule-engine-enabled" type="checkbox" /><span class="slider round"></span></label>
-                        <label class="switch-label" for="rule-engine-enabled">__MSG_rules_enable__</label>
-                    </div>
-                    <div class="small-description">__MSG_rules_enableDescription__</div>
-                </div>
                 <div id="classic-behavior">
                 <div id="category-home"><div id="category-type" data-type="react-CategoryChooserComponent"></div></div>
 
@@ -370,7 +363,13 @@
 					<div class="small-description">__MSG_whatShowCategoryWithoutPermission__</div>
 				</div>
                 </div>
-                <div id="skip-rules" class="hidden"><div id="skip-rules-root"></div></div>
+                <div id="skip-rules" class="hidden">
+                    <div id="rule-engine-controls">
+                        <span>__MSG_rules_rolloutActive__</span>
+                        <button id="rule-engine-disable" class="option-button" type="button">__MSG_rules_useClassic__</button>
+                    </div>
+                    <div id="skip-rules-root"></div>
+                </div>
 			</div>
 
 			<div id="interface" class="option-group hidden">
@@ -909,6 +908,14 @@
 			</div>
 
 			<div id="experiment" class="option-group hidden">
+				<div id="rule-engine-entry">
+                    <div class="switch-container">
+                        <label class="switch"><input id="rule-engine-enabled" type="checkbox" /><span class="slider round"></span></label>
+                        <label class="switch-label" for="rule-engine-enabled">__MSG_rules_enable__</label>
+                    </div>
+                    <div class="small-description">__MSG_rules_enableDescription__</div>
+                </div>
+
 				<div data-type="toggle" data-toggle-type="reverse" data-sync="showNewFeaturePopups">
 					<div class="switch-container">
 						<label class="switch">
@@ -1046,4 +1053,27 @@
 			</div>
 		</div>
 	</div>
+    <aside id="rules-invitation" class="rules-onboarding" hidden aria-labelledby="rules-invitation-title">
+        <button id="rules-invitation-close" class="rules-onboarding-close" type="button" aria-label="__MSG_close__">×</button>
+        <h3 id="rules-invitation-title">__MSG_rules_invitationTitle__</h3>
+        <p>__MSG_rules_invitationDescription__</p>
+        <p class="rules-onboarding-note">__MSG_rules_invitationLocation__</p>
+        <button id="rules-invitation-enable" class="option-button" type="button">__MSG_rules_tryEngine__</button>
+    </aside>
+    <dialog id="rules-welcome" class="rules-onboarding" aria-labelledby="rules-welcome-title" aria-describedby="rules-welcome-description">
+        <button id="rules-welcome-close" class="rules-onboarding-close" type="button" aria-label="__MSG_close__">×</button>
+        <span class="rules-onboarding-badge">__MSG_rules_rolloutBadge__</span>
+        <h2 id="rules-welcome-title">__MSG_rules_welcomeTitle__</h2>
+        <p id="rules-welcome-description">__MSG_rules_welcomeDescription__</p>
+        <p id="rules-welcome-auto" class="rules-onboarding-note" hidden>__MSG_rules_welcomeAuto__</p>
+        <ul>
+            <li>__MSG_rules_welcomePlayback__</li>
+            <li>__MSG_rules_welcomeSettings__</li>
+            <li>__MSG_rules_welcomeRestore__</li>
+        </ul>
+        <div class="rules-onboarding-actions">
+            <button id="rules-welcome-classic" class="option-button rules-onboarding-secondary" type="button">__MSG_rules_useClassic__</button>
+            <button id="rules-welcome-start" class="option-button" type="button" autofocus>__MSG_rules_startUsing__</button>
+        </div>
+    </dialog>
 </body>

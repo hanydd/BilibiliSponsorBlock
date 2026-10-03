@@ -401,3 +401,57 @@
 
 #rule-engine-entry .switch-container { font-size: var(--rules-font-body); }
 #rule-engine-entry .small-description { font-size: var(--rules-font-note); }
+
+/* Rollout controls and onboarding share the options page's light/dark palette. */
+#rule-engine-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 0 0 16px;
+    border: 0;
+    font-size: 13px;
+}
+#rule-engine-controls .option-button { margin: 0; padding: 7px 12px; font-size: 13px; }
+.rules-onboarding {
+    box-sizing: border-box;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--dialog-background);
+    color: var(--description);
+    font-size: 14px;
+    line-height: 1.65;
+    box-shadow: 0 8px 32px #0003;
+}
+.rules-onboarding[hidden] { display: none; }
+.rules-onboarding h2 { margin: 10px 24px 12px 0; font-size: 22px; color: var(--white); }
+.rules-onboarding h3 { margin: 0 20px 10px 0; font-size: 16px; color: var(--white); }
+.rules-onboarding p, .rules-onboarding li { font-size: 14px; line-height: 1.65; padding: 0; }
+.rules-onboarding p { margin: 0 0 12px; }
+.rules-onboarding ul { padding-left: 20px; margin: 16px 0 24px; }
+.rules-onboarding li + li { margin-top: 10px; }
+.rules-onboarding .rules-onboarding-note { font-size: 12px; }
+.rules-onboarding .option-button { display: inline-block; margin: 0; padding: 8px 16px; font-size: 14px; }
+.rules-onboarding-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    padding: 4px 8px;
+    border: 0;
+    background: transparent;
+    color: var(--description);
+    font-size: 22px;
+    cursor: pointer;
+}
+.rules-onboarding-badge { font-size: 12px; color: var(--server-node-active); }
+.rules-onboarding-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+.rules-onboarding .rules-onboarding-secondary { background: var(--background); color: var(--description); border: 1px solid var(--border-color); }
+#rules-welcome { width: 520px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; }
+#rules-welcome::backdrop { background: #0007; }
+#rules-invitation { position: fixed; z-index: 100; right: 24px; bottom: 24px; width: 340px; max-width: calc(100vw - 32px); }
+@media (max-width: 600px) {
+    .rules-onboarding { padding: 20px; }
+    #rules-invitation { right: 16px; bottom: 16px; }
+}

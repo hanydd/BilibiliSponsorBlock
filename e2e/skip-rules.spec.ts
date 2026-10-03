@@ -1,3 +1,4 @@
+import { toggleRuleEngine } from './support/ruleEngine';
 import { test, expect } from './fixtures/extension';
 import { writeSyncStorage, readSyncStorage } from './support/extensionStorage';
 import { defaultMockBvid, defaultMockCid, routeMockBilibiliVideoPage, setMockVideoTime, getMockVideoTime, pauseMockVideo } from './support/bilibiliPage';
@@ -138,11 +139,10 @@ test('shadow leaves dismissal semantics and playback with the legacy engine', as
 
 test('engine setting can be switched and persists for the next video page load', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
     await page.goto(`chrome-extension://${extensionId}/options/options.html`);
-    const toggle = page.locator('label[for="rule-engine-enabled"]');
     await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
-    await toggle.click();
+    await toggleRuleEngine(page);
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
-    await toggle.click();
+    await toggleRuleEngine(page);
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('legacy');
 });
 
@@ -346,13 +346,13 @@ test('settings page switches the running engine without reloading the video', as
     await expect.poll(() => rate(page)).toBe(4);
     const settings = await extensionContext.newPage();
     await settings.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
-    await settings.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(settings);
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
     await expect(page.locator(first)).toHaveCount(1);
     await page.locator(first).locator('.sponsorSkipNoticeCloseButton').click();
     // Rule-engine dismissal cancels this visit; the old engine would keep fast-forwarding.
     await expect.poll(() => rate(page)).toBe(1);
-    await settings.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(settings);
     await expect.poll(() => rate(page)).toBe(4);
     await expect(page.locator(first)).toHaveCount(1);
     await page.locator(first).locator('.sponsorSkipNoticeCloseButton').click();
@@ -360,7 +360,7 @@ test('settings page switches the running engine without reloading the video', as
     expect(await rate(page)).toBe(4);
     await pauseMockVideo(page);
     const pausedAt = await getMockVideoTime(page);
-    await settings.locator('label[for="rule-engine-enabled"]').click();
+    await toggleRuleEngine(settings);
     await expect.poll(() => rate(page)).toBe(1);
     expect(await getMockVideoTime(page)).toBe(pausedAt);
     expect(await page.locator('video').evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
