@@ -354,3 +354,70 @@ test('real and simulated mute cancellation protect overlapping peers until the t
     expect(video.muted).toBe(true);
     runtime.reset();
 });
+
+
+test.each([500, 1500])('same-video handoff preserves completion expiry (elapsed=%s)', async elapsed => {
+    const { video, Config, runtime, contentState } = await setup({ dontShowNotice: true, enableSpeedUp: false, skipNoticeDuration: 1 });
+    contentState.sponsorTimes = [makeSegment('A', 10, 50)];
+    const { getVideo } = await import('../src/utils/video');
+    const { getContentApp } = await import('../src/content/app');
+    const { CONTENT_EVENTS } = await import('../src/content/app/events');
+    const notices = jest.fn();
+    getContentApp().bus.on(CONTENT_EVENTS.SKIP_NOTICE_REQUESTED, notices);
+    runtime.observe();
+    jest.advanceTimersByTime(elapsed);
+    const replacement = makeVideo();
+    replacement.currentTime = video.currentTime;
+    (getVideo as jest.Mock).mockReturnValue(replacement);
+    runtime.observe();
+    Config.config.dontShowNotice = false; runtime.observe();
+    expect(notices).toHaveBeenCalledTimes(elapsed < 1000 ? 1 : 0);
+    if (elapsed < 1000) expect(notices.mock.calls[0][0].noticeClock.read()).toBe(500);
+    Config.config.dontShowNotice = true; runtime.observe();
+    jest.advanceTimersByTime(600);
+    expect(runtime.toggleSkip()).toBe(false);
+    runtime.reset();
+});
+
+test('same-video handoff preserves dismissal; another video on the same element clears it', async () => {
+    const { video, runtime, contentState } = await setup();
+    contentState.sponsorTimes = [makeSegment('A', 10, 50)];
+    const { getVideo, getVideoID } = await import('../src/utils/video');
+    runtime.observe();
+    runtime.action({ kind: 'dismiss', id: 'A' });
+    const replacement = makeVideo();
+    replacement.currentTime = video.currentTime;
+    (getVideo as jest.Mock).mockReturnValue(replacement);
+    runtime.observe();
+    expect(runtime.isExcluded('A')).toBe(true);
+    expect(replacement.playbackRate).toBe(1);
+    (getVideoID as jest.Mock).mockReturnValue('BV2test');
+    runtime.observe();
+    expect(runtime.isExcluded('A')).toBe(false);
+    expect(replacement.playbackRate).toBe(4);
+    runtime.reset();
+});
+
+test.each([ActionType.Skip, ActionType.Mute])('same-video handoff restores copied %s effects and detaches old listeners', async action => {
+    const { video, runtime, contentState, play } = await setup({ muteSegments: true });
+    video.playbackRate = 1.5;
+    contentState.sponsorTimes = [makeSegment('A', 10, 20, action)];
+    const { getVideo } = await import('../src/utils/video');
+    runtime.observe();
+    const replacement = makeVideo({ rate: video.playbackRate, muted: video.muted });
+    replacement.currentTime = 15;
+    (getVideo as jest.Mock).mockReturnValue(replacement);
+    runtime.observe();
+    expect(video).toMatchObject({ playbackRate: 1.5, muted: false });
+    expect(replacement).toMatchObject(action === ActionType.Skip ? { playbackRate: 4 } : { muted: true });
+    // Events queued on the retired element cannot cancel the current effect.
+    video.dispatchEvent(new Event('ratechange'));
+    video.dispatchEvent(new Event('volumechange'));
+    runtime.observe();
+    expect(replacement).toMatchObject(action === ActionType.Skip ? { playbackRate: 4 } : { muted: true });
+    if (action === ActionType.Skip) expect(play).toHaveBeenCalledTimes(1);
+    replacement.currentTime = 20;
+    replacement.dispatchEvent(new Event('timeupdate'));
+    expect(replacement).toMatchObject({ playbackRate: 1.5, muted: false });
+    runtime.reset();
+});

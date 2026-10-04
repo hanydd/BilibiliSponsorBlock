@@ -68,9 +68,16 @@ export class SkipRulesRuntime implements RuleRuntime {
         const video = getVideo();
         const identity = `${getVideoID()}:${getCid()}`;
         if (video === this.video && identity === this.identity) return;
-        const retained = identity === this.identity ? this.state : emptyRuleState();
-        this.reset();
-        this.state = retained;
+        if (identity !== this.identity) this.reset();
+        else {
+            // Bilibili copies playback properties at handoff. Keep ownership of
+            // copied effects so they restore to the user's baseline, not ours.
+            const rate = video?.playbackRate === this.rate?.target ? this.rate : undefined;
+            const muted = video?.muted ? this.muted : undefined;
+            this.detachVideo();
+            this.rate = rate;
+            this.muted = muted;
+        }
         this.identity = identity;
         this.video = video;
         if (!video) return;
@@ -280,12 +287,16 @@ export class SkipRulesRuntime implements RuleRuntime {
     isExcluded(id: string): boolean { return this.state.visits[id]?.excluded === "dismiss"; }
     originalRate(): number { return this.rate?.original ?? this.video?.playbackRate ?? 1; }
     private restore(): void { this.applyPlayback({ retain: { speed: false, mute: false }, speed: [], mute: [] }, { paused: false, waiting: false }); }
-    reset(): void {
+    private detachVideo(): void {
         clearTimeout(this.timer); this.disposeVideo?.(); this.disposeVideo = undefined;
         if (this.mode === 'rules') this.restore();
-        this.video = undefined; this.state = emptyRuleState(); this.plan = undefined;
-        this.published.clear(); this.poiId = undefined; this.previewId = undefined; this.ownedSeek = undefined;
-        this.failed = false; this.waiting = false; this.savings = 0; this.previousTrace = '';
+        this.video = undefined; this.waiting = false; this.ownedSeek = undefined;
+    }
+    reset(): void {
+        this.detachVideo();
+        this.identity = ''; this.state = emptyRuleState(); this.plan = undefined;
+        this.published.clear(); this.poiId = undefined; this.previewId = undefined;
+        this.failed = false; this.savings = 0; this.previousTrace = '';
     }
 }
 

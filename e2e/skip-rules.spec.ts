@@ -616,3 +616,66 @@ test('unhiding a live completion keeps remaining time and hover pauses that same
     await page.mouse.move(0, 0);
     await expect(card).toHaveCount(0, { timeout: 4000 });
 });
+
+// Match Bilibili's native seamless handoff: prepend a preparing element,
+// synchronize its position, then retire the old element and remove the marker.
+async function prepareReplacement(page) {
+    await page.locator('video').evaluate((old: HTMLVideoElement) => {
+        const replacement = document.createElement('video');
+        replacement.className = 'bpx-player-seamless-replacement';
+        old.before(replacement);
+    });
+}
+
+async function finishReplacement(page) {
+    await page.locator('video.bpx-player-seamless-replacement').evaluate(async (replacement: HTMLVideoElement) => {
+        const old = replacement.nextElementSibling as HTMLVideoElement;
+        const loaded = new Promise<void>(resolve => replacement.addEventListener('loadedmetadata', () => resolve(), { once: true }));
+        replacement.src = old.currentSrc;
+        replacement.load();
+        await loaded;
+        const moved = new Promise<void>(resolve => replacement.addEventListener('seeked', () => resolve(), { once: true }));
+        replacement.currentTime = old.currentTime;
+        await moved;
+        replacement.playbackRate = old.playbackRate;
+        replacement.muted = old.muted;
+        if (!old.paused) await replacement.play();
+        old.remove();
+        replacement.classList.remove('bpx-player-seamless-replacement');
+    });
+}
+
+test('rules expired completion stays expired through a seamless video handoff', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage },
+        { dontShowNotice: true, skipNoticeDuration: 1 }, [[10, 50]]);
+    await setMockVideoTime(page, 12, true); await play(page);
+    await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(50);
+    await pauseMockVideo(page);
+    await page.waitForTimeout(1200);
+    await prepareReplacement(page);
+    await page.waitForTimeout(600);
+    await finishReplacement(page);
+    await page.waitForTimeout(300);
+    await writeSyncStorage(extensionServiceWorker, { dontShowNotice: false });
+    await page.waitForTimeout(500);
+    await expect(page.locator(cards)).toHaveCount(0);
+});
+
+test('rules preview follows the active element during and after seamless handoff', async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+    await setup({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage },
+        { advanceSkipNotice: true, skipNoticeDurationBefore: 3 }, [[10, 50]]);
+    await setMockVideoTime(page, 8, true);
+    const card = page.locator(first);
+    const timer = card.locator('[id^="skipNoticeTimerText"]');
+    await expect(card).toHaveCount(1);
+    await expect(timer).toHaveText(/^2/);
+    await prepareReplacement(page);
+    await page.waitForTimeout(600);
+    await expect(card).toHaveCount(1);
+    await expect(timer).toHaveText(/^2/);
+    await finishReplacement(page);
+    await page.waitForTimeout(300);
+    await setMockVideoTime(page, 9, true);
+    await expect(card).toHaveCount(1);
+    await expect(timer).toHaveText(/^1/);
+});

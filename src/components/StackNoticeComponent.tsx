@@ -50,8 +50,6 @@ export default class StackNoticeComponent extends React.Component<StackNoticePro
     private get idSuffix(): string { return this.props.idSuffix; }
 
     componentDidMount(): void {
-        this.video = getVideo();
-        this.mediaEvents.forEach(event => this.video?.addEventListener(event, this.tick));
         this.unregister = registerStackCard({
             element: this.parentRef.current,
             expanded: !this.props.smaller,
@@ -85,6 +83,12 @@ export default class StackNoticeComponent extends React.Component<StackNoticePro
 
     private tick = (): void => {
         if (this.closing) return;
+        const video = getVideo();
+        if (video !== this.video) {
+            this.mediaEvents.forEach(event => this.video?.removeEventListener(event, this.tick));
+            this.video = video;
+            this.mediaEvents.forEach(event => this.video?.addEventListener(event, this.tick));
+        }
         const upcoming = this.props.upcomingStart !== undefined;
         const deadline = this.props.upcomingStart ?? this.props.playbackEnd;
         const remaining = deadline !== undefined ? 0 : this.clock.read(this.props.maxCountdownTime() * 1000);
