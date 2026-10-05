@@ -3,6 +3,7 @@ import { CheckboxChangeEvent } from "antd/es/checkbox";
 import * as React from "react";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
+import { isCategoryEnabled } from "../config/categoryConfig";
 import { keybindToString } from "../config/config";
 import { ContentContainer } from "../ContentContainerTypes";
 import { showMessage } from "../render/MessageNotice";
@@ -456,10 +457,10 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         ];
 
         for (const category of this.props.categoryList ?? CompileConfig.categoryList) {
-            // If permission not loaded, treat it like we have permission except chapter
-            const permission =
-                Config.config.showCategoryWithoutPermission || Config.config.permissions[category as Category];
-            if (permission !== undefined && !Config.config.showCategoryWithoutPermission && !permission) continue;
+            // Missing permission data does not hide a category. Support old boolean caches too.
+            const permission = Config.config.permissions?.[category as Category];
+            const canSubmit = typeof permission === "boolean" ? permission : permission?.canSubmit;
+            if (!Config.config.showCategoryWithoutPermission && canSubmit === false) continue;
 
             elements.push(
                 <option value={category} key={category} className={this.getCategoryLockedClass(category)}>
@@ -484,7 +485,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         // See if show more categories was pressed
         if (
             chosenCategory !== DEFAULT_CATEGORY &&
-            !Config.config.categorySelections.some((category) => category.name === chosenCategory)
+            !Config.config.categorySelections.some((category) => category.name === chosenCategory && isCategoryEnabled(category))
         ) {
             event.target.value = DEFAULT_CATEGORY;
 
@@ -734,7 +735,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         // If segment starts at 0:00, start playback at the end of the segment
         const skipTime = startTime === 0 || skipToEndTime ? endTime : startTime - seekTime * getVideo().playbackRate;
 
-        this.props.contentContainer().previewTime(skipTime, !skipToEndTime);
+        this.props.contentContainer().previewTime(skipTime, !skipToEndTime, sponsorTimes[index].UUID);
     }
 
     inspectTime(): void {
@@ -743,7 +744,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
 
         const skipTime = sponsorTimes[index].segment[0];
 
-        this.props.contentContainer().previewTime(skipTime + 0.0001, false);
+        this.props.contentContainer().previewTime(skipTime + 0.0001, false, sponsorTimes[index].UUID);
     }
 
     deleteTime(): void {

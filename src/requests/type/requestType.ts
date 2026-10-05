@@ -8,6 +8,8 @@ export interface FetchResponse {
 
 export interface SegmentResponse {
     segments: SponsorTime[] | null;
+    /** Original candidates retained independently of category, display and action filters. */
+    rawSegments?: SponsorTime[];
     status: number;
 }
 

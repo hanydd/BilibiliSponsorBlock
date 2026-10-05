@@ -137,4 +137,54 @@ describe("video page type state", () => {
             document.body.innerHTML = "";
         }
     });
+    test.each([false, true])("ignores a preparing replacement until handoff (abort=%s)", async abort => {
+        jest.doMock("../src/utils/dom", () => ({
+            getElement: jest.fn(() => null),
+            isVisible: jest.fn(() => false),
+            waitForElement: jest.fn(async (selector: string) => document.querySelector(selector)),
+        }));
+        const { createContentApp } = await import("../src/content/app");
+        const { CONTENT_EVENTS } = await import("../src/content/app/events");
+        const { getVideo, checkVideoIDChange } = await import("../src/utils/video");
+        const app = createContentApp();
+        const changes = jest.fn();
+        const resets = jest.fn();
+        app.bus.on(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, changes);
+        app.bus.on(CONTENT_EVENTS.VIDEO_RESET_REQUESTED, resets);
+        document.body.innerHTML = '<div id="bilibili-player"><video></video></div>';
+        const old = document.querySelector('video');
+        const replacement = document.createElement('video');
+        replacement.className = 'bpx-player-seamless-replacement';
+        let now = Date.now();
+        const clock = jest.spyOn(Date, "now").mockImplementation(() => now += 3000);
+        const refresh = async () => {
+            getVideo();
+            await new Promise(resolve => setTimeout(resolve, 0));
+        };
+        try {
+            await refresh();
+            expect(getVideo()).toBe(old);
+            changes.mockClear(); resets.mockClear();
+            old.before(replacement);
+            await refresh();
+            expect(getVideo()).toBe(old);
+            expect(changes).not.toHaveBeenCalled();
+            // Visibility changes are not a new video identity.
+            await checkVideoIDChange();
+            expect(resets).not.toHaveBeenCalled();
+            if (abort) replacement.remove();
+            else {
+                replacement.classList.remove('bpx-player-seamless-replacement');
+                old.remove();
+            }
+            await refresh();
+            expect(getVideo()).toBe(abort ? old : replacement);
+            expect(changes).toHaveBeenCalledTimes(abort ? 0 : 1);
+            expect(resets).not.toHaveBeenCalled();
+        } finally {
+            clock.mockRestore();
+            document.body.innerHTML = '';
+        }
+    });
+
 });

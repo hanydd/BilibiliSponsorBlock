@@ -1,3 +1,4 @@
+import { toggleRuleEngine } from './support/ruleEngine';
 import type { Page, Worker } from "@playwright/test";
 import path from "path";
 import { expect, test } from "./fixtures/extension";
@@ -68,12 +69,19 @@ test("disables skipping after seeking by default and preserves an enabled prefer
     await expectSyncStorage(extensionServiceWorker, "skipOnSeekToSegment", true);
 });
 
-test("customizes the skip sound only while audio notifications are enabled", async ({
+for (const mode of ["legacy", "rules"]) {
+test(`customizes the skip sound in ${mode} settings only while audio notifications are enabled`, async ({
     extensionId, extensionPage, extensionServiceWorker,
 }) => {
     await openOptions(extensionPage, extensionId);
 
+    if (mode === "rules") {
+        await toggleRuleEngine(extensionPage);
+        await extensionPage.locator('#rules-tab-cards').click();
+    }
     const block = extensionPage.locator("[data-type='custom-skip-sound']");
+    await expect(block).toHaveCount(1);
+    await expect(extensionPage.locator(mode === "rules" ? '#rules-panel-cards [data-type="custom-skip-sound"]' : '#classic-behavior [data-type="custom-skip-sound"]')).toHaveCount(1);
     const status = block.locator(".custom-sound-status");
     const playButton = block.locator(".custom-sound-play");
     const fileInput = block.locator(".custom-sound-file-input");
@@ -119,16 +127,38 @@ test("customizes the skip sound only while audio notifications are enabled", asy
     });
     await expectSyncStorage(extensionServiceWorker, "skipSoundVolume", 0.4);
     await expect(volumeBlock.locator(".volume-value")).toHaveText(/40%/);
+    const fade = extensionPage.locator('.fade-slider');
+    await fade.fill('75');
+    await expectSyncStorage(extensionServiceWorker, 'skipSoundFadeStart', 0.75);
 
     await extensionPage.reload();
     await expect(volumeBlock).toBeVisible();
     await expect(slider).toHaveValue("40");
     await expect(volumeBlock.locator(".volume-value")).toHaveText(/40%/);
 
+    await expect(fade).toHaveValue('75');
+    // A second settings window changes the same preferences and local audio selection.
+    await writeSyncStorage(extensionServiceWorker, { skipSoundVolume: 0.6, skipSoundFadeStart: 0.5 });
+    await expect(slider).toHaveValue('60');
+    await expect(fade).toHaveValue('50');
+    await extensionServiceWorker.evaluate(async () => { const { customSkipSound } = await chrome.storage.local.get('customSkipSound'); await chrome.storage.local.set({ customSkipSound: { ...customSkipSound, name: 'other-window.wav' } }); });
+    await expect(status).toContainText('other-window.wav');
+    // Moving between classic and rules keeps the original controls and their saved values.
+    await toggleRuleEngine(extensionPage);
+    if (mode === 'legacy') await extensionPage.locator('#rules-tab-cards').click();
+    await expect(block).toBeVisible();
+    await expect(block).toHaveCount(1);
+    await expect(slider).toHaveValue('60');
+    await expect(fade).toHaveValue('50');
     await block.locator(".custom-sound-reset").click();
     await expect.poll(() => readLocalStorage(extensionServiceWorker, "customSkipSound")).toBeFalsy();
     await expect(status).toHaveText(defaultStatus);
+    await extensionPage.locator('label[for="audioNotificationOnSkip"]').click();
+    await expect(block).toBeHidden();
+    await expect(volumeBlock).toBeHidden();
+    await expect(fade).toBeHidden();
 });
+}
 
 test("persists common interface toggles, numeric values, and selectors", async ({
     extensionId,
@@ -511,4 +541,19 @@ test("removes individual channels and clears the whitelist", async ({
     await manager.locator(":scope > .option-button").click();
     await expectSyncStorage(extensionServiceWorker, "whitelistedChannels", []);
     await expect(manager).not.toContainText("Mock Channel B");
+});
+
+test('persists independent rule-engine resume preferences', async ({ extensionId, extensionPage, extensionServiceWorker }) => {
+    await openOptions(extensionPage, extensionId);
+    await toggleRuleEngine(extensionPage);
+    await expect(extensionPage.locator('[data-rule-setting="skipResumeAction"]')).toHaveValue('continue');
+    await expect(extensionPage.locator('[data-rule-setting="speedUpResumeAction"]')).toHaveValue('continue');
+    await extensionPage.locator('#rules-tab-matrix').click();
+    await extensionPage.locator('[data-rule-setting="skipResumeAction"]').selectOption('manual');
+    await extensionPage.locator('[data-rule-setting="speedUpResumeAction"]').selectOption('manual');
+    await expectSyncStorage(extensionServiceWorker, 'skipResumeAction', 'manual');
+    await expectSyncStorage(extensionServiceWorker, 'speedUpResumeAction', 'manual');
+    await extensionPage.reload();
+    await expect(extensionPage.locator('[data-rule-setting="skipResumeAction"]')).toHaveValue('manual');
+    await expect(extensionPage.locator('[data-rule-setting="speedUpResumeAction"]')).toHaveValue('manual');
 });

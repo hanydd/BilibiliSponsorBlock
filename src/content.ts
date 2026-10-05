@@ -1,3 +1,5 @@
+import { registerSkipRules } from "./content/skipRules/runtime";
+import { recordSkippedSegments } from "./content/skipScheduler";
 import Config from "./config";
 import { createContentApp } from "./content/app";
 import { CONTENT_EVENTS } from "./content/app/events";
@@ -114,6 +116,11 @@ function init(): void {
     registerSegmentSubmission();
     registerPopupManager();
     registerSkipUIManager();
+    registerSkipRules({
+        stopLegacy: () => { resetSchedulerState(true); resetSpeedUpState(); },
+        startLegacy: () => { void app.commands.execute("skip/startSchedule", { includeIntersectingSegments: true }); },
+        record: (segments, saved) => recordSkippedSegments(segments, () => saved, true),
+    });
     registerSkipScheduler();
     registerSpeedUpManager();
     app.commands.register("config/applyCategoryColors", () => setCategoryColorCSSVariables());
@@ -173,6 +180,7 @@ function resetValues() {
 
     contentState.previewedSegment = false;
     contentState.sponsorTimes = [];
+    contentState.rawSegments = undefined;
     resetSponsorSkipped();
     contentState.lastResponseStatus = 0;
     contentState.shownSegmentFailedToFetchWarning = false;

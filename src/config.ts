@@ -16,6 +16,8 @@ import {
 } from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
 import { getMigratedMirrorServerAddresses } from "./config/serverConfig";
+import { migrateSkipRulesRollout, SkipRulesRollout, SkipRulesNotice } from "./config/skipRulesRollout";
+import { migrateCategorySelections } from "./config/categoryConfig";
 import { HashedValue } from "./utils/hash";
 
 export interface Permission {
@@ -25,7 +27,8 @@ export interface Permission {
 interface SBConfig {
     userID: string;
     isVip: boolean;
-    permissions: Record<Category, Permission>;
+    permissions: Partial<Record<Category, Permission | boolean>>;
+    paddingCategoryMigrated: boolean;
     defaultCategory: Category;
     renderSegmentsAsChapters: boolean;
     whitelistedChannels: WhitelistedChannel[];
@@ -37,6 +40,12 @@ interface SBConfig {
     showTimeWithSkips: boolean;
     disableSkipping: boolean;
     enableSpeedUp: boolean;
+    skipEngineMode: "legacy" | "shadow" | "rules";
+    skipRulesRollout: SkipRulesRollout;
+    skipRulesNotice: SkipRulesNotice;
+    previewIncludeOtherSegments: boolean;
+    skipResumeAction: 'continue' | 'manual';
+    speedUpResumeAction: 'continue' | 'manual';
     speedUpPlaybackRate: number;
     enableDanmakuSkip: boolean;
     enableAutoSkipDanmakuSkip: boolean;
@@ -209,6 +218,8 @@ class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
 }
 
 function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<string>) {
+    migrateSkipRulesRollout(config, initialSyncKeys);
+    migrateCategorySelections(config, CompileConfig.categoryList as Category[]);
     // Unbind key if it matches a previous one set by the user (should be ordered oldest to newest)
     const keybinds = ["skipKeybind", "startSponsorKeybind", "submitKeybind"];
     for (let i = keybinds.length - 1; i >= 0; i--) {
@@ -302,6 +313,7 @@ const syncDefaults = {
     userID: null,
     isVip: false,
     permissions: {},
+    paddingCategoryMigrated: false,
     defaultCategory: "chooseACategory" as Category,
     renderSegmentsAsChapters: false,
     whitelistedChannels: [],
@@ -313,6 +325,12 @@ const syncDefaults = {
     showTimeWithSkips: true,
     disableSkipping: false,
     enableSpeedUp: false,
+    skipEngineMode: "legacy" as const,
+    skipRulesRollout: "pending" as SkipRulesRollout,
+    skipRulesNotice: "unseen" as SkipRulesNotice,
+    previewIncludeOtherSegments: false,
+    skipResumeAction: 'continue' as const,
+    speedUpResumeAction: 'continue' as const,
     speedUpPlaybackRate: 2,
 
     // danmaku skip
@@ -423,6 +441,10 @@ const syncDefaults = {
     closeSkipNoticeKeybind: { key: "Backspace" },
 
     categorySelections: [
+        {
+            name: "filler" as Category,
+            option: CategorySkipOption.Disabled,
+        },
         {
             name: "sponsor" as Category,
             option: CategorySkipOption.AutoSkip,

@@ -25,6 +25,8 @@ export interface ChannelIDInfo {
 }
 
 const embedTitleSelector = "h1.video-title";
+// Bilibili prepends a buffering video before handing playback over to it.
+const activeVideoSelector = "#bilibili-player video:not(.bpx-player-seamless-replacement)";
 
 let video: HTMLVideoElement | null = null;
 let videoMutationObserver: MutationObserver | null = null;
@@ -156,8 +158,8 @@ async function videoIDChange(id: NewVideoID | null, options: VideoIDChangeOption
     if ([PageType.Festival, PageType.Anime].includes(getPageType())) {
         getContentApp().bus.emit(CONTENT_EVENTS.VIDEO_ID_CHANGED, { videoID: id }, { source: "utils/video.videoIDChange.refresh" });
     }
-    //if the id has not changed return unless the video element has changed
-    if (videoID === id && (isVisible(video) || !video)) {
+    // Element replacement/visibility is handled separately from video identity.
+    if (videoID === id) {
         logUiLifecycle("video", "state", {
             action: "videoIDChangeIgnoredSameId",
             videoID: id,
@@ -448,8 +450,11 @@ async function refreshVideoAttachments(trigger = "unknown"): Promise<void> {
         trigger,
         playerRoot: document.querySelector("#bilibili-player"),
     });
-    const newVideo = (await waitForElement("#bilibili-player video", false)) as HTMLVideoElement;
+    await waitForElement(activeVideoSelector, false);
     waitingForNewVideo = false;
+    // Re-read after awaiting: the candidate may have been removed in the meantime.
+    const newVideo = document.querySelector<HTMLVideoElement>(activeVideoSelector);
+    if (!newVideo) return;
     logUiLifecycle("video", "ready", {
         action: "refreshAttachments",
         target: "video",
@@ -584,7 +589,7 @@ function isUsableVideoElement(candidate: HTMLVideoElement | null): boolean {
 }
 
 function shouldRefreshVideoAttachments(): boolean {
-    const currentPlayerVideo = document.querySelector("#bilibili-player video") as HTMLVideoElement | null;
+    const currentPlayerVideo = document.querySelector<HTMLVideoElement>(activeVideoSelector);
 
     return (
         !video ||

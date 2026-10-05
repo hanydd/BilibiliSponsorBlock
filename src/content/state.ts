@@ -25,6 +25,7 @@ export const maxExecutedSkipRanges = 20;
 
 let sponsorDataFound = false;
 let sponsorTimes: SponsorTime[] = [];
+let rawSegments: SponsorTime[] | undefined;
 const skipNotices: SkipNotice[] = [];
 let activeSkipKeybindElement: ToggleSkippable = null;
 let shownSegmentFailedToFetchWarning = false;
@@ -50,6 +51,7 @@ function buildContentStateSnapshot(): ContentAppState {
     return {
         sponsorDataFound,
         sponsorTimes,
+        rawSegments,
         skipNotices,
         activeSkipKeybindElement,
         shownSegmentFailedToFetchWarning,
@@ -83,6 +85,11 @@ export function syncContentStateStore(source = "content/state"): void {
  * share it without circular dependency issues.
  */
 export const contentState = {
+    get rawSegments() { return rawSegments; },
+    set rawSegments(value: SponsorTime[] | undefined) {
+        rawSegments = value;
+        syncContentStateStore("contentState.rawSegments");
+    },
     get sponsorDataFound() { return sponsorDataFound; },
     set sponsorDataFound(v: boolean) {
         sponsorDataFound = v;
