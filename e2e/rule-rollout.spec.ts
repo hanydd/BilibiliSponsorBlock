@@ -11,6 +11,27 @@ async function upgrade(worker, automatic: boolean, announcements = true) {
 }
 const options = (id: string) => `chrome-extension://${id}/options/options.html#behavior`;
 
+for (const automatic of [true, false]) test(`waits for a user ID and allocation before showing rollout controls (auto=${automatic})`, async ({ extensionPage: page, extensionId, extensionServiceWorker: worker }) => {
+    await writeSyncStorage(worker, { userID: null, showNewFeaturePopups: true });
+    await worker.evaluate(() => chrome.storage.sync.remove(['skipEngineMode', 'skipRulesRollout', 'skipRulesNotice']));
+    await page.goto(options(extensionId));
+    await expect(page.locator('#classic-behavior')).toBeVisible();
+    await expect(page.locator('#rules-invitation')).toBeHidden();
+    await expect(page.locator('#rules-welcome')).toBeHidden();
+    await page.locator('[data-for="experiment"]').click();
+    await expect(page.locator('#rule-engine-entry')).toBeHidden();
+    // Receiving the ID alone does not finish migration in this already open page.
+    await writeSyncStorage(worker, { userID: userFor(automatic) });
+    await expect(page.locator('#rule-engine-entry')).toBeHidden();
+    await expect(page.locator('#rules-invitation')).toBeHidden();
+    await page.reload();
+    await expect.poll(() => readSyncStorage(worker, 'skipRulesRollout')).toBe(automatic ? 'auto' : 'invite');
+    await expect(page.locator(automatic ? '#rules-welcome' : '#rules-invitation')).toBeVisible();
+    if (automatic) await page.locator('#rules-welcome-close').click();
+    await page.locator('[data-for="experiment"]').click();
+    await expect(page.locator('#rule-engine-entry')).toBeVisible();
+});
+
 test('automatic cohort gets a welcome once and can opt out without losing preferences', async ({ extensionPage: page, extensionId, extensionServiceWorker: worker }) => {
     await upgrade(worker, true);
     await page.goto(options(extensionId));

@@ -14,11 +14,13 @@ export function setupRuleRollout(updateMode: () => void, openBehavior: () => voi
     };
     function refresh() {
         const enabled = Config.config.skipEngineMode === 'rules';
+        const pending = !Config.config.userID || Config.config.skipRulesRollout === 'pending';
         toggle.checked = enabled;
-        invitation.hidden = embedded || enabled || !Config.config.showNewFeaturePopups ||
+        document.getElementById('rule-engine-entry').hidden = pending;
+        invitation.hidden = pending || embedded || enabled || !Config.config.showNewFeaturePopups ||
             Config.config.skipRulesNotice !== 'unseen';
         document.getElementById('rules-welcome-auto').hidden = Config.config.skipRulesRollout !== 'auto';
-        if (!enabled || !Config.config.showNewFeaturePopups) dialog.close();
+        if (pending || !enabled || !Config.config.showNewFeaturePopups) dialog.close();
         else if (Config.config.skipRulesRollout === 'auto') showWelcome();
     }
     function changeMode(enabled: boolean) {
@@ -44,7 +46,7 @@ export function setupRuleRollout(updateMode: () => void, openBehavior: () => voi
     document.getElementById('rules-welcome-classic').addEventListener('click', () => { changeMode(false); openBehavior(); });
     dialog.addEventListener('cancel', event => { event.preventDefault(); closeWelcome(); });
     Config.configSyncListeners.push(changes => {
-        if (['skipEngineMode', 'skipRulesRollout', 'skipRulesNotice', 'showNewFeaturePopups'].some(key => key in changes)) {
+        if (['userID', 'skipEngineMode', 'skipRulesRollout', 'skipRulesNotice', 'showNewFeaturePopups'].some(key => key in changes)) {
             if (Config.config.skipRulesNotice === 'welcome-dismissed') dialog.close();
             refresh();
         }
