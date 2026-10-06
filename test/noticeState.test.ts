@@ -74,6 +74,9 @@ test("fractional card bounds settle to the same viewport without clipping detail
     // Expanded bottom details may extend below the normal control-bar boundary.
     expect(occupiedViewport(101, [{ top: 12.4, bottom: 135.2 }], 55))
         .toEqual({ top: 12, bottom: -35 });
+    // A fractional player height must not add empty space around a settled header.
+    const fractional = occupiedViewport(461.5, [{ top: 361.5, bottom: 401.5 }]);
+    expect(461.5 - fractional.top - fractional.bottom).toBe(40);
 });
 
 test("cancelled preview survives rescheduling, only applies to its segment and is consumed once", () => {
