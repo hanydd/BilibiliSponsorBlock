@@ -281,18 +281,34 @@ test("expands downward with one bottom reserve and moves only the lower cards", 
 test("new cards enter downward from above their final slots without moving existing cards", async ({ extensionPage: page }) => {
     const existing = await page.locator(`${cardSelector} .sponsorSkipStackHeader`).evaluateAll(elements =>
         elements.map(element => ({ id: element.closest('.sponsorSkipStackCard').id, y: element.getBoundingClientRect().y })));
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.evaluate(() => {
-        const samples: Record<string, number[]> = { 'stack-5': [], 'stack-6': [] };
+        const samples: Record<string, number[]> = {};
         (window as Window & { arrivalSamples: typeof samples }).arrivalSamples = samples;
-        const start = performance.now();
-        function frame() {
-            for (const id of Object.keys(samples)) {
-                const header = document.querySelector(`.sponsorSkipStackCard[id*="${id}"] .sponsorSkipStackHeader`);
-                if (header) samples[id].push(header.getBoundingClientRect().y);
-            }
-            if (performance.now() - start < 1800) requestAnimationFrame(frame);
-        }
-        requestAnimationFrame(frame);
+        document.addEventListener('animationstart', event => {
+            if ((event as AnimationEvent).animationName !== 'sb-stack-arrive') return;
+            const target = event.target as Element;
+            const card = target.closest('.sponsorSkipStackCard');
+            const id = ['stack-5', 'stack-6'].find(id => card?.id.includes(id));
+            if (!id) return;
+            // Advance both the inner entrance and any outer positioning transition.
+            // Sampling only the child would miss an incorrectly moving outer slot.
+            const animations = card.getAnimations({ subtree: true }).filter(animation => {
+                const element = (animation.effect as KeyframeEffect).target;
+                return element === card || element === target;
+            });
+            const entrance = animations.find(animation =>
+                animation instanceof CSSAnimation && animation.animationName === 'sb-stack-arrive');
+            if (!entrance) return;
+            const duration = Number(entrance.effect.getTiming().duration);
+            if (duration <= 0) return;
+            animations.forEach(animation => animation.pause());
+            samples[id] = [0, 0.25, 0.5, 0.75, 1].map(progress => {
+                animations.forEach(animation => { animation.currentTime = duration * progress; });
+                return card.querySelector('.sponsorSkipStackHeader').getBoundingClientRect().y;
+            });
+            animations.forEach(animation => animation.finish());
+        });
     });
     await page.locator('video').evaluate((video: HTMLVideoElement) => video.play());
     for (const [time, count] of [[56, 6], [66, 7]]) {
@@ -303,14 +319,15 @@ test("new cards enter downward from above their final slots without moving exist
         await expect.poll(() => page.locator('video').evaluate((video: HTMLVideoElement) => video.seeking)).toBe(false);
     }
     await pauseMockVideo(page);
-    await page.waitForTimeout(700);
+    await expect.poll(() => page.evaluate(() => Object.keys((window as Window & { arrivalSamples: Record<string, number[]> }).arrivalSamples).length)).toBe(2);
     const samples = await page.evaluate(() => (window as Window & { arrivalSamples: Record<string, number[]> }).arrivalSamples);
     for (const id of Object.keys(samples)) {
         const final = await page.locator(`${cardSelector}[id*="${id}"] .sponsorSkipStackHeader`).boundingBox();
-        expect(samples[id].length).toBeGreaterThan(5);
+        expect(samples[id]).toHaveLength(5);
         // Read the composed on-screen position, not just the child's animation keyframes.
         expect(Math.max(...samples[id]), id).toBeLessThanOrEqual(final.y + 0.5);
-        expect(samples[id].filter(y => y < final.y - 1 && y > final.y - 40).length, id).toBeGreaterThan(3);
+        expect(final.y - samples[id][0], id).toBeCloseTo(40, 1);
+        expect(samples[id].slice(1, -1).every(y => y > samples[id][0] && y < final.y), id).toBe(true);
         for (let i = 1; i < samples[id].length; i++) expect(samples[id][i], id).toBeGreaterThanOrEqual(samples[id][i - 1] - 0.5);
     }
     for (const item of existing) {
@@ -320,6 +337,8 @@ test("new cards enter downward from above their final slots without moving exist
 });
 
 test("two and three digit countdowns fit one line and keep action positions when paused", async ({ extensionPage: page, extensionServiceWorker }) => {
+    // This checks typography and hover targets, not motion (covered separately).
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     const card = page.locator(cardSelector).first();
     const timer = card.locator('.sponsorSkipNoticeTimeLeft');
     const text = card.locator('[id^="skipNoticeTimerText"]');
@@ -329,6 +348,7 @@ test("two and three digit countdowns fit one line and keep action positions when
             el.style.height = `${size[1]}px`;
         }, [width, height]);
         for (const duration of [58, 300]) {
+            await page.mouse.move(1200, 700);
             await page.locator(cardSelector).evaluateAll(cards => cards.forEach(card =>
                 (card.querySelector('.sponsorSkipNoticeCloseButton') as HTMLButtonElement).click()));
             await expect(page.locator(cardSelector)).toHaveCount(0);
@@ -339,6 +359,16 @@ test("two and three digit countdowns fit one line and keep action positions when
             await page.locator('video').evaluate((video: HTMLVideoElement) => video.play());
             await expect(card).toHaveCount(1);
             await pauseMockVideo(page);
+            // The legacy compact-parent max-height once clipped/scrolled this header,
+            // causing hover retries to hit the stack body instead of the timer.
+            // Scrolling belongs to the detail/stack, never to the action header's card.
+            await expect(card).toHaveCSS('overflow', 'visible');
+            await expect.poll(() => card.evaluate(el => {
+                const card = el.getBoundingClientRect();
+                const header = el.querySelector('.sponsorSkipStackHeader').getBoundingClientRect();
+                return header.height > 0 && header.top >= card.top - 0.5 &&
+                    header.bottom <= card.bottom + 0.5 && el.scrollTop === 0;
+            })).toBe(true);
             await timer.hover();
             await page.mouse.move(1200, 700);
             await expect(text).toBeVisible();
@@ -529,7 +559,10 @@ for (const mode of ["legacy", "rules"] as const) {
                 await click(continueVoting);
                 // Keyboard actions with the pointer still inside must use the same anchor.
                 const primary = card.locator("[id^='sponsorSkipUnskipButton']").first();
-                await primary.hover();
+                // locator.hover() can scroll the compact stack before moving the pointer,
+                // which would invalidate the stationary-position check by moving it itself.
+                const primaryBox = await primary.boundingBox();
+                await page.mouse.move(primaryBox.x + primaryBox.width / 2, primaryBox.y + primaryBox.height / 2);
                 const text = await primary.textContent();
                 await page.keyboard.press("Enter");
                 await expect(primary).not.toHaveText(text);
