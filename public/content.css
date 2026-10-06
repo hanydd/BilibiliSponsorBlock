@@ -1169,6 +1169,8 @@ input::-webkit-inner-spin-button {
     box-sizing: border-box;
     height: 40px;
     padding: 4px 8px;
+    /* The stack animates positions; an independently resizing header breaks anchoring. */
+    transition: none;
 }
 .sponsorSkipStackCard .sponsorSkipStackHeader .sponsorSkipMessage {
     flex: 0 1 auto;

@@ -1,11 +1,14 @@
-import type { Page } from "@playwright/test";
-import { expect, test } from "./fixtures/extension";
+import type { Locator, Page } from "@playwright/test";
+import { expect, test as extensionTest } from "./fixtures/extension";
 import { defaultMockBvid, defaultMockCid, pauseMockVideo, routeMockBilibiliVideoPage, setMockVideoTime } from "./support/bilibiliPage";
 import { writeSyncStorage } from "./support/extensionStorage";
 import { routeMockSponsorSegments } from "./support/sponsorBlockApi";
 import { waitForBilibiliContentScript } from "./support/submissionNotice";
 
 const cardSelector = ".sponsorSkipStackCard";
+const test = extensionTest.extend<{ skipEngineMode: "legacy" | "rules" }>({
+    skipEngineMode: ["legacy", { option: true }],
+});
 
 // Skip idle playback between test segments without simulating a user seek.
 // Resume just before the next segment so the real scheduler performs the skip.
@@ -26,9 +29,9 @@ async function advancePlayback(page: Page, time: number): Promise<void> {
 }
 
 
-test.beforeEach(async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+test.beforeEach(async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage, skipEngineMode }) => {
     await writeSyncStorage(extensionServiceWorker, {
-        skipOnSeekToSegment: true, noticeVisibilityMode: 2, skipNoticeDuration: 60,
+        skipEngineMode, skipOnSeekToSegment: true, noticeVisibilityMode: 2, skipNoticeDuration: 60,
     });
     await routeMockSponsorSegments(extensionContext, defaultMockBvid, Array.from({ length: 9 }, (_, i) => ({
         segment: [5 + i * 10, 8 + i * 10], UUID: `stack-${i}`, category: "sponsor", actionType: "skip",
@@ -460,3 +463,82 @@ test('closing the shortcut target transfers Enter to the newest remaining card',
     await page.keyboard.press('Enter');
     await expect(action).not.toHaveText(before);
 });
+
+for (const mode of ["legacy", "rules"] as const) {
+    test.describe(`${mode} card interactions`, () => {
+        test.use({ skipEngineMode: mode });
+
+        for (const [index, width, height] of [[0, 960, 540], [2, 960, 540], [0, 320, 180]]) {
+            test(`keeps card ${index} anchored through editing and feedback at ${width}x${height}`, async ({ extensionPage: page }, testInfo) => {
+                await page.locator("#bilibili-player").evaluate((el, size) => {
+                    el.style.width = `${size[0]}px`;
+                    el.style.height = `${size[1]}px`;
+                }, [width, height]);
+                const cards = page.locator(cardSelector);
+                const card = cards.nth(index);
+                const pencil = card.locator(".voteButton").nth(2);
+                await card.locator(".sponsorSkipStackHeader").hover();
+                await expect.poll(() => card.evaluate(el => el.getAnimations({ subtree: true })
+                    .filter(animation => animation instanceof CSSTransition &&
+                        ["height", "transform"].includes(animation.transitionProperty) && animation.playState === "running").length)).toBe(0);
+                const before = await pencil.boundingBox();
+                const lowerBefore = index > 0 ? await cards.nth(index - 1).boundingBox() : undefined;
+                // Sample throughout the interaction, including animated layout changes.
+                await card.evaluate(el => {
+                    const positions: number[] = [];
+                    (window as Window & { interactionPositions: number[] }).interactionPositions = positions;
+                    function frame() {
+                        positions.push(el.querySelector(".sponsorSkipStackHeader").getBoundingClientRect().y);
+                        if (el.isConnected) requestAnimationFrame(frame);
+                    }
+                    frame();
+                });
+                // Native clicks do not automatically scroll clipped controls into view.
+                const click = async (target: Locator) => {
+                    await expect.poll(() => target.evaluate(el => {
+                        const rect = el.getBoundingClientRect();
+                        return [rect.top + 1, rect.bottom - 1].every(y =>
+                            el.contains(document.elementFromPoint(rect.left + rect.width / 2, y)));
+                    })).toBe(true);
+                    const box = await target.boundingBox();
+                    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+                };
+                await click(pencil);
+                const editButtons = card.locator("[id^='sponsorSkipNoticeEditSegmentsRow'] button");
+                await expect(editButtons).toHaveCount(2);
+                // Both actions must be exposed without scrolling, including on the bottom card.
+                for (const button of await editButtons.all()) {
+                    await expect.poll(() => button.evaluate(el => {
+                        const rect = el.getBoundingClientRect();
+                        return el.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.bottom - 1));
+                    })).toBe(true);
+                }
+                expect((await pencil.boundingBox()).y).toBeCloseTo(before.y, 1);
+                expect((await pencil.boundingBox()).x).toBeCloseTo(before.x, 1);
+                if (lowerBefore) expect((await cards.nth(index - 1).boundingBox()).y).toBeGreaterThan(lowerBefore.y + 10);
+                await page.locator("#bilibili-player").screenshot({ path: testInfo.outputPath("expanded-editor.png") });
+                await click(editButtons.nth(1));
+                await card.locator("select.sponsorTimeCategories").selectOption("selfpromo");
+                // Votes are intercepted by the extension fixture; no real feedback is sent.
+                await click(card.locator("[id^='sponsorSkipNoticeCategoryChooserRow'] button"));
+                const continueVoting = card.locator("[id^='sponsorTimesContinueVotingContainer']");
+                await expect(continueVoting).toBeVisible();
+                await click(continueVoting);
+                await click(card.locator(".voteButton").first());
+                await expect(continueVoting).toBeVisible();
+                await click(continueVoting);
+                // Keyboard actions with the pointer still inside must use the same anchor.
+                const primary = card.locator("[id^='sponsorSkipUnskipButton']").first();
+                await primary.hover();
+                const text = await primary.textContent();
+                await page.keyboard.press("Enter");
+                await expect(primary).not.toHaveText(text);
+                // Observe the full transition; assert rendered positions, including intermediate frames.
+                await page.waitForTimeout(700);
+                const positions = await page.evaluate(() => (window as Window & { interactionPositions: number[] }).interactionPositions);
+                expect(Math.max(...positions) - Math.min(...positions)).toBeLessThan(0.5);
+                expect(await card.locator(".sponsorSkipStackDetail").evaluate(el => el.scrollTop)).toBe(0);
+            });
+        }
+    });
+}
