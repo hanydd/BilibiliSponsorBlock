@@ -1,7 +1,7 @@
 import { UpcomingSkipDecision } from "../src/notices/UpcomingSkipDecision";
 import { NoticeClock, secondsUntilSegment } from "../src/notices/NoticeClock";
 import { initialPlayback, noticePresentation, SegmentPlaybackState } from "../src/notices/SkipNoticeModel";
-import { stackOffsets } from "../src/notices/StackLayout";
+import { occupiedViewport, stackOffsets } from "../src/notices/StackLayout";
 import { ActionType, NoticeVisibilityMode } from "../src/types";
 
 test("short interruptions preserve fractional elapsed time and independent pauses", () => {
@@ -57,6 +57,23 @@ test("collapsing an upper detail does not move lower headers and removing a card
     expect(after.slice(0, 2)).toEqual(before.slice(0, 2));
     expect(after[2]).toBe(before[2] - 60);
     expect(stackOffsets(measurements.slice(1), 60, 6)[0]).toBe(60);
+});
+
+test("fractional card bounds settle to the same viewport without clipping details", () => {
+    // Successive animation frames from a resized compact player. Feeding these
+    // fractions back into transforms used to restart the transition indefinitely.
+    const viewports = [0.0087, 0.0074, 0.0069].map(fraction => {
+        const bounds = { top: 65 + fraction, bottom: 145 + fraction };
+        const viewport = occupiedViewport(191, [bounds]);
+        expect(viewport.top).toBeLessThanOrEqual(bounds.top);
+        expect(191 - viewport.bottom).toBeGreaterThanOrEqual(bounds.bottom);
+        return viewport;
+    });
+    expect(viewports[1]).toEqual(viewports[0]);
+    expect(viewports[2]).toEqual(viewports[0]);
+    // Expanded bottom details may extend below the normal control-bar boundary.
+    expect(occupiedViewport(101, [{ top: 12.4, bottom: 135.2 }], 55))
+        .toEqual({ top: 12, bottom: -35 });
 });
 
 test("cancelled preview survives rescheduling, only applies to its segment and is consumed once", () => {

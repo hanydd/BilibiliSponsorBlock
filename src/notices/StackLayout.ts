@@ -14,7 +14,9 @@ export const stackMotion = { move: 320, exit: 160, settle: 480 } as const;
 export function occupiedViewport(available: number, bounds: readonly { top: number; bottom: number }[], below = 0): { top: number; bottom: number } {
     if (!bounds.length) return { top: 0, bottom: 0 };
     return {
-        top: Math.max(0, Math.min(available, ...bounds.map(bound => bound.top))),
-        bottom: Math.max(-below, Math.min(available, ...bounds.map(bound => available - bound.bottom))),
+        // Round outwards so fractional animation bounds cannot keep feeding tiny
+        // viewport changes back into the next transform transition.
+        top: Math.floor(Math.max(0, Math.min(available, ...bounds.map(bound => bound.top)))),
+        bottom: Math.floor(Math.max(-below, Math.min(available, ...bounds.map(bound => available - bound.bottom)))),
     };
 }
