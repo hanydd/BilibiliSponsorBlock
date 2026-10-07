@@ -1523,7 +1523,7 @@
         "message": "屏蔽匹配正则: "
     },
     "dynamicAndCommentSponsorRegexPatternDescription": {
-        "message": "默认词条来自仓库根目录的 config/sponsorRegex.json，支持在线 OTA 更新（每 24 小时自动检查一次，也可手动检查）；\n应用在线配置时会保留您修改过的词条内容与开关，以及自定义词条"
+        "message": "支持在线 OTA 更新（每 24 小时自动检查一次，也可手动检查）；\n应用在线配置时会保留您修改过的词条内容与开关，以及自定义词条"
     },
     "dynamicSponsorRegexConfigSourceBuiltin": {
         "message": "默认词条：扩展内置（$DATE$）",
@@ -1582,6 +1582,9 @@
     "dynamicSponsorRegexFlag_u": {
         "message": "u Unicode"
     },
+    "dynamicSponsorRuleName_legacyCustom": {
+        "message": "自定义正则"
+    },
     "dynamicSponsorRegexRulePatternPlaceholder": {
         "message": "例如 淘宝|京东"
     },
@@ -1634,7 +1637,7 @@
     },
     "dynamicSponsorRegexRuleConfirmReset": {
         "message": "确定恢复默认词条吗？当前的自定义词条与修改都会被覆盖"
-    },
+    },
     "category_dynamicSponsor_sponsor": {
         "message": "商品链接"
     },

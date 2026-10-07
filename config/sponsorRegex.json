@@ -12,25 +12,25 @@
             "enabled": true,
             "version": 1,
             "updateAt": {
-                "year": 2026,
+                "year": 2025,
                 "month": 10,
-                "day": 7
+                "day": 17
             }
         },
         {
             "id": "adLanguage",
             "locales": {
                 "en": "Ad Language",
-                "zh_CN": "广告话术",
+                "zh_CN": "恰饭暗示",
                 "zh_TW": "廣告話術"
             },
             "pattern": "恰(?:个|了|到)?饭|金主|(他|它|她)(?:们)?家(?:的)?",
             "enabled": true,
             "version": 1,
             "updateAt": {
-                "year": 2026,
+                "year": 2025,
                 "month": 10,
-                "day": 7
+                "day": 17
             }
         },
         {
@@ -44,9 +44,9 @@
             "enabled": true,
             "version": 1,
             "updateAt": {
-                "year": 2026,
+                "year": 2025,
                 "month": 10,
-                "day": 7
+                "day": 17
             }
         },
         {
@@ -60,9 +60,9 @@
             "enabled": true,
             "version": 1,
             "updateAt": {
-                "year": 2026,
+                "year": 2025,
                 "month": 10,
-                "day": 7
+                "day": 17
             }
         },
         {
@@ -76,9 +76,9 @@
             "enabled": true,
             "version": 1,
             "updateAt": {
-                "year": 2026,
+                "year": 2025,
                 "month": 10,
-                "day": 7
+                "day": 17
             }
         },
         {
@@ -92,9 +92,9 @@
             "enabled": true,
             "version": 1,
             "updateAt": {
-                "year": 2026,
+                "year": 2025,
                 "month": 10,
-                "day": 7
+                "day": 17
             }
         },
         {
@@ -108,9 +108,9 @@
             "enabled": true,
             "version": 1,
             "updateAt": {
-                "year": 2026,
+                "year": 2025,
                 "month": 10,
-                "day": 7
+                "day": 17
             }
         },
         {
@@ -124,9 +124,9 @@
             "enabled": true,
             "version": 1,
             "updateAt": {
-                "year": 2026,
+                "year": 2025,
                 "month": 10,
-                "day": 7
+                "day": 17
             }
         },
         {
@@ -140,9 +140,9 @@
             "enabled": true,
             "version": 1,
             "updateAt": {
-                "year": 2026,
+                "year": 2025,
                 "month": 10,
-                "day": 7
+                "day": 17
             }
         },
         {
@@ -156,9 +156,9 @@
             "enabled": true,
             "version": 1,
             "updateAt": {
-                "year": 2026,
+                "year": 2025,
                 "month": 10,
-                "day": 7
+                "day": 17
             }
         }
     ]

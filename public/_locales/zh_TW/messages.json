@@ -1522,7 +1522,7 @@
         "message": "封鎖匹配正則: "
     },
     "dynamicAndCommentSponsorRegexPatternDescription": {
-        "message": "預設詞條來自倉庫根目錄的 config/sponsorRegex.json，支援線上 OTA 更新（每 24 小時自動檢查一次，也可手動檢查）；\n套用線上設定時會保留您修改過的詞條內容與開關，以及自訂詞條"
+        "message": "支援線上 OTA 更新（每 24 小時自動檢查一次，也可手動檢查）；\n套用線上設定時會保留您修改過的詞條內容與開關，以及自訂詞條"
     },
     "dynamicSponsorRegexConfigSourceBuiltin": {
         "message": "預設詞條：擴充內建（$DATE$）",
@@ -1581,6 +1581,9 @@
     "dynamicSponsorRegexFlag_u": {
         "message": "u Unicode"
     },
+    "dynamicSponsorRuleName_legacyCustom": {
+        "message": "自訂正規表示式"
+    },
     "dynamicSponsorRegexRulePatternPlaceholder": {
         "message": "例如 淘宝|京东"
     },
@@ -1633,7 +1636,7 @@
     },
     "dynamicSponsorRegexRuleConfirmReset": {
         "message": "確定恢復預設詞條嗎？目前的自訂詞條與修改都會被覆蓋"
-    },
+    },
     "category_dynamicSponsor_sponsor": {
         "message": "商品連結"
     },
