@@ -20,7 +20,7 @@ const contentScriptRegistrations = {};
 setupBackgroundRequestProxy();
 setupTabUpdates(Config);
 
-// 服务脚本每次唤醒时顺带检查柔性推广屏蔽词条的在线更新（内部有 24 小时节流，失败静默）
+// 服务脚本每次唤醒时检查柔性推广屏蔽词条的在线更新（内部有 24 小时节流，失败静默）
 void Config.ready
     .then(() => checkSponsorRegexConfigUpdate())
     .catch((error) => console.warn("[BSB] Sponsor regex config check failed", error));

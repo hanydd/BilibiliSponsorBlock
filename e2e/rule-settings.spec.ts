@@ -246,8 +246,8 @@ test('settings tabs cover every classic behavior setting and keep native control
     // The single regex text box became a rule list; toggling one entry proves the moved controls still work.
     await community.locator("[data-rule-id='delivery'] input[type='checkbox']").uncheck();
     await expect.poll(async () => {
-        const rules = (await readSyncStorage<{ id: string; enabled: boolean }[]>(extensionServiceWorker, 'dynamicAndCommentSponsorRegexRules')) ?? [];
-        return rules.find(rule => rule.id === 'delivery')?.enabled;
+        const userRules = (await readSyncStorage<Array<{ id: string; enabled: boolean }>>(extensionServiceWorker, 'dynamicAndCommentSponsorRegexUserRules')) ?? [];
+        return userRules.find(rule => rule.id === 'delivery')?.enabled;
     }).toBe(false);
     await toggleRuleEngine(page);
     await expect(page.locator('#behavior #audioNotificationOnSkip')).toBeChecked();

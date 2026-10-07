@@ -1523,7 +1523,7 @@
         "message": "屏蔽匹配正则: "
     },
     "dynamicAndCommentSponsorRegexPatternDescription": {
-        "message": "支持在线 OTA 更新（每 24 小时自动检查一次，也可手动检查）；\n应用在线配置时会保留您修改过的词条内容与开关，以及自定义词条"
+        "message": "支持在线 OTA 更新（每 24 小时自动检查一次，也可手动检查）；\n改过的词条会存下你的版本并优先使用，重置后恢复跟随在线配置"
     },
     "dynamicSponsorRegexConfigSourceBuiltin": {
         "message": "默认词条：扩展内置（$DATE$）",
@@ -1606,9 +1606,6 @@
     "dynamicSponsorRegexRulePatternInvalid": {
         "message": "正则表达式无效，该词条会被跳过"
     },
-    "dynamicSponsorRegexRuleReset": {
-        "message": "重置"
-    },
     "dynamicSponsorRegexRuleDelete": {
         "message": "删除"
     },
@@ -1636,7 +1633,7 @@
         "message": "确定删除该词条吗？"
     },
     "dynamicSponsorRegexRuleConfirmReset": {
-        "message": "确定恢复默认词条吗？当前的自定义词条与修改都会被覆盖"
+        "message": "确定恢复默认吗？内置词条的启用状态会全部还原，自定义词条会被删除"
     },
     "category_dynamicSponsor_sponsor": {
         "message": "商品链接"
@@ -2769,5 +2766,8 @@
     },
     "rules_declineWelcome": {
         "message": "使用经典模式"
+    },
+    "dynamicSponsorRegexRuleReset": {
+        "message": "重置"
     }
 }

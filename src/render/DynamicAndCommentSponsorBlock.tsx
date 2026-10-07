@@ -4,6 +4,7 @@ import { DynamicSponsorOption, DynamicSponsorSelection } from "../types";
 import { addCleanupListener } from "../utils/cleanup";
 import { insertSBIconDefinition } from "../thumbnail-utils/thumbnails";
 import { matchSponsorRules } from "../utils/sponsorRegex";
+import { getEffectiveSponsorRegexRules } from "../config/sponsorRegexOTA";
 
 export { DynamicListener, CommentListener };
 
@@ -20,7 +21,7 @@ async function DynamicListener() {
                 const dynamicSponsorContext = isDynamicSponsorSuspicionSponsor(element);
                 const result = matchSponsorRules(
                     dynamicSponsorContext,
-                    Config.config.dynamicAndCommentSponsorRegexRules,
+                    getEffectiveSponsorRegexRules(),
                     Config.config.dynamicAndCommentSponsorRegexFlags,
                     Config.config.dynamicAndCommentSponsorRegexPatternKeywordNumber
                 );

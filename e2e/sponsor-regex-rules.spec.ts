@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import type { Page, Worker } from "@playwright/test";
 import { expect, test } from "./fixtures/extension";
 import { readLocalStorage, readSyncStorage, writeSyncStorage } from "./support/extensionStorage";
@@ -37,10 +38,14 @@ test("persists per-entry enabled state and the keyword threshold", async ({
     await expect(deliveryToggle).toBeChecked();
     await deliveryToggle.uncheck();
 
+    // 改过的词条整条存进同步列表（默认词条本体仍在本地/随包配置）
     await expect
         .poll(async () => {
-            const rules = await readSyncStorage<RegexRule[]>(extensionServiceWorker, "dynamicAndCommentSponsorRegexRules");
-            return rules.find((rule) => rule.id === "delivery")?.enabled;
+            const userRules = await readSyncStorage<RegexRule[]>(
+                extensionServiceWorker,
+                "dynamicAndCommentSponsorRegexUserRules"
+            );
+            return userRules.find((rule) => rule.id === "delivery")?.enabled;
         })
         .toBe(false);
 
@@ -98,8 +103,11 @@ test("adds and removes a custom entry", async ({ extensionId, extensionPage, ext
 
     await expect
         .poll(async () => {
-            const rules = await readSyncStorage<RegexRule[]>(extensionServiceWorker, "dynamicAndCommentSponsorRegexRules");
-            const custom = rules.find((rule) => rule.id.startsWith("custom_"));
+            const userRules = await readSyncStorage<RegexRule[]>(
+                extensionServiceWorker,
+                "dynamicAndCommentSponsorRegexUserRules"
+            );
+            const custom = userRules.find((rule) => rule.id.startsWith("custom_"));
             return custom && { name: custom.name, pattern: custom.pattern };
         })
         .toEqual({ name: "我的推广词", pattern: "某某产品" });
@@ -109,19 +117,35 @@ test("adds and removes a custom entry", async ({ extensionId, extensionPage, ext
     await expect(rows).toHaveCount(10);
 });
 
-test("resets edited built-in entries back to the shipped defaults", async ({
+test("edits a built-in entry, then resets it back to the default", async ({
     extensionId,
     extensionPage,
     extensionServiceWorker,
 }) => {
     await openBehaviorOptions(extensionPage, extensionId, extensionServiceWorker);
 
-    const patternInput = extensionPage.locator("[data-rule-id='shoppingSite'] [data-rule-pattern]");
+    const builtinRow = extensionPage.locator("[data-rule-id='shoppingSite']");
+    const patternInput = builtinRow.locator("[data-rule-pattern]");
+    const readUserRule = async () =>
+        (await readSyncStorage<RegexRule[]>(extensionServiceWorker, "dynamicAndCommentSponsorRegexUserRules"))?.find(
+            (rule) => rule.id === "shoppingSite"
+        );
+
     await expect(patternInput).toHaveValue("(?:淘宝|tb|京东|jd|狗东|拼多多|pdd|天猫|tmall)搜索");
 
+    // 改内容：整条存进同步列表，并带上默认词条的名称与更新日期
     await patternInput.fill("被改坏的内容");
-    await extensionPage.locator("[data-rule-id='shoppingSite'] .option-button").click();
+    await expect.poll(readUserRule).toMatchObject({ pattern: "被改坏的内容", enabled: true });
+
+    // 停用只改启用状态，不影响已保存的内容
+    await builtinRow.locator("input[type='checkbox']").uncheck();
+    await expect.poll(readUserRule).toMatchObject({ pattern: "被改坏的内容", enabled: false });
+
+    // 重置：丢掉用户版本，恢复默认内容与默认启用状态
+    await builtinRow.locator(".option-button").click();
     await expect(patternInput).toHaveValue("(?:淘宝|tb|京东|jd|狗东|拼多多|pdd|天猫|tmall)搜索");
+    await expect(builtinRow.locator("input[type='checkbox']")).toBeChecked();
+    await expect.poll(readUserRule).toBeUndefined();
 });
 
 test("migrates a customized legacy regex into one custom entry and moves its flags", async ({
@@ -136,22 +160,77 @@ test("migrates a customized legacy regex into one custom entry and moves its fla
     await extensionPage.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
     await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr").first()).toBeVisible();
 
-    const rules = await readSyncStorage<RegexRule[]>(extensionServiceWorker, "dynamicAndCommentSponsorRegexRules");
-    expect(rules.find((rule) => rule.id === "legacyCustom")).toMatchObject({
-        pattern: "我的广告词",
-        enabled: true,
-    });
-    expect(rules.filter((rule) => rule.id !== "legacyCustom").every((rule) => !rule.enabled)).toBe(true);
+    // 对不上内置词条的内容保留为一条启用的自定义词条（内置词条默认全开，不写用户词条）
+    const userRules = await readSyncStorage<RegexRule[]>(
+        extensionServiceWorker,
+        "dynamicAndCommentSponsorRegexUserRules"
+    );
+    expect(userRules).toHaveLength(1);
+    expect(userRules[0]).toMatchObject({ id: "legacyCustom", pattern: "我的广告词", enabled: true });
     expect(
         await readSyncStorage<string | undefined>(extensionServiceWorker, "dynamicAndCommentSponsorRegexPattern")
     ).toBeUndefined();
     expect(await readSyncStorage<string>(extensionServiceWorker, "dynamicAndCommentSponsorRegexFlags")).toBe("gi");
 
-    // 旧正则保留为启用的自定义词条，且斜杠与 flags 已拆分到对应控件
+    // 斜杠与 flags 已拆分到对应控件，自定义词条可编辑并显示最后一次更改日期
     await expect(extensionPage.locator("[data-rule-id='legacyCustom']")).toBeVisible();
     await expect(extensionPage.locator("[data-rule-id='legacyCustom'] input[type='checkbox']")).toBeChecked();
     await expect(extensionPage.locator("[data-rule-id='legacyCustom'] [data-rule-pattern]")).toHaveValue("我的广告词");
+    await expect(extensionPage.locator("[data-rule-id='legacyCustom']")).not.toContainText("—");
     await expect(extensionPage.locator("#sponsorRegexFlag_i")).toBeChecked();
+});
+
+test("migrates an unmodified legacy regex onto the built-in entries without writing user rules", async ({
+    extensionId,
+    extensionPage,
+    extensionServiceWorker,
+}) => {
+    // 旧版的默认正则 = 内置词条合集，逐条都能对上，所以不需要写任何用户词条
+    const shippedPatterns = (
+        JSON.parse(readFileSync("config/sponsorRegex.json", "utf8")) as { rules: { pattern: string }[] }
+    ).rules.map((rule) => rule.pattern);
+    await writeSyncStorage(extensionServiceWorker, {
+        dynamicAndCommentSponsorBlocker: true,
+        dynamicAndCommentSponsorRegexPattern: `/${shippedPatterns.join("|")}/gi`,
+    });
+
+    await extensionPage.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
+    await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr").first()).toBeVisible();
+
+    // 旧键被删除，用户词条列表保持为空：内置词条直接启用并继续跟随在线更新
+    await expect
+        .poll(() => readSyncStorage(extensionServiceWorker, "dynamicAndCommentSponsorRegexPattern"))
+        .toBeUndefined();
+    expect(
+        await readSyncStorage<RegexRule[]>(extensionServiceWorker, "dynamicAndCommentSponsorRegexUserRules")
+    ).toBeUndefined();
+    await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr")).toHaveCount(10);
+    await expect(extensionPage.locator("[data-rule-id='shoppingSite'] input[type='checkbox']")).toBeChecked();
+});
+
+test("migrates a legacy regex with extra terms into one custom entry", async ({
+    extensionId,
+    extensionPage,
+    extensionServiceWorker,
+}) => {
+    // 内置词条能对上的部分被摘掉，只剩用户自己加的词
+    const shippedPatterns = (
+        JSON.parse(readFileSync("config/sponsorRegex.json", "utf8")) as { rules: { pattern: string }[] }
+    ).rules.map((rule) => rule.pattern);
+    await writeSyncStorage(extensionServiceWorker, {
+        dynamicAndCommentSponsorBlocker: true,
+        dynamicAndCommentSponsorRegexPattern: `/${shippedPatterns.join("|")}|我的广告词/gi`,
+    });
+
+    await extensionPage.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
+    await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr").first()).toBeVisible();
+
+    const userRules = await readSyncStorage<RegexRule[]>(
+        extensionServiceWorker,
+        "dynamicAndCommentSponsorRegexUserRules"
+    );
+    expect(userRules).toHaveLength(1);
+    expect(userRules[0]).toMatchObject({ id: "legacyCustom", pattern: "我的广告词", enabled: true });
 });
 
 test("applies OTA regex config updates without shipping a new version", async ({
@@ -198,8 +277,9 @@ test("applies OTA regex config updates without shipping a new version", async ({
         .toBe(2);
     await expect
         .poll(async () => {
-            const rules = await readSyncStorage<RegexRule[]>(extensionServiceWorker, "dynamicAndCommentSponsorRegexRules");
-            return rules.find((rule) => rule.id === "otaDelivery")?.pattern;
+            // 默认词条本体只写本地快照（不同步）
+            const remote = await readLocalStorage<RemoteRegexConfig>(extensionServiceWorker, "sponsorRegexRemoteConfig");
+            return remote?.rules.find((rule) => rule.id === "otaDelivery")?.pattern;
         })
         .toBe("某团外卖|某了么");
 
@@ -212,8 +292,9 @@ test("applies OTA regex config updates without shipping a new version", async ({
     await extensionPage.locator("#checkSponsorRegexUpdate").click();
     await expect(extensionPage.locator("#sponsorRegexConfigStatus")).toContainText("已是最新");
 
-    // 用户修改过的词条在更高版本的在线更新中不被覆盖
-    const patternInput = extensionPage.locator("[data-rule-id='shoppingSite'] [data-rule-pattern]");
+    // 用户改过的内置词条存下自己的版本，之后的在线更新不再覆盖它
+    const builtinRow = extensionPage.locator("[data-rule-id='shoppingSite']");
+    const patternInput = builtinRow.locator("[data-rule-pattern]");
     await patternInput.fill("用户自定义搜索");
     remoteConfig = {
         rules: [
@@ -242,5 +323,10 @@ test("applies OTA regex config updates without shipping a new version", async ({
             return remote?.rules.find((rule) => rule.id === "shoppingSite")?.version;
         })
         .toBe(3);
+    // 重复 id 用用户版本：在线新内容进本地快照，但界面上仍是用户改过的内容
     await expect(patternInput).toHaveValue("用户自定义搜索");
+
+    // 重置后恢复跟随在线配置
+    await builtinRow.locator(".option-button").click();
+    await expect(patternInput).toHaveValue("在线新模式");
 });

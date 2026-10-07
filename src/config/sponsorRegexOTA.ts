@@ -3,6 +3,15 @@ import * as shippedSponsorRegexFile from "../../config/sponsorRegex.json";
 import Config from "../config";
 import { DynamicSponsorRegexRule, formatSponsorRuleDate } from "../utils/sponsorRegex";
 
+/**
+ * 词条默认值放在仓库根目录的 config/sponsorRegex.json 里：随扩展发布的版本作为初始值，
+ * 因此调整词条只需要推送该文件，不需要发新版本。
+ *
+ * 默认词条只写本地（sponsorRegexRemoteConfig，不参与同步）；同步存储放用户改过的词条，
+ * 生效时按 id 优先取用户的版本，默认词条里的重复 id 直接丢弃。
+ * 每条词条自带 version：只有远端词条的 version 大于本地已知版本时才应用该词条的更新。
+ */
+
 export interface Rule {
     id: string;
     locales: {
@@ -24,17 +33,14 @@ export interface RulesConfig {
     rules: Rule[];
 }
 
-/** 本地缓存：已应用的在线词条（作为“用户未修改时的默认内容”基线） */
 export interface SponsorRegexRemoteConfig {
     rules: DynamicSponsorRegexRule[];
-    appliedAt: number;
 }
 
 export type SponsorRegexCheckStatus = "updated" | "up-to-date" | "failed";
 
 export interface SponsorRegexCheckResult {
     status: SponsorRegexCheckStatus;
-    updatedCount?: number;
 }
 
 const CHECK_INTERVAL = 24 * 60 * 60 * 1000;
@@ -119,69 +125,23 @@ async function fetchRulesConfig(): Promise<RulesConfig> {
     throw lastError;
 }
 
-export function mergeSponsorRegexRulesWithDefaults(
-    userRules: DynamicSponsorRegexRule[],
-    newDefaults: DynamicSponsorRegexRule[],
-    oldDefaults: DynamicSponsorRegexRule[]
-): DynamicSponsorRegexRule[] {
-    const oldById = new Map(oldDefaults.map((rule) => [rule.id, rule]));
-    const newIds = new Set(newDefaults.map((rule) => rule.id));
-
-    const merged = newDefaults.map((def) => {
-        const user = userRules.find((rule) => rule.id === def.id);
-        const old = oldById.get(def.id);
-        if (!user || !old) return { ...def };
-
-        return {
-            ...def,
-            pattern: user.pattern !== old.pattern ? user.pattern : def.pattern,
-            enabled: user.enabled !== old.enabled ? user.enabled : def.enabled,
-        };
-    });
-
-    const keptUserRules = userRules.filter((rule) => {
-        if (!newIds.has(rule.id) && !oldById.has(rule.id)) return true;
-        return !newIds.has(rule.id) && rule.pattern !== oldById.get(rule.id)?.pattern;
-    });
-
-    return [...merged, ...keptUserRules];
-}
-
 export function applyRulesConfig(remote: RulesConfig): SponsorRegexCheckResult {
     const oldDefaults = getDefaultSponsorRegexRules();
-    const oldById = new Map(oldDefaults.map((rule) => [rule.id, rule]));
 
-    // 版本号更高的词条采用远端内容，其余保持本地已知默认值不变
-    const newDefaults: DynamicSponsorRegexRule[] = [];
-    let updatedCount = 0;
-    for (const rule of remote.rules) {
-        const old = oldById.get(rule.id);
-        if (!old || rule.version > (old.version ?? 0)) {
-            newDefaults.push({ ...rule });
-            updatedCount++;
-        } else {
-            newDefaults.push({ ...old });
-        }
-    }
+    // 版本号更高的词条才算有更新，避免在线配置误改内容但不递增版本时反复应用
+    const hasUpdates = remote.rules.some((rule) => {
+        const old = oldDefaults.find((item) => item.id === rule.id);
+        return !old || rule.version > (old.version ?? 0);
+    });
+    if (!hasUpdates) return { status: "up-to-date" };
 
-    if (updatedCount === 0) return { status: "up-to-date" };
+    Config.local.sponsorRegexRemoteConfig = { rules: remote.rules.map((rule) => ({ ...rule })) };
 
-    const userRules = Config.config.dynamicAndCommentSponsorRegexRules ?? [];
-    Config.config.dynamicAndCommentSponsorRegexRules = mergeSponsorRegexRulesWithDefaults(
-        userRules,
-        newDefaults,
-        oldDefaults
-    );
-    Config.local.sponsorRegexRemoteConfig = {
-        rules: newDefaults.map((rule) => ({ ...rule })),
-        appliedAt: Date.now(),
-    };
-
-    return { status: "updated", updatedCount };
+    return { status: "updated" };
 }
 
 /** 随扩展发布的初始配置 */
-export function getShippedRulesConfig(): RulesConfig {
+function getShippedRulesConfig(): RulesConfig {
     return { rules: shippedSponsorRegexFile.rules.map((rule) => ({ ...rule })) };
 }
 
@@ -189,6 +149,18 @@ export function getShippedRulesConfig(): RulesConfig {
 export function getDefaultSponsorRegexRules(): DynamicSponsorRegexRule[] {
     const remote = Config.local?.sponsorRegexRemoteConfig;
     return remote ? remote.rules.map((rule) => ({ ...rule })) : getShippedRulesConfig().rules;
+}
+
+export function getEffectiveSponsorRegexRules(): DynamicSponsorRegexRule[] {
+    const userRules = Config.config?.dynamicAndCommentSponsorRegexUserRules ?? [];
+    const userById = new Map(userRules.map((rule) => [rule.id, rule]));
+
+    // 默认词条保持原顺序，重复 id 用用户版本；默认词条里没有的（自建词条）追加在后面
+    const defaults = getDefaultSponsorRegexRules();
+    const merged = defaults.map((rule) => userById.get(rule.id) ?? rule);
+    const customRules = userRules.filter((rule) => !defaults.some((item) => item.id === rule.id));
+
+    return [...merged, ...customRules];
 }
 
 /** 生效默认词条里最近一次更新的日期（YYYY-MM-DD），用于设置页展示 */

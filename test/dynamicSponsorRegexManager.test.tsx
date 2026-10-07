@@ -2,34 +2,15 @@
 import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const mockDefaultRules = [
-    {
-        id: "shoppingSite",
-        locales: { en: "Shopping Sites", zh_CN: "购物网站" },
-        pattern: "(?:淘宝|京东)搜索",
-        enabled: true,
-        version: 1,
-        updateAt: { year: 2026, month: 10, day: 7 },
-    },
-    {
-        id: "delivery",
-        locales: { en: "Food Delivery", zh_CN: "外卖" },
-        pattern: "美团外卖",
-        enabled: false,
-        version: 1,
-        updateAt: { year: 2026, month: 10, day: 7 },
-    },
-];
-
 jest.mock("../src/config", () => ({
     __esModule: true,
     default: {
         config: {
-            dynamicAndCommentSponsorRegexRules: mockDefaultRules,
+            dynamicAndCommentSponsorRegexUserRules: [],
             dynamicAndCommentSponsorRegexFlags: "gi",
         },
+        // 未应用在线配置：默认词条取自随包的 config/sponsorRegex.json
         local: { sponsorRegexRemoteConfig: null },
-        syncDefaults: { dynamicAndCommentSponsorRegexRules: mockDefaultRules },
     },
 }));
 
@@ -43,14 +24,14 @@ describe("DynamicSponsorRegexManagerComponent", () => {
         };
     });
 
-    test("渲染内置词条、启用状态、匹配模式与来源状态", async () => {
+    test("渲染默认词条、启用状态、匹配模式与来源状态", async () => {
         const DynamicSponsorRegexManagerComponent = (
             await import("../src/components/options/DynamicSponsorRegexManagerComponent")
         ).default;
 
         const markup = renderToStaticMarkup(React.createElement(DynamicSponsorRegexManagerComponent));
 
-        // 词条名来自配置自带的 locales（测试浏览器 UI 语言为 en-US）
+        // 词条名来自默认词条自带的 locales（测试浏览器 UI 语言为 en-US）
         expect(markup).toContain("Shopping Sites");
         expect(markup).toContain("Food Delivery");
 
@@ -62,15 +43,39 @@ describe("DynamicSponsorRegexManagerComponent", () => {
         // 未应用在线配置时展示内置来源
         expect(markup).toContain("dynamicSponsorRegexConfigSourceBuiltin");
 
-        // 每条词条展示自己的更新日期
-        expect(markup).toContain("2026-10-07");
+        // 每条词条展示自己的更新日期（取自随包配置 config/sponsorRegex.json）
+        expect(markup).toContain("2025-10-17");
 
-        // 内置词条只能重置，不能删除
+        // 内置词条内容可编辑、可以重置，但不能删除
         expect(markup).toContain("dynamicSponsorRegexRuleReset");
         expect(markup).not.toContain("dynamicSponsorRegexRuleDelete");
+        expect(markup).not.toContain("data-rule-name");
 
-        // 内置词条名不可编辑，启用状态跟随配置
+        // 默认词条名不可编辑；启用状态 = 2 个 flags + 全部默认词条
         expect(markup).not.toContain("dynamicSponsorRegexRuleNamePlaceholder");
-        expect(markup.match(/type="checkbox" checked=""/g) ?? []).toHaveLength(3); // g + i + shoppingSite
+        expect(markup.match(/type="checkbox" checked=""/g) ?? []).toHaveLength(12);
+    });
+
+    test("重复 id 展示用户版本，自建词条排在最后", async () => {
+        const Config = (await import("../src/config")).default;
+        Config.config.dynamicAndCommentSponsorRegexUserRules = [
+            { id: "shoppingSite", pattern: "用户改的", enabled: false },
+            { id: "custom_1", name: "我的词条", pattern: "某某产品", enabled: true },
+        ];
+        Config.local.sponsorRegexRemoteConfig = {
+            rules: [{ id: "shoppingSite", pattern: "在线新模式", enabled: true, version: 2 }],
+        };
+
+        const DynamicSponsorRegexManagerComponent = (
+            await import("../src/components/options/DynamicSponsorRegexManagerComponent")
+        ).default;
+
+        const markup = renderToStaticMarkup(React.createElement(DynamicSponsorRegexManagerComponent));
+
+        // 用户版本的内容与启用状态优先，自建词条可编辑名称
+        expect(markup).toContain('value="用户改的"');
+        expect(markup).toContain('value="某某产品"');
+        expect(markup).toContain("data-rule-name");
+        expect(markup).toContain("dynamicSponsorRegexRuleDelete");
     });
 });

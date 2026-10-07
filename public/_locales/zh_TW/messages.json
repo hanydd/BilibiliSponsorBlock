@@ -1522,7 +1522,7 @@
         "message": "封鎖匹配正則: "
     },
     "dynamicAndCommentSponsorRegexPatternDescription": {
-        "message": "支援線上 OTA 更新（每 24 小時自動檢查一次，也可手動檢查）；\n套用線上設定時會保留您修改過的詞條內容與開關，以及自訂詞條"
+        "message": "支援線上 OTA 更新（每 24 小時自動檢查一次，也可手動檢查）；\n改過的詞條會存下你的版本並優先使用，重設後恢復跟隨線上設定"
     },
     "dynamicSponsorRegexConfigSourceBuiltin": {
         "message": "預設詞條：擴充內建（$DATE$）",
@@ -1605,9 +1605,6 @@
     "dynamicSponsorRegexRulePatternInvalid": {
         "message": "正規表示式無效，該詞條會被跳過"
     },
-    "dynamicSponsorRegexRuleReset": {
-        "message": "重設"
-    },
     "dynamicSponsorRegexRuleDelete": {
         "message": "刪除"
     },
@@ -1635,7 +1632,7 @@
         "message": "確定刪除該詞條嗎？"
     },
     "dynamicSponsorRegexRuleConfirmReset": {
-        "message": "確定恢復預設詞條嗎？目前的自訂詞條與修改都會被覆蓋"
+        "message": "確定恢復預設嗎？內建詞條的啟用狀態會全部還原，自訂詞條會被刪除"
     },
     "category_dynamicSponsor_sponsor": {
         "message": "商品連結"
@@ -2759,5 +2756,8 @@
     },
     "rules_declineWelcome": {
         "message": "使用經典模式"
+    },
+    "dynamicSponsorRegexRuleReset": {
+        "message": "重設"
     }
 }

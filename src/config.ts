@@ -123,7 +123,8 @@ interface SBConfig {
 
     dynamicAndCommentSponsorWhitelistedChannels: boolean;
     dynamicAndCommentSponsorBlocker: boolean;
-    dynamicAndCommentSponsorRegexRules: DynamicSponsorRegexRule[];
+    /** 用户改动过的词条（改过的内置词条 + 自建词条），生效时优先于默认词条 */
+    dynamicAndCommentSponsorRegexUserRules: DynamicSponsorRegexRule[];
     dynamicAndCommentSponsorRegexFlags: string;
     dynamicAndCommentSponsorRegexPatternKeywordNumber: number;
     dynamicSponsorBlock: boolean;
@@ -278,53 +279,44 @@ function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<st
         config["danmakuOffsetMatchingRegexPattern"] = syncDefaults.danmakuOffsetMatchingRegexPattern;
     }
 
-    // 更新默认动态贴片广告正则表达式 在0.8.1额外迁移变量
-    const oldDynamicSponsorRegexPattern = [
-        "(618|11(?!1).11|双(11|十一|12|十二))|恰(?:个|了|到)?饭|((领(?:取)?|抢|有)(?:神|优惠)?券|券后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品", // 0.7.4
-        "(618|11(?!1).11|双(11|十一|12|十二))|(恰|接)(?:个|了|到)?(饭|广)|((?:领(?:取|张)?|抢|有)(?:神|优惠)?(券|卷)|券后|卷后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品|同款", // 0.8.1
-        "/(618|11(?!1).11|双(?:11|十一|12|十二)|女神节)|恰(?:个|了|到)?饭|金主|(?:评论区)?(?:领(?:取|张|到)?|抢|有|送|得)(?:我的)?(?:神|优惠|红包|折扣|福利|无门槛|隐藏|秘密|专属|(?:超)?大(?:额)?|额外)*(?:券|卷|劵|q(?:uan)?)?(?:后|到手|价|使用|下单)?|(?:优惠|(?:券|卷|劵)后|到手|促销|活动|神)价|(?:淘宝|tb|京东|jd|狗东|拼多多|pdd|天猫|tmall)搜索|(?:随(便|时)|任意)(?:退|退货|换货)|(?:免费|无偿)(?:换(?:个)?新|替换|更换)(?:商品|物品)?|(?:点(?:击)?|戳|来|我)评论区(?:置顶)?|(?:立即|蓝链|链接|🔗)(?:购买|下单)|(?:vx|wx|微信|软件)扫码(?:领)?(?:优惠|红包|券)?|(?:我的)?同款(?:[的]?(?:推荐|好物|商品|入手|购买|拥有|分享|安利)?)|满\\d+|大促|促销|折扣|特价|秒杀|广告|推广|低至|热卖|抢购|新品|豪礼|赠品/gi", // 0.11.1
-    ];
+    // 0.8.1 之前这个正则叫 dynamicSponsorRegexPattern
     if (config["dynamicSponsorRegexPattern"] && !config["dynamicAndCommentSponsorRegexPattern"]) {
         config["dynamicAndCommentSponsorRegexPattern"] = config["dynamicSponsorRegexPattern"];
         delete config["dynamicSponsorRegexPattern"];
     }
-    if (oldDynamicSponsorRegexPattern.includes(config["dynamicAndCommentSponsorRegexPattern"])) {
-        config["dynamicAndCommentSponsorRegexPattern"] = legacyDefaultDynamicSponsorRegexPattern;
-    }
 
-    // 单一正则拆分为可单独启用的词条列表
-    // 旧版本只有一个正则字符串：未修改过默认值的用户直接使用内置词条；
-    // 自定义过的用户沿用“不覆盖既有设置”的策略，内置词条默认关闭，原正则保留为一条启用的自定义词条。
-    // 旧值里的 /模式/flags 会被拆开：模式进词条，flags 进独立的“匹配模式”设置。
+    // 旧版只有一个正则字符串：内置词条能对上的部分直接摘掉交给内置词条（默认启用，跟随在线更新），
+    // 剩下的才是用户自己的内容，保留为一条自定义词条。
     const legacyRegexPattern = config["dynamicAndCommentSponsorRegexPattern"];
     if (legacyRegexPattern !== undefined) {
-        const unmodified = legacyRegexPattern === legacyDefaultDynamicSponsorRegexPattern;
         const legacy = splitLegacySponsorPattern(legacyRegexPattern);
-        const customPattern = unmodified || legacyRegexPattern.trim() === "" ? null : legacy.source;
 
-        if (!unmodified) {
-            // 旧版本无斜杠形式时不带任何 flags（区分大小写且只取首个命中），这里保持一致
-            if (customPattern) {
-                config["dynamicAndCommentSponsorRegexFlags"] = sanitizeSponsorRegexFlags(legacy.flags ?? "");
-            }
-            config["dynamicAndCommentSponsorRegexRules"] = [
-                ...defaultDynamicSponsorRegexRules.map((rule) => ({ ...rule, enabled: false })),
-                ...(customPattern
-                    ? [
-                          {
-                              id: "legacyCustom",
-                              name: chrome.i18n.getMessage("dynamicSponsorRuleName_legacyCustom"),
-                              pattern: customPattern,
-                              enabled: true,
-                              // 自定义正则记录迁移当天作为最后一次更改日期
-                              updateAt: todaySponsorRuleDate(),
-                          },
-                      ]
-                    : []),
-            ];
+        // 摘掉内置词条能对上的部分，连同相邻的一个分隔符，避免留下会匹配任何内容的空分支
+        let leftover = legacy.source;
+        for (const rule of defaultDynamicSponsorRegexRules) {
+            leftover = leftover
+                .replace(`${rule.pattern}|`, "")
+                .replace(`|${rule.pattern}`, "")
+                .replace(rule.pattern, "");
         }
+        leftover = leftover.replace(/^\|+|\|+$/g, "").trim();
 
         delete config["dynamicAndCommentSponsorRegexPattern"];
+
+        if (leftover) {
+            // 旧版本无斜杠形式时不带任何 flags（区分大小写且只取首个命中），这里保持一致
+            config["dynamicAndCommentSponsorRegexFlags"] = sanitizeSponsorRegexFlags(legacy.flags ?? "");
+            config["dynamicAndCommentSponsorRegexUserRules"] = [
+                {
+                    id: "legacyCustom",
+                    name: chrome.i18n.getMessage("dynamicSponsorRuleName_legacyCustom") || "自定义正则",
+                    pattern: leftover,
+                    enabled: true,
+                    // 自定义正则记录迁移当天作为最后一次更改日期
+                    updateAt: todaySponsorRuleDate(),
+                },
+            ];
+        }
     }
 
     // Migrate whitelistedChannels from string[] to WhitelistedChannel[]
@@ -359,19 +351,9 @@ function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<st
     }
 }
 
-/**
- * 动态/评论柔性推广屏蔽的默认词条，来自仓库根目录的 config/sponsorRegex.json。
- *
- * 运行时的默认词条以已应用的在线版本为准；这里的 JSON 只是随扩展发布的初始版本。
- * 内置词条按 id 取本地化名称（dynamicSponsorRuleName_<id>
- */
+/** 随扩展发布的默认词条（config/sponsorRegex.json），运行时以已应用的在线版本为准 */
 const defaultDynamicSponsorRegexRules: DynamicSponsorRegexRule[] =
     shippedSponsorRegexConfig.rules.map((rule) => ({ ...rule }));
-
-/** 0.11.1 及更早版本使用的单一正则默认值，等价于默认词条的合集，仅用于迁移判断 */
-const legacyDefaultDynamicSponsorRegexPattern = `/${defaultDynamicSponsorRegexRules
-    .map((rule) => rule.pattern)
-    .join("|")}/gi`;
 
 const syncDefaults = {
     userID: null,
@@ -462,7 +444,7 @@ const syncDefaults = {
 
     dynamicAndCommentSponsorWhitelistedChannels: false,
     dynamicAndCommentSponsorBlocker: false,
-    dynamicAndCommentSponsorRegexRules: defaultDynamicSponsorRegexRules,
+    dynamicAndCommentSponsorRegexUserRules: [],
     dynamicAndCommentSponsorRegexFlags: "gi",
     dynamicAndCommentSponsorRegexPatternKeywordNumber: 1,
     dynamicSponsorBlock: true,

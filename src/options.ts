@@ -520,7 +520,7 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
         }
     }
 
-    if (changes.dynamicAndCommentSponsorRegexRules || changes.dynamicAndCommentSponsorRegexFlags) {
+    if (changes.dynamicAndCommentSponsorRegexUserRules || changes.dynamicAndCommentSponsorRegexFlags) {
         for (const manager of dynamicSponsorRegexManagers) {
             manager.update();
         }

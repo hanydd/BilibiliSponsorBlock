@@ -13,6 +13,7 @@ import {
 import {
     checkSponsorRegexConfigUpdate,
     getDefaultSponsorRegexRules,
+    getEffectiveSponsorRegexRules,
     getLatestDefaultUpdateDate,
 } from "../../config/sponsorRegexOTA";
 
@@ -27,11 +28,7 @@ export interface DynamicSponsorRegexManagerState {
     checkState: SponsorRegexCheckState;
 }
 
-function cloneRules(rules: DynamicSponsorRegexRule[] | undefined): DynamicSponsorRegexRule[] {
-    return (rules ?? []).map((rule) => ({ ...rule }));
-}
-
-/** 内置词条 = 当前生效的默认词条（OTA 更新后以在线版本为准），可编辑内容但不可删除，只能重置 */
+/** 内置词条 = 默认词条（本地 OTA 快照或随包配置），可以修改内容，但不能删除，只能重置 */
 function isBuiltinRule(ruleId: string): boolean {
     return getDefaultSponsorRegexRules().some((rule) => rule.id === ruleId);
 }
@@ -60,7 +57,7 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
     constructor(props: DynamicSponsorRegexManagerProps) {
         super(props);
 
-        const rules = cloneRules(Config.config.dynamicAndCommentSponsorRegexRules);
+        const rules = getEffectiveSponsorRegexRules();
         const flags = sanitizeSponsorRegexFlags(Config.config.dynamicAndCommentSponsorRegexFlags);
 
         this.state = { rules, flags, invalidRuleIds: getInvalidRuleIds(rules, flags), checkState: "idle" };
@@ -68,7 +65,7 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
 
     /** 配置被其它页面/设备修改后重新载入（不影响检查结果的展示） */
     update(): void {
-        const rules = cloneRules(Config.config.dynamicAndCommentSponsorRegexRules);
+        const rules = getEffectiveSponsorRegexRules();
         const flags = sanitizeSponsorRegexFlags(Config.config.dynamicAndCommentSponsorRegexFlags);
 
         this.setState({ rules, flags, invalidRuleIds: getInvalidRuleIds(rules, flags) });
@@ -288,44 +285,63 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
         Config.config.dynamicAndCommentSponsorRegexFlags = flags;
     }
 
+    /** 改过的词条整条写进同步列表，生效时优先于默认词条 */
     private updateRule(ruleId: string, changes: Partial<DynamicSponsorRegexRule>): void {
-        const rules = this.state.rules.map((rule) => {
-            if (rule.id !== ruleId) return rule;
-            // 自定义词条不会收到 OTA 的 updateAt，这里记录用户最后一次修改的日期
-            const updateAt = isBuiltinRule(ruleId) ? rule.updateAt : todaySponsorRuleDate();
-            return { ...rule, ...changes, updateAt };
-        });
-        this.commit(rules);
+        const userRules = [...(Config.config.dynamicAndCommentSponsorRegexUserRules ?? [])];
+        const index = userRules.findIndex((rule) => rule.id === ruleId);
+        // 首次修改内置词条时以默认词条为底，带上名称、版本与更新日期
+        const base = index >= 0 ? userRules[index] : getBuiltinDefault(ruleId) ?? { id: ruleId, pattern: "", enabled: true };
+        const updated: DynamicSponsorRegexRule = {
+            ...base,
+            ...changes,
+            // 自定义词条没有在线配置可更新，记录最后一次修改日期
+            ...(getBuiltinDefault(ruleId) ? {} : { updateAt: todaySponsorRuleDate() }),
+        };
+
+        if (index >= 0) userRules[index] = updated;
+        else userRules.push(updated);
+
+        Config.config.dynamicAndCommentSponsorRegexUserRules = userRules;
+        this.refreshState();
     }
 
-    private commit(rules: DynamicSponsorRegexRule[]): void {
-        // 非法正则也写入配置，避免用户输入丢失；内容脚本会跳过无法编译的词条
+    /** 重置内置词条 = 丢掉用户版本，恢复默认（随包或在线）内容 */
+    private resetRule(ruleId: string): void {
+        Config.config.dynamicAndCommentSponsorRegexUserRules = (
+            Config.config.dynamicAndCommentSponsorRegexUserRules ?? []
+        ).filter((rule) => rule.id !== ruleId);
+        this.refreshState();
+    }
+
+    private refreshState(): void {
+        const rules = getEffectiveSponsorRegexRules();
         this.setState({ rules, invalidRuleIds: getInvalidRuleIds(rules, this.state.flags) });
-        Config.config.dynamicAndCommentSponsorRegexRules = rules;
     }
 
     private addCustomRule(): void {
         const id = `custom_${Date.now().toString(36)}`;
-        this.commit([...this.state.rules, { id, name: "", pattern: "", enabled: true, updateAt: todaySponsorRuleDate() }]);
+        const userRules = [
+            ...(Config.config.dynamicAndCommentSponsorRegexUserRules ?? []),
+            { id, name: "", pattern: "", enabled: true, updateAt: todaySponsorRuleDate() },
+        ];
+        Config.config.dynamicAndCommentSponsorRegexUserRules = userRules;
+        this.refreshState();
     }
 
     private removeRule(ruleId: string): void {
         if (!confirm(chrome.i18n.getMessage("dynamicSponsorRegexRuleConfirmDelete"))) return;
 
-        this.commit(this.state.rules.filter((rule) => rule.id !== ruleId));
-    }
-
-    private resetRule(ruleId: string): void {
-        const fallback = getBuiltinDefault(ruleId);
-        if (!fallback) return;
-
-        this.updateRule(ruleId, { pattern: fallback.pattern, enabled: fallback.enabled });
+        Config.config.dynamicAndCommentSponsorRegexUserRules = (
+            Config.config.dynamicAndCommentSponsorRegexUserRules ?? []
+        ).filter((rule) => rule.id !== ruleId);
+        this.refreshState();
     }
 
     private resetAllRules(): void {
         if (!confirm(chrome.i18n.getMessage("dynamicSponsorRegexRuleConfirmReset"))) return;
 
-        this.commit(cloneRules(getDefaultSponsorRegexRules()));
+        Config.config.dynamicAndCommentSponsorRegexUserRules = [];
+        this.refreshState();
     }
 }
 

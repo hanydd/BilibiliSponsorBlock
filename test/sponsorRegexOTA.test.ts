@@ -4,17 +4,16 @@ import {
     Rule,
     applyRulesConfig,
     checkSponsorRegexConfigUpdate,
-    getDefaultSponsorRegexRules,
+    getEffectiveSponsorRegexRules,
     getLatestDefaultUpdateDate,
     isRulesConfig,
-    mergeSponsorRegexRulesWithDefaults,
 } from "../src/config/sponsorRegexOTA";
 import { DynamicSponsorRegexRule } from "../src/utils/sponsorRegex";
 
 jest.mock("../src/config", () => ({
     __esModule: true,
     default: {
-        config: { dynamicAndCommentSponsorRegexRules: [] },
+        config: { dynamicAndCommentSponsorRegexUserRules: [] },
         local: { sponsorRegexRemoteConfig: null, lastSponsorRegexConfigCheck: 0 },
     },
 }));
@@ -33,8 +32,8 @@ function rule(id: string, pattern: string, enabled = true, version = 1): Rule {
 const baselineRules = [rule("shoppingSite", "(?:淘宝|京东)搜索"), rule("delivery", "美团外卖")];
 
 beforeEach(() => {
-    Config.config.dynamicAndCommentSponsorRegexRules = cloneRules(baselineRules);
-    Config.local.sponsorRegexRemoteConfig = { rules: cloneRules(baselineRules), appliedAt: 1 };
+    Config.config.dynamicAndCommentSponsorRegexUserRules = [];
+    Config.local.sponsorRegexRemoteConfig = { rules: cloneRules(baselineRules) };
     Config.local.lastSponsorRegexConfigCheck = 0;
 });
 
@@ -57,9 +56,7 @@ describe("isRulesConfig", () => {
         expect(isRulesConfig({ rules: [{ ...rule("a", "b"), enabled: "yes" }] })).toBe(false);
         expect(isRulesConfig({ rules: [{ ...rule("a", "b"), version: 0 }] })).toBe(false);
         expect(isRulesConfig({ rules: [{ ...rule("a", "b"), version: 1.5 }] })).toBe(false);
-        expect(
-            isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: { en: "a", zh_CN: "a" } }] })
-        ).toBe(false);
+        expect(isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: { en: "a", zh_CN: "a" } }] })).toBe(false);
         expect(
             isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: { en: "", zh_CN: "a", zh_TW: "a" } }] })
         ).toBe(false);
@@ -72,59 +69,33 @@ describe("isRulesConfig", () => {
     });
 });
 
-describe("mergeSponsorRegexRulesWithDefaults", () => {
-    test("未修改的词条跟随新默认值", () => {
-        const oldDefaults = [rule("shoppingSite", "旧模式")];
-        const userRules = [rule("shoppingSite", "旧模式")];
-        const newDefaults = [rule("shoppingSite", "新模式", false, 2)];
-
-        expect(mergeSponsorRegexRulesWithDefaults(userRules, newDefaults, oldDefaults)).toEqual([
-            rule("shoppingSite", "新模式", false, 2),
-        ]);
-    });
-
-    test("用户改过的模式与开关保持不变", () => {
-        const oldDefaults = [rule("shoppingSite", "旧模式"), rule("delivery", "旧外卖")];
-        const userRules = [rule("shoppingSite", "用户改的模式"), rule("delivery", "旧外卖", false)];
-        const newDefaults = [rule("shoppingSite", "新模式", false, 2), rule("delivery", "新外卖", true, 2)];
-
-        expect(mergeSponsorRegexRulesWithDefaults(userRules, newDefaults, oldDefaults)).toEqual([
-            rule("shoppingSite", "用户改的模式", false, 2),
-            rule("delivery", "新外卖", false, 2),
-        ]);
-    });
-
-    test("自定义词条保留，被移除的内置词条仅在用户改过模式时保留", () => {
-        const oldDefaults = [rule("shoppingSite", "旧模式"), rule("removed", "旧规则")];
-        const userRules = [
+describe("getEffectiveSponsorRegexRules", () => {
+    test("重复 id 用用户版本，默认词条保持顺序，自建词条追加在后", () => {
+        Config.config.dynamicAndCommentSponsorRegexUserRules = [
+            rule("shoppingSite", "用户改的搜索", false),
             rule("custom_1", "自定义"),
-            rule("removed", "旧规则"),
-            rule("shoppingSite", "用户改的模式"),
         ];
-        const newDefaults = [rule("shoppingSite", "新模式", true, 2)];
 
-        const merged = mergeSponsorRegexRulesWithDefaults(userRules, newDefaults, oldDefaults);
-        expect(merged).toEqual([rule("shoppingSite", "用户改的模式", true, 2), rule("custom_1", "自定义")]);
+        expect(getEffectiveSponsorRegexRules()).toEqual([
+            rule("shoppingSite", "用户改的搜索", false),
+            rule("delivery", "美团外卖"),
+            rule("custom_1", "自定义"),
+        ]);
     });
 
-    test("在线配置新增的词条对老用户可用", () => {
-        const oldDefaults = [rule("shoppingSite", "旧模式")];
-        const userRules = [rule("shoppingSite", "旧模式")];
-        const newDefaults = [rule("shoppingSite", "旧模式"), rule("otaNew", "新词条")];
-
-        expect(mergeSponsorRegexRulesWithDefaults(userRules, newDefaults, oldDefaults)).toEqual([
-            rule("shoppingSite", "旧模式"),
-            rule("otaNew", "新词条"),
-        ]);
+    test("没有用户词条时就是默认词条", () => {
+        expect(getEffectiveSponsorRegexRules()).toEqual(baselineRules);
     });
 });
 
 describe("applyRulesConfig", () => {
     test("版本未提高的词条保持现状", () => {
+        const snapshot = Config.local.sponsorRegexRemoteConfig;
+
         const result = applyRulesConfig({ rules: cloneRules(baselineRules) });
 
         expect(result.status).toBe("up-to-date");
-        expect(Config.config.dynamicAndCommentSponsorRegexRules).toEqual(baselineRules);
+        expect(Config.local.sponsorRegexRemoteConfig).toBe(snapshot);
     });
 
     test("远端改了内容但没递增 version 时被忽略", () => {
@@ -133,35 +104,39 @@ describe("applyRulesConfig", () => {
         });
 
         expect(result.status).toBe("up-to-date");
-        expect(Config.config.dynamicAndCommentSponsorRegexRules).toEqual(baselineRules);
     });
 
-    test("应用更新版本时合并用户修改并记录本地快照", () => {
-        Config.config.dynamicAndCommentSponsorRegexRules = [
-            rule("shoppingSite", "用户改的模式"),
-            rule("custom_1", "自定义"),
-        ];
+    test("应用更新版本时只写本地快照，用户词条原样保留", () => {
+        const userRules = [rule("shoppingSite", "用户改的搜索", true, 1), rule("custom_1", "自定义")];
+        Config.config.dynamicAndCommentSponsorRegexUserRules = userRules;
 
         const result = applyRulesConfig({
             rules: [rule("shoppingSite", "新模式", true, 2), rule("otaNew", "新词条")],
         });
 
         expect(result.status).toBe("updated");
-        expect(result.updatedCount).toBe(2);
-        expect(Config.config.dynamicAndCommentSponsorRegexRules).toEqual([
-            rule("shoppingSite", "用户改的模式", true, 2),
-            rule("otaNew", "新词条"),
-            rule("custom_1", "自定义"),
-        ]);
-        expect(Config.local.sponsorRegexRemoteConfig?.appliedAt).toBeGreaterThan(0);
-        // 快照保存的是“默认内容”（新模式），后续判断用户是否修改以此为基准
+        // 默认词条本体只写本地（不同步）
         expect(Config.local.sponsorRegexRemoteConfig?.rules).toEqual([
             rule("shoppingSite", "新模式", true, 2),
             rule("otaNew", "新词条"),
         ]);
-        expect(getDefaultSponsorRegexRules()).toEqual([
-            rule("shoppingSite", "新模式", true, 2),
+        expect(Config.config.dynamicAndCommentSponsorRegexUserRules).toEqual(userRules);
+        // 重复 id 用用户版本，在线新词条与用户自建词条都保留
+        expect(getEffectiveSponsorRegexRules()).toEqual([
+            rule("shoppingSite", "用户改的搜索", true, 1),
             rule("otaNew", "新词条"),
+            rule("custom_1", "自定义"),
+        ]);
+    });
+
+    test("用户停用的内置词条在 OTA 更新后仍然停用", () => {
+        Config.config.dynamicAndCommentSponsorRegexUserRules = [rule("delivery", "美团外卖", false, 1)];
+
+        applyRulesConfig({ rules: cloneRules(baselineRules).map((item) => ({ ...item, version: 2 })) });
+
+        expect(getEffectiveSponsorRegexRules()).toEqual([
+            rule("shoppingSite", "(?:淘宝|京东)搜索", true, 2),
+            rule("delivery", "美团外卖", false, 1),
         ]);
     });
 });
@@ -178,8 +153,7 @@ describe("checkSponsorRegexConfigUpdate", () => {
         expect(result.status).toBe("up-to-date");
     });
 
-    test("拉取并应用成功后返回更新的词条数量", async () => {
-        Config.config.dynamicAndCommentSponsorRegexRules = cloneRules(baselineRules);
+    test("拉取并应用成功后写入本地快照", async () => {
         const fetchMock = jest.fn().mockResolvedValue(
             new Response(JSON.stringify({ rules: [rule("shoppingSite", "在线模式", true, 3)] }), { status: 200 })
         );
@@ -189,9 +163,7 @@ describe("checkSponsorRegexConfigUpdate", () => {
 
         expect(fetchMock).toHaveBeenCalled();
         expect(result.status).toBe("updated");
-        expect(result.updatedCount).toBe(1);
-        // delivery 不在在线配置里且未被用户修改，随更新一起移除
-        expect(Config.config.dynamicAndCommentSponsorRegexRules).toEqual([rule("shoppingSite", "在线模式", true, 3)]);
+        expect(Config.local.sponsorRegexRemoteConfig?.rules).toEqual([rule("shoppingSite", "在线模式", true, 3)]);
         expect(Config.local.lastSponsorRegexConfigCheck).toBeGreaterThan(0);
     });
 
@@ -202,7 +174,7 @@ describe("checkSponsorRegexConfigUpdate", () => {
         const result = await checkSponsorRegexConfigUpdate(true);
 
         expect(result.status).toBe("failed");
-        expect(Config.config.dynamicAndCommentSponsorRegexRules).toEqual(baselineRules);
+        expect(Config.local.sponsorRegexRemoteConfig?.rules).toEqual(baselineRules);
     });
 });
 
@@ -213,7 +185,6 @@ describe("getLatestDefaultUpdateDate", () => {
                 { ...rule("a", "a", true, 1), updateAt: { year: 2026, month: 1, day: 3 } },
                 { ...rule("b", "b", true, 1), updateAt: { year: 2026, month: 10, day: 7 } },
             ],
-            appliedAt: 1,
         };
 
         expect(getLatestDefaultUpdateDate()).toBe("2026-10-07");
