@@ -1523,7 +1523,43 @@
         "message": "屏蔽匹配正则: "
     },
     "dynamicAndCommentSponsorRegexPatternDescription": {
-        "message": "默认词条偏保守，建议根据您关注的UP主动态内容自行修改(如果您会编写正则表达式)\n例如您关注的UP主们经常发某一个产品的广告，您可以新增词条并填入该产品的名称\n每个词条可单独启用/停用，匹配内容只写正则本身(不需要斜杠)，flags 在“匹配模式”中统一设置\n会不定期更新默认词条以提升屏蔽效果, 如果你修改了词条内容则不会进行更新, 以防止覆盖您的修改, 请手动合并更新内容"
+        "message": "默认词条来自仓库根目录的 config/sponsorRegex.json，支持在线 OTA 更新（每 24 小时自动检查一次，也可手动检查）；\n应用在线配置时会保留您修改过的词条内容与开关，以及自定义词条"
+    },
+    "dynamicSponsorRegexConfigSourceBuiltin": {
+        "message": "默认词条：扩展内置（$DATE$）",
+        "placeholders": {
+            "date": {
+                "content": "$1"
+            }
+        }
+    },
+    "dynamicSponsorRegexConfigSourceRemote": {
+        "message": "默认词条：在线配置（$DATE$ 更新）",
+        "placeholders": {
+            "date": {
+                "content": "$1"
+            }
+        }
+    },
+    "dynamicSponsorRegexConfigCheck": {
+        "message": "检查正则更新"
+    },
+    "dynamicSponsorRegexConfigChecking": {
+        "message": "检查中…"
+    },
+    "dynamicSponsorRegexConfigUpdated": {
+        "message": "已应用在线更新（$COUNT$ 个默认词条）",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "dynamicSponsorRegexConfigUpToDate": {
+        "message": "正则词条已是最新"
+    },
+    "dynamicSponsorRegexConfigFailed": {
+        "message": "正则词条更新失败，请检查网络后重试"
     },
     "dynamicAndCommentSponsorRegexFlags": {
         "message": "匹配模式: "
@@ -1557,6 +1593,9 @@
     },
     "dynamicSponsorRegexRulePattern": {
         "message": "匹配内容"
+    },
+    "dynamicSponsorRegexRuleUpdateDate": {
+        "message": "更新日期"
     },
     "dynamicSponsorRegexRuleActions": {
         "message": "操作"
@@ -1595,43 +1634,7 @@
     },
     "dynamicSponsorRegexRuleConfirmReset": {
         "message": "确定恢复默认词条吗？当前的自定义词条与修改都会被覆盖"
-    },
-    "dynamicSponsorRuleName_shoppingFestival": {
-        "message": "购物节日"
-    },
-    "dynamicSponsorRuleName_adLanguage": {
-        "message": "广告话术"
-    },
-    "dynamicSponsorRuleName_coupon": {
-        "message": "优惠券"
-    },
-    "dynamicSponsorRuleName_shoppingSite": {
-        "message": "购物网站"
-    },
-    "dynamicSponsorRuleName_returnPolicy": {
-        "message": "退换货承诺"
-    },
-    "dynamicSponsorRuleName_purchaseLink": {
-        "message": "购买链接"
-    },
-    "dynamicSponsorRuleName_guideScan": {
-        "message": "引导扫码"
-    },
-    "dynamicSponsorRuleName_sameProduct": {
-        "message": "同款"
-    },
-    "dynamicSponsorRuleName_misc": {
-        "message": "杂项关键词"
-    },
-    "dynamicSponsorRuleName_delivery": {
-        "message": "外卖"
-    },
-    "dynamicSponsorRuleName_custom": {
-        "message": "自定义词条"
-    },
-    "dynamicSponsorRuleName_legacyCustom": {
-        "message": "自定义正则"
-    },
+    },
     "category_dynamicSponsor_sponsor": {
         "message": "商品链接"
     },

@@ -1522,7 +1522,43 @@
         "message": "封鎖匹配正則: "
     },
     "dynamicAndCommentSponsorRegexPatternDescription": {
-        "message": "預設詞條偏保守，建議根據您關注的UP主動態內容自行修改(如果您會編寫正規表示式)\n例如您關注的UP主們經常發某一個產品的廣告，您可以新增詞條並填入該產品的名稱\n每個詞條可單獨啟用/停用，匹配內容只寫正則本身(不需要斜線)，flags 在「匹配模式」中統一設定\n會不定期更新預設詞條以提升封鎖效果, 如果您修改了詞條內容則不會進行更新, 以防止覆蓋您的修改, 請手動合併更新內容"
+        "message": "預設詞條來自倉庫根目錄的 config/sponsorRegex.json，支援線上 OTA 更新（每 24 小時自動檢查一次，也可手動檢查）；\n套用線上設定時會保留您修改過的詞條內容與開關，以及自訂詞條"
+    },
+    "dynamicSponsorRegexConfigSourceBuiltin": {
+        "message": "預設詞條：擴充內建（$DATE$）",
+        "placeholders": {
+            "date": {
+                "content": "$1"
+            }
+        }
+    },
+    "dynamicSponsorRegexConfigSourceRemote": {
+        "message": "預設詞條：線上設定（$DATE$ 更新）",
+        "placeholders": {
+            "date": {
+                "content": "$1"
+            }
+        }
+    },
+    "dynamicSponsorRegexConfigCheck": {
+        "message": "檢查正則更新"
+    },
+    "dynamicSponsorRegexConfigChecking": {
+        "message": "檢查中…"
+    },
+    "dynamicSponsorRegexConfigUpdated": {
+        "message": "已套用線上更新（$COUNT$ 個預設詞條）",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "dynamicSponsorRegexConfigUpToDate": {
+        "message": "正則詞條已是最新"
+    },
+    "dynamicSponsorRegexConfigFailed": {
+        "message": "正則詞條更新失敗，請檢查網路後重試"
     },
     "dynamicAndCommentSponsorRegexFlags": {
         "message": "匹配模式: "
@@ -1556,6 +1592,9 @@
     },
     "dynamicSponsorRegexRulePattern": {
         "message": "匹配內容"
+    },
+    "dynamicSponsorRegexRuleUpdateDate": {
+        "message": "更新日期"
     },
     "dynamicSponsorRegexRuleActions": {
         "message": "操作"
@@ -1594,43 +1633,7 @@
     },
     "dynamicSponsorRegexRuleConfirmReset": {
         "message": "確定恢復預設詞條嗎？目前的自訂詞條與修改都會被覆蓋"
-    },
-    "dynamicSponsorRuleName_shoppingFestival": {
-        "message": "購物節日"
-    },
-    "dynamicSponsorRuleName_adLanguage": {
-        "message": "廣告話術"
-    },
-    "dynamicSponsorRuleName_coupon": {
-        "message": "優惠券"
-    },
-    "dynamicSponsorRuleName_shoppingSite": {
-        "message": "購物網站"
-    },
-    "dynamicSponsorRuleName_returnPolicy": {
-        "message": "退換貨承諾"
-    },
-    "dynamicSponsorRuleName_purchaseLink": {
-        "message": "購買連結"
-    },
-    "dynamicSponsorRuleName_guideScan": {
-        "message": "引導掃碼"
-    },
-    "dynamicSponsorRuleName_sameProduct": {
-        "message": "同款"
-    },
-    "dynamicSponsorRuleName_misc": {
-        "message": "雜項關鍵詞"
-    },
-    "dynamicSponsorRuleName_delivery": {
-        "message": "外送"
-    },
-    "dynamicSponsorRuleName_custom": {
-        "message": "自訂詞條"
-    },
-    "dynamicSponsorRuleName_legacyCustom": {
-        "message": "自訂正則"
-    },
+    },
     "category_dynamicSponsor_sponsor": {
         "message": "商品連結"
     },

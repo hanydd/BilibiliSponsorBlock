@@ -2,7 +2,9 @@ import {
     DynamicSponsorRegexRule,
     SPONSOR_REGEX_FLAGS,
     compileSponsorPattern,
+    formatSponsorRuleDate,
     matchSponsorRules,
+    resolveSponsorRuleName,
     sanitizeSponsorRegexFlags,
     splitLegacySponsorPattern,
 } from "../src/utils/sponsorRegex";
@@ -10,6 +12,38 @@ import {
 function rule(id: string, pattern: string, enabled = true): DynamicSponsorRegexRule {
     return { id, pattern, enabled };
 }
+
+describe("resolveSponsorRuleName", () => {
+    const locales = { en: "Food Delivery", zh_CN: "外卖", zh_TW: "外送" };
+
+    test("按完整 UI 语言匹配，连字符与下划线等价", () => {
+        expect(resolveSponsorRuleName(locales, "zh_CN")).toBe("外卖");
+        expect(resolveSponsorRuleName(locales, "zh-CN")).toBe("外卖");
+    });
+
+    test("无完整匹配时回退到语言主段与 en", () => {
+        expect(resolveSponsorRuleName(locales, "en-US")).toBe("Food Delivery");
+        expect(resolveSponsorRuleName(locales, "zh-HK")).toBe("Food Delivery");
+        expect(resolveSponsorRuleName({ ja: "デリバリー" }, "en-US")).toBe("デリバリー");
+    });
+
+    test("没有可用名称时返回 undefined", () => {
+        expect(resolveSponsorRuleName(undefined, "en")).toBeUndefined();
+        expect(resolveSponsorRuleName({}, "en")).toBeUndefined();
+    });
+});
+
+describe("formatSponsorRuleDate", () => {
+    test("输出补零的 YYYY-MM-DD", () => {
+        expect(formatSponsorRuleDate({ year: 2026, month: 10, day: 7 })).toBe("2026-10-07");
+        expect(formatSponsorRuleDate({ year: 2025, month: 5, day: 17 })).toBe("2025-05-17");
+    });
+
+    test("缺字段时返回 undefined", () => {
+        expect(formatSponsorRuleDate(undefined)).toBeUndefined();
+        expect(formatSponsorRuleDate({ year: 2026, month: 10 } as never)).toBeUndefined();
+    });
+});
 
 describe("sanitizeSponsorRegexFlags", () => {
     test("保留受支持的 flags 并去重", () => {

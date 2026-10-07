@@ -183,6 +183,12 @@ module.exports = env => {
 
                             return content;
                         }
+                    },
+                    {
+                        // 柔性推广屏蔽词条的 OTA 配置随包分发（运行时按版本号从远程拉取同一路径的更新）
+                        from: '.',
+                        to: '../config',
+                        context: './config'
                     }
                 ]
             }),

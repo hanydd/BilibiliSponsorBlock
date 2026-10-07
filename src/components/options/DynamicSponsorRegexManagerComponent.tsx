@@ -5,39 +5,45 @@ import {
     SPONSOR_REGEX_FLAGS,
     SponsorRegexFlag,
     compileSponsorPattern,
+    formatSponsorRuleDate,
+    resolveSponsorRuleName,
     sanitizeSponsorRegexFlags,
 } from "../../utils/sponsorRegex";
+import {
+    checkSponsorRegexConfigUpdate,
+    getDefaultSponsorRegexRules,
+    getLatestDefaultUpdateDate,
+} from "../../config/sponsorRegexOTA";
 
 export interface DynamicSponsorRegexManagerProps {}
+
+export type SponsorRegexCheckState = "idle" | "checking" | "updated" | "up-to-date" | "failed";
 
 export interface DynamicSponsorRegexManagerState {
     rules: DynamicSponsorRegexRule[];
     flags: string;
     invalidRuleIds: string[];
+    checkState: SponsorRegexCheckState;
 }
-
-/** 内置词条以 id 为准，可编辑内容但不可删除，只能重置 */
-const builtinRuleIds = new Set(
-    (Config.syncDefaults.dynamicAndCommentSponsorRegexRules ?? []).map((rule) => rule.id)
-);
 
 function cloneRules(rules: DynamicSponsorRegexRule[] | undefined): DynamicSponsorRegexRule[] {
     return (rules ?? []).map((rule) => ({ ...rule }));
 }
 
+/** 内置词条 = 当前生效的默认词条（OTA 更新后以在线版本为准），可编辑内容但不可删除，只能重置 */
+function isBuiltinRule(ruleId: string): boolean {
+    return getDefaultSponsorRegexRules().some((rule) => rule.id === ruleId);
+}
+
 function getBuiltinDefault(ruleId: string): DynamicSponsorRegexRule | undefined {
-    return (Config.syncDefaults.dynamicAndCommentSponsorRegexRules ?? []).find((rule) => rule.id === ruleId);
+    return getDefaultSponsorRegexRules().find((rule) => rule.id === ruleId);
 }
 
 function getRuleName(rule: DynamicSponsorRegexRule): string {
     const custom = rule.name?.trim();
     if (custom) return custom;
 
-    return (
-        chrome.i18n.getMessage(`dynamicSponsorRuleName_${rule.id}`) ||
-        chrome.i18n.getMessage("dynamicSponsorRuleName_custom") ||
-        rule.id
-    );
+    return resolveSponsorRuleName(rule.locales, chrome.i18n.getUILanguage()) || rule.id;
 }
 
 function getInvalidRuleIds(rules: DynamicSponsorRegexRule[], flags: string): string[] {
@@ -56,10 +62,10 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
         const rules = cloneRules(Config.config.dynamicAndCommentSponsorRegexRules);
         const flags = sanitizeSponsorRegexFlags(Config.config.dynamicAndCommentSponsorRegexFlags);
 
-        this.state = { rules, flags, invalidRuleIds: getInvalidRuleIds(rules, flags) };
+        this.state = { rules, flags, invalidRuleIds: getInvalidRuleIds(rules, flags), checkState: "idle" };
     }
 
-    /** 配置被其它页面/设备修改后重新载入 */
+    /** 配置被其它页面/设备修改后重新载入（不影响检查结果的展示） */
     update(): void {
         const rules = cloneRules(Config.config.dynamicAndCommentSponsorRegexRules);
         const flags = sanitizeSponsorRegexFlags(Config.config.dynamicAndCommentSponsorRegexFlags);
@@ -113,6 +119,7 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
                                 <th>{chrome.i18n.getMessage("dynamicSponsorRegexRuleEnabled")}</th>
                                 <th>{chrome.i18n.getMessage("dynamicSponsorRegexRuleName")}</th>
                                 <th>{chrome.i18n.getMessage("dynamicSponsorRegexRulePattern")}</th>
+                                <th>{chrome.i18n.getMessage("dynamicSponsorRegexRuleUpdateDate")}</th>
                                 <th>{chrome.i18n.getMessage("dynamicSponsorRegexRuleActions")}</th>
                             </tr>
                         </thead>
@@ -151,7 +158,10 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
                                         )}
                                     </td>
                                     <td style={{ whiteSpace: "nowrap" }}>
-                                        {builtinRuleIds.has(rule.id) ? (
+                                        {formatSponsorRuleDate(rule.updateAt) ?? "—"}
+                                    </td>
+                                    <td style={{ whiteSpace: "nowrap" }}>
+                                        {isBuiltinRule(rule.id) ? (
                                             <div
                                                 className="option-button inline"
                                                 style={{ fontSize: "0.9em", padding: "5px 10px" }}
@@ -190,12 +200,54 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
                         {chrome.i18n.getMessage("dynamicSponsorRegexRuleEnabledCount", [String(enabledCount)])}
                     </span>
                 </div>
+
+                <div className="sponsor-regex-rule-actions">
+                    <div
+                        id="checkSponsorRegexUpdate"
+                        className="option-button inline"
+                        onClick={this.checkRemoteConfig.bind(this)}
+                    >
+                        {chrome.i18n.getMessage(
+                            this.state.checkState === "checking"
+                                ? "dynamicSponsorRegexConfigChecking"
+                                : "dynamicSponsorRegexConfigCheck"
+                        )}
+                    </div>
+                    <span id="sponsorRegexConfigStatus" className="sponsor-regex-rule-status">
+                        {this.renderConfigStatus()}
+                    </span>
+                </div>
             </>
         );
     }
 
+    /** 状态栏：检查结果优先，否则展示当前默认词条的来源与最近更新日期 */
+    private renderConfigStatus(): string {
+        const latestDate = getLatestDefaultUpdateDate() ?? "";
+
+        switch (this.state.checkState) {
+            case "updated":
+                return chrome.i18n.getMessage("dynamicSponsorRegexConfigUpdated", [
+                    String(getDefaultSponsorRegexRules().length),
+                ]);
+            case "up-to-date":
+                return chrome.i18n.getMessage("dynamicSponsorRegexConfigUpToDate");
+            case "failed":
+                return chrome.i18n.getMessage("dynamicSponsorRegexConfigFailed");
+            case "checking":
+                return chrome.i18n.getMessage("dynamicSponsorRegexConfigChecking");
+            case "idle":
+            default: {
+                const remote = Config.local?.sponsorRegexRemoteConfig;
+                return remote
+                    ? chrome.i18n.getMessage("dynamicSponsorRegexConfigSourceRemote", [latestDate])
+                    : chrome.i18n.getMessage("dynamicSponsorRegexConfigSourceBuiltin", [latestDate]);
+            }
+        }
+    }
+
     private renderName(rule: DynamicSponsorRegexRule): React.ReactNode {
-        if (builtinRuleIds.has(rule.id)) return getRuleName(rule);
+        if (isBuiltinRule(rule.id)) return getRuleName(rule);
 
         return (
             <input
@@ -208,6 +260,16 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
                 onChange={(event) => this.updateRule(rule.id, { name: event.target.value })}
             />
         );
+    }
+
+    private async checkRemoteConfig(): Promise<void> {
+        if (this.state.checkState === "checking") return;
+
+        this.setState({ checkState: "checking" });
+        const result = await checkSponsorRegexConfigUpdate(true);
+        // 页面自身写入不触发本页的 storage.onChanged，应用新词条后主动刷新
+        this.update();
+        this.setState({ checkState: result.status });
     }
 
     private toggleFlag(flag: SponsorRegexFlag, enabled: boolean): void {
@@ -257,7 +319,7 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
     private resetAllRules(): void {
         if (!confirm(chrome.i18n.getMessage("dynamicSponsorRegexRuleConfirmReset"))) return;
 
-        this.commit(cloneRules(Config.syncDefaults.dynamicAndCommentSponsorRegexRules));
+        this.commit(cloneRules(getDefaultSponsorRegexRules()));
     }
 }
 

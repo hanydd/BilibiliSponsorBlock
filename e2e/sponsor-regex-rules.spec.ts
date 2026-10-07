@@ -1,8 +1,9 @@
 import type { Page, Worker } from "@playwright/test";
 import { expect, test } from "./fixtures/extension";
-import { readSyncStorage, writeSyncStorage } from "./support/extensionStorage";
+import { readLocalStorage, readSyncStorage, writeSyncStorage } from "./support/extensionStorage";
 
 type RegexRule = { id: string; pattern: string; enabled: boolean; name?: string };
+type RemoteRegexConfig = { rules: RegexRule[] };
 
 /** 正则词条设置位于“动态主页/评论区屏蔽”开关之下，需先启用才会显示 */
 async function openBehaviorOptions(page: Page, extensionId: string, serviceWorker: Worker): Promise<void> {
@@ -20,8 +21,9 @@ test("renders one toggleable row per built-in sponsor regex entry", async ({
 
     const rows = extensionPage.locator("#DynamicSponsorRegex tbody tr");
     await expect(rows).toHaveCount(10);
-    await expect(extensionPage.locator("[data-rule-id='shoppingSite']")).toContainText("购物网站");
-    await expect(extensionPage.locator("[data-rule-id='delivery']")).toContainText("外卖");
+    // 测试浏览器 UI 语言为 en-US，词条名取自配置文件自带的 locales.en
+    await expect(extensionPage.locator("[data-rule-id='shoppingSite']")).toContainText("Shopping Sites");
+    await expect(extensionPage.locator("[data-rule-id='delivery']")).toContainText("Food Delivery");
 });
 
 test("persists per-entry enabled state and the keyword threshold", async ({
@@ -150,4 +152,95 @@ test("migrates a customized legacy regex into one custom entry and moves its fla
     await expect(extensionPage.locator("[data-rule-id='legacyCustom'] input[type='checkbox']")).toBeChecked();
     await expect(extensionPage.locator("[data-rule-id='legacyCustom'] [data-rule-pattern]")).toHaveValue("我的广告词");
     await expect(extensionPage.locator("#sponsorRegexFlag_i")).toBeChecked();
+});
+
+test("applies OTA regex config updates without shipping a new version", async ({
+    extensionId,
+    extensionPage,
+    extensionServiceWorker,
+    extensionContext,
+}) => {
+    await openBehaviorOptions(extensionPage, extensionId, extensionServiceWorker);
+
+    // 在线配置：shoppingSite 升版本，新增一个词条；本地路由直接模拟 CDN 返回
+    let remoteConfig: RemoteRegexConfig = {
+        rules: [
+            {
+                id: "shoppingSite",
+                locales: { en: "Shopping Sites", zh_CN: "购物网站", zh_TW: "購物網站" },
+                pattern: "(?:淘宝|京东)搜索",
+                enabled: true,
+                version: 2,
+                updateAt: { year: 2026, month: 10, day: 8 },
+            },
+            {
+                id: "otaDelivery",
+                locales: { en: "OTA Delivery", zh_CN: "在线外卖", zh_TW: "線上外送" },
+                pattern: "某团外卖|某了么",
+                enabled: true,
+                version: 1,
+                updateAt: { year: 2026, month: 10, day: 8 },
+            },
+        ],
+    };
+    await extensionContext.route("**/sponsorRegex.json", (route) =>
+        route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(remoteConfig) })
+    );
+
+    await extensionPage.locator("#checkSponsorRegexUpdate").click();
+
+    // 在线版本已应用，新增词条进入词条列表，且来源状态切换为在线配置
+    await expect
+        .poll(async () => {
+            const remote = await readLocalStorage<RemoteRegexConfig>(extensionServiceWorker, "sponsorRegexRemoteConfig");
+            return remote?.rules.find((rule) => rule.id === "shoppingSite")?.version;
+        })
+        .toBe(2);
+    await expect
+        .poll(async () => {
+            const rules = await readSyncStorage<RegexRule[]>(extensionServiceWorker, "dynamicAndCommentSponsorRegexRules");
+            return rules.find((rule) => rule.id === "otaDelivery")?.pattern;
+        })
+        .toBe("某团外卖|某了么");
+
+    await expect(extensionPage.locator("#sponsorRegexConfigStatus")).toContainText("已应用在线更新");
+    await expect(extensionPage.locator("[data-rule-id='otaDelivery']")).toBeVisible();
+    // 词条行展示自己的更新日期
+    await expect(extensionPage.locator("[data-rule-id='otaDelivery']")).toContainText("2026-10-08");
+
+    // 再次检查视为已是最新，不重复改写
+    await extensionPage.locator("#checkSponsorRegexUpdate").click();
+    await expect(extensionPage.locator("#sponsorRegexConfigStatus")).toContainText("已是最新");
+
+    // 用户修改过的词条在更高版本的在线更新中不被覆盖
+    const patternInput = extensionPage.locator("[data-rule-id='shoppingSite'] [data-rule-pattern]");
+    await patternInput.fill("用户自定义搜索");
+    remoteConfig = {
+        rules: [
+            {
+                id: "shoppingSite",
+                locales: { en: "Shopping Sites", zh_CN: "购物网站", zh_TW: "購物網站" },
+                pattern: "在线新模式",
+                enabled: true,
+                version: 3,
+                updateAt: { year: 2026, month: 10, day: 9 },
+            },
+            {
+                id: "otaDelivery",
+                locales: { en: "OTA Delivery", zh_CN: "在线外卖", zh_TW: "線上外送" },
+                pattern: "某团外卖|某了么",
+                enabled: true,
+                version: 1,
+                updateAt: { year: 2026, month: 10, day: 8 },
+            },
+        ],
+    };
+    await extensionPage.locator("#checkSponsorRegexUpdate").click();
+    await expect
+        .poll(async () => {
+            const remote = await readLocalStorage<RemoteRegexConfig>(extensionServiceWorker, "sponsorRegexRemoteConfig");
+            return remote?.rules.find((rule) => rule.id === "shoppingSite")?.version;
+        })
+        .toBe(3);
+    await expect(patternInput).toHaveValue("用户自定义搜索");
 });

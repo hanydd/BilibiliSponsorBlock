@@ -3,6 +3,11 @@
     "mirrorServerAddresses": ["https://www.bsbsb.xyz", "http://103.236.70.57:9876"],
     "testingServerAddress": "http://127.0.0.1:9876",
     "serverAddressComment": "This specifies the default SponsorBlock server to connect to",
+    "sponsorRegexConfigUrls": [
+        "https://cdn.jsdelivr.net/gh/etherfun/BilibiliSponsorBlock@master/config/sponsorRegex.json",
+        "https://fastly.jsdelivr.net/gh/etherfun/BilibiliSponsorBlock@master/config/sponsorRegex.json",
+        "https://raw.githubusercontent.com/etherfun/BilibiliSponsorBlock/master/config/sponsorRegex.json"
+    ],
     "categoryList": ["sponsor", "selfpromo", "exclusive_access", "interaction", "poi_highlight", "intro", "outro", "preview", "padding", "filler", "music_offtopic"],
     "categorySupport": {
         "sponsor": ["skip", "mute", "full"],

@@ -1,0 +1,165 @@
+{
+    "comment": "动态/评论柔性推广屏蔽词条（OTA 配置）。修改词条并推送后，已安装的扩展无需发新版本即可拉取；每条词条独立 version，只有递增对应词条的 version 才会应用该词条的更新。pattern 只写正则本身，flags 由扩展内的“匹配模式”设置统一控制；locales 提供各语言的词条名，缺失语言回退到 en。",
+    "rules": [
+        {
+            "id": "shoppingFestival",
+            "locales": {
+                "en": "Shopping Festival",
+                "zh_CN": "购物节日",
+                "zh_TW": "購物節日"
+            },
+            "pattern": "618|11(?!1).11(?:日)?|双(?:11|十一|12|十二)|女神节|开学季|年货节",
+            "enabled": true,
+            "version": 1,
+            "updateAt": {
+                "year": 2026,
+                "month": 10,
+                "day": 7
+            }
+        },
+        {
+            "id": "adLanguage",
+            "locales": {
+                "en": "Ad Language",
+                "zh_CN": "广告话术",
+                "zh_TW": "廣告話術"
+            },
+            "pattern": "恰(?:个|了|到)?饭|金主|(他|它|她)(?:们)?家(?:的)?",
+            "enabled": true,
+            "version": 1,
+            "updateAt": {
+                "year": 2026,
+                "month": 10,
+                "day": 7
+            }
+        },
+        {
+            "id": "coupon",
+            "locales": {
+                "en": "Coupons",
+                "zh_CN": "优惠券",
+                "zh_TW": "優惠券"
+            },
+            "pattern": "(?:评论区)?(?:领(?:取|张|到)?|抢|送|得|叠)(?:我的)?(?:神|优惠|红包|折扣|福利|无门槛|隐藏|秘密|专属|(?:超)?大(?:额)?|额外)+(?:券|卷|劵|q(?:uan)?)?(?:后|到手|价|使用|下单)?|(?:领|抢|得|送)(?:红包|优惠|券|福利)|(?:优惠|(?:券|卷|劵)后|到手|促销|活动|神)价",
+            "enabled": true,
+            "version": 1,
+            "updateAt": {
+                "year": 2026,
+                "month": 10,
+                "day": 7
+            }
+        },
+        {
+            "id": "shoppingSite",
+            "locales": {
+                "en": "Shopping Sites",
+                "zh_CN": "购物网站",
+                "zh_TW": "購物網站"
+            },
+            "pattern": "(?:淘宝|tb|京东|jd|狗东|拼多多|pdd|天猫|tmall)搜索",
+            "enabled": true,
+            "version": 1,
+            "updateAt": {
+                "year": 2026,
+                "month": 10,
+                "day": 7
+            }
+        },
+        {
+            "id": "returnPolicy",
+            "locales": {
+                "en": "Return Policy",
+                "zh_CN": "退换货承诺",
+                "zh_TW": "退換貨承諾"
+            },
+            "pattern": "(?:随(便|时)|任意)(?:退|退货|换货)|(?:免费|无偿)(?:换(?:个)?新|替换|更换|试用)(?:商品|物品)?",
+            "enabled": true,
+            "version": 1,
+            "updateAt": {
+                "year": 2026,
+                "month": 10,
+                "day": 7
+            }
+        },
+        {
+            "id": "purchaseLink",
+            "locales": {
+                "en": "Purchase Links",
+                "zh_CN": "购买链接",
+                "zh_TW": "購買連結"
+            },
+            "pattern": "(?:点(?:击)?|戳|来|我)评论区(?:置顶)?|(?:立即|蓝链|链接|🔗)(?:购买|下单)",
+            "enabled": true,
+            "version": 1,
+            "updateAt": {
+                "year": 2026,
+                "month": 10,
+                "day": 7
+            }
+        },
+        {
+            "id": "guideScan",
+            "locales": {
+                "en": "QR Code Guides",
+                "zh_CN": "引导扫码",
+                "zh_TW": "引導掃碼"
+            },
+            "pattern": "(?:vx|wx|微信|软件)扫码(?:领)?(?:优惠|红包|券)?",
+            "enabled": true,
+            "version": 1,
+            "updateAt": {
+                "year": 2026,
+                "month": 10,
+                "day": 7
+            }
+        },
+        {
+            "id": "sameProduct",
+            "locales": {
+                "en": "Same Product",
+                "zh_CN": "同款",
+                "zh_TW": "同款"
+            },
+            "pattern": "(?:我的)?同款(?:[的]?(?:推荐|好物|商品|入手|购买|拥有|分享|安利)?)",
+            "enabled": true,
+            "version": 1,
+            "updateAt": {
+                "year": 2026,
+                "month": 10,
+                "day": 7
+            }
+        },
+        {
+            "id": "misc",
+            "locales": {
+                "en": "Misc Keywords",
+                "zh_CN": "杂项关键词",
+                "zh_TW": "雜項關鍵詞"
+            },
+            "pattern": "满\\d+|大促|促销|折扣|特价|秒杀|广告|推广|低至|热卖|抢购|新品|豪礼|赠品|密令",
+            "enabled": true,
+            "version": 1,
+            "updateAt": {
+                "year": 2026,
+                "month": 10,
+                "day": 7
+            }
+        },
+        {
+            "id": "delivery",
+            "locales": {
+                "en": "Food Delivery",
+                "zh_CN": "外卖",
+                "zh_TW": "外送"
+            },
+            "pattern": "(?:饿了么|美(?:团|団)|百度外卖|蜂鸟|达达|UU跑腿|(?:淘宝)?闪购)|(?:点|订|送|吃)(?:外卖|餐)|外卖(?:节|服务|平台|app)",
+            "enabled": true,
+            "version": 1,
+            "updateAt": {
+                "year": 2026,
+                "month": 10,
+                "day": 7
+            }
+        }
+    ]
+}
