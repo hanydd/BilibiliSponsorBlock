@@ -7,11 +7,24 @@ import {
     resolveSponsorRuleName,
     sanitizeSponsorRegexFlags,
     splitLegacySponsorPattern,
+    todaySponsorRuleDate,
 } from "../src/utils/sponsorRegex";
 
 function rule(id: string, pattern: string, enabled = true): DynamicSponsorRegexRule {
     return { id, pattern, enabled };
 }
+
+describe("todaySponsorRuleDate", () => {
+    test("返回合法的当天日期", () => {
+        const today = todaySponsorRuleDate();
+        const now = new Date();
+
+        expect(today.year).toBe(now.getFullYear());
+        expect(today.month).toBe(now.getMonth() + 1);
+        expect(today.day).toBe(now.getDate());
+        expect(formatSponsorRuleDate(today)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+});
 
 describe("resolveSponsorRuleName", () => {
     const locales = { en: "Food Delivery", zh_CN: "外卖", zh_TW: "外送" };

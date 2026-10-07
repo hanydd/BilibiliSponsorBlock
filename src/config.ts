@@ -23,6 +23,7 @@ import {
     DynamicSponsorRegexRule,
     sanitizeSponsorRegexFlags,
     splitLegacySponsorPattern,
+    todaySponsorRuleDate,
 } from "./utils/sponsorRegex";
 import type { SponsorRegexRemoteConfig } from "./config/sponsorRegexOTA";
 import * as shippedSponsorRegexConfig from "../config/sponsorRegex.json";
@@ -315,6 +316,8 @@ function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<st
                               name: chrome.i18n.getMessage("dynamicSponsorRuleName_legacyCustom"),
                               pattern: customPattern,
                               enabled: true,
+                              // 自定义正则记录迁移当天作为最后一次更改日期
+                              updateAt: todaySponsorRuleDate(),
                           },
                       ]
                     : []),

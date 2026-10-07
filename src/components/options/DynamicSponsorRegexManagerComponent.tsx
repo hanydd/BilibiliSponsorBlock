@@ -8,6 +8,7 @@ import {
     formatSponsorRuleDate,
     resolveSponsorRuleName,
     sanitizeSponsorRegexFlags,
+    todaySponsorRuleDate,
 } from "../../utils/sponsorRegex";
 import {
     checkSponsorRegexConfigUpdate,
@@ -288,7 +289,12 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
     }
 
     private updateRule(ruleId: string, changes: Partial<DynamicSponsorRegexRule>): void {
-        const rules = this.state.rules.map((rule) => (rule.id === ruleId ? { ...rule, ...changes } : rule));
+        const rules = this.state.rules.map((rule) => {
+            if (rule.id !== ruleId) return rule;
+            // 自定义词条不会收到 OTA 的 updateAt，这里记录用户最后一次修改的日期
+            const updateAt = isBuiltinRule(ruleId) ? rule.updateAt : todaySponsorRuleDate();
+            return { ...rule, ...changes, updateAt };
+        });
         this.commit(rules);
     }
 
@@ -300,7 +306,7 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
 
     private addCustomRule(): void {
         const id = `custom_${Date.now().toString(36)}`;
-        this.commit([...this.state.rules, { id, name: "", pattern: "", enabled: true }]);
+        this.commit([...this.state.rules, { id, name: "", pattern: "", enabled: true, updateAt: todaySponsorRuleDate() }]);
     }
 
     private removeRule(ruleId: string): void {

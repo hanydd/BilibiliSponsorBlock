@@ -70,6 +70,12 @@ export function formatSponsorRuleDate(date: SponsorRegexUpdateDate | undefined):
     return `${date.year}-${month}-${day}`;
 }
 
+/** 用户修改时记录最后一次更改日期 */
+export function todaySponsorRuleDate(): SponsorRegexUpdateDate {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
+}
+
 /**
  * 拆分旧版本保存的 `/模式/flags` 形式，供配置迁移使用。
  * flags 为 null 表示旧值没有斜杠形式（当时等同于不区分大小写、只取首个命中）。
