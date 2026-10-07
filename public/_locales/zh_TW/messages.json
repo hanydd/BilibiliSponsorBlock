@@ -1522,7 +1522,114 @@
         "message": "封鎖匹配正則: "
     },
     "dynamicAndCommentSponsorRegexPatternDescription": {
-        "message": "預設正規表示式偏保守，建議根據您關注的UP主動態內容自行修改(如果您會編寫正規表示式)\n例如您關注的UP主們經常發某一個產品的廣告，您可以將該產品的名稱添加到正規表示式中\n會不定期更新預設正則表達式以提升屏蔽效果。如果您已修改正則表達式, 系統將不會自動更新, 以避免覆蓋您的自訂設定, 請手動合併更新內容"
+        "message": "預設詞條偏保守，建議根據您關注的UP主動態內容自行修改(如果您會編寫正規表示式)\n例如您關注的UP主們經常發某一個產品的廣告，您可以新增詞條並填入該產品的名稱\n每個詞條可單獨啟用/停用，匹配內容只寫正則本身(不需要斜線)，flags 在「匹配模式」中統一設定\n會不定期更新預設詞條以提升封鎖效果, 如果您修改了詞條內容則不會進行更新, 以防止覆蓋您的修改, 請手動合併更新內容"
+    },
+    "dynamicAndCommentSponsorRegexFlags": {
+        "message": "匹配模式: "
+    },
+    "dynamicAndCommentSponsorRegexFlagsDescription": {
+        "message": "正規表示式 flags，作用於所有詞條。g 表示收集全部命中(關閉時只取第一個命中)，i 忽略大小寫，m 多行，s 點號匹配換行，u Unicode 模式"
+    },
+    "dynamicSponsorRegexFlag_g": {
+        "message": "g 全部命中"
+    },
+    "dynamicSponsorRegexFlag_i": {
+        "message": "i 忽略大小寫"
+    },
+    "dynamicSponsorRegexFlag_m": {
+        "message": "m 多行"
+    },
+    "dynamicSponsorRegexFlag_s": {
+        "message": "s 點號跨行"
+    },
+    "dynamicSponsorRegexFlag_u": {
+        "message": "u Unicode"
+    },
+    "dynamicSponsorRegexRulePatternPlaceholder": {
+        "message": "例如 淘宝|京东"
+    },
+    "dynamicSponsorRegexRuleEnabled": {
+        "message": "啟用"
+    },
+    "dynamicSponsorRegexRuleName": {
+        "message": "詞條"
+    },
+    "dynamicSponsorRegexRulePattern": {
+        "message": "匹配內容"
+    },
+    "dynamicSponsorRegexRuleActions": {
+        "message": "操作"
+    },
+    "dynamicSponsorRegexRulePatternInvalid": {
+        "message": "正規表示式無效，該詞條會被跳過"
+    },
+    "dynamicSponsorRegexRuleReset": {
+        "message": "重設"
+    },
+    "dynamicSponsorRegexRuleDelete": {
+        "message": "刪除"
+    },
+    "dynamicSponsorRegexRuleAdd": {
+        "message": "新增自訂詞條"
+    },
+    "dynamicSponsorRegexRuleResetAll": {
+        "message": "恢復預設詞條"
+    },
+    "dynamicSponsorRegexRuleEmpty": {
+        "message": "目前沒有詞條，點擊下方按鈕新增"
+    },
+    "dynamicSponsorRegexRuleNamePlaceholder": {
+        "message": "詞條名稱"
+    },
+    "dynamicSponsorRegexRuleEnabledCount": {
+        "message": "已啟用 $COUNT$ 個詞條",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "dynamicSponsorRegexRuleConfirmDelete": {
+        "message": "確定刪除該詞條嗎？"
+    },
+    "dynamicSponsorRegexRuleConfirmReset": {
+        "message": "確定恢復預設詞條嗎？目前的自訂詞條與修改都會被覆蓋"
+    },
+    "dynamicSponsorRuleName_shoppingFestival": {
+        "message": "購物節日"
+    },
+    "dynamicSponsorRuleName_adLanguage": {
+        "message": "廣告話術"
+    },
+    "dynamicSponsorRuleName_coupon": {
+        "message": "優惠券"
+    },
+    "dynamicSponsorRuleName_shoppingSite": {
+        "message": "購物網站"
+    },
+    "dynamicSponsorRuleName_returnPolicy": {
+        "message": "退換貨承諾"
+    },
+    "dynamicSponsorRuleName_purchaseLink": {
+        "message": "購買連結"
+    },
+    "dynamicSponsorRuleName_guideScan": {
+        "message": "引導掃碼"
+    },
+    "dynamicSponsorRuleName_sameProduct": {
+        "message": "同款"
+    },
+    "dynamicSponsorRuleName_misc": {
+        "message": "雜項關鍵詞"
+    },
+    "dynamicSponsorRuleName_delivery": {
+        "message": "外送"
+    },
+    "dynamicSponsorRuleName_custom": {
+        "message": "自訂詞條"
+    },
+    "dynamicSponsorRuleName_legacyCustom": {
+        "message": "自訂正則"
     },
     "category_dynamicSponsor_sponsor": {
         "message": "商品連結"
@@ -1637,7 +1744,7 @@
         "message": "需匹配到多少個關鍵字才隱藏:"
     },
     "dynamicAndCommentSponsorRegexPatternKeywordNumberDescription": {
-        "message": "需累積匹配到指定數量的關鍵字後才會執行隱藏操作，否則僅添加標籤\n預設值為1, 即匹配到任意關鍵字立即隱藏"
+        "message": "命中的關鍵詞數量達到該值時才執行隱藏，否則僅新增標籤\n預設為1，即匹配到任意關鍵詞就隱藏"
     },
     "lifecycleDebug": {
         "message": "將除錯日誌輸出到控制台"
