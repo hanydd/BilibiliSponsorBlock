@@ -1208,10 +1208,11 @@ input::-webkit-inner-spin-button {
 }
 .sponsorSkipStackCard[aria-expanded="false"] .sponsorSkipStackDetail { visibility: hidden; }
 .sponsorSkipStackCard .sponsorSkipStackDetailInner {
+    --skip-notice-border-vertical: 4px;
     width: 100%;
     max-width: none;
     table-layout: auto;
-    padding: 0 5px;
+    padding: 0 5px 6px;
     margin: 0;
     transition: none;
 }
@@ -1239,7 +1240,7 @@ input::-webkit-inner-spin-button {
 .sponsorSkipStackArriving .sponsorSkipNoticeTableContainer { animation: sb-stack-arrive var(--sb-move-duration) ease-out; }
 .sponsorSkipStackCompact .sponsorSkipStackCard { height: 34px; }
 .sponsorSkipStackCompact .sponsorSkipStackHeader { height: 34px; padding: 2px 5px; gap: 2px; }
-.sponsorSkipStackCompact .sponsorSkipStackDetailInner { padding: 0 2px; }
+.sponsorSkipStackCompact .sponsorSkipStackDetailInner { padding: 0 2px 6px; }
 .sponsorSkipStackCompact .sponsorSkipNoticeTimeLeft { flex-basis: 40px; }
 @keyframes sb-stack-arrive {
     from { opacity: 0; transform: translateY(-40px); }
