@@ -1208,21 +1208,36 @@ input::-webkit-inner-spin-button {
 }
 .sponsorSkipStackCard[aria-expanded="false"] .sponsorSkipStackDetail { visibility: hidden; }
 .sponsorSkipStackCard .sponsorSkipStackDetailInner {
-    --skip-notice-border-vertical: 4px;
+    --skip-notice-border-vertical: 0px;
+    display: block;
+    box-sizing: border-box;
     width: 100%;
     max-width: none;
-    table-layout: auto;
-    padding: 0 5px 6px;
+    padding: 0 10px 10px;
     margin: 0;
     transition: none;
 }
+.sponsorSkipStackDetailInner > tbody { display: flex; flex-direction: column; gap: 5px; }
 .sponsorSkipStackDetailInner > tbody > tr { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.sponsorSkipStackDetailInner > tbody > [id^="sponsorSkipNoticeSecondRow"] {
+    /* Keep the stack's reserved height stable when votes become feedback text. */
+    min-height: 25px;
+    align-items: flex-start;
+}
 .sponsorSkipStackDetailInner > tbody > tr:empty { display: none; }
 .sponsorSkipStackDetailInner > tbody > tr > td { min-width: 0; }
 .sponsorSkipStackCard .sponsorSkipNoticeRightSection { position: static; margin: 0 0 0 auto; float: none; }
-.sponsorSkipStackCard .sponsorTimesVoteButtonsContainer { float: none; }
+.sponsorSkipStackCard .sponsorTimesVoteButtonsContainer {
+    display: flex;
+    align-items: center;
+    float: none;
+    padding: 0 5px;
+}
 .sponsorSkipStackCard button.voteButton {
-    display: inline-block;
+    display: inline-flex;
+    height: 22px;
+    align-items: center;
+    justify-content: center;
     border: 0;
     padding: 0 5px;
     background: none;
@@ -1240,7 +1255,7 @@ input::-webkit-inner-spin-button {
 .sponsorSkipStackArriving .sponsorSkipNoticeTableContainer { animation: sb-stack-arrive var(--sb-move-duration) ease-out; }
 .sponsorSkipStackCompact .sponsorSkipStackCard { height: 34px; }
 .sponsorSkipStackCompact .sponsorSkipStackHeader { height: 34px; padding: 2px 5px; gap: 2px; }
-.sponsorSkipStackCompact .sponsorSkipStackDetailInner { padding: 0 2px 6px; }
+.sponsorSkipStackCompact .sponsorSkipStackDetailInner { padding: 0 7px 8px; }
 .sponsorSkipStackCompact .sponsorSkipNoticeTimeLeft { flex-basis: 40px; }
 @keyframes sb-stack-arrive {
     from { opacity: 0; transform: translateY(-40px); }
