@@ -4,9 +4,11 @@ import {
     compileSponsorPattern,
     formatSponsorRuleDate,
     matchSponsorRules,
+    resolveSponsorRuleDisplayName,
     resolveSponsorRuleName,
     sanitizeSponsorRegexFlags,
     splitLegacySponsorPattern,
+    stripEmptySponsorAlternatives,
     todaySponsorRuleDate,
 } from "../src/utils/sponsorRegex";
 
@@ -43,6 +45,23 @@ describe("resolveSponsorRuleName", () => {
     test("没有可用名称时返回 undefined", () => {
         expect(resolveSponsorRuleName(undefined, "en")).toBeUndefined();
         expect(resolveSponsorRuleName({}, "en")).toBeUndefined();
+    });
+});
+
+describe("resolveSponsorRuleDisplayName", () => {
+    const base = { id: "shoppingSite", pattern: "淘宝搜索", enabled: true };
+
+    test("自定义名优先，其次是 locales，最后是兜底的 locales", () => {
+        expect(resolveSponsorRuleDisplayName({ ...base, name: "我的词" }, "en-US")).toBe("我的词");
+        expect(resolveSponsorRuleDisplayName({ ...base, locales: { en: "Shopping" } }, "en-US")).toBe("Shopping");
+        expect(resolveSponsorRuleDisplayName(base, "en-US", { en: "Fallback" })).toBe("Fallback");
+        expect(resolveSponsorRuleDisplayName(base, "en-US")).toBeUndefined();
+    });
+
+    test("空白自定义名不算数", () => {
+        expect(resolveSponsorRuleDisplayName({ ...base, name: "   ", locales: { en: "Shopping" } }, "en-US")).toBe(
+            "Shopping"
+        );
     });
 });
 
@@ -83,6 +102,27 @@ describe("splitLegacySponsorPattern", () => {
     });
 });
 
+describe("stripEmptySponsorAlternatives", () => {
+    test("清理剥离词条后留下的空分支", () => {
+        expect(stripEmptySponsorAlternatives("(|我的广告词)")).toBe("(我的广告词)");
+        expect(stripEmptySponsorAlternatives("(我的广告词|)")).toBe("(我的广告词)");
+        expect(stripEmptySponsorAlternatives("(?:|a)")).toBe("(a)");
+        expect(stripEmptySponsorAlternatives("a||b")).toBe("a|b");
+        expect(stripEmptySponsorAlternatives("||a|b||")).toBe("a|b");
+        expect(stripEmptySponsorAlternatives("(()|卖货)")).toBe("(卖货)");
+        expect(stripEmptySponsorAlternatives("(?:)")).toBe("");
+        expect(stripEmptySponsorAlternatives("a|b")).toBe("a|b");
+    });
+
+    test("清理后不会匹配任意文本", () => {
+        const cleaned = stripEmptySponsorAlternatives("(|我的广告词)");
+
+        expect(cleaned).toBe("(我的广告词)");
+        expect(compileSponsorPattern(cleaned, "gi")?.test("今天天气不错")).toBe(false);
+        expect(compileSponsorPattern(cleaned, "gi")?.test("这是 我的广告词")).toBe(true);
+    });
+});
+
 describe("compileSponsorPattern", () => {
     test("非法正则返回 null", () => {
         expect(compileSponsorPattern("(unclosed")).toBeNull();
@@ -108,7 +148,6 @@ describe("matchSponsorRules", () => {
         const hit = matchSponsorRules("点击淘宝搜索下单", rules, "gi");
         expect(hit.matched).toBe(true);
         expect(hit.matches).toEqual(["淘宝搜索"]);
-        expect(hit.matchedRuleIds).toEqual(["shoppingSite"]);
 
         expect(matchSponsorRules("今天点了美团外卖", rules, "gi").matched).toBe(true);
         expect(matchSponsorRules("普通的日常动态", rules, "gi").matched).toBe(false);
@@ -127,7 +166,7 @@ describe("matchSponsorRules", () => {
 
         const result = matchSponsorRules("点击淘宝搜索下单", rules, "gi");
         expect(result.matched).toBe(false);
-        expect(result.matchedRuleIds).toEqual([]);
+        expect(result.matches).toEqual([]);
     });
 
     test("阈值决定需要命中多少个关键词", () => {
@@ -165,7 +204,16 @@ describe("matchSponsorRules", () => {
 
         const result = matchSponsorRules("今天点了美团外卖", rules, "gi");
         expect(result.matched).toBe(true);
-        expect(result.matchedRuleIds).toEqual(["delivery"]);
+        expect(result.matches).toEqual(["美团外卖"]);
+    });
+
+    test("重复或未知的 flags 不会让匹配抛错", () => {
+        const rules = [rule("misc", "秒杀")];
+
+        expect(matchSponsorRules("全场秒杀", rules, "ggi").matched).toBe(true);
+        expect(matchSponsorRules("全场秒杀", rules, "gix").matched).toBe(true);
+        expect(matchSponsorRules("全场秒杀", rules, "iix").matched).toBe(true);
+        expect(matchSponsorRules("全场促销", rules, "yy").matched).toBe(false);
     });
 
     test("缺少规则列表时不抛错", () => {

@@ -24,7 +24,6 @@ export interface SponsorRegexUpdateDate {
 export interface SponsorRegexMatchResult {
     matched: boolean;
     matches: string[];
-    matchedRuleIds: string[];
 }
 
 export const SPONSOR_REGEX_FLAGS = ["g", "i", "m", "s", "u"] as const;
@@ -60,6 +59,15 @@ export function resolveSponsorRuleName(locales: { [locale: string]: string } | u
     return Object.values(locales).find((name) => name?.trim())?.trim();
 }
 
+/** 词条显示名：用户改过的名字优先，其次是 locales */
+export function resolveSponsorRuleDisplayName(
+    rule: DynamicSponsorRegexRule,
+    uiLanguage: string,
+    fallbackLocales?: { [locale: string]: string }
+): string | undefined {
+    return rule.name?.trim() || resolveSponsorRuleName(rule.locales ?? fallbackLocales, uiLanguage);
+}
+
 export function formatSponsorRuleDate(date: SponsorRegexUpdateDate | undefined): string | undefined {
     if (!date || typeof date.year !== "number" || typeof date.month !== "number" || typeof date.day !== "number") {
         return undefined;
@@ -70,7 +78,6 @@ export function formatSponsorRuleDate(date: SponsorRegexUpdateDate | undefined):
     return `${date.year}-${month}-${day}`;
 }
 
-/** 用户修改时记录最后一次更改日期 */
 export function todaySponsorRuleDate(): SponsorRegexUpdateDate {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
@@ -85,33 +92,65 @@ export function splitLegacySponsorPattern(value: string): { source: string; flag
     return literal ? { source: literal[1], flags: literal[2] } : { source: value, flags: null };
 }
 
+export function stripEmptySponsorAlternatives(pattern: string): string {
+    let result = pattern;
+
+    for (;;) {
+        const next = result
+            .replace(/\((?:\?:)?\)/g, "") // 空分组 () / (?:)
+            .replace(/\(\?:\|/g, "(") // (?:|a) -> (a)
+            .replace(/\(\|/g, "(") // (|a) -> (a)
+            .replace(/\|\)/g, ")") // (a|) -> (a)
+            .replace(/\|{2,}/g, "|")
+            .replace(/^\|+|\|+$/g, "")
+            .trim();
+
+        if (next === result) return next;
+        result = next;
+    }
+}
+
+/** 编译结果缓存：内容页每条动态都要用全部词条匹配，避免重复构造 RegExp */
+const patternCache = new Map<string, RegExp | null>();
+const MAX_PATTERN_CACHE_ENTRIES = 256;
+
 /** 编译规则内容，非法正则返回 null */
 export function compileSponsorPattern(pattern: string, flags = ""): RegExp | null {
     const source = pattern?.trim();
     if (!source) return null;
 
+    // g/y 会让 test() 在多次调用间保留 lastIndex，这里始终以无状态方式编译
+    const statelessFlags = sanitizeSponsorRegexFlags(flags).replace(/[gy]/g, "");
+    const cacheKey = `${statelessFlags}\u0000${source}`;
+    const cached = patternCache.get(cacheKey);
+    if (cached !== undefined) return cached;
+
+    let compiled: RegExp | null = null;
     try {
-        // g/y 会让 test() 在多次调用间保留 lastIndex，这里始终以无状态方式编译
-        return new RegExp(source, sanitizeSponsorRegexFlags(flags).replace(/[gy]/g, ""));
+        compiled = new RegExp(source, statelessFlags);
     } catch {
-        return null;
+        compiled = null;
     }
+
+    if (patternCache.size >= MAX_PATTERN_CACHE_ENTRIES) patternCache.clear();
+    patternCache.set(cacheKey, compiled);
+
+    return compiled;
 }
 
-function collectMatches(text: string, source: string, flags: string): string[] {
-    const global = flags.includes("g");
-    const regex = new RegExp(source, flags.replace(/[gy]/g, "") + (global ? "g" : ""));
+/** 收集命中：global 时返回全部匹配，否则只取首个（regex 已由调用方编译并剥掉 g） */
+function collectMatches(text: string, regex: RegExp, global: boolean): string[] {
+    // 全局匹配用一次性实例，避免共享缓存正则的 lastIndex
+    const matches = text.match(global ? new RegExp(regex.source, regex.flags + "g") : regex) ?? [];
+    if (matches.length === 0) return [];
 
-    const result = text.match(regex) ?? [];
-    if (result.length === 0) return [];
-
-    return global ? result : [result[0]];
+    return global ? matches : [matches[0]];
 }
 
 /**
  * 用启用的规则匹配文本，判断是否达到屏蔽条件。
  *
- * 命中的关键词会被去重并忽略单字符命中；只有数量达到阈值（默认 1）才视为疑似推广。
+ * 命中的关键词会被去重并忽略单字符命中；`matches` 是全部命中，`matched` 表示数量是否达到阈值。
  */
 export function matchSponsorRules(
     text: string,
@@ -121,22 +160,20 @@ export function matchSponsorRules(
 ): SponsorRegexMatchResult {
     const enabledRules = (rules ?? []).filter((rule) => rule.enabled && rule.pattern?.trim());
     const matches = new Set<string>();
-    const matchedRuleIds: string[] = [];
+    const global = sanitizeSponsorRegexFlags(flags).includes("g");
 
     for (const rule of enabledRules) {
         const source = rule.pattern.trim();
         const test = compileSponsorPattern(source, flags);
         if (!test || !test.test(text)) continue;
 
-        matchedRuleIds.push(rule.id);
-
-        for (const hit of collectMatches(text, source, flags)) {
+        for (const hit of collectMatches(text, test, global)) {
             if (hit.length >= MIN_MATCH_LENGTH) matches.add(hit);
         }
     }
 
     const matchList = [...matches];
-    const threshold = Math.max(1, Number(keywordNumber) || 1);
+    const threshold = Math.max(1, keywordNumber || 1);
 
-    return { matched: matchList.length >= threshold, matches: matchList, matchedRuleIds };
+    return { matched: matchList.length >= threshold, matches: matchList };
 }

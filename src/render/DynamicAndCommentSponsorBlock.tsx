@@ -17,17 +17,17 @@ async function DynamicListener() {
             let category = isSponsor(element);
             const action = getCategorySelection(category)?.option;
             let dynamicSponsorMatch: string[] = [];
+            let meetsKeywordThreshold = true;
             if (category === "dynamicSponsor_suspicion_sponsor") {
-                const dynamicSponsorContext = isDynamicSponsorSuspicionSponsor(element);
                 const result = matchSponsorRules(
-                    dynamicSponsorContext,
+                    isDynamicSponsorSuspicionSponsor(element),
                     getEffectiveSponsorRegexRules(),
                     Config.config.dynamicAndCommentSponsorRegexFlags,
                     Config.config.dynamicAndCommentSponsorRegexPatternKeywordNumber
                 );
-                //去除一个字的匹配降低误判率
                 dynamicSponsorMatch = result.matches;
-                category = result.matched ? "dynamicSponsor_suspicion_sponsor" : null;
+                meetsKeywordThreshold = result.matched;
+                category = dynamicSponsorMatch.length > 0 ? "dynamicSponsor_suspicion_sponsor" : null;
             }
             if (category === null || action === DynamicSponsorOption.Disabled) continue;
             const debugMode = category === "dynamicSponsor_suspicion_sponsor" && Config.config.dynamicSponsorBlockerDebug;
@@ -42,6 +42,7 @@ async function DynamicListener() {
             ) {
                 labelSponsorStyle("dynamicSponsorLabel", element.querySelector('.bili-dyn-title__text'), category, debugMode, dynamicSponsorMatch);
                 if (action !== DynamicSponsorOption.Hide) continue;
+                if (!meetsKeywordThreshold) continue;
 
                 const bodyElement = element.querySelector('.bili-dyn-content') as HTMLElement;
                 hideSponsorContent(bodyElement, element.querySelectorAll('.bili-dyn-item__action')[2] as HTMLElement);

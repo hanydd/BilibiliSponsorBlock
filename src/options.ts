@@ -541,6 +541,13 @@ function optionsLocalConfigUpdateListener(changes: StorageChangesObject) {
             chooser.update();
         }
     }
+
+    // 后台服务脚本可能在本页面打开期间应用了在线词条配置
+    if (changes.sponsorRegexRemoteConfig) {
+        for (const manager of dynamicSponsorRegexManagers) {
+            manager.update();
+        }
+    }
 }
 
 /**

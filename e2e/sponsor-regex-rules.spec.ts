@@ -6,6 +6,12 @@ import { readLocalStorage, readSyncStorage, writeSyncStorage } from "./support/e
 type RegexRule = { id: string; pattern: string; enabled: boolean; name?: string };
 type RemoteRegexConfig = { rules: RegexRule[] };
 
+/** 随包分发的默认词条：词条数与内容都从这里取，调整 config/sponsorRegex.json 时不必改测试 */
+const shippedRegexRules = (
+    JSON.parse(readFileSync("config/sponsorRegex.json", "utf8")) as { rules: { pattern: string }[] }
+).rules.map((rule) => rule.pattern);
+const shippedRuleCount = shippedRegexRules.length;
+
 /** 正则词条设置位于“动态主页/评论区屏蔽”开关之下，需先启用才会显示 */
 async function openBehaviorOptions(page: Page, extensionId: string, serviceWorker: Worker): Promise<void> {
     await writeSyncStorage(serviceWorker, { dynamicAndCommentSponsorBlocker: true });
@@ -21,7 +27,7 @@ test("renders one toggleable row per built-in sponsor regex entry", async ({
     await openBehaviorOptions(extensionPage, extensionId, extensionServiceWorker);
 
     const rows = extensionPage.locator("#DynamicSponsorRegex tbody tr");
-    await expect(rows).toHaveCount(10);
+    await expect(rows).toHaveCount(shippedRuleCount);
     // 测试浏览器 UI 语言为 en-US，词条名取自配置文件自带的 locales.en
     await expect(extensionPage.locator("[data-rule-id='shoppingSite']")).toContainText("Shopping Sites");
     await expect(extensionPage.locator("[data-rule-id='delivery']")).toContainText("Food Delivery");
@@ -95,7 +101,7 @@ test("adds and removes a custom entry", async ({ extensionId, extensionPage, ext
 
     const rows = extensionPage.locator("#DynamicSponsorRegex tbody tr");
     await extensionPage.locator("#addSponsorRegexRule").click();
-    await expect(rows).toHaveCount(11);
+    await expect(rows).toHaveCount(shippedRuleCount + 1);
 
     const customRow = extensionPage.locator("#DynamicSponsorRegex tbody tr").last();
     await customRow.locator("[data-rule-name]").fill("我的推广词");
@@ -114,7 +120,7 @@ test("adds and removes a custom entry", async ({ extensionId, extensionPage, ext
 
     await extensionPage.on("dialog", (dialog) => dialog.accept());
     await customRow.locator(".option-button").click();
-    await expect(rows).toHaveCount(10);
+    await expect(rows).toHaveCount(shippedRuleCount);
 });
 
 test("edits a built-in entry, then resets it back to the default", async ({
@@ -186,12 +192,10 @@ test("migrates an unmodified legacy regex onto the built-in entries without writ
     extensionServiceWorker,
 }) => {
     // 旧版的默认正则 = 内置词条合集，逐条都能对上，所以不需要写任何用户词条
-    const shippedPatterns = (
-        JSON.parse(readFileSync("config/sponsorRegex.json", "utf8")) as { rules: { pattern: string }[] }
-    ).rules.map((rule) => rule.pattern);
+    const legacyDefault = `/${shippedRegexRules.join("|")}/gi`;
     await writeSyncStorage(extensionServiceWorker, {
         dynamicAndCommentSponsorBlocker: true,
-        dynamicAndCommentSponsorRegexPattern: `/${shippedPatterns.join("|")}/gi`,
+        dynamicAndCommentSponsorRegexPattern: legacyDefault,
     });
 
     await extensionPage.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
@@ -204,8 +208,32 @@ test("migrates an unmodified legacy regex onto the built-in entries without writ
     expect(
         await readSyncStorage<RegexRule[]>(extensionServiceWorker, "dynamicAndCommentSponsorRegexUserRules")
     ).toBeUndefined();
-    await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr")).toHaveCount(10);
+    await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr")).toHaveCount(shippedRuleCount);
     await expect(extensionPage.locator("[data-rule-id='shoppingSite'] input[type='checkbox']")).toBeChecked();
+});
+
+test("drops a default regex shipped by an older release instead of keeping it as a custom entry", async ({
+    extensionId,
+    extensionPage,
+    extensionServiceWorker,
+}) => {
+    // 0.11.1 随包发布的默认值：剥离只会留下旧词条的大半内容，旧版本会把它整条留成自定义词条
+    await writeSyncStorage(extensionServiceWorker, {
+        dynamicAndCommentSponsorBlocker: true,
+        dynamicAndCommentSponsorRegexPattern:
+            "/(618|11(?!1).11|双(?:11|十一|12|十二)|女神节)|恰(?:个|了|到)?饭|金主|(?:评论区)?(?:领(?:取|张|到)?|抢|有|送|得)(?:我的)?(?:神|优惠|红包|折扣|福利|无门槛|隐藏|秘密|专属|(?:超)?大(?:额)?|额外)*(?:券|卷|劵|q(?:uan)?)?(?:后|到手|价|使用|下单)?|(?:优惠|(?:券|卷|劵)后|到手|促销|活动|神)价|(?:淘宝|tb|京东|jd|狗东|拼多多|pdd|天猫|tmall)搜索|(?:随(便|时)|任意)(?:退|退货|换货)|(?:免费|无偿)(?:换(?:个)?新|替换|更换)(?:商品|物品)?|(?:点(?:击)?|戳|来|我)评论区(?:置顶)?|(?:立即|蓝链|链接|🔗)(?:购买|下单)|(?:vx|wx|微信|软件)扫码(?:领)?(?:优惠|红包|券)?|(?:我的)?同款(?:[的]?(?:推荐|好物|商品|入手|购买|拥有|分享|安利)?)|满\\d+|大促|促销|折扣|特价|秒杀|广告|推广|低至|热卖|抢购|新品|豪礼|赠品/gi",
+    });
+
+    await extensionPage.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
+    await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr").first()).toBeVisible();
+
+    // 发布过的默认值不是用户内容：不生成自定义词条，词条列表就是内置词条
+    expect(
+        await readSyncStorage<RegexRule[]>(extensionServiceWorker, "dynamicAndCommentSponsorRegexUserRules")
+    ).toBeUndefined();
+    await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr")).toHaveCount(shippedRuleCount);
+    // 没有自定义词条（自建词条的词条名是可编辑输入框）
+    await expect(extensionPage.locator("[data-rule-name]")).toHaveCount(0);
 });
 
 test("migrates a legacy regex with extra terms into one custom entry", async ({
@@ -214,12 +242,9 @@ test("migrates a legacy regex with extra terms into one custom entry", async ({
     extensionServiceWorker,
 }) => {
     // 内置词条能对上的部分被摘掉，只剩用户自己加的词
-    const shippedPatterns = (
-        JSON.parse(readFileSync("config/sponsorRegex.json", "utf8")) as { rules: { pattern: string }[] }
-    ).rules.map((rule) => rule.pattern);
     await writeSyncStorage(extensionServiceWorker, {
         dynamicAndCommentSponsorBlocker: true,
-        dynamicAndCommentSponsorRegexPattern: `/${shippedPatterns.join("|")}|我的广告词/gi`,
+        dynamicAndCommentSponsorRegexPattern: `/${shippedRegexRules.join("|")}|我的广告词/gi`,
     });
 
     await extensionPage.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);

@@ -4,9 +4,12 @@ import {
     Rule,
     applyRulesConfig,
     checkSponsorRegexConfigUpdate,
+    getBuiltinSponsorRegexRule,
     getEffectiveSponsorRegexRules,
     getLatestDefaultUpdateDate,
+    getUserSponsorRegexRules,
     isRulesConfig,
+    setUserSponsorRegexRules,
 } from "../src/config/sponsorRegexOTA";
 import { DynamicSponsorRegexRule } from "../src/utils/sponsorRegex";
 
@@ -14,7 +17,11 @@ jest.mock("../src/config", () => ({
     __esModule: true,
     default: {
         config: { dynamicAndCommentSponsorRegexUserRules: [] },
-        local: { sponsorRegexRemoteConfig: null, lastSponsorRegexConfigCheck: 0 },
+        local: {
+            sponsorRegexRemoteConfig: null,
+            lastSponsorRegexConfigCheck: 0,
+            lastSponsorRegexConfigCheckFailed: false,
+        },
     },
 }));
 
@@ -35,6 +42,7 @@ beforeEach(() => {
     Config.config.dynamicAndCommentSponsorRegexUserRules = [];
     Config.local.sponsorRegexRemoteConfig = { rules: cloneRules(baselineRules) };
     Config.local.lastSponsorRegexConfigCheck = 0;
+    Config.local.lastSponsorRegexConfigCheckFailed = false;
 });
 
 function cloneRules<T extends DynamicSponsorRegexRule>(rules: T[]): T[] {
@@ -139,6 +147,36 @@ describe("applyRulesConfig", () => {
             rule("delivery", "美团外卖", false, 1),
         ]);
     });
+
+    test("只采用 version 更高的词条，不因为其它词条有更新就整体降级", () => {
+        Config.local.sponsorRegexRemoteConfig = {
+            rules: [rule("shoppingSite", "本地新版本", true, 5), rule("delivery", "外卖", true, 3)],
+        };
+
+        const result = applyRulesConfig({
+            rules: [rule("shoppingSite", "远端旧版本", true, 3), rule("delivery", "外卖更新", true, 4)],
+        });
+
+        expect(result.status).toBe("updated");
+        expect(Config.local.sponsorRegexRemoteConfig?.rules).toEqual([
+            rule("shoppingSite", "本地新版本", true, 5),
+            rule("delivery", "外卖更新", true, 4),
+        ]);
+    });
+
+    test("用户词条里只存改过的字段时用默认词条补齐", () => {
+        Config.config.dynamicAndCommentSponsorRegexUserRules = [
+            { id: "shoppingSite", pattern: "用户改的搜索", enabled: false },
+        ];
+
+        const [shoppingSite] = getEffectiveSponsorRegexRules();
+
+        // 名称等元数据来自默认词条，改过的字段用用户版本
+        expect(shoppingSite.pattern).toBe("用户改的搜索");
+        expect(shoppingSite.enabled).toBe(false);
+        expect(shoppingSite.locales).toEqual(baselineRules[0].locales);
+        expect(shoppingSite.version).toBe(baselineRules[0].version);
+    });
 });
 
 describe("checkSponsorRegexConfigUpdate", () => {
@@ -165,9 +203,10 @@ describe("checkSponsorRegexConfigUpdate", () => {
         expect(result.status).toBe("updated");
         expect(Config.local.sponsorRegexRemoteConfig?.rules).toEqual([rule("shoppingSite", "在线模式", true, 3)]);
         expect(Config.local.lastSponsorRegexConfigCheck).toBeGreaterThan(0);
+        expect(Config.local.lastSponsorRegexConfigCheckFailed).toBe(false);
     });
 
-    test("请求失败时保持现有配置", async () => {
+    test("请求失败时保持现有配置并记录失败", async () => {
         const fetchMock = jest.fn().mockResolvedValue(new Response("not json", { status: 500 }));
         global.fetch = fetchMock as unknown as typeof fetch;
 
@@ -175,6 +214,57 @@ describe("checkSponsorRegexConfigUpdate", () => {
 
         expect(result.status).toBe("failed");
         expect(Config.local.sponsorRegexRemoteConfig?.rules).toEqual(baselineRules);
+        expect(Config.local.lastSponsorRegexConfigCheckFailed).toBe(true);
+    });
+
+    test("前面的源内容陈旧时继续尝试下一个源", async () => {
+        const fresh = { rules: [rule("shoppingSite", "在线新模式", true, 2)] };
+        let calls = 0;
+        const fetchMock = jest.fn(() =>
+            Promise.resolve(
+                new Response(JSON.stringify(calls++ === 0 ? { rules: cloneRules(baselineRules) } : fresh), { status: 200 })
+            )
+        );
+        global.fetch = fetchMock as unknown as typeof fetch;
+
+        const result = await checkSponsorRegexConfigUpdate(true);
+
+        expect(result.status).toBe("updated");
+        expect(fetchMock.mock.calls.length).toBeGreaterThan(1);
+        expect(Config.local.sponsorRegexRemoteConfig?.rules).toEqual(fresh.rules);
+    });
+
+    test("所有源都没有更新时视为已是最新且不改写快照", async () => {
+        const snapshot = Config.local.sponsorRegexRemoteConfig;
+        const fetchMock = jest.fn().mockResolvedValue(
+            new Response(JSON.stringify({ rules: cloneRules(baselineRules) }), { status: 200 })
+        );
+        global.fetch = fetchMock as unknown as typeof fetch;
+
+        const result = await checkSponsorRegexConfigUpdate(true);
+
+        expect(result.status).toBe("up-to-date");
+        expect(Config.local.sponsorRegexRemoteConfig).toBe(snapshot);
+    });
+
+    test("上次失败时用更短的间隔重试", async () => {
+        const fetchMock = jest.fn().mockResolvedValue(
+            new Response(JSON.stringify({ rules: cloneRules(baselineRules) }), { status: 200 })
+        );
+        global.fetch = fetchMock as unknown as typeof fetch;
+
+        // 7 小时前失败过：已超过失败的退避间隔，应当重新请求
+        Config.local.lastSponsorRegexConfigCheck = Date.now() - 7 * 60 * 60 * 1000;
+        Config.local.lastSponsorRegexConfigCheckFailed = true;
+        await checkSponsorRegexConfigUpdate();
+        expect(fetchMock).toHaveBeenCalled();
+
+        // 7 小时前成功过：仍在 24 小时节流内，不再请求
+        fetchMock.mockClear();
+        Config.local.lastSponsorRegexConfigCheck = Date.now() - 7 * 60 * 60 * 1000;
+        Config.local.lastSponsorRegexConfigCheckFailed = false;
+        expect((await checkSponsorRegexConfigUpdate()).status).toBe("up-to-date");
+        expect(fetchMock).not.toHaveBeenCalled();
     });
 });
 
@@ -188,5 +278,25 @@ describe("getLatestDefaultUpdateDate", () => {
         };
 
         expect(getLatestDefaultUpdateDate()).toBe("2026-10-07");
+    });
+});
+
+describe("用户词条与默认词条", () => {
+    test("能按 id 取到默认词条，用于判断只能重置的内置词条", () => {
+        expect(getBuiltinSponsorRegexRule("shoppingSite")).toEqual(baselineRules[0]);
+        expect(getBuiltinSponsorRegexRule("custom_1")).toBeUndefined();
+    });
+
+    test("用户词条读写同步存储，并参与生效词条", () => {
+        const rules = [{ id: "custom_new", pattern: "新的", enabled: true }];
+
+        setUserSponsorRegexRules(rules);
+
+        expect(Config.config.dynamicAndCommentSponsorRegexUserRules).toEqual(rules);
+        expect(getUserSponsorRegexRules()).toEqual(rules);
+        expect(getEffectiveSponsorRegexRules().map((item) => item.id)).toEqual([
+            ...baselineRules.map((item) => item.id),
+            "custom_new",
+        ]);
     });
 });
