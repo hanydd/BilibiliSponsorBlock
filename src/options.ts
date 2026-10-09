@@ -1317,11 +1317,16 @@ function refreshCacheStats() {
  */
 function clearAllCache() {
     chrome.runtime.sendMessage({ message: "clearAllCache" }, (response) => {
+        const error = chrome.runtime.lastError;
         if (response?.ok) {
             showMessage(chrome.i18n.getMessage("clearAllCacheSuccess"), "success");
             refreshCacheStats(); // Refresh display after clearing
         } else {
-            showMessage(chrome.i18n.getMessage("clearAllCacheFailed"), "error");
+            const detail = error?.message || response?.error;
+            showMessage(
+                `${chrome.i18n.getMessage("clearAllCacheFailed")}${detail ? `: ${detail}` : ""}`,
+                "error"
+            );
         }
     });
 }

@@ -1,5 +1,5 @@
 import Config from "../../config";
-import { chromeP } from "../../utils/browserApi";
+import { logLocalStorageError } from "../../utils/storage";
 import { PersistentTTLCache } from "../apiCache";
 import { FetchResponse, LabelBlock } from "../type/requestType";
 
@@ -42,7 +42,10 @@ class ConfigAwareCacheWrapper<K extends string, V> {
 /**
  * Clear Legacy Video Segment Cache
  */
-chromeP.storage?.local?.remove("bsb_cache_segments");
+chrome.storage.local.remove("bsb_cache_segments", () => {
+    const error = chrome.runtime.lastError;
+    if (error) logLocalStorageError("remove", "bsb_cache_segments", error);
+});
 
 /**
  * Video Segment Cache

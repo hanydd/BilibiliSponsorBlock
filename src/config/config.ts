@@ -1,5 +1,6 @@
 import { isFirefox } from "../utils/";
 import { SERVER_ROUTER_STORAGE_KEY } from "./serverConfig";
+import { logLocalStorageError } from "../utils/storage";
 
 export interface SyncStorage {
     invidiousInstances: string[];
@@ -147,7 +148,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             set<K extends keyof LocalStorage>(obj: LocalStorage, prop: K, value: LocalStorage[K]) {
                 self.cachedLocalStorage![prop] = value;
 
-                void chrome.storage.local.set({ [prop]: value });
+                self.writeLocal(prop, value, ["unsubmittedSegments", "customSkipSound"].includes(prop));
 
                 return true;
             },
@@ -159,7 +160,10 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             },
 
             deleteProperty(obj: LocalStorage, prop: keyof LocalStorage) {
-                void chrome.storage.local.remove(<string>prop);
+                chrome.storage.local.remove(<string>prop, () => {
+                    const error = chrome.runtime.lastError;
+                    if (error) logLocalStorageError("remove", prop, error);
+                });
 
                 return true;
             },
@@ -177,11 +181,17 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
 
     forceLocalUpdate(prop: string): void {
         const value = this.cachedLocalStorage![prop];
+        // These records are best-effort bookkeeping and should not interrupt browsing.
+        this.writeLocal(prop, value, prop !== "navigationApiAvailable" && prop !== "downvotedSegments");
+    }
 
-        void chrome.storage.local.set({ [prop]: value }, () => {
-            if (chrome.runtime.lastError) {
-                alert(chrome.i18n.getMessage("storageFull"));
-            }
+    private writeLocal(prop: string, value: unknown, notify: boolean): void {
+        chrome.storage.local.set({ [prop]: value }, () => {
+            const error = chrome.runtime.lastError;
+            if (!error) return;
+
+            logLocalStorageError("set", prop, error);
+            if (notify) alert(`${chrome.i18n.getMessage("storageWriteFailed")}\n\n${error.message}`);
         });
     }
 
@@ -210,6 +220,8 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             }),
             new Promise<void>((resolve) => {
                 chrome.storage.local.get(null, (items) => {
+                    const error = chrome.runtime.lastError;
+                    if (error) logLocalStorageError("get", "*", error);
                     this.cachedLocalStorage = <U>(<unknown>(items ?? {}));
                     resolve();
                 });

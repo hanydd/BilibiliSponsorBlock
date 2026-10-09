@@ -277,7 +277,7 @@ function setupBackgroundRequestProxy() {
         if (request.message === "clearAllCache") {
             clearAllCacheBackground()
                 .then(() => callback({ ok: true }))
-                .catch(() => callback({ ok: false }));
+                .catch((error: Error) => callback({ ok: false, error: error.message }));
             return true;
         }
 
