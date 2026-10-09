@@ -241,7 +241,7 @@
 }
 
 /* Keep skip actions usable when the player becomes a floating mini player. */
-.sponsorSkipNoticeParent.sponsorSkipNoticeCompact {
+.sponsorSkipNoticeParent.sponsorSkipNoticeCompact:not(.sponsorSkipStackCard) {
     box-sizing: border-box;
     width: calc(100% - 12px);
     min-width: 0;

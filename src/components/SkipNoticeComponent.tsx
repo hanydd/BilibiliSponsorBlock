@@ -589,16 +589,12 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
 
         for (let i = 0; i < this.state.messages.length; i++) {
             elements.push(
-                <tr key={i + "_messageBox"}>
-                    <td key={i + "_messageBox"}>
-                        <NoticeTextSelectionComponent
-                            idSuffix={this.idSuffix}
-                            text={this.state.messages[i]}
-                            onClick={this.state.messageOnClick}
-                            key={i + "_messageBox"}
-                        ></NoticeTextSelectionComponent>
-                    </td>
-                </tr>
+                <NoticeTextSelectionComponent
+                    idSuffix={this.idSuffix}
+                    text={this.state.messages[i]}
+                    onClick={this.state.messageOnClick}
+                    key={i + "_messageBox"}
+                />
             );
         }
 

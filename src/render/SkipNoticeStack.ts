@@ -82,6 +82,7 @@ class SkipNoticeStack {
     private topInset = 0;
     private bottomInset = 0;
     private bottomReserve = 0;
+    private below = 0;
     private visibleLimit = Infinity;
     private disposed = false;
 
@@ -216,7 +217,15 @@ class SkipNoticeStack {
         }, 180);
     };
 
-    private down = (): void => {
+    private down = (event: PointerEvent): void => {
+        // A control can appear under a stationary pointer after an asynchronous update.
+        // Capture the same anchor for every control, even without a preceding pointermove.
+        const entry = this.lookup(event.target);
+        if (entry?.visible) {
+            this.cancel(this.leaveTimer);
+            this.pointer = entry;
+            this.stateAnchor = undefined;
+        }
         this.pressed = true;
         this.cancel(this.collapseTimer);
         this.freeze();
@@ -304,8 +313,9 @@ class SkipNoticeStack {
     }
 
     private detailHeight(entry: Entry): number {
-        // The bottom card uses the one shared reserve; long editors scroll inside it.
-        const room = entry === this.entries[0] ? this.bottomReserve : this.available - entry.header.offsetHeight;
+        // The bottom card can grow into the space below the usual stack boundary
+        // without moving its header. Only content exceeding the player needs to scroll.
+        const room = entry === this.entries[0] ? this.bottomReserve + this.below : this.available - entry.header.offsetHeight;
         return Math.min(entry.detail.getBoundingClientRect().height, Math.max(0, room));
     }
 
@@ -379,24 +389,28 @@ class SkipNoticeStack {
         const mini = !!this.player.closest('[data-screen="mini"]');
         const bottom = mini ? 12 : Math.min(rect.height / 2, controlHeight + 12);
         this.available = Math.max(40, rect.height - bottom - 12);
+        this.below = Math.max(0, bottom - 12);
         this.host.classList.toggle("sponsorSkipStackCompact", compact);
 
         const first = this.entries[0];
         if (!first) return;
+        const anchor = !this.busy && (this.pointer || this.focus || this.stateAnchor);
         const detailStyle = getComputedStyle(first.detail);
         const feedback = first.detail.querySelector<HTMLElement>("[id^='sponsorSkipNoticeSecondRow']");
         const spacing = parseFloat(detailStyle.borderSpacing.split(" ").pop()) || 0;
-        // Reserve one ordinary feedback row, irrespective of the number of collapsed cards.
-        // Opening an editor does not enlarge this reserve and move every header.
+        // Reserve the feedback row and one editing row before any interaction.
+        // Opening editing/category controls must not move the bottom card's buttons.
         const feedbackHeight = (feedback?.offsetHeight || 25) + spacing * 2 +
             parseFloat(detailStyle.paddingTop) + parseFloat(detailStyle.paddingBottom);
-        this.bottomReserve = Math.min(feedbackHeight, Math.max(0, this.available - first.header.offsetHeight));
+        // Feedback can replace the icon row with shorter text. Keep the reserve
+        // stable throughout an interaction, including asynchronous vote responses.
+        const reserve = anchor && this.bottomReserve ? this.bottomReserve : feedbackHeight * 2;
+        this.bottomReserve = Math.min(reserve, Math.max(0, this.available - first.header.offsetHeight));
 
         const oldScroll = this.host.scrollTop;
         const oldOrigin = this.previousHeight - oldScroll;
         const hostTop = rect.bottom - bottom - this.available;
         const previousBottomInset = this.bottomInset;
-        const anchor = !this.busy && (this.pointer || this.focus || this.stateAnchor);
         const anchorTop = anchor?.visible ? anchor.header.getBoundingClientRect().top - hostTop : undefined;
         const previousVisible = new Set(this.entries.filter((entry) => entry.visible));
         const transforms = new Map(this.entries.map((entry) => [entry,
@@ -416,7 +430,7 @@ class SkipNoticeStack {
         const offsets = stackOffsets(measurements, this.bottomReserve, GAP);
         this.entries.forEach((entry, index) => { entry.offset = offsets[index]; });
         // Moving the scroll surface and the active card together keeps its header stationary.
-        // Extra downward content becomes scrollable, rather than entering the player controls.
+        // The occupied viewport may extend below the usual control-bar boundary.
         let origin = (this.reviewing || this.busy || this.suppressHover) ? Math.max(this.available, oldOrigin) : this.available;
         if (anchorTop !== undefined) origin = anchorTop + anchor.offset + anchor.header.offsetHeight;
         let count = 0;
@@ -448,7 +462,7 @@ class SkipNoticeStack {
             top: origin - highest.offset - highest.header.offsetHeight - Math.min(hidden.length, 2) * 8,
             bottom: origin - highest.offset,
         });
-        const insets = occupiedViewport(this.available, [...bounds, ...movingBounds]);
+        const insets = occupiedViewport(this.available, [...bounds, ...movingBounds], this.below);
         this.topInset = insets.top;
         this.bottomInset = insets.bottom;
         this.host.style.bottom = `${bottom + this.bottomInset}px`;
