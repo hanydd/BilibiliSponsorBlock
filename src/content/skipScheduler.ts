@@ -15,7 +15,7 @@ import {
     SponsorTime,
 } from "../types";
 import Utils from "../utils";
-import { isFirefox, isFirefoxOrSafari, isSafari, waitFor } from "../utils/";
+import { isFirefox, isFirefoxOrSafari, isSafari } from "../utils/";
 import { GenericUtils } from "../utils/genericUtils";
 import { logDebug, logUiLifecycle } from "../utils/logger";
 import { isPlayingPlaylist } from "../utils/pageUtils";
@@ -142,10 +142,6 @@ export function resetSchedulerState(restoreMute = false): void {
     lastKnownVideoTime.approximateDelay = null;
     executedSkipRanges = [];
     pendingIncludeIntersecting = false;
-}
-
-function getCategoryPill() {
-    return getContentApp().ui.getState().categoryPill;
 }
 
 function emitSkipNoticeRequested(
@@ -1121,34 +1117,6 @@ export function startSkipScheduleCheckingForStartSponsors(): void {
         }
 
         updatePoiSkipButtonForCurrentTime();
-
-        const fullVideoSegment = contentState.sponsorTimes.filter((time) => time.actionType === ActionType.Full)[0];
-        if (fullVideoSegment) {
-            logUiLifecycle("categoryPill", "state", {
-                action: "fullVideoSegmentDetected",
-                UUID: fullVideoSegment.UUID,
-                category: fullVideoSegment.category,
-                categoryPillPresent: Boolean(getCategoryPill()),
-                videoID: getVideoID(),
-            });
-            waitFor(() => getCategoryPill()).then(() => {
-                logUiLifecycle("categoryPill", "state", {
-                    action: "fullVideoSegmentApply",
-                    UUID: fullVideoSegment.UUID,
-                    category: fullVideoSegment.category,
-                    videoID: getVideoID(),
-                });
-                getCategoryPill()?.setSegment(fullVideoSegment);
-            }).catch(() => {
-                logUiLifecycle("categoryPill", "error", {
-                    action: "fullVideoSegmentApplyTimeout",
-                    UUID: fullVideoSegment.UUID,
-                    category: fullVideoSegment.category,
-                    categoryPillPresent: Boolean(getCategoryPill()),
-                    videoID: getVideoID(),
-                });
-            });
-        }
 
         if (startingSegmentTime !== -1) {
             // Initial playback can already be inside an opening segment. Carry

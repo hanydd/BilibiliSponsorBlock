@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import type { SegmentUUID, SponsorTime } from "../src/types";
+import type { NewVideoID, SegmentUUID, SponsorTime } from "../src/types";
 
 describe("segment submission business events", () => {
     function installChromeMock(): void {
@@ -74,7 +74,11 @@ describe("segment submission business events", () => {
             SkipButtonControlBar: class SkipButtonControlBarMock {},
         }));
         jest.doMock("../src/render/CategoryPill", () => ({
-            CategoryPill: class CategoryPillMock {},
+            CategoryPill: class CategoryPillMock {
+                attachToPage = jest.fn(async () => {});
+                setSegment = jest.fn(async () => {});
+                resetSegment = jest.fn();
+            },
         }));
         jest.doMock("../src/render/DescriptionPortPill", () => ({
             DescriptionPortPill: class DescriptionPortPillMock {},
@@ -181,6 +185,31 @@ describe("segment submission business events", () => {
         installChromeMock();
         installModuleMocks();
         document.body.innerHTML = "<div></div>";
+    });
+
+    test("keeps the pill across route resets and synchronizes only current-video segment events", async () => {
+        const { createContentApp } = await import("../src/content/app");
+        const { CONTENT_EVENTS } = await import("../src/content/app/events");
+        const { contentState } = await import("../src/content/state");
+        const { registerSegmentSubmission, setupCategoryPill, resetSubmissionState, getCategoryPill } =
+            await import("../src/content/segmentSubmission");
+        const { ActionType } = await import("../src/types");
+        const app = createContentApp();
+        registerSegmentSubmission();
+        setupCategoryPill();
+        const pill = getCategoryPill();
+        resetSubmissionState();
+        expect(getCategoryPill()).toBe(pill);
+        const segment = { UUID: "full", category: "sponsor", actionType: ActionType.Full } as SponsorTime;
+        contentState.sponsorTimes = [segment];
+        app.bus.emit(CONTENT_EVENTS.SEGMENTS_LOADED, { videoID: "old-video" as NewVideoID, sponsorTimes: [segment], status: 200 });
+        expect(pill.setSegment).not.toHaveBeenCalled();
+        app.bus.emit(CONTENT_EVENTS.SEGMENTS_LOADED, { videoID: "BV1test" as NewVideoID, sponsorTimes: [segment], status: 200 });
+        expect(pill.setSegment).toHaveBeenCalledWith(segment);
+        jest.mocked(pill.resetSegment).mockClear();
+        contentState.sponsorTimes = [];
+        app.bus.emit(CONTENT_EVENTS.SEGMENTS_LOADED, { videoID: "BV1test" as NewVideoID, sponsorTimes: [], status: 404 });
+        expect(pill.resetSegment).toHaveBeenCalledTimes(1);
     });
 
     test("preview shortcut selects the latest draft by UUID", async () => {

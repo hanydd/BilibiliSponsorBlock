@@ -281,12 +281,13 @@ export function resetSubmissionState(): void {
     if (submissionNotice) {
         submissionNotice.close();
     }
+    // The category pill belongs to the page, not the video element. The route
+    // reset clears its segment while preserving its root and title observer.
     patchUIState({
         playerButtons: {},
         descriptionPill: null,
         submissionNotice: null,
         skipButtonControlBar: null,
-        categoryPill: null,
     });
 }
 
@@ -331,6 +332,7 @@ export function registerSegmentSubmission(): void {
             return;
         }
 
+        setupCategoryPill();
         sendInfoUpdatedMessage();
 
         if (Config.config.isVip) {
@@ -414,6 +416,8 @@ export function setupCategoryPill(): void {
             videoID: getVideoID(),
         });
         void categoryPill.setSegment(fullVideoSegment);
+    } else {
+        categoryPill.resetSegment();
     }
 }
 
@@ -961,9 +965,6 @@ export async function sendSubmitMessage(): Promise<boolean> {
 
         const fullVideoSegment = contentState.sponsorTimes.filter((time) => time.actionType === ActionType.Full)[0];
         if (fullVideoSegment) {
-            waitFor(() => getUIState().categoryPill).then(() => {
-                getUIState().categoryPill?.setSegment(fullVideoSegment);
-            });
             getVideoLabel(getVideoID(), true);
         }
 

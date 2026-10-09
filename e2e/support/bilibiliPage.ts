@@ -2,6 +2,7 @@ import { expect, type Page } from "@playwright/test";
 
 export type MockBilibiliPageOptions = {
     bvid?: string;
+    title?: string;
     cid?: string;
     channelId?: string;
     channelName?: string;
@@ -131,6 +132,7 @@ function createMockBilibiliVideoPageHtml(options: MockBilibiliPageOptions): stri
     <body>
         <div id="app"></div>
         <div id="danmukuBox"></div>
+        ${options.title ? `<div id="viewbox_report" class="video-info-container"><h1>${escapeHtml(options.title)}</h1><div class="details"></div></div>` : ""}
 
         <div id="bilibili-player">
             <div class="bpx-player-container">

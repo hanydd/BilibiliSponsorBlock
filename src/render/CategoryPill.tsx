@@ -7,7 +7,6 @@ import { VoteResponse } from "../messageTypes";
 import { Category, SegmentUUID, SponsorTime } from "../types";
 import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
-import { isVisible } from "../utils/dom";
 import { logUiLifecycle } from "../utils/logger";
 
 const id = "categoryPill";
@@ -17,113 +16,104 @@ export class CategoryPill {
     ref: React.RefObject<CategoryPillComponent>;
     root: Root;
 
-    lastState: CategoryPillState;
+    lastState: CategoryPillState = { segment: null, show: false, open: false };
 
-    mutationCount: number;
-    isSegmentSet: boolean;
-    mutationObserver?: MutationObserver;
+    private mutationObserver?: MutationObserver;
+    private attachment?: Promise<void>;
+    private pageReady = false;
+    private closed = false;
+    private titleNode?: HTMLElement;
 
     vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>;
 
     constructor() {
         this.ref = React.createRef();
-        this.mutationCount = 0;
-        this.isSegmentSet = false;
-
-        // this mutation observer listens to the change to title bar
-        // bilibili will set the textContent of the title after loading for some reason.
-        // If the node is inserted before this reset of title, it will be removed
-        const mutationCounter = () => (this.mutationCount += 1);
-        this.mutationObserver = new MutationObserver(mutationCounter.bind(this));
-
-        addCleanupListener(() => {
-            if (this.mutationObserver) {
-                this.mutationObserver.disconnect();
-            }
-        });
+        addCleanupListener(() => this.close());
     }
 
-    async attachToPage(
+    attachToPage(
         vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>
     ): Promise<void> {
         this.vote = vote;
-        this.mutationCount = 0;
-        logUiLifecycle("categoryPill", "wait", {
-            target: "title",
-            action: "attach",
-            hasContainer: Boolean(this.container),
-            isSegmentSet: this.isSegmentSet,
-            title: getBilibiliTitleNode(),
-        });
+        if (this.closed) return Promise.resolve();
+        if (this.pageReady) {
+            this.attachToPageInternal();
+            return Promise.resolve();
+        }
+        if (this.attachment) return this.attachment;
 
-        const referenceNode = await waitForVisibleTitleNode();
-        logUiLifecycle("categoryPill", "ready", {
-            target: "title",
-            text: referenceNode.textContent?.trim() || null,
-            title: referenceNode,
-        });
-        this.mutationObserver.disconnect();
-        this.mutationObserver.observe(referenceNode, { attributes: true, childList: true });
+        this.attachment = this.waitForPage();
+        return this.attachment;
+    }
 
+    private async waitForPage(): Promise<void> {
         try {
-            await waitFor(getPageLoaded, 10000, 10);
-            // if setSegment is called after node attachment, it won't render sometimes
-            await waitFor(() => this.isSegmentSet, 10000, 100).catch(() => {});
+            await waitFor(() => this.closed || getPageLoaded(), 35000, 100);
+            if (this.closed) return;
+            this.pageReady = true;
+
+            // SPA navigation can rewrite the title's textContent or replace the
+            // entire title container. Keep one root and move it to the current title.
+            this.mutationObserver = new MutationObserver(() => {
+                if (this.container?.isConnected && this.container.parentElement === this.titleNode) return;
+                this.attachToPageInternal();
+            });
+            this.mutationObserver.observe(document.body, { childList: true, subtree: true });
             this.attachToPageInternal();
         } catch (error) {
-            if (error !== "TIMEOUT") {
-                logUiLifecycle("categoryPill", "error", {
-                    action: "attach",
-                    error: String(error),
-                });
+            if (!this.closed) {
+                logUiLifecycle("categoryPill", "error", { action: "attach", error: String(error) });
             }
+        } finally {
+            this.attachment = undefined;
         }
     }
 
-    private async attachToPageInternal(): Promise<void> {
-        const referenceNode = await waitForVisibleTitleNode();
+    private attachToPageInternal(): void {
+        if (this.closed || !this.pageReady) return;
+        const referenceNode = getBilibiliTitleNode();
+        if (!referenceNode || referenceNode.contains(this.container)) return;
 
-        if (referenceNode && !referenceNode.contains(this.container)) {
-            if (!this.container) {
-                this.container = document.createElement("span");
-                this.container.id = id;
-                this.container.style.display = "relative";
-
-                this.root = createRoot(this.container);
-                this.ref = React.createRef();
-                this.root.render(
-                    <CategoryPillComponent
-                        ref={this.ref}
-                        vote={this.vote}
-                        showTextByDefault={true}
-                        showTooltipOnClick={false}
-                    />
-                );
-            }
-
-            if (this.lastState) {
-                waitFor(() => this.ref.current).then(() => {
-                    this.ref.current?.setState(this.lastState);
-                });
-            }
-
-            referenceNode.prepend(this.container);
-            referenceNode.style.display = "flex";
-            logUiLifecycle("categoryPill", "attach", {
-                action: "mount",
-                hasState: Boolean(this.lastState),
-                title: referenceNode,
-                containerConnected: this.container?.isConnected ?? false,
-            });
+        if (!this.container) {
+            this.container = document.createElement("span");
+            this.container.id = id;
+            this.root = createRoot(this.container);
+            this.root.render(
+                <CategoryPillComponent
+                    ref={(component) => {
+                        // React may commit after a route reset or a newer response.
+                        // Apply the current state, never a captured segment.
+                        (this.ref as React.MutableRefObject<CategoryPillComponent>).current = component;
+                        if (component && !this.closed) component.setState(this.lastState);
+                    }}
+                    vote={this.vote}
+                    showTextByDefault={true}
+                    showTooltipOnClick={false}
+                />
+            );
         }
+
+        this.titleNode = referenceNode;
+        referenceNode.prepend(this.container);
+        referenceNode.style.display = "flex";
+        logUiLifecycle("categoryPill", "attach", {
+            action: "mount",
+            hasState: Boolean(this.lastState.segment),
+            title: referenceNode,
+            containerConnected: this.container.isConnected,
+        });
     }
 
     close(): void {
-        this.root.unmount();
-        this.container.remove();
+        if (this.closed) return;
+        this.closed = true;
+        this.mutationObserver?.disconnect();
+        this.root?.unmount();
+        this.container?.remove();
     }
 
     resetSegment(): void {
+        if (this.closed) return;
         const newState = {
             segment: null,
             show: false,
@@ -135,6 +125,7 @@ export class CategoryPill {
     }
 
     async setSegment(segment: SponsorTime): Promise<void> {
+        if (this.closed) return;
         logUiLifecycle("categoryPill", "state", {
             action: "setSegment",
             UUID: segment?.UUID,
@@ -144,7 +135,7 @@ export class CategoryPill {
             containerConnected: this.container?.isConnected ?? false,
         });
 
-        if (this.ref.current?.state?.segment !== segment) {
+        if (this.lastState.segment !== segment) {
             const newState = {
                 segment,
                 show: true,
@@ -164,21 +155,11 @@ export class CategoryPill {
                 action: "reattachNeeded",
                 UUID: segment?.UUID,
             });
-            void this.attachToPageInternal();
+            this.attachToPageInternal();
         }
-        this.isSegmentSet = true;
     }
 }
 
 function getBilibiliTitleNode(): HTMLElement {
     return document.querySelector(".video-info-container h1") as HTMLElement;
-}
-
-async function waitForVisibleTitleNode(): Promise<HTMLElement> {
-    return await waitFor(
-        () => getBilibiliTitleNode(),
-        20000,
-        100,
-        (node) => Boolean(node && isVisible(node, true))
-    );
 }
