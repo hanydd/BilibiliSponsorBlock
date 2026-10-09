@@ -1,3 +1,4 @@
+import { expectNoticeContentColumn } from './support/noticeLayout';
 import { expect, test } from './fixtures/extension';
 import { writeSyncStorage } from './support/extensionStorage';
 import { openRealBilibiliPage } from './support/realBilibili';
@@ -40,8 +41,10 @@ test('@real notice card vertical spacing', async ({ extensionContext, extensionP
             });
             await expect(page.locator('.sponsorSkipStack')).toHaveClass(/sponsorSkipStackCompact/);
         }
+        await page.evaluate(() => window.scrollTo(0, 0));
         await expect.poll(() => card.evaluate(el => el.getAnimations({ subtree: true })
             .filter(animation => animation.playState === 'running').length)).toBe(0);
+        await expectNoticeContentColumn(card);
         const spacing = await card.evaluate(el => {
             const rect = (selector: string) => el.querySelector(selector).getBoundingClientRect();
             const center = (selector: string) => { const r = rect(selector); return r.y + r.height / 2; };
@@ -55,9 +58,9 @@ test('@real notice card vertical spacing', async ({ extensionContext, extensionP
             };
         });
         // Check the actual rendered controls, including Bilibili's CSS and SVG baselines.
-        expect(Math.abs(spacing.titleToVote - spacing.voteToEdit)).toBeLessThanOrEqual(3);
+        expect(Math.abs(spacing.titleToVote - spacing.voteToEdit)).toBeLessThanOrEqual(0.5);
         expect(spacing.titleToVote).toBeGreaterThan(20);
-        expect(spacing.titleToVote).toBeLessThanOrEqual(31);
+        expect(spacing.titleToVote).toBeCloseTo(32, 1);
         expect(spacing.bottomPadding).toBeGreaterThanOrEqual(8);
         for (const button of await card.locator('[id^="sponsorSkipNoticeEditSegmentsRow"] button').all()) {
             expect(await button.evaluate(el => {
@@ -69,4 +72,13 @@ test('@real notice card vertical spacing', async ({ extensionContext, extensionP
         await page.screenshot({ path: testInfo.outputPath(`${size}-bilibili-page.png`) });
         await card.locator('.sponsorSkipNoticeTableContainer').screenshot({ path: testInfo.outputPath(`${size}-card.png`) });
     }
+    await extensionContext.route('https://www.bsbsb.top/api/voteOnSponsorTime*', route => route.fulfill({
+        status: 400, contentType: 'text/plain',
+        body: 'Layout test: the voting service is temporarily unavailable. Please retry after checking your connection. Reference: ' + 'a'.repeat(100),
+    }));
+    await card.locator('.voteButton').first().click();
+    await expect(card.locator('tr.sponsorTimesInfoMessage')).toBeVisible();
+    await expect(card.locator('tr.sponsorTimesInfoMessage')).toContainText('a'.repeat(100));
+    await expectNoticeContentColumn(card);
+    await card.locator('.sponsorSkipNoticeTableContainer').screenshot({ path: testInfo.outputPath('compact-error.png') });
 });

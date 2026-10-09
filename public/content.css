@@ -1143,6 +1143,10 @@ input::-webkit-inner-spin-button {
 .sponsorSkipStackCard .sponsorSkipStackDetail::-webkit-scrollbar { display: none; }
 .sponsorSkipStackCompact { right: 8px; width: calc(100% - 16px); max-width: 360px; }
 .sponsorSkipStack .sponsorSkipStackCard {
+    --sb-content-inset: 45px;
+    --sb-logo-left: 13px;
+    --sb-logo-size: 18px;
+    --sb-detail-top: 0px;
     position: absolute;
     bottom: 0;
     right: 0;
@@ -1163,23 +1167,33 @@ input::-webkit-inner-spin-button {
 }
 .sponsorSkipStackCard .sponsorSkipNoticeTableContainer { overflow: hidden; }
 .sponsorSkipStackCard .sponsorSkipStackHeader {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 4px;
     box-sizing: border-box;
     height: 40px;
-    padding: 4px 8px;
+    padding: 4px 8px 4px var(--sb-content-inset);
     /* The stack animates positions; an independently resizing header breaks anchoring. */
     transition: none;
 }
 .sponsorSkipStackCard .sponsorSkipStackHeader .sponsorSkipMessage {
     flex: 0 1 auto;
+    margin-left: 0;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.sponsorSkipStackCard .sponsorSkipLogo { flex-shrink: 0; }
+.sponsorSkipStackCard .sponsorSkipStackHeader .sponsorSkipLogo {
+    position: absolute;
+    left: var(--sb-logo-left);
+    top: 50%;
+    transform: translateY(-50%);
+    width: var(--sb-logo-size);
+    height: var(--sb-logo-size);
+    margin: 0;
+}
 .sponsorSkipStackCard .sponsorSkipNoticeUnskipSection { flex-shrink: 0; margin-right: auto; }
 .sponsorSkipStackCard .sponsorSkipNoticeTimeLeft {
     /* Include the unit, border and padding; keep this space when showing pause/stop. */
@@ -1213,25 +1227,39 @@ input::-webkit-inner-spin-button {
     box-sizing: border-box;
     width: 100%;
     max-width: none;
-    padding: 0 10px 10px;
+    padding: var(--sb-detail-top) 10px 10px calc(var(--sb-content-inset) - 5px);
     margin: 0;
     transition: none;
 }
-.sponsorSkipStackDetailInner > tbody { display: flex; flex-direction: column; gap: 5px; }
-.sponsorSkipStackDetailInner > tbody > tr { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
-.sponsorSkipStackDetailInner > tbody > [id^="sponsorSkipNoticeSecondRow"] {
-    /* Keep the stack's reserved height stable when votes become feedback text. */
-    min-height: 25px;
-    align-items: flex-start;
+.sponsorSkipStackDetailInner > tbody { display: flex; flex-direction: column; gap: 8px; }
+.sponsorSkipStackDetailInner > tbody > tr {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 4px;
+    /* The same row height keeps icons, edit actions and feedback evenly spaced. */
+    min-height: 24px;
 }
 .sponsorSkipStackDetailInner > tbody > tr:empty { display: none; }
-.sponsorSkipStackDetailInner > tbody > tr > td { min-width: 0; }
+.sponsorSkipStackDetailInner > tbody > tr > td {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 8px;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+.sponsorSkipStackDetailInner .sponsorSkipNoticeButton { margin-left: 0; max-width: 100%; }
+.sponsorSkipStackDetailInner .sponsorTimesVoteButtonMessage,
+.sponsorSkipStackDetailInner .sponsorTimesInfoMessage > td { padding-left: 5px; overflow-wrap: anywhere; }
+.sponsorSkipStackDetailInner .sponsorTimeEditSelector { margin: 0 5px; max-width: calc(100% - 10px); }
 .sponsorSkipStackCard .sponsorSkipNoticeRightSection { position: static; margin: 0 0 0 auto; float: none; }
 .sponsorSkipStackCard .sponsorTimesVoteButtonsContainer {
     display: flex;
     align-items: center;
     float: none;
-    padding: 0 5px;
+    padding: 0;
 }
 .sponsorSkipStackCard button.voteButton {
     display: inline-flex;
@@ -1253,9 +1281,17 @@ input::-webkit-inner-spin-button {
 .sponsorSkipStackFolded > * { pointer-events: none; }
 .sponsorSkipStack .sponsorSkipStackExiting { opacity: 0; pointer-events: none; }
 .sponsorSkipStackArriving .sponsorSkipNoticeTableContainer { animation: sb-stack-arrive var(--sb-move-duration) ease-out; }
-.sponsorSkipStackCompact .sponsorSkipStackCard { height: 34px; }
-.sponsorSkipStackCompact .sponsorSkipStackHeader { height: 34px; padding: 2px 5px; gap: 2px; }
-.sponsorSkipStackCompact .sponsorSkipStackDetailInner { padding: 0 7px 8px; }
+.sponsorSkipStackCompact .sponsorSkipStackCard {
+    height: 34px;
+    --sb-content-inset: 29px;
+    --sb-logo-left: 7px;
+    --sb-logo-size: 14px;
+    /* Preserve the 32px row-center spacing with the shorter header. */
+    --sb-detail-top: 3px;
+}
+.sponsorSkipStackCompact .sponsorSkipStackHeader { height: 34px; padding: 2px 5px 2px var(--sb-content-inset); gap: 2px; }
+.sponsorSkipStackCompact .sponsorSkipStackDetailInner { padding-right: 7px; padding-bottom: 8px; }
+.sponsorSkipStackCompact .sponsorSkipStackDetailInner .sponsorSkipNoticeButton { padding-left: 5px; }
 .sponsorSkipStackCompact .sponsorSkipNoticeTimeLeft { flex-basis: 40px; }
 @keyframes sb-stack-arrive {
     from { opacity: 0; transform: translateY(-40px); }
