@@ -23,6 +23,7 @@ import {
     DynamicSponsorRegexRule,
     sanitizeSponsorRegexFlags,
     splitLegacySponsorPattern,
+    splitTopLevelAlternatives,
     stripEmptySponsorAlternatives,
     todaySponsorRuleDate,
 } from "./utils/sponsorRegex";
@@ -289,27 +290,17 @@ function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<st
         delete config["dynamicSponsorRegexPattern"];
     }
 
-    // 旧版只有一个正则字符串：曾经随扩展发布过的默认值直接丢掉交给内置词条，
-    // 其余内容摘掉能与内置词条对上的部分，剩下的才是用户自己的内容，保留为一条自定义词条。
+    // 旧版只有一个正则字符串：曾经随扩展发布过的默认值直接丢掉交给内置词条
     const legacyRegexPattern = config["dynamicAndCommentSponsorRegexPattern"];
     if (legacyRegexPattern !== undefined) {
         const legacy = splitLegacySponsorPattern(legacyRegexPattern);
 
-        const isShippedDefault = legacyDefaultSponsorRegexPatterns.some(
-            (pattern) => splitLegacySponsorPattern(pattern).source === legacy.source
-        );
+        const known = getKnownSponsorAlternatives();
+        const userAlternatives = splitTopLevelAlternatives(legacy.source)
+            .map((alternative) => alternative.trim())
+            .filter((alternative) => alternative !== "" && !known.has(alternative));
 
-        // 摘掉内置词条能对上的部分，连同相邻的一个分隔符，避免留下会匹配任何内容的空分支
-        let leftover = isShippedDefault ? "" : legacy.source;
-        if (leftover) {
-            for (const rule of shippedSponsorRegexConfig.rules) {
-                leftover = leftover
-                    .replace(`${rule.pattern}|`, "")
-                    .replace(`|${rule.pattern}`, "")
-                    .replace(rule.pattern, "");
-            }
-            leftover = stripEmptySponsorAlternatives(leftover);
-        }
+        const leftover = stripEmptySponsorAlternatives(userAlternatives.join("|"));
 
         delete config["dynamicAndCommentSponsorRegexPattern"];
 
@@ -361,8 +352,7 @@ function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<st
 }
 
 /**
- * 历史上随扩展发布过的默认正则。旧版把它们和用户自己写的正则一样对待，
- * 升级时会原样留成一条自定义词条，所以这里识别出来直接丢掉。
+ * 历史上随扩展发布过的默认正则
  */
 const legacyDefaultSponsorRegexPatterns = [
     // 0.7.4
@@ -372,6 +362,27 @@ const legacyDefaultSponsorRegexPatterns = [
     // 0.11.1
     "/(618|11(?!1).11|双(?:11|十一|12|十二)|女神节)|恰(?:个|了|到)?饭|金主|(?:评论区)?(?:领(?:取|张|到)?|抢|有|送|得)(?:我的)?(?:神|优惠|红包|折扣|福利|无门槛|隐藏|秘密|专属|(?:超)?大(?:额)?|额外)*(?:券|卷|劵|q(?:uan)?)?(?:后|到手|价|使用|下单)?|(?:优惠|(?:券|卷|劵)后|到手|促销|活动|神)价|(?:淘宝|tb|京东|jd|狗东|拼多多|pdd|天猫|tmall)搜索|(?:随(便|时)|任意)(?:退|退货|换货)|(?:免费|无偿)(?:换(?:个)?新|替换|更换)(?:商品|物品)?|(?:点(?:击)?|戳|来|我)评论区(?:置顶)?|(?:立即|蓝链|链接|🔗)(?:购买|下单)|(?:vx|wx|微信|软件)扫码(?:领)?(?:优惠|红包|券)?|(?:我的)?同款(?:[的]?(?:推荐|好物|商品|入手|购买|拥有|分享|安利)?)|满\\d+|大促|促销|折扣|特价|秒杀|广告|推广|低至|热卖|抢购|新品|豪礼|赠品/gi",
 ];
+
+let knownSponsorAlternatives: Set<string> | null = null;
+
+function getKnownSponsorAlternatives(): Set<string> {
+    if (knownSponsorAlternatives) return knownSponsorAlternatives;
+
+    const alternatives = new Set<string>();
+    const add = (pattern: string) => {
+        for (const alternative of splitTopLevelAlternatives(pattern)) {
+            const trimmed = alternative.trim();
+            if (trimmed) alternatives.add(trimmed);
+        }
+    };
+
+    for (const pattern of legacyDefaultSponsorRegexPatterns) add(splitLegacySponsorPattern(pattern).source);
+    // 默认关闭的词条不算已知内容，否则用户的分支会被丢掉而屏蔽也随之失效
+    for (const rule of shippedSponsorRegexConfig.rules) if (rule.enabled) add(rule.pattern);
+
+    knownSponsorAlternatives = alternatives;
+    return alternatives;
+}
 
 const syncDefaults = {
     userID: null,

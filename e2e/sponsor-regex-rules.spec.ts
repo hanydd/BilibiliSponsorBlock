@@ -19,6 +19,13 @@ async function openBehaviorOptions(page: Page, extensionId: string, serviceWorke
     await expect(page.locator("#DynamicSponsorRegex tbody tr").first()).toBeVisible();
 }
 
+/**
+ * 0.11.1 随包发布的默认值。它和现在的内置词条只有细微差别（例如内置 misc 词条多了「密令」、
+ * 优惠券词条更严格），所以整条 pattern 做子串匹配对不上，必须按顶层分支比对。
+ */
+const shippedLegacyDefaultRegex =
+    "/(618|11(?!1).11|双(?:11|十一|12|十二)|女神节)|恰(?:个|了|到)?饭|金主|(?:评论区)?(?:领(?:取|张|到)?|抢|有|送|得)(?:我的)?(?:神|优惠|红包|折扣|福利|无门槛|隐藏|秘密|专属|(?:超)?大(?:额)?|额外)*(?:券|卷|劵|q(?:uan)?)?(?:后|到手|价|使用|下单)?|(?:优惠|(?:券|卷|劵)后|到手|促销|活动|神)价|(?:淘宝|tb|京东|jd|狗东|拼多多|pdd|天猫|tmall)搜索|(?:随(便|时)|任意)(?:退|退货|换货)|(?:免费|无偿)(?:换(?:个)?新|替换|更换)(?:商品|物品)?|(?:点(?:击)?|戳|来|我)评论区(?:置顶)?|(?:立即|蓝链|链接|🔗)(?:购买|下单)|(?:vx|wx|微信|软件)扫码(?:领)?(?:优惠|红包|券)?|(?:我的)?同款(?:[的]?(?:推荐|好物|商品|入手|购买|拥有|分享|安利)?)|满\\d+|大促|促销|折扣|特价|秒杀|广告|推广|低至|热卖|抢购|新品|豪礼|赠品/gi";
+
 test("renders one toggleable row per built-in sponsor regex entry", async ({
     extensionId,
     extensionPage,
@@ -220,8 +227,7 @@ test("drops a default regex shipped by an older release instead of keeping it as
     // 0.11.1 随包发布的默认值：剥离只会留下旧词条的大半内容，旧版本会把它整条留成自定义词条
     await writeSyncStorage(extensionServiceWorker, {
         dynamicAndCommentSponsorBlocker: true,
-        dynamicAndCommentSponsorRegexPattern:
-            "/(618|11(?!1).11|双(?:11|十一|12|十二)|女神节)|恰(?:个|了|到)?饭|金主|(?:评论区)?(?:领(?:取|张|到)?|抢|有|送|得)(?:我的)?(?:神|优惠|红包|折扣|福利|无门槛|隐藏|秘密|专属|(?:超)?大(?:额)?|额外)*(?:券|卷|劵|q(?:uan)?)?(?:后|到手|价|使用|下单)?|(?:优惠|(?:券|卷|劵)后|到手|促销|活动|神)价|(?:淘宝|tb|京东|jd|狗东|拼多多|pdd|天猫|tmall)搜索|(?:随(便|时)|任意)(?:退|退货|换货)|(?:免费|无偿)(?:换(?:个)?新|替换|更换)(?:商品|物品)?|(?:点(?:击)?|戳|来|我)评论区(?:置顶)?|(?:立即|蓝链|链接|🔗)(?:购买|下单)|(?:vx|wx|微信|软件)扫码(?:领)?(?:优惠|红包|券)?|(?:我的)?同款(?:[的]?(?:推荐|好物|商品|入手|购买|拥有|分享|安利)?)|满\\d+|大促|促销|折扣|特价|秒杀|广告|推广|低至|热卖|抢购|新品|豪礼|赠品/gi",
+        dynamicAndCommentSponsorRegexPattern: shippedLegacyDefaultRegex,
     });
 
     await extensionPage.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
@@ -234,6 +240,62 @@ test("drops a default regex shipped by an older release instead of keeping it as
     await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr")).toHaveCount(shippedRuleCount);
     // 没有自定义词条（自建词条的词条名是可编辑输入框）
     await expect(extensionPage.locator("[data-rule-name]")).toHaveCount(0);
+});
+
+test("recognises a narrowed shipped default instead of duplicating it as a custom entry", async ({
+    extensionId,
+    extensionPage,
+    extensionServiceWorker,
+}) => {
+    // 用户把 0.11.1 默认值里的「广告」删掉了。整条 pattern 匹配会因为这一个词的变化全部对不上，
+    // 于是内置词条的每个词都重复留在自定义词条里（misc 的满\d+/大促/促销/... 全都在）
+    const narrowed = shippedLegacyDefaultRegex.replace("|广告", "");
+    expect(narrowed).not.toBe(shippedLegacyDefaultRegex);
+
+    await writeSyncStorage(extensionServiceWorker, {
+        dynamicAndCommentSponsorBlocker: true,
+        dynamicAndCommentSponsorRegexPattern: narrowed,
+    });
+
+    await extensionPage.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
+    await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr").first()).toBeVisible();
+
+    // 收窄过的默认值仍然是默认内容：不生成自定义词条，交给内置词条继续跟随在线更新
+    expect(
+        await readSyncStorage<RegexRule[]>(extensionServiceWorker, "dynamicAndCommentSponsorRegexUserRules")
+    ).toBeUndefined();
+    await expect(extensionPage.locator("[data-rule-name]")).toHaveCount(0);
+    await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr")).toHaveCount(shippedRuleCount);
+    await expect(extensionPage.locator("[data-rule-id='misc'] input[type='checkbox']")).toBeChecked();
+});
+
+test("keeps only the user's own terms when a shipped default is extended", async ({
+    extensionId,
+    extensionPage,
+    extensionServiceWorker,
+}) => {
+    // 默认值 + 用户自己加的词：只有加的词该留下，默认值那些分支不能被重复成自定义词条
+    await writeSyncStorage(extensionServiceWorker, {
+        dynamicAndCommentSponsorBlocker: true,
+        dynamicAndCommentSponsorRegexPattern: shippedLegacyDefaultRegex.replace(
+            /\/gi$/,
+            "|我的专属推广词/gi"
+        ),
+    });
+
+    await extensionPage.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
+    await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr").first()).toBeVisible();
+
+    const userRules = await readSyncStorage<RegexRule[]>(
+        extensionServiceWorker,
+        "dynamicAndCommentSponsorRegexUserRules"
+    );
+    expect(userRules).toHaveLength(1);
+    expect(userRules[0]).toMatchObject({ id: "legacyCustom", pattern: "我的专属推广词", enabled: true });
+    await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr")).toHaveCount(shippedRuleCount + 1);
+    await expect(extensionPage.locator("[data-rule-id='legacyCustom'] [data-rule-pattern]")).toHaveValue(
+        "我的专属推广词"
+    );
 });
 
 test("migrates a legacy regex with extra terms into one custom entry", async ({

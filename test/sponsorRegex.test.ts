@@ -8,6 +8,7 @@ import {
     resolveSponsorRuleName,
     sanitizeSponsorRegexFlags,
     splitLegacySponsorPattern,
+    splitTopLevelAlternatives,
     stripEmptySponsorAlternatives,
     todaySponsorRuleDate,
 } from "../src/utils/sponsorRegex";
@@ -120,6 +121,34 @@ describe("stripEmptySponsorAlternatives", () => {
         expect(cleaned).toBe("(我的广告词)");
         expect(compileSponsorPattern(cleaned, "gi")?.test("今天天气不错")).toBe(false);
         expect(compileSponsorPattern(cleaned, "gi")?.test("这是 我的广告词")).toBe(true);
+    });
+});
+
+describe("splitTopLevelAlternatives", () => {
+    test("按顶层 | 拆分", () => {
+        expect(splitTopLevelAlternatives("a|b|c")).toEqual(["a", "b", "c"]);
+        expect(splitTopLevelAlternatives("a")).toEqual(["a"]);
+        expect(splitTopLevelAlternatives("")).toEqual([""]);
+    });
+
+    test("分组里的 | 不是分隔符", () => {
+        expect(splitTopLevelAlternatives("(?:a|b)|c")).toEqual(["(?:a|b)", "c"]);
+        expect(splitTopLevelAlternatives("(618|11(?!1).11|女神节)|恰(?:个|了|到)?饭")).toEqual([
+            "(618|11(?!1).11|女神节)",
+            "恰(?:个|了|到)?饭",
+        ]);
+    });
+
+    test("字符类与转义里的 | 不是分隔符", () => {
+        expect(splitTopLevelAlternatives("a[|b]|c")).toEqual(["a[|b]", "c"]);
+        expect(splitTopLevelAlternatives("a\\|b|c")).toEqual(["a\\|b", "c"]);
+        expect(splitTopLevelAlternatives("[a\\]|b]|c")).toEqual(["[a\\]|b]", "c"]);
+    });
+
+    test("拆出来的分支拼回去仍是同一个正则", () => {
+        const pattern = "满\\d+|(?:淘宝|tb)搜索|恰(?:个|了|到)?饭|a[|]b";
+
+        expect(splitTopLevelAlternatives(pattern).join("|")).toBe(pattern);
     });
 });
 

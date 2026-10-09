@@ -1,9 +1,3 @@
-/**
- * 动态/评论柔性推广屏蔽所使用的匹配规则
- *
- * 每条规则都可以单独启用，正则 flags（g/i/m/s/u）通过独立的“匹配模式”设置统一配置
- */
-
 export interface DynamicSponsorRegexRule {
     /** 稳定标识；内置词条使用固定 id，自定义词条使用 "custom_*" id */
     id: string;
@@ -84,12 +78,59 @@ export function todaySponsorRuleDate(): SponsorRegexUpdateDate {
 }
 
 /**
- * 拆分旧版本保存的 `/模式/flags` 形式，供配置迁移使用。
- * flags 为 null 表示旧值没有斜杠形式（当时等同于不区分大小写、只取首个命中）。
+ * 拆分旧版本保存的 `/模式/flags` 形式，供配置迁移使用
  */
 export function splitLegacySponsorPattern(value: string): { source: string; flags: string | null } {
     const literal = value.match(/^\/(.*)\/([gimsuy]*)$/);
     return literal ? { source: literal[1], flags: literal[2] } : { source: value, flags: null };
+}
+
+/**
+ * 按顶层 `|` 拆分正则
+ */
+export function splitTopLevelAlternatives(source: string): string[] {
+    const alternatives: string[] = [];
+    let current = "";
+    let depth = 0;
+    let inCharacterClass = false;
+
+    for (let index = 0; index < source.length; index++) {
+        const char = source[index];
+
+        if (char === "\\") {
+            current += char + (source[index + 1] ?? "");
+            index++;
+            continue;
+        }
+
+        if (inCharacterClass) {
+            if (char === "]") inCharacterClass = false;
+            current += char;
+            continue;
+        }
+
+        if (char === "[") {
+            inCharacterClass = true;
+            current += char;
+            continue;
+        }
+
+        if (char === "(") {
+            depth++;
+        } else if (char === ")") {
+            depth = Math.max(0, depth - 1);
+        } else if (char === "|" && depth === 0) {
+            alternatives.push(current);
+            current = "";
+            continue;
+        }
+
+        current += char;
+    }
+
+    alternatives.push(current);
+
+    return alternatives;
 }
 
 export function stripEmptySponsorAlternatives(pattern: string): string {
