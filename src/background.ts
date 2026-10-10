@@ -1,5 +1,6 @@
 import "content-scripts-register-polyfill";
 import Config from "./config";
+import { checkSponsorRegexConfigUpdate } from "./config/sponsorRegexOTA";
 import { callAPI, serverRouter } from "./requests/background-request-proxy";
 import { clearAllCacheBackground, segmentsCache, videoLabelCache } from "./requests/background/backgroundCache";
 import { getSegmentsBackground } from "./requests/background/segmentRequest";
@@ -18,6 +19,11 @@ const contentScriptRegistrations = {};
 
 setupBackgroundRequestProxy();
 setupTabUpdates(Config);
+
+// 服务脚本每次唤醒时检查柔性推广屏蔽词条的在线更新（内部有 24 小时节流，失败静默）
+void Config.ready
+    .then(() => checkSponsorRegexConfigUpdate())
+    .catch((error) => console.warn("[BSB] Sponsor regex config check failed", error));
 
 if (chrome.runtime.getManifest().manifest_version === 3) {
     // Dynamic MAIN-world injection supports Chromium 102+, unlike the static manifest entry (111+).

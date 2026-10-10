@@ -243,12 +243,15 @@ test('settings tabs cover every classic behavior setting and keep native control
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'fullVideoLabelsOnThumbnailsMode')).toBe(1);
     await community.locator('label[for="dynamicAndCommentSponsorBlocker"]').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'dynamicAndCommentSponsorBlocker')).toBe(true);
-    await community.locator('#dynamicAndCommentSponsorRegexPattern').fill('migration-test');
-    await community.locator('[data-sync="dynamicAndCommentSponsorRegexPattern"] .text-change-set').click();
-    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'dynamicAndCommentSponsorRegexPattern')).toBe('migration-test');
+    // The single regex text box became a rule list; toggling one entry proves the moved controls still work.
+    await community.locator("[data-rule-id='delivery'] input[type='checkbox']").uncheck();
+    await expect.poll(async () => {
+        const userRules = (await readSyncStorage<Array<{ id: string; enabled: boolean }>>(extensionServiceWorker, 'dynamicAndCommentSponsorRegexUserRules')) ?? [];
+        return userRules.find(rule => rule.id === 'delivery')?.enabled;
+    }).toBe(false);
     await toggleRuleEngine(page);
     await expect(page.locator('#behavior #audioNotificationOnSkip')).toBeChecked();
-    await expect(page.locator('#behavior #dynamicAndCommentSponsorRegexPattern')).toHaveValue('migration-test');
+    await expect(page.locator("#behavior [data-rule-id='delivery'] input[type='checkbox']")).not.toBeChecked();
     await expect(page.locator('#behavior #fullVideoLabelsOnThumbnailsMode')).toHaveValue('1');
     await toggleRuleEngine(page);
     await page.reload();

@@ -1525,7 +1525,117 @@
         "message": "封鎖匹配正則: "
     },
     "dynamicAndCommentSponsorRegexPatternDescription": {
-        "message": "預設正規表示式偏保守，建議根據您關注的UP主動態內容自行修改(如果您會編寫正規表示式)\n例如您關注的UP主們經常發某一個產品的廣告，您可以將該產品的名稱添加到正規表示式中\n會不定期更新預設正則表達式以提升屏蔽效果。如果您已修改正則表達式, 系統將不會自動更新, 以避免覆蓋您的自訂設定, 請手動合併更新內容"
+        "message": "支援線上 OTA 更新（每 24 小時自動檢查一次，也可手動檢查）；\n改過的詞條會存下你的版本並優先使用，重設後恢復跟隨線上設定"
+    },
+    "dynamicSponsorRegexConfigSourceBuiltin": {
+        "message": "預設詞條：擴充內建（$DATE$）",
+        "placeholders": {
+            "date": {
+                "content": "$1"
+            }
+        }
+    },
+    "dynamicSponsorRegexConfigSourceRemote": {
+        "message": "預設詞條：線上設定（$DATE$ 更新）",
+        "placeholders": {
+            "date": {
+                "content": "$1"
+            }
+        }
+    },
+    "dynamicSponsorRegexConfigCheck": {
+        "message": "檢查正則更新"
+    },
+    "dynamicSponsorRegexConfigChecking": {
+        "message": "檢查中…"
+    },
+    "dynamicSponsorRegexConfigUpdated": {
+        "message": "已套用線上更新（$COUNT$ 個預設詞條）",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "dynamicSponsorRegexConfigUpToDate": {
+        "message": "正則詞條已是最新"
+    },
+    "dynamicSponsorRegexConfigFailed": {
+        "message": "正則詞條更新失敗，請檢查網路後重試"
+    },
+    "dynamicAndCommentSponsorRegexFlags": {
+        "message": "匹配模式: "
+    },
+    "dynamicAndCommentSponsorRegexFlagsDescription": {
+        "message": "正規表示式 flags，作用於所有詞條。g 表示收集全部命中(關閉時只取第一個命中)，i 忽略大小寫，m 多行，s 點號匹配換行，u Unicode 模式"
+    },
+    "dynamicSponsorRegexFlag_g": {
+        "message": "g 全部命中"
+    },
+    "dynamicSponsorRegexFlag_i": {
+        "message": "i 忽略大小寫"
+    },
+    "dynamicSponsorRegexFlag_m": {
+        "message": "m 多行"
+    },
+    "dynamicSponsorRegexFlag_s": {
+        "message": "s 點號跨行"
+    },
+    "dynamicSponsorRegexFlag_u": {
+        "message": "u Unicode"
+    },
+    "dynamicSponsorRuleName_legacyCustom": {
+        "message": "自訂正規表示式"
+    },
+    "dynamicSponsorRegexRulePatternPlaceholder": {
+        "message": "例如 淘宝|京东"
+    },
+    "dynamicSponsorRegexRuleEnabled": {
+        "message": "啟用"
+    },
+    "dynamicSponsorRegexRuleName": {
+        "message": "詞條"
+    },
+    "dynamicSponsorRegexRulePattern": {
+        "message": "匹配內容"
+    },
+    "dynamicSponsorRegexRuleUpdateDate": {
+        "message": "更新日期"
+    },
+    "dynamicSponsorRegexRuleActions": {
+        "message": "操作"
+    },
+    "dynamicSponsorRegexRulePatternInvalid": {
+        "message": "正規表示式無效，該詞條會被跳過"
+    },
+    "dynamicSponsorRegexRuleDelete": {
+        "message": "刪除"
+    },
+    "dynamicSponsorRegexRuleAdd": {
+        "message": "新增自訂詞條"
+    },
+    "dynamicSponsorRegexRuleResetAll": {
+        "message": "恢復預設詞條"
+    },
+    "dynamicSponsorRegexRuleEmpty": {
+        "message": "目前沒有詞條，點擊下方按鈕新增"
+    },
+    "dynamicSponsorRegexRuleNamePlaceholder": {
+        "message": "詞條名稱"
+    },
+    "dynamicSponsorRegexRuleEnabledCount": {
+        "message": "已啟用 $COUNT$ 個詞條",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
+    },
+    "dynamicSponsorRegexRuleConfirmDelete": {
+        "message": "確定刪除該詞條嗎？"
+    },
+    "dynamicSponsorRegexRuleConfirmReset": {
+        "message": "確定恢復預設嗎？內建詞條的啟用狀態會全部還原，自訂詞條會被刪除"
     },
     "category_dynamicSponsor_sponsor": {
         "message": "商品連結"
@@ -1640,7 +1750,7 @@
         "message": "需匹配到多少個關鍵字才隱藏:"
     },
     "dynamicAndCommentSponsorRegexPatternKeywordNumberDescription": {
-        "message": "需累積匹配到指定數量的關鍵字後才會執行隱藏操作，否則僅添加標籤\n預設值為1, 即匹配到任意關鍵字立即隱藏"
+        "message": "命中的關鍵詞數量達到該值時才執行隱藏，否則僅新增標籤\n預設為1，即匹配到任意關鍵詞就隱藏"
     },
     "lifecycleDebug": {
         "message": "將除錯日誌輸出到控制台"
@@ -2649,5 +2759,8 @@
     },
     "rules_declineWelcome": {
         "message": "使用經典模式"
+    },
+    "dynamicSponsorRegexRuleReset": {
+        "message": "重設"
     }
 }

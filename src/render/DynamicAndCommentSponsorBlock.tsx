@@ -3,12 +3,12 @@ import { waitFor } from "../utils/";
 import { DynamicSponsorOption, DynamicSponsorSelection } from "../types";
 import { addCleanupListener } from "../utils/cleanup";
 import { insertSBIconDefinition } from "../thumbnail-utils/thumbnails";
+import { matchSponsorRules } from "../utils/sponsorRegex";
+import { getEffectiveSponsorRegexRules } from "../config/sponsorRegexOTA";
 
 export { DynamicListener, CommentListener };
 
 async function DynamicListener() {
-    const pattern = regexFromString(Config.config.dynamicAndCommentSponsorRegexPattern);
-
     const observer = new MutationObserver(async (mutationList) => {
         for (const mutation of mutationList) {
             const element = mutation.addedNodes[0] as HTMLElement;
@@ -16,11 +16,17 @@ async function DynamicListener() {
 
             let category = isSponsor(element);
             const action = getCategorySelection(category)?.option;
-            let dynamicSponsorMatch = [];
+            let dynamicSponsorMatch: string[] = [];
+            let meetsKeywordThreshold = true;
             if (category === "dynamicSponsor_suspicion_sponsor") {
-                const dynamicSponsorContext = isDynamicSponsorSuspicionSponsor(element);
-                //去除一个字的匹配降低误判率
-                dynamicSponsorMatch = Array.from(new Set(dynamicSponsorContext.match(pattern) || [])).filter(Boolean).filter((match) => match.length > 1);
+                const result = matchSponsorRules(
+                    isDynamicSponsorSuspicionSponsor(element),
+                    getEffectiveSponsorRegexRules(),
+                    Config.config.dynamicAndCommentSponsorRegexFlags,
+                    Config.config.dynamicAndCommentSponsorRegexPatternKeywordNumber
+                );
+                dynamicSponsorMatch = result.matches;
+                meetsKeywordThreshold = result.matched;
                 category = dynamicSponsorMatch.length > 0 ? "dynamicSponsor_suspicion_sponsor" : null;
             }
             if (category === null || action === DynamicSponsorOption.Disabled) continue;
@@ -36,7 +42,7 @@ async function DynamicListener() {
             ) {
                 labelSponsorStyle("dynamicSponsorLabel", element.querySelector('.bili-dyn-title__text'), category, debugMode, dynamicSponsorMatch);
                 if (action !== DynamicSponsorOption.Hide) continue;
-                if (category === "dynamicSponsor_suspicion_sponsor" ? dynamicSponsorMatch.length < Config.config.dynamicAndCommentSponsorRegexPatternKeywordNumber : false) continue;
+                if (!meetsKeywordThreshold) continue;
 
                 const bodyElement = element.querySelector('.bili-dyn-content') as HTMLElement;
                 hideSponsorContent(bodyElement, element.querySelectorAll('.bili-dyn-item__action')[2] as HTMLElement);
@@ -373,18 +379,6 @@ function getButton() {
     toggleButton.id = 'showDynamicSponsor';
     toggleButton.className = 'bili-dyn-action';
     return toggleButton;
-}
-
-function regexFromString(string: string) {
-    const match = string.match(/^\/(.*)\/([gimsuy]*)$/);
-
-    if (match) {
-        const pattern = match[1];
-        const flags = match[2];
-        return new RegExp(pattern, flags);
-    }
-
-    return new RegExp(string);
 }
 
 const expandedReplyThreads = new WeakSet<HTMLElement>();

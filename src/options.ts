@@ -19,6 +19,7 @@ import KeybindComponent from "./components/options/KeybindComponent";
 import { StorageChangesObject } from "./config/config";
 import { showDonationLink } from "./config/configUtils";
 import { CategoryChooser, DynamicSponsorChooser } from "./render/CategoryChooser";
+import DynamicSponsorRegexManager from "./render/DynamicSponsorRegexManager";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import UnsubmittedVideos from "./render/UnsubmittedVideos";
 import WhitelistManager from "./render/WhitelistManager";
@@ -39,6 +40,7 @@ const categoryChoosers: CategoryChooser[] = [];
 const unsubmittedVideos: UnsubmittedVideos[] = [];
 const whitelistManagers: WhitelistManager[] = [];
 const dependentOptionTimers = new WeakMap<Element, ReturnType<typeof setTimeout>>();
+const dynamicSponsorRegexManagers: DynamicSponsorRegexManager[] = [];
 
 if (document.readyState === "complete") {
     init();
@@ -374,6 +376,9 @@ async function init() {
             case "react-WhitelistManagerComponent":
                 whitelistManagers.push(new WhitelistManager(optionsElements[i]));
                 break;
+            case "react-DynamicSponsorRegexManagerComponent":
+                dynamicSponsorRegexManagers.push(new DynamicSponsorRegexManager(optionsElements[i]));
+                break;
             case "cache-stats": {
                 setupCacheManagement(optionsElements[i] as HTMLElement);
                 break;
@@ -515,6 +520,12 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
         }
     }
 
+    if (changes.dynamicAndCommentSponsorRegexUserRules || changes.dynamicAndCommentSponsorRegexFlags) {
+        for (const manager of dynamicSponsorRegexManagers) {
+            manager.update();
+        }
+    }
+
     if (changes.serverAddress || changes.mirrorServerAddresses) {
         refreshServerStatus();
     }
@@ -528,6 +539,13 @@ function optionsLocalConfigUpdateListener(changes: StorageChangesObject) {
     if (changes.unsubmittedSegments) {
         for (const chooser of unsubmittedVideos) {
             chooser.update();
+        }
+    }
+
+    // 后台服务脚本可能在本页面打开期间应用了在线词条配置
+    if (changes.sponsorRegexRemoteConfig) {
+        for (const manager of dynamicSponsorRegexManagers) {
+            manager.update();
         }
     }
 }
