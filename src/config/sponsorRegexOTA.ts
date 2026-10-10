@@ -4,23 +4,19 @@ import Config from "../config";
 import { DynamicSponsorRegexRule, formatSponsorRuleDate } from "../utils/sponsorRegex";
 
 /**
- * 词条默认值放在仓库根目录的 config/sponsorRegex.json 里：随扩展发布的版本作为初始值，
- * 因此调整词条只需要推送该文件，不需要发新版本。
+ * 默认词条来自 config/sponsorRegex.json（随包发布，可 OTA 更新），只写本地；
+ * 用户改过的词条写同步存储，生效时按 id 优先。
  *
- * 默认词条只写本地（sponsorRegexRemoteConfig，不参与同步）；用户改过的词条写同步存储
- * （dynamicAndCommentSponsorRegexUserRules），生效时按 id 优先取用户版本。
- *
- * 每条词条自带 version：应用在线配置时逐条比较，只有远端 version 更高（或本地没有的新词条）
- * 才采用远端内容。因此在线配置**删除**词条时必须同时递增至少一条词条的 version，
- * 否则已应用过快照的客户端不会重写快照，被删掉的词条会继续生效。
+ * 逐条比较 version，只有远端更高才采用。因此在线配置删除词条时必须同时递增某条 version，
+ * 否则已应用过快照的客户端不会重写快照，被删的词条会继续生效。
  */
 
 export interface Rule {
     id: string;
+    /** en 是回退语言，必填；其它语言可选，缺失时回退到 en */
     locales: {
         en: string;
-        zh_CN: string;
-        zh_TW: string;
+        [locale: string]: string;
     };
     pattern: string;
     enabled: boolean;
@@ -72,16 +68,22 @@ function isUpdateAt(value: unknown): value is Rule["updateAt"] {
     );
 }
 
+function isRuleLocales(value: unknown): value is Rule["locales"] {
+    if (!isRecord(value)) return false;
+
+    const { en, ...rest } = value;
+    if (typeof en !== "string" || en.trim() === "") return false;
+
+    return Object.values(rest).every((name) => typeof name === "string" && name.trim() !== "");
+}
+
 function isRule(value: unknown): value is Rule {
     if (!isRecord(value)) return false;
     const rule = value as unknown as Rule;
     return (
         typeof rule.id === "string" &&
         /^[\w-]+$/.test(rule.id) &&
-        isRecord(rule.locales) &&
-        [rule.locales.en, rule.locales.zh_CN, rule.locales.zh_TW].every(
-            (name) => typeof name === "string" && name.trim() !== ""
-        ) &&
+        isRuleLocales(rule.locales) &&
         typeof rule.pattern === "string" &&
         rule.pattern.trim() !== "" &&
         rule.pattern.length <= MAX_PATTERN_LENGTH &&
@@ -118,10 +120,7 @@ async function fetchRulesConfig(url: string): Promise<RulesConfig> {
     }
 }
 
-/**
- * 按顺序尝试各个源。前面的源（CDN）可能缓存着旧内容，没有更新时继续看下一个源，
- * 避免一份陈旧但格式正确的响应挡住更新的镜像；全部源都没有更新才算已是最新。
- */
+/** 依次尝试各个源：前面的源（CDN）可能缓存旧内容，没有更新就继续看下一个 */
 async function applyRulesConfigFromSources(): Promise<SponsorRegexCheckResult> {
     const urls: string[] = CompileConfig.sponsorRegexConfigUrls ?? [];
 
@@ -131,8 +130,10 @@ async function applyRulesConfigFromSources(): Promise<SponsorRegexCheckResult> {
             const result = applyRulesConfig(await fetchRulesConfig(url));
             fetched = true;
             if (result.status === "updated") return result;
-        } catch {
-            // 单个源失败（离线、镜像不可用、内容非法）时继续尝试下一个
+        } catch (error) {
+            // 单个源失败（离线、镜像不可用、内容非法）时继续尝试下一个。
+            // 上层只返回 failed、从不 reject，不记录 URL 与原因则线上故障不可排查。
+            console.warn(`[BSB] Sponsor regex config source failed: ${url}`, error);
         }
     }
 

@@ -224,6 +224,15 @@ describe("matchSponsorRules", () => {
         expect(matchSponsorRules("全场秒杀 大折扣", rules, "i", 2).matched).toBe(false);
     });
 
+    test("重复全局匹配不残留 lastIndex", () => {
+        const rules = [rule("misc", "秒杀|折扣")];
+
+        // global 变体被缓存复用，连续多次匹配结果必须稳定
+        for (let i = 0; i < 3; i++) {
+            expect(matchSponsorRules("全场秒杀 大折扣", rules, "gi", 2).matches.sort()).toEqual(["折扣", "秒杀"]);
+        }
+    });
+
     test("无启用词条时不屏蔽", () => {
         expect(matchSponsorRules("全场秒杀", [rule("misc", "秒杀", false)], "gi").matched).toBe(false);
     });

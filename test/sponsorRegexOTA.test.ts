@@ -54,6 +54,15 @@ describe("isRulesConfig", () => {
         expect(isRulesConfig({ comment: "随便什么说明", rules: [{ ...rule("delivery", "美团外卖", false), note: "extra" }] })).toBe(true);
     });
 
+    test("locales 只要求 en，缺失的其它语言回退到 en", () => {
+        expect(isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: { en: "a" } }] })).toBe(true);
+        expect(isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: { en: "a", zh_CN: "a" } }] })).toBe(true);
+        // 额外语言同样接受
+        expect(
+            isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: { en: "a", ja: "デリバリー" } }] })
+        ).toBe(true);
+    });
+
     test("拒绝异常结构", () => {
         expect(isRulesConfig(null)).toBe(false);
         expect(isRulesConfig({})).toBe(false);
@@ -64,7 +73,10 @@ describe("isRulesConfig", () => {
         expect(isRulesConfig({ rules: [{ ...rule("a", "b"), enabled: "yes" }] })).toBe(false);
         expect(isRulesConfig({ rules: [{ ...rule("a", "b"), version: 0 }] })).toBe(false);
         expect(isRulesConfig({ rules: [{ ...rule("a", "b"), version: 1.5 }] })).toBe(false);
-        expect(isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: { en: "a", zh_CN: "a" } }] })).toBe(false);
+        expect(isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: {} }] })).toBe(false);
+        expect(
+            isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: { en: "a", zh_TW: "" } }] })
+        ).toBe(false);
         expect(
             isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: { en: "", zh_CN: "a", zh_TW: "a" } }] })
         ).toBe(false);

@@ -41,8 +41,8 @@ function getRuleName(rule: DynamicSponsorRegexRule): string {
 }
 
 /**
- * 写进同步列表的词条：默认词条里已有的元数据（locales、version）不重复存，生效时用默认值兜底。
- * 名称单独存一份，词条从在线配置里移除后仍能显示（代价是改过的词条不再跟随在线改名）。
+ * 默认词条已有的元数据（locales、version）不重复存，生效时兜底；名称单独存一份，
+ * 词条从在线配置移除后仍能显示（代价是不再跟随在线改名）。
  */
 function toSyncedUserRule(
     rule: DynamicSponsorRegexRule,
