@@ -19,6 +19,16 @@ import { getMigratedMirrorServerAddresses } from "./config/serverConfig";
 import { migrateSkipRulesRollout, SkipRulesRollout, SkipRulesNotice } from "./config/skipRulesRollout";
 import { migrateCategorySelections } from "./config/categoryConfig";
 import { HashedValue } from "./utils/hash";
+import {
+    DynamicSponsorRegexRule,
+    sanitizeSponsorRegexFlags,
+    splitLegacySponsorPattern,
+    splitTopLevelAlternatives,
+    stripEmptySponsorAlternatives,
+    todaySponsorRuleDate,
+} from "./utils/sponsorRegex";
+import type { SponsorRegexRemoteConfig } from "./config/sponsorRegexOTA";
+import * as shippedSponsorRegexConfig from "../config/sponsorRegex.json";
 
 export interface Permission {
     canSubmit: boolean;
@@ -115,7 +125,9 @@ interface SBConfig {
 
     dynamicAndCommentSponsorWhitelistedChannels: boolean;
     dynamicAndCommentSponsorBlocker: boolean;
-    dynamicAndCommentSponsorRegexPattern: string;
+    /** 用户改动过的词条（改过的内置词条 + 自建词条），生效时优先于默认词条 */
+    dynamicAndCommentSponsorRegexUserRules: DynamicSponsorRegexRule[];
+    dynamicAndCommentSponsorRegexFlags: string;
     dynamicAndCommentSponsorRegexPatternKeywordNumber: number;
     dynamicSponsorBlock: boolean;
     dynamicSponsorBlockerDebug: boolean;
@@ -199,6 +211,15 @@ interface SBStorage {
 
     // 未提交片段对应稿件的 CID 映射集合，用于跨上下文共享
     videoPageCidMap: Record<BVID, Record<string, CID>>;
+
+    // OTA 拉取到的柔性推广屏蔽词条配置；null 表示尚未成功应用过在线配置
+    sponsorRegexRemoteConfig: SponsorRegexRemoteConfig | null;
+
+    // 上次尝试检查 OTA 正则词条配置的时间戳
+    lastSponsorRegexConfigCheck: number;
+
+    // 上次检查是否失败；失败后用更短的间隔重试
+    lastSponsorRegexConfigCheckFailed: boolean;
 }
 
 class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
@@ -263,18 +284,39 @@ function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<st
         config["danmakuOffsetMatchingRegexPattern"] = syncDefaults.danmakuOffsetMatchingRegexPattern;
     }
 
-    // 更新默认动态贴片广告正则表达式 在0.8.1额外迁移变量
-    const oldDynamicSponsorRegexPattern = [
-        "(618|11(?!1).11|双(11|十一|12|十二))|恰(?:个|了|到)?饭|((领(?:取)?|抢|有)(?:神|优惠)?券|券后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品", // 0.7.4
-        "(618|11(?!1).11|双(11|十一|12|十二))|(恰|接)(?:个|了|到)?(饭|广)|((?:领(?:取|张)?|抢|有)(?:神|优惠)?(券|卷)|券后|卷后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品|同款", // 0.8.1
-        "/(618|11(?!1).11|双(?:11|十一|12|十二)|女神节)|恰(?:个|了|到)?饭|金主|(?:评论区)?(?:领(?:取|张|到)?|抢|有|送|得)(?:我的)?(?:神|优惠|红包|折扣|福利|无门槛|隐藏|秘密|专属|(?:超)?大(?:额)?|额外)*(?:券|卷|劵|q(?:uan)?)?(?:后|到手|价|使用|下单)?|(?:优惠|(?:券|卷|劵)后|到手|促销|活动|神)价|(?:淘宝|tb|京东|jd|狗东|拼多多|pdd|天猫|tmall)搜索|(?:随(便|时)|任意)(?:退|退货|换货)|(?:免费|无偿)(?:换(?:个)?新|替换|更换)(?:商品|物品)?|(?:点(?:击)?|戳|来|我)评论区(?:置顶)?|(?:立即|蓝链|链接|🔗)(?:购买|下单)|(?:vx|wx|微信|软件)扫码(?:领)?(?:优惠|红包|券)?|(?:我的)?同款(?:[的]?(?:推荐|好物|商品|入手|购买|拥有|分享|安利)?)|满\\d+|大促|促销|折扣|特价|秒杀|广告|推广|低至|热卖|抢购|新品|豪礼|赠品/gi", // 0.11.1
-    ];
+    // 0.8.1 之前这个正则叫 dynamicSponsorRegexPattern
     if (config["dynamicSponsorRegexPattern"] && !config["dynamicAndCommentSponsorRegexPattern"]) {
         config["dynamicAndCommentSponsorRegexPattern"] = config["dynamicSponsorRegexPattern"];
         delete config["dynamicSponsorRegexPattern"];
     }
-    if (oldDynamicSponsorRegexPattern.includes(config["dynamicAndCommentSponsorRegexPattern"])) {
-        config["dynamicAndCommentSponsorRegexPattern"] = syncDefaults.dynamicAndCommentSponsorRegexPattern;
+
+    // 旧版只有一个正则字符串：曾经随扩展发布过的默认值直接丢掉交给内置词条
+    const legacyRegexPattern = config["dynamicAndCommentSponsorRegexPattern"];
+    if (legacyRegexPattern !== undefined) {
+        const legacy = splitLegacySponsorPattern(legacyRegexPattern);
+
+        const known = getKnownSponsorAlternatives();
+        const userAlternatives = splitTopLevelAlternatives(legacy.source)
+            .map((alternative) => alternative.trim())
+            .filter((alternative) => alternative !== "" && !known.has(alternative));
+
+        const leftover = stripEmptySponsorAlternatives(userAlternatives.join("|"));
+
+        delete config["dynamicAndCommentSponsorRegexPattern"];
+
+        if (leftover) {
+            // 旧版本无斜杠形式时不带任何 flags（区分大小写且只取首个命中），这里保持一致
+            config["dynamicAndCommentSponsorRegexFlags"] = sanitizeSponsorRegexFlags(legacy.flags ?? "");
+            config["dynamicAndCommentSponsorRegexUserRules"] = [
+                {
+                    id: "legacyCustom",
+                    name: chrome.i18n.getMessage("dynamicSponsorRuleName_legacyCustom"),
+                    pattern: leftover,
+                    enabled: true,
+                    updateAt: todaySponsorRuleDate(),
+                },
+            ];
+        }
     }
 
     // Migrate whitelistedChannels from string[] to WhitelistedChannel[]
@@ -307,6 +349,39 @@ function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<st
         //fullVideoLabelsOnThumbnails被移除 0.9.2
         delete config["fullVideoLabelsOnThumbnails"];
     }
+}
+
+/**
+ * 历史上随扩展发布过的默认正则
+ */
+const legacyDefaultSponsorRegexPatterns = [
+    // 0.7.4
+    "(618|11(?!1).11|双(11|十一|12|十二))|恰(?:个|了|到)?饭|((领(?:取)?|抢|有)(?:神|优惠)?券|券后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品",
+    // 0.8.1
+    "(618|11(?!1).11|双(11|十一|12|十二))|(恰|接)(?:个|了|到)?(饭|广)|((?:领(?:取|张)?|抢|有)(?:神|优惠)?(券|卷)|券后|卷后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品|同款",
+    // 0.11.1
+    "/(618|11(?!1).11|双(?:11|十一|12|十二)|女神节)|恰(?:个|了|到)?饭|金主|(?:评论区)?(?:领(?:取|张|到)?|抢|有|送|得)(?:我的)?(?:神|优惠|红包|折扣|福利|无门槛|隐藏|秘密|专属|(?:超)?大(?:额)?|额外)*(?:券|卷|劵|q(?:uan)?)?(?:后|到手|价|使用|下单)?|(?:优惠|(?:券|卷|劵)后|到手|促销|活动|神)价|(?:淘宝|tb|京东|jd|狗东|拼多多|pdd|天猫|tmall)搜索|(?:随(便|时)|任意)(?:退|退货|换货)|(?:免费|无偿)(?:换(?:个)?新|替换|更换)(?:商品|物品)?|(?:点(?:击)?|戳|来|我)评论区(?:置顶)?|(?:立即|蓝链|链接|🔗)(?:购买|下单)|(?:vx|wx|微信|软件)扫码(?:领)?(?:优惠|红包|券)?|(?:我的)?同款(?:[的]?(?:推荐|好物|商品|入手|购买|拥有|分享|安利)?)|满\\d+|大促|促销|折扣|特价|秒杀|广告|推广|低至|热卖|抢购|新品|豪礼|赠品/gi",
+];
+
+let knownSponsorAlternatives: Set<string> | null = null;
+
+function getKnownSponsorAlternatives(): Set<string> {
+    if (knownSponsorAlternatives) return knownSponsorAlternatives;
+
+    const alternatives = new Set<string>();
+    const add = (pattern: string) => {
+        for (const alternative of splitTopLevelAlternatives(pattern)) {
+            const trimmed = alternative.trim();
+            if (trimmed) alternatives.add(trimmed);
+        }
+    };
+
+    for (const pattern of legacyDefaultSponsorRegexPatterns) add(splitLegacySponsorPattern(pattern).source);
+    // 默认关闭的词条不算已知内容，否则用户的分支会被丢掉而屏蔽也随之失效
+    for (const rule of shippedSponsorRegexConfig.rules) if (rule.enabled) add(rule.pattern);
+
+    knownSponsorAlternatives = alternatives;
+    return alternatives;
 }
 
 const syncDefaults = {
@@ -398,20 +473,8 @@ const syncDefaults = {
 
     dynamicAndCommentSponsorWhitelistedChannels: false,
     dynamicAndCommentSponsorBlocker: false,
-    dynamicAndCommentSponsorRegexPattern:
-    "/" +
-    "618|11(?!1).11(?:日)?|双(?:11|十一|12|十二)|女神节|开学季|年货节|" + // 购物节日
-    "恰(?:个|了|到)?饭|金主|(他|它|她)(?:们)?家(?:的)?|" + // 广告
-    "(?:评论区)?(?:领(?:取|张|到)?|抢|送|得|叠)(?:我的)?(?:神|优惠|红包|折扣|福利|无门槛|隐藏|秘密|专属|(?:超)?大(?:额)?|额外)+(?:券|卷|劵|q(?:uan)?)?(?:后|到手|价|使用|下单)?|(?:领|抢|得|送)(?:红包|优惠|券|福利)|(?:优惠|(?:券|卷|劵)后|到手|促销|活动|神)价|" + // 优惠券类
-    "(?:淘宝|tb|京东|jd|狗东|拼多多|pdd|天猫|tmall)搜索|" + //购物软件
-    "(?:随(便|时)|任意)(?:退|退货|换货)|(?:免费|无偿)(?:换(?:个)?新|替换|更换|试用)(?:商品|物品)?|" + //退换货承诺
-    "(?:点(?:击)?|戳|来|我)评论区(?:置顶)?|(?:立即|蓝链|链接|🔗)(?:购买|下单)|" + // 购买链接
-    "(?:vx|wx|微信|软件)扫码(?:领)?(?:优惠|红包|券)?|" + //引导
-    "(?:我的)?同款(?:[的]?(?:推荐|好物|商品|入手|购买|拥有|分享|安利)?)|" + //同款
-    "满\\d+|大促|促销|折扣|特价|秒杀|广告|推广|低至|热卖|抢购|新品|豪礼|赠品|密令|" + //杂项
-    "(?:饿了么|美(?:团|団)|百度外卖|蜂鸟|达达|UU跑腿|(?:淘宝)?闪购)|(?:点|订|送|吃)(?:外卖|餐)|外卖(?:节|服务|平台|app)" + //外卖大战
-    "/gi" //匹配参数
-    ,
+    dynamicAndCommentSponsorRegexUserRules: [],
+    dynamicAndCommentSponsorRegexFlags: "gi",
     dynamicAndCommentSponsorRegexPatternKeywordNumber: 1,
     dynamicSponsorBlock: true,
     dynamicSponsorBlockerDebug: false,
@@ -623,6 +686,9 @@ const localDefaults = {
     unsubmittedSegments: {},
     videoPageCidMap: {},
     customSkipSound: null,
+    sponsorRegexRemoteConfig: null,
+    lastSponsorRegexConfigCheck: 0,
+    lastSponsorRegexConfigCheckFailed: false,
 };
 
 const Config = new ConfigClass(syncDefaults, localDefaults, migrateOldSyncFormats);
