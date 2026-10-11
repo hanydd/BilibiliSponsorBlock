@@ -11,6 +11,8 @@ import { seekForSkip } from '../skipSeek';
 import { notifyAutomaticSkip } from '../skipNotification';
 import { EngineMode, installRuleRuntime, RuleRuntime } from './bridge';
 import { evaluateRules } from './engine';
+import { eligibility } from './rules';
+import { prepareSegmentPolicies } from './policy';
 import { transitionPlayback } from './playback';
 import { primaryAction } from './intents';
 import { NoticeClock } from '../../notices/NoticeClock';
@@ -268,12 +270,24 @@ export class SkipRulesRuntime implements RuleRuntime {
     /** Without a card, target the latest live interaction; completion expires in display time. */
     toggleSkip(id?: string, forceSeek = false): boolean {
         if (this.mode !== 'rules' || this.failed || !this.video) return false;
+        const input = prepareSegmentPolicies(this.snapshot());
+        const eligibleScare = (candidate: RuleSegment) => {
+            const visit = this.state.visits[candidate.id];
+            return candidate.category === "jumpscare" && visit?.inside &&
+                candidate.start <= input.time && input.time < candidate.end &&
+                eligibility(candidate, visit, input, this.plan?.protectedBy[candidate.id]).available;
+        };
+        if (id === undefined) {
+            id = input.segments.find(eligibleScare)?.id;
+        }
         if (id === undefined) {
             if (!Config.config.dontShowNotice && ![...this.published.keys()].some(id => this.state.visits[id]?.hiddenNotice)) return false;
             id = [...this.published].reverse().find(([, entry]) => !entry.clock || entry.clock.read() > 0)?.[0];
         }
         const visit = this.state.visits[id];
         if (!visit?.phase) return false;
+        const candidate = input.segments.find(s => s.id === id);
+        if (candidate?.category === "jumpscare" && visit.phase !== "completed" && !eligibleScare(candidate)) return false;
         const segment = this.segments().find(s => s.UUID === id);
         this.action(primaryAction(id, visit, forceSeek || (segment?.category === "jumpscare" && visit.phase !== "completed")));
         return true;

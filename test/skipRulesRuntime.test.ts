@@ -473,3 +473,28 @@ test.each([ActionType.Skip, ActionType.Mute])('same-video handoff restores copie
     expect(video.currentTime).toBe(12); runtime.toggleSkip(); expect(video.currentTime).toBe(30);
     runtime.reset();
  });
+
+test.each([1, 2, 3])('hidden jumpscare %s cannot be targeted by shortcut or stale card', async hidden => {
+    const { video, runtime, contentState } = await setup({ categorySelections: [{ name: 'jumpscare', option: 3 }], muteSegments: true, dontShowNotice: true });
+    contentState.sponsorTimes = [{ ...makeSegment('scare', 10, 30), category: 'jumpscare' as any }];
+    runtime.observe();
+    contentState.sponsorTimes[0].hidden = hidden;
+    if (hidden === 2) {
+        const { default: Config } = await import("../src/config");
+        Config.config.minDuration = 25;
+    }
+    expect(runtime.toggleSkip()).toBe(false);
+    expect(runtime.toggleSkip('scare')).toBe(false);
+    expect(video.currentTime).toBe(12);
+    runtime.reset();
+});
+test('ordinary unmute cannot release overlapping protective mute in rules', async () => {
+    const { video, runtime, contentState } = await setup({ categorySelections: [{ name: 'jumpscare', option: 3 }, { name: 'sponsor', option: 2 }], muteSegments: true });
+    contentState.sponsorTimes = [{ ...makeSegment('scare', 10, 30), category: 'jumpscare' as any }, makeSegment('ordinary', 10, 20, ActionType.Mute)];
+    runtime.observe(); expect(video.muted).toBe(true);
+    runtime.action({ kind: 'undo', id: 'ordinary' });
+    expect(video.muted).toBe(true);
+    video.currentTime = 31; video.dispatchEvent(new Event('timeupdate'));
+    expect(video.muted).toBe(false);
+    runtime.reset();
+});

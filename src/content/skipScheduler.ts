@@ -995,7 +995,7 @@ function getNextSkipIndex(
  * them having different categories.
  */
 function getLatestEndTimeIndex(sponsorTimes: SponsorTime[], index: number, hideHiddenSponsors = true): number {
-    if (index == -1 || !shouldAutoSkip(sponsorTimes[index]) || sponsorTimes[index].actionType !== ActionType.Skip) {
+    if (index == -1 || !shouldAutoSkip(sponsorTimes[index]) || playbackAction(sponsorTimes[index]) !== ActionType.Skip) {
         return index;
     }
 
@@ -1428,13 +1428,8 @@ export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = nul
     }
 
     if (playbackAction(segment) === ActionType.Mute) {
-        if (segment.category === "jumpscare") {
-            soundReleased.add(segment.UUID);
-            if (!inMuteSegment(getVideo().currentTime, false)) releaseOwnedMute();
-        } else {
-            getVideo().muted = false;
-            videoMuted = false;
-        }
+        soundReleased.add(segment.UUID);
+        if (!inMuteSegment(getVideo().currentTime, false)) releaseOwnedMute();
     }
 
     if (forceSeek || playbackAction(segment) === ActionType.Skip || (segment.category === "jumpscare" && getVideo().currentTime >= segment.segment[1])) {
@@ -1443,6 +1438,7 @@ export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = nul
 }
 
 export function reskipSponsorTime(segment: SponsorTime, forceSeek = false): void {
+    if (!isRuleEngineEnabled() && segment.category === "jumpscare" && segment.hidden !== SponsorHideType.Visible) return;
     if (isRuleEngineEnabled()) { getRuleRuntime().action({ kind: "skip", id: segment.UUID, forceSeek }); return; }
     // If speeding, cancel first (reskip means instant skip, not speedUp)
     // reskip 随后自行调度，取消时不再触发 cancel 内部的重排
@@ -1451,6 +1447,7 @@ export function reskipSponsorTime(segment: SponsorTime, forceSeek = false): void
     }
 
     if (playbackAction(segment) === ActionType.Mute && segment.category !== "jumpscare" && !forceSeek) {
+        soundReleased.delete(segment.UUID);
         ownMute(getVideo());
     } else {
         const skippedTime = Math.max(segment.segment[1] - getVideo().currentTime, 0);

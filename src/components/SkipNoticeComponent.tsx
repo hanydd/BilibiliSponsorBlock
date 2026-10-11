@@ -729,7 +729,8 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             if (buttonIndex === 1) {
                 if (isRuleEngineEnabled()) getRuleRuntime().action({ kind: "deny", id: this.segments[index].UUID });
                 else this.contentContainer().unskipSponsorTime(this.segments[index], undefined);
-            } else this.reskip(buttonIndex, index, true);
+            } else if (isRuleEngineEnabled()) getRuleRuntime().toggleSkip(this.segments[index].UUID, true);
+            else this.reskip(buttonIndex, index, true);
             return;
         }
         if (isRuleEngineEnabled()) {

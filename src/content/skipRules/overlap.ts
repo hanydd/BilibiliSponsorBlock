@@ -35,7 +35,8 @@ export function resolveOverlap(plan: RulePlan, input: RuleInput, event: RuleEven
         const visit = plan.state.visits[target.id];
         if (target.policy !== 'auto' || visit.overlapOverride || input.previewId === target.id) continue;
         const sources = Object.keys(reviews).filter(id => id !== target.id &&
-            reviews[id].action === target.action && overlaps(segments.get(id), target)).sort();
+            reviews[id].action === target.action &&
+            !(target.protectiveMute && segments.get(id)?.category !== 'jumpscare') && overlaps(segments.get(id), target)).sort();
         if (!sources.length) continue;
         plan.protectedBy[target.id] = sources;
         plan.trace.push({ id: target.id, rule: RULES.overlap, result: 'protect-return-position', relatedIds: sources });

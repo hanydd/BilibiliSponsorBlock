@@ -5,7 +5,8 @@ import Utils from "../utils";
 import { addCleanupListener } from "../utils/cleanup";
 import { getFrameRate, getVideo } from "../utils/video";
 import { getContentApp } from "./app";
-import { getRuleRuntime } from "./skipRules/bridge";
+import { SponsorHideType } from "../types";
+import { getRuleRuntime, isRuleEngineEnabled } from "./skipRules/bridge";
 import { contentState } from "./state";
 
 const utils = new Utils();
@@ -70,7 +71,8 @@ function hotkeyListener(e: KeyboardEvent): void {
     const openSubmissionMenuKey = Config.config.submitKeybind;
 
     if (keybindEquals(key, skipKey)) {
-        const scare = contentState.sponsorTimes.find(s => s.category === "jumpscare" && shouldSkip(s) &&
+        const scare = !isRuleEngineEnabled() && contentState.sponsorTimes.find(s => s.category === "jumpscare" &&
+            s.hidden === SponsorHideType.Visible && shouldSkip(s) &&
             s.segment[0] <= getVideo()?.currentTime && getVideo()?.currentTime < s.segment[1]);
         if (scare && !Config.config.disableSkipping && !contentState.channelWhitelisted) {
             reskipSponsorTime(scare, true);
