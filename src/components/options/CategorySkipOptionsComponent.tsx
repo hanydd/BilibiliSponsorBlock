@@ -51,6 +51,9 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                     case CategorySkipOption.ManualSkip:
                         defaultOption = "manualSkip";
                         break;
+                    case CategorySkipOption.AutoMute:
+                        defaultOption = "autoMute";
+                        break;
                     case CategorySkipOption.AutoSkip:
                         defaultOption = "autoSkip";
                         break;
@@ -141,6 +144,9 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                 option = CategorySkipOption.ManualSkip;
 
                 break;
+            case "autoMute":
+                option = CategorySkipOption.AutoMute;
+                break;
             case "autoSkip":
                 option = CategorySkipOption.AutoSkip;
 
@@ -160,6 +166,7 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
         const elements: JSX.Element[] = [];
 
         let optionNames = ["disable", "showOverlay", "manualSkip", "autoSkip"];
+        if (this.props.category === "jumpscare") optionNames = ["disable", "showOverlay", "manualSkip", "autoMute", "autoSkip"];
         if (this.props.category === "exclusive_access") optionNames = ["disable", "showOverlay"];
 
         for (const optionName of optionNames) {

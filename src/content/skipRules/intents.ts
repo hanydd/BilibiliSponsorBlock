@@ -4,20 +4,20 @@ import { RuleEvent, RuleInput, RulePlan, Visit } from './types';
 type Command = Extract<RuleEvent, { id: string }>;
 type CommandRule = (plan: RulePlan, input: RuleInput, event: Command) => void;
 const commands: Record<Command['kind'], CommandRule> = {
-    dismiss: (p, _i, e) => { p.state.visits[e.id].excluded = 'dismiss'; p.state.visits[e.id].phase = undefined; },
+    dismiss: (p, i, e) => { if (i.segments.find(s => s.id === e.id)?.protectiveMute) { p.state.visits[e.id].hiddenNotice = true; return; } p.state.visits[e.id].excluded = 'dismiss'; p.state.visits[e.id].phase = undefined; },
     deny: (p, _i, e) => { Object.assign(p.state.visits[e.id], { excluded: 'cancel', manual: undefined, phase: 'pending' }); },
     undo: (p, i, e) => {
         commands.deny(p, i, e);
         p.state.visits[e.id].excluded = 'undo';
         const target = i.segments.find(s => s.id === e.id)!;
-        if (target.action !== 'mute' || e.forceSeek) p.seek = { time: target.start, ids: [target.id], reason: 'undo' };
+        if (target.action !== 'mute' || target.category === 'jumpscare' || e.forceSeek) p.seek = { time: target.start, ids: [target.id], reason: 'undo' };
     },
     'pause-speed': (p, _i, e) => { Object.assign(p.state.visits[e.id], { excluded: 'pause-speed', phase: 'speed-paused' }); },
     allow: (p, _i, e) => { Object.assign(p.state.visits[e.id], { excluded: undefined, auto: true, phase: undefined }); },
     'resume-speed': (p, i, e) => { commands.allow(p, i, e); p.state.visits[e.id].manual = 'speed'; },
     skip: (p, i, e) => {
         const segment = i.segments.find(s => s.id === e.id)!;
-        if (segment.action === 'mute' && !e.forceSeek) {
+        if (segment.action === 'mute' && !segment.protectiveMute && segment.category !== 'jumpscare' && !e.forceSeek) {
             Object.assign(p.state.visits[e.id], { excluded: undefined, auto: true, manual: 'mute', phase: 'muted' });
         } else p.seek = { time: segment.end, ids: [segment.id], reason: 'skip' };
     },

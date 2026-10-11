@@ -4,7 +4,7 @@ import type { RuleCard } from "../content/skipRules/types";
 import * as React from "react";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
-import { ActionType, Category, SegmentUUID, SponsorSourceType, SponsorTime } from "../types";
+import { ActionType, Category, CategorySkipOption, SegmentUUID, SponsorSourceType, SponsorTime } from "../types";
 import Utils from "../utils";
 import { getAdvanceSkipText, getSkippingText } from "../utils/categoryUtils";
 import { upcomingSkipDecision } from "../notices/UpcomingSkipDecision";
@@ -146,6 +146,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     render(): React.ReactElement {
         const firstColumn = <>
             {this.getSkipButton(0)}
+            {this.segments[0].category === "jumpscare" && this.getSkipButton(1)}
             {(this.isSpeedUpForCurrentSegment() || this.state.speedUpPaused) && this.getSpeedUpControlButton()}
         </>;
 
@@ -329,7 +330,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                 )}
 
                 {/* Unskip/Skip Button */}
-                {this.segments[0].actionType === ActionType.Mute ? <td>{this.getSkipButton(1)}</td> : null}
+                {this.segments[0].actionType === ActionType.Mute && this.segments[0].category !== "jumpscare" ? <td>{this.getSkipButton(1)}</td> : null}
 
                 {/* Never show button */}
                 {!this.props.autoSkip || this.props.startReskip ? (
@@ -426,6 +427,9 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     getSkipButton(buttonIndex: number): JSX.Element {
+        if (buttonIndex === 1 && this.segments[0].category === "jumpscare" &&
+            (!Config.config.muteSegments || Config.config.categorySelections.find(s => s.name === "jumpscare")?.option !== CategorySkipOption.AutoMute ||
+            getVideo().currentTime >= this.segments[0].segment[1])) return null;
         if (
             this.state.showSkipButton[buttonIndex] &&
             (this.segments.length > 1 || this.segments[0].actionType !== ActionType.Poi || this.props.unskipTime)
@@ -452,7 +456,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                         }
                     >
                         {this.getSkipButtonText(buttonIndex, forceSeek ? ActionType.Skip : null) +
-                            (!this.state.compact && !forceSeek && this.props.showKeybindHint
+                            (!this.state.compact && !forceSeek && (this.segments[0].category !== "jumpscare" || buttonIndex === 0) && this.props.showKeybindHint
                                 ? " (" + keybindToString(Config.config.skipKeybind) + ")"
                                 : "")}
                     </button>
@@ -721,6 +725,13 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     unskipAction(buttonIndex: number, index: number, forceSeek: boolean): void {
+        if (this.segments[index].category === "jumpscare" && getVideo().currentTime < this.segments[index].segment[1]) {
+            if (buttonIndex === 1) {
+                if (isRuleEngineEnabled()) getRuleRuntime().action({ kind: "deny", id: this.segments[index].UUID });
+                else this.contentContainer().unskipSponsorTime(this.segments[index], undefined);
+            } else this.reskip(buttonIndex, index, true);
+            return;
+        }
         if (isRuleEngineEnabled()) {
             getRuleRuntime().toggleSkip(this.segments[index].UUID, forceSeek);
             return;
@@ -904,7 +915,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     unmutedListener(time: number): void {
         if (
             this.state.showSkipButton[0] && this.props.segments.length === 1 &&
-            this.props.segments[0].actionType === ActionType.Mute &&
+            this.props.segments[0].actionType === ActionType.Mute && this.props.segments[0].category !== "jumpscare" &&
             time >= this.props.segments[0].segment[1]
         ) {
             this.setState({
@@ -928,6 +939,10 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
     }
 
     private getSkipButtonText(buttonIndex: number, forceType?: ActionType): string {
+        if (this.segments[0].category === "jumpscare") {
+            if (getVideo().currentTime < this.segments[0].segment[1]) return chrome.i18n.getMessage(buttonIndex === 1 ? "restoreSound" : "skip");
+            return chrome.i18n.getMessage("unskip");
+        }
         switch (this.state.playback[buttonIndex]) {
             case SegmentPlaybackState.Skipped:
                 return this.getUndoText(forceType);

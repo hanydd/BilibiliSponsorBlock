@@ -3,6 +3,7 @@ import type { Policy, PolicySettings, RuleInput, RuleSegment } from './types';
 
 export interface PolicyContext {
     id: string;
+    category?: string;
     categoryPolicy: Policy;
     action: RuleSegment['action'];
     videoHasMusic: boolean;
@@ -19,9 +20,9 @@ export function belowMinimumDuration(duration: number, minimum: number): boolean
 
 /** Preserve the existing override order, while keeping its reasons with the segment. */
 const policyRules = [
-    { rule: RULES.music, matches: (c: PolicyContext, p: Policy, s: PolicySettings) => s.autoSkipOnMusicVideos && c.videoHasMusic && c.action === 'skip' && p !== 'ignore',
+    { rule: RULES.music, matches: (c: PolicyContext, p: Policy, s: PolicySettings) => c.category !== "jumpscare" && s.autoSkipOnMusicVideos && c.videoHasMusic && c.action === 'skip' && p !== 'ignore',
         apply: (): Policy => 'auto' },
-    { rule: RULES.fullVideo, matches: (c: PolicyContext, p: Policy, s: PolicySettings) => s.manualSkipOnFullVideo && c.categoryHasFullLabel && p === 'auto',
+    { rule: RULES.fullVideo, matches: (c: PolicyContext, p: Policy, s: PolicySettings) => c.category !== "jumpscare" && s.manualSkipOnFullVideo && c.categoryHasFullLabel && p === 'auto',
         apply: (): Policy => 'manual' },
     { rule: RULES.short, matches: (c: PolicyContext, _p: Policy, s: PolicySettings) => !c.draft && belowMinimumDuration(c.duration, s.minDuration),
         apply: (): Policy => 'ignore' },
@@ -49,7 +50,7 @@ export function prepareSegmentPolicies(input: RuleInput): RuleInput {
     for (const segment of input.segments) if (segment.action === 'full' && segment.category) full.add(segment.category);
     const music = input.videoFacts?.hasMusic || input.segments.some(segment => segment.category === 'music_offtopic');
     return { ...input, segments: input.segments.map(segment => ({ ...segment, ...resolveSegmentPolicy({
-        id: segment.id, categoryPolicy: segment.policy, categoryHasFullLabel: full.has(segment.category),
+        id: segment.id, category: segment.category, categoryPolicy: segment.policy, categoryHasFullLabel: full.has(segment.category),
         videoHasMusic: music, action: segment.action, duration: segment.end - segment.start,
         draft: segment.draft, hidden: !!segment.hidden, externalSource: !!segment.externalSource,
     }, settings) })) };

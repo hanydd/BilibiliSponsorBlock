@@ -1,4 +1,5 @@
 import Config from '../../config';
+import { resolvePlaybackBehavior } from '../../config/playbackBehavior';
 import Utils from '../../utils';
 import { getChannelIDInfo, getCid, getVideo, getVideoID } from '../../utils/video';
 import { logDebug } from '../../utils/logger';
@@ -125,9 +126,10 @@ export class SkipRulesRuntime implements RuleRuntime {
             // Retain existing danmaku compatibility outside the interval rule model.
             if (s.source === SponsorSourceType.Danmaku) option = !Config.config.enableDanmakuSkip ? CategorySkipOption.Disabled :
                 Config.config.enableAutoSkipDanmakuSkip ? CategorySkipOption.AutoSkip : CategorySkipOption.ManualSkip;
+            const behavior = resolvePlaybackBehavior(s, option, Config.config.muteSegments);
             const policies: Record<number, Policy> = { [-1]: 'ignore', 0: 'mark', 1: 'manual', 2: 'auto' };
             return { id: s.UUID, start: s.segment[0], end: Math.min(s.segment[1], this.video.duration || Infinity),
-                action: s.actionType, category: s.category, policy: policies[option] ?? 'ignore',
+                action: behavior.action, protectiveMute: behavior.protectiveMute, category: s.category, policy: policies[behavior.option] ?? 'ignore',
                 hidden: s.hidden !== undefined && s.hidden !== SponsorHideType.MinimumDuration,
                 externalSource: s.source === SponsorSourceType.YouTube,
                 draft: contentState.sponsorTimesSubmitting.some(d => d.UUID === s.UUID) };
@@ -267,12 +269,13 @@ export class SkipRulesRuntime implements RuleRuntime {
     toggleSkip(id?: string, forceSeek = false): boolean {
         if (this.mode !== 'rules' || this.failed || !this.video) return false;
         if (id === undefined) {
-            if (!Config.config.dontShowNotice) return false;
+            if (!Config.config.dontShowNotice && ![...this.published.keys()].some(id => this.state.visits[id]?.hiddenNotice)) return false;
             id = [...this.published].reverse().find(([, entry]) => !entry.clock || entry.clock.read() > 0)?.[0];
         }
         const visit = this.state.visits[id];
         if (!visit?.phase) return false;
-        this.action(primaryAction(id, visit, forceSeek));
+        const segment = this.segments().find(s => s.UUID === id);
+        this.action(primaryAction(id, visit, forceSeek || (segment?.category === "jumpscare" && visit.phase !== "completed")));
         return true;
     }
 

@@ -2649,5 +2649,26 @@
     },
     "rules_declineWelcome": {
         "message": "使用經典模式"
+    },
+    "category_jumpscare": {
+        "message": "驚嚇片段"
+    },
+    "category_jumpscare_short": {
+        "message": "驚嚇"
+    },
+    "category_jumpscare_description": {
+        "message": "突發大音量、跳臉、恐怖音效及意外驚嚇。"
+    },
+    "category_jumpscare_guideline1": {
+        "message": "僅標註實際發生驚嚇的區間，準確設定起止時間。"
+    },
+    "category_jumpscare_guideline2": {
+        "message": "不要將整段恐怖題材影片籠統標記為驚嚇片段。"
+    },
+    "autoMute": {
+        "message": "自動靜音並手動跳過"
+    },
+    "restoreSound": {
+        "message": "恢復聲音"
     }
 }

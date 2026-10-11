@@ -80,7 +80,7 @@ export function installCoreModuleMocks(video: HTMLVideoElement, options: CoreMoc
     jest.doMock("../../src/utils", () => ({
         __esModule: true,
         default: jest.fn().mockImplementation(() => ({
-            getCategorySelection: jest.fn(() => ({ option: CategorySkipOption.AutoSkip })),
+            getCategorySelection: jest.fn((category: string) => (options.configOverrides?.categorySelections as any[])?.find(s => s.name === category) ?? { option: CategorySkipOption.AutoSkip }),
             getTimestampsDuration: jest.fn(() => 0),
         })),
         isFirefox: jest.fn(() => false),

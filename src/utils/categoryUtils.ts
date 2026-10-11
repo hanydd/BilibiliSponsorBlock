@@ -1,3 +1,5 @@
+import Config from "../config";
+import { resolvePlaybackBehavior } from "../config/playbackBehavior";
 import { ActionType, Category, SponsorTime } from "../types";
 
 export function getSkippingText(segments: SponsorTime[], autoSkip: boolean): string {
@@ -7,7 +9,7 @@ export function getSkippingText(segments: SponsorTime[], autoSkip: boolean): str
         ) || chrome.i18n.getMessage("category_" + segments[0].category);
     if (autoSkip) {
         let messageId = "";
-        switch (segments[0].actionType) {
+        switch (resolvePlaybackBehavior(segments[0], Config.config.categorySelections.find(s => s.name === segments[0].category)?.option, Config.config.muteSegments).action) {
             case ActionType.Skip:
                 messageId = "skipped";
                 break;
@@ -22,7 +24,7 @@ export function getSkippingText(segments: SponsorTime[], autoSkip: boolean): str
         return chrome.i18n.getMessage(messageId).replace("{0}", categoryName);
     } else {
         let messageId = "";
-        switch (segments[0].actionType) {
+        switch (resolvePlaybackBehavior(segments[0], Config.config.categorySelections.find(s => s.name === segments[0].category)?.option, Config.config.muteSegments).action) {
             case ActionType.Skip:
                 messageId = "skip_category";
                 break;
@@ -45,7 +47,7 @@ export function getAdvanceSkipText(segments: SponsorTime[], autoSkip: boolean): 
         ) || chrome.i18n.getMessage("category_" + segments[0].category);
     if (autoSkip) {
         let messageId = "";
-        switch (segments[0].actionType) {
+        switch (resolvePlaybackBehavior(segments[0], Config.config.categorySelections.find(s => s.name === segments[0].category)?.option, Config.config.muteSegments).action) {
             case ActionType.Skip:
                 messageId = "autoSkipped";
                 break;
@@ -60,7 +62,7 @@ export function getAdvanceSkipText(segments: SponsorTime[], autoSkip: boolean): 
         return chrome.i18n.getMessage(messageId).replace("{0}", categoryName);
     } else {
         let messageId = "";
-        switch (segments[0].actionType) {
+        switch (resolvePlaybackBehavior(segments[0], Config.config.categorySelections.find(s => s.name === segments[0].category)?.option, Config.config.muteSegments).action) {
             case ActionType.Skip:
                 messageId = "skip_category";
                 break;

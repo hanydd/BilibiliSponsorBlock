@@ -1,3 +1,4 @@
+import { shouldSkip, reskipSponsorTime } from "./skipScheduler";
 import Config from "../config";
 import { Keybind, keybindEquals } from "../config/config";
 import Utils from "../utils";
@@ -69,6 +70,13 @@ function hotkeyListener(e: KeyboardEvent): void {
     const openSubmissionMenuKey = Config.config.submitKeybind;
 
     if (keybindEquals(key, skipKey)) {
+        const scare = contentState.sponsorTimes.find(s => s.category === "jumpscare" && shouldSkip(s) &&
+            s.segment[0] <= getVideo()?.currentTime && getVideo()?.currentTime < s.segment[1]);
+        if (scare && !Config.config.disableSkipping && !contentState.channelWhitelisted) {
+            reskipSponsorTime(scare, true);
+            e.preventDefault();
+            return;
+        }
         const hiddenAction = getRuleRuntime()?.toggleSkip();
         if (hiddenAction || contentState.activeSkipKeybindElement) {
             if (!hiddenAction) contentState.activeSkipKeybindElement.toggleSkip.call(contentState.activeSkipKeybindElement);

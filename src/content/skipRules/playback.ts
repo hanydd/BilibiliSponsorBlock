@@ -4,7 +4,7 @@ import { RuleEvent, RuleInput, RulePlan, RuleSegment } from './types';
 /** The method is independent of whether this visit currently permits automatic execution. */
 export function playbackMethod(segment: RuleSegment, input: Pick<RuleInput, 'speedUp'>): 'seek' | 'speed' | 'mute' {
     if (segment.action === 'mute') return 'mute';
-    return input.speedUp && segment.end - segment.start >= 0.5 && !segment.draft ? 'speed' : 'seek';
+    return segment.category !== 'jumpscare' && input.speedUp && segment.end - segment.start >= 0.5 && !segment.draft ? 'speed' : 'seek';
 }
 
 export function canAutomaticallyPlay(input: Pick<RuleInput, 'paused' | 'waiting'>): boolean {

@@ -62,7 +62,7 @@ export async function getSegmentsBackground(
         const segment = segmentResponse.segments
             ?.filter(
                 (segment: SponsorTime) =>
-                    getEnabledActionTypes().includes(segment.actionType) && categories.includes(segment.category)
+                    (getEnabledActionTypes().includes(segment.actionType) || (segment.category === "jumpscare" && segment.actionType === ActionType.Mute)) && categories.includes(segment.category)
             )
             ?.map((segment: SponsorTime) => ({
                 ...segment,

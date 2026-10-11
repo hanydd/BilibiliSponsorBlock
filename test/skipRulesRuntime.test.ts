@@ -421,3 +421,55 @@ test.each([ActionType.Skip, ActionType.Mute])('same-video handoff restores copie
     expect(replacement).toMatchObject({ playbackRate: 1.5, muted: false });
     runtime.reset();
 });
+
+ test.each([ActionType.Skip, ActionType.Mute])('jumpscare runtime protects both submitted actions: %s', async actionType => {
+    const { video, runtime, contentState } = await setup({ categorySelections: [{ name: 'jumpscare', option: 3 }], muteSegments: true, enableSpeedUp: true, dontShowNotice: true });
+    contentState.sponsorTimes = [ { ...makeSegment('scare', 10, 30), category: 'jumpscare' as any, actionType } ];
+    runtime.observe();
+    expect(video.currentTime).toBe(12);
+    expect(video.muted).toBe(true);
+    expect(video.playbackRate).toBe(1);
+    runtime.action({ kind: 'dismiss', id: 'scare' });
+    expect(video.muted).toBe(true);
+    expect(runtime.toggleSkip()).toBe(true);
+    expect(video.currentTime).toBe(30);
+    expect(video.muted).toBe(false);
+    runtime.action({ kind: 'undo', id: 'scare' });
+    expect(video.currentTime).toBe(10);
+    runtime.reset();
+ });
+ test('jumpscare manual sound release remains in force until leaving the visit', async () => {
+    const { video, runtime, contentState } = await setup({ categorySelections: [{ name: 'jumpscare', option: 3 }], muteSegments: true });
+    contentState.sponsorTimes = [{ ...makeSegment('scare', 10, 30), category: 'jumpscare' as any }];
+    runtime.observe();
+    video.muted = false; video.dispatchEvent(new Event('volumechange'));
+    runtime.observe(); expect(video.muted).toBe(false);
+    video.currentTime = 32; video.dispatchEvent(new Event('timeupdate'));
+    video.currentTime = 15; video.dispatchEvent(new Event('seeking'));
+    expect(video.muted).toBe(true);
+    runtime.reset(); expect(video.muted).toBe(false);
+ });
+
+ test.each([false, true])('jumpscare overlapping owners restore baseline %s and release on part change', async original => {
+    const { video, runtime, contentState, Config } = await setup({ categorySelections: [{ name: 'jumpscare', option: 3 }], muteSegments: true });
+    video.muted = original;
+    contentState.sponsorTimes = [ { ...makeSegment('scare', 10, 30), category: 'jumpscare' as any },
+        { ...makeSegment('scare2', 20, 40), category: 'jumpscare' as any },
+        { ...makeSegment('scare3', 40, 50), category: 'jumpscare' as any } ];
+    runtime.observe(); expect(video.muted).toBe(true);
+    for (const time of [22, 30, 40]) { video.currentTime = time; video.dispatchEvent(new Event('timeupdate')); expect(video.muted).toBe(true); }
+    video.currentTime = 52; video.dispatchEvent(new Event('timeupdate')); expect(video.muted).toBe(original);
+    video.currentTime = 12; video.dispatchEvent(new Event('seeking')); expect(video.muted).toBe(true);
+    const { getCid } = await import('../src/utils/video');
+    (getCid as jest.Mock).mockReturnValue('2');
+    contentState.sponsorTimes = []; runtime.observe(); expect(video.muted).toBe(original);
+    runtime.reset();
+ });
+ test('jumpscare mute master switch releases protection and keeps manual skip available', async () => {
+    const { video, runtime, contentState, Config } = await setup({ categorySelections: [{ name: 'jumpscare', option: 3 }], muteSegments: true, dontShowNotice: true });
+    contentState.sponsorTimes = [{ ...makeSegment('scare', 10, 30), category: 'jumpscare' as any, actionType: ActionType.Mute }];
+    runtime.observe(); expect(video.muted).toBe(true);
+    Config.config.muteSegments = false; runtime.observe(); expect(video.muted).toBe(false);
+    expect(video.currentTime).toBe(12); runtime.toggleSkip(); expect(video.currentTime).toBe(30);
+    runtime.reset();
+ });

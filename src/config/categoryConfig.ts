@@ -12,8 +12,12 @@ export function setCategorySelection(selections: readonly CategorySelection[], n
         : [...selections, { name, option }];
 }
 
-export function migrateCategorySelections(config: { categorySelections: CategorySelection[]; paddingCategoryMigrated: boolean }, categories: readonly Category[]): void {
+export function migrateCategorySelections(config: { categorySelections: CategorySelection[]; paddingCategoryMigrated: boolean; jumpscareCategoryMigrated?: boolean }, categories: readonly Category[]): void {
     let selections = config.categorySelections;
+    if (!config.jumpscareCategoryMigrated && !selections.some(s => s.name === "jumpscare")) {
+        selections = setCategorySelection(selections, "jumpscare" as Category, CategorySkipOption.AutoMute);
+    }
+    config.jumpscareCategoryMigrated = true;
     // Before this migration, absence cannot distinguish an old default from a user disable.
     // After the old one-time marker, even an absent padding entry must remain disabled.
     if (!config.paddingCategoryMigrated && !selections.some(selection => selection.name === 'padding')) {
