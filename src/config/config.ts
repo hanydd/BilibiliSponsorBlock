@@ -56,7 +56,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
     configProxy(): StorageObjects<T, U> {
         const pendingSync = new Map<string, { value: unknown }>();
         const writeSync = (items: Map<string, { value: unknown }>) => {
-            const values = Object.fromEntries([...items].map(([key, entry]) => [key, entry.value]));
+            const values = Object.fromEntries([...items].map(([key, entry]) => [key, this.serializeSyncValue(key, entry.value)]));
             chrome.storage.sync.set(values, () => {
                 if (chrome.runtime.lastError) console.error("Could not save settings:", chrome.runtime.lastError.message);
                 for (const [key, entry] of items) {
@@ -69,10 +69,11 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
                 const currentChanges: StorageChangesObject = {};
                 for (const key in changes) {
                     const pending = pendingSync.get(key);
+                    const newValue = this.normalizeSyncValue(key, changes[key].newValue);
                     // An older write may finish while a newer local edit is queued or in flight.
-                    if (pending && JSON.stringify(pending.value) !== JSON.stringify(changes[key].newValue)) continue;
-                    this.cachedSyncConfig![key] = changes[key].newValue;
-                    currentChanges[key] = changes[key];
+                    if (pending && JSON.stringify(pending.value) !== JSON.stringify(newValue)) continue;
+                    this.cachedSyncConfig![key] = newValue;
+                    currentChanges[key] = { ...changes[key], newValue };
                 }
 
                 if (Object.keys(currentChanges).length) for (const callback of this.configSyncListeners) {
@@ -100,6 +101,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
         const self = this;
         const syncHandler: ProxyHandler<SyncStorage> = {
             set<K extends keyof SyncStorage>(obj: SyncStorage, prop: K, value: SyncStorage[K]) {
+                value = self.normalizeSyncValue(prop, value) as SyncStorage[K];
                 self.cachedSyncConfig![prop] = value;
                 const entry = { value };
                 pendingSync.set(prop, entry);
@@ -179,6 +181,20 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
         this.config![prop] = this.cachedSyncConfig![prop];
     }
 
+    /** 子类可在写入和同步事件的入口兼容历史配置格式。 */
+    protected normalizeSyncValue(_key: string, value: unknown): unknown {
+        return value;
+    }
+
+    /** 存储格式与提供给业务代码的格式可以不同。 */
+    protected serializeSyncValue(_key: string, value: unknown): unknown {
+        return value;
+    }
+
+    syncStorageValues(values: Partial<T>): Record<string, unknown> {
+        return Object.fromEntries(Object.entries(values).map(([key, value]) => [key, this.serializeSyncValue(key, value)]));
+    }
+
     forceLocalUpdate(prop: string): void {
         const value = this.cachedLocalStorage![prop];
         // These records are best-effort bookkeeping and should not interrupt browsing.
@@ -238,6 +254,15 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
         const initialSyncKeys = new Set(Object.keys(this.cachedSyncConfig ?? {}));
         this.addDefaults();
         const result = this.configProxy();
+        for (const key of Object.keys(this.cachedSyncConfig!)) {
+            const stored = this.cachedSyncConfig![key];
+            const normalized = this.normalizeSyncValue(key, stored);
+            if (normalized === stored) continue;
+            this.cachedSyncConfig![key] = normalized;
+            if (initialSyncKeys.has(key) && JSON.stringify(this.serializeSyncValue(key, normalized)) !== JSON.stringify(stored)) {
+                result.sync[key] = normalized;
+            }
+        }
         migrateOldSyncFormats(result.sync, initialSyncKeys);
 
         return result;
@@ -248,12 +273,6 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
         for (const key in this.syncDefaults) {
             if (!Object.prototype.hasOwnProperty.call(this.cachedSyncConfig, key)) {
                 this.cachedSyncConfig![key] = this.syncDefaults[key];
-            } else if (key === "barTypes") {
-                for (const key2 in this.syncDefaults[key]) {
-                    if (!Object.prototype.hasOwnProperty.call(this.cachedSyncConfig![key], key2)) {
-                        this.cachedSyncConfig![key][key2] = this.syncDefaults[key][key2];
-                    }
-                }
             }
         }
 

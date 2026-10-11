@@ -62,8 +62,8 @@ test('segment tab reuses category controls including both colors and restores th
     await expect.poll(async () => (await readSyncStorage<Array<{ name: string; option: number }>>(extensionServiceWorker, 'categorySelections'))?.find(s => s.name === 'sponsor')?.option).toBe(1);
     await page.locator('#sponsorColorOption input').fill('#123456');
     await page.locator('#sponsorPreviewColorOption input').fill('#654321');
-    await expect.poll(async () => (await readSyncStorage<Record<string, { color: string }>>(extensionServiceWorker, 'barTypes'))?.sponsor?.color).toBe('#123456');
-    await expect.poll(async () => (await readSyncStorage<Record<string, { color: string }>>(extensionServiceWorker, 'barTypes'))?.['preview-sponsor']?.color).toBe('#654321');
+    await expect.poll(async () => (await readSyncStorage<Record<string, [string, string]>>(extensionServiceWorker, 'barTypes'))?.sponsor?.[0]).toBe('#123456');
+    await expect.poll(async () => (await readSyncStorage<Record<string, [string, string]>>(extensionServiceWorker, 'barTypes'))?.sponsor?.[1]).toBe('#654321');
     await toggleRuleEngine(page);
     await expect(page.locator('#category-home #sponsorSkipOption select')).toHaveValue('manualSkip');
     await expect(page.locator('#category-home #sponsorColorOption input')).toHaveValue('#123456');

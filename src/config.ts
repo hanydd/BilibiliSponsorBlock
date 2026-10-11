@@ -18,6 +18,7 @@ import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
 import { getMigratedMirrorServerAddresses } from "./config/serverConfig";
 import { migrateSkipRulesRollout, SkipRulesRollout, SkipRulesNotice } from "./config/skipRulesRollout";
 import { migrateCategorySelections } from "./config/categoryConfig";
+import { decodeBarColors, encodeBarColors, decodeDynamicSponsorColors, encodeDynamicSponsorColors, RuntimeColors } from "./config/categoryColors";
 import { HashedValue } from "./utils/hash";
 import {
     DynamicSponsorRegexRule,
@@ -223,14 +224,28 @@ interface SBStorage {
 }
 
 class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
+    protected normalizeSyncValue(key: string, value: unknown): unknown {
+        if (value === undefined) return value;
+        if (key === "barTypes") return decodeBarColors(value, this.syncDefaults.barTypes);
+        if (key === "dynamicSponsorTypes") return decodeDynamicSponsorColors(value, this.syncDefaults.dynamicSponsorTypes);
+        return value;
+    }
+
+    protected serializeSyncValue(key: string, value: unknown): unknown {
+        if (value === undefined) return value;
+        if (key === "barTypes") return encodeBarColors(value as RuntimeColors);
+        if (key === "dynamicSponsorTypes") return encodeDynamicSponsorColors(value as RuntimeColors);
+        return value;
+    }
+
     resetToDefault() {
-        chrome.storage.sync.set({
+        chrome.storage.sync.set(this.syncStorageValues({
             ...this.syncDefaults,
             userID: this.config.userID,
             minutesSaved: this.config.minutesSaved,
             skipCount: this.config.skipCount,
             sponsorTimesContributed: this.config.sponsorTimesContributed,
-        });
+        }));
 
         chrome.storage.local.set({
             ...this.localDefaults,
