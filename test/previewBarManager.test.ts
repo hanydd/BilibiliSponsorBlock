@@ -6,20 +6,24 @@ import { PlayerUiLifecycle } from "../src/content/playerUiLifecycle";
 import { EventBus } from "../src/content/app/eventBus";
 import { CONTENT_EVENTS } from "../src/content/app/events";
 import type { ContentEventMap } from "../src/content/app/types";
+import { ActionType, Category, SponsorSourceType } from "../src/types";
 
 const mockState = { previewBar: null, selectedSegment: null, lastPreviewBarUpdate: null };
+let mockVideoID: string | null = "BV1test+123";
 const mockApp = {
     ui: { getState: () => mockState, patchState: (patch) => Object.assign(mockState, patch) },
     commands: { execute: jest.fn(), register: jest.fn() }, bus: new EventBus<ContentEventMap>(),
 };
 jest.mock("../src/content/app", () => ({ getContentApp: () => mockApp }));
 jest.mock("../src/content/state", () => ({ contentState: { sponsorTimes: [], sponsorTimesSubmitting: [] } }));
-jest.mock("../src/config", () => ({ __esModule: true, default: { config: { barTypes: {} } } }));
-jest.mock("../src/utils", () => ({ __esModule: true, default: class {} }));
+jest.mock("../src/config", () => ({ __esModule: true, default: { config: { barTypes: {}, showTimeWithSkips: true } } }));
+jest.mock("../src/utils", () => ({ __esModule: true, default: class {
+    getTimestampsDuration(ranges: number[][]) { return ranges.reduce((sum, [start, end]) => sum + end - start, 0); }
+} }));
 jest.mock("../src/utils/categoryUtils", () => ({ shortCategoryName: () => "Sponsor" }));
 jest.mock("../src/utils/logger", () => ({ logUiLifecycle: jest.fn() }));
 jest.mock("../src/utils/video", () => ({
-    getVideo: () => document.querySelector("#bilibili-player video"), getVideoID: () => "BV1test+123",
+    getVideo: () => document.querySelector("#bilibili-player video"), getVideoID: () => mockVideoID,
 }));
 jest.mock("../src/content/playerUi", () => ({
     isPlayerUiReady: () => true,
@@ -27,6 +31,7 @@ jest.mock("../src/content/playerUi", () => ({
 jest.mock("../src/render/ChapterVote", () => ({ ChapterVote: class { setVisibility() {} } }));
 
 beforeEach(() => {
+    mockVideoID = "BV1test+123";
     mockApp.bus = new EventBus<ContentEventMap>();
     document.body.innerHTML = `<div class="v-recommend-inline-player"><div class="bpx-player-progress"></div></div>
         <div id="bilibili-player"><div class="bpx-player-container">
@@ -54,6 +59,52 @@ test("mounts in the active player's timeline even when an overlay covers it", ()
     expect(getPreviewBar()).not.toBeNull();
     expect(document.querySelector("#bilibili-player .bpx-player-progress #previewbar")).not.toBeNull();
     expect(document.querySelector(".v-recommend-inline-player #previewbar")).toBeNull();
+});
+
+test("restores the duration text after replacing a time control without redrawing marks", () => {
+    const player = document.querySelector(".bpx-player-container");
+    player.insertAdjacentHTML("beforeend", '<div class="bpx-player-ctrl-time"><span class="bpx-player-ctrl-time-label"></span></div>');
+    createPreviewBar(); registerPreviewBarManager();
+    const bar = getPreviewBar();
+    bar.set([{ segment: [20, 30], actionType: ActionType.Skip, category: "sponsor" as Category,
+        unsubmitted: false, showLarger: false, source: SponsorSourceType.Server }], 180);
+    const draw = jest.spyOn(bar, "set");
+    const old = player.querySelector(".bpx-player-ctrl-time");
+    const next = old.cloneNode(true) as HTMLElement;
+    old.replaceWith(next);
+    mockApp.bus.emit(CONTENT_EVENTS.PLAYER_UI_READY, { snapshot: {} as never });
+    expect(next.querySelector<HTMLElement>("#sponsorBlockDurationAfterSkips")?.innerText).toBe(" (2:50)");
+    expect(getPreviewBar()).toBe(bar);
+    expect(draw).not.toHaveBeenCalled();
+    // A route reset clears the drawing and its video stamp before new data arrives.
+    // The cached ranges must not recreate the previous video's duration text.
+    bar.clear(); mockState.lastPreviewBarUpdate = null; mockVideoID = null;
+    mockApp.bus.emit(CONTENT_EVENTS.PLAYER_UI_READY, { snapshot: {} as never });
+    expect(next.querySelector("#sponsorBlockDurationAfterSkips")).toBeNull();
+    expect(draw).not.toHaveBeenCalled();
+    draw.mockRestore();
+});
+
+test("attaches existing shadow marks when its optional host arrives or is replaced", async () => {
+    const player = document.querySelector(".bpx-player-container");
+    player.querySelector(".bpx-player-shadow-progress-area").remove();
+    createPreviewBar();
+    const bar = getPreviewBar(), draw = jest.spyOn(bar, "set");
+    for (let i = 0; i < 2; i++) {
+        const shadow = document.createElement("div");
+        shadow.className = "bpx-player-shadow-progress-area";
+        const old = player.querySelector(".bpx-player-shadow-progress-area");
+        if (old) old.replaceWith(shadow); else player.append(shadow);
+        await Promise.resolve();
+        expect(shadow.contains(bar.shadowContainer)).toBe(true);
+        checkPreviewbarState();
+        expect(getPreviewBar()).toBe(bar);
+        shadow.replaceChildren();
+        await Promise.resolve();
+        expect(shadow.contains(bar.shadowContainer)).toBe(true);
+    }
+    expect(draw).not.toHaveBeenCalled();
+    draw.mockRestore();
 });
 
 test("keeps colors when floating player layers obscure the video area", async () => {

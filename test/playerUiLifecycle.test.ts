@@ -51,6 +51,34 @@ test("short waiter deadlines do not cancel other consumers or lose late subscrib
     expect(ready).toHaveBeenCalledTimes(1);
 });
 
+test("releases new waiters when readiness recovers before the next check, without republishing ready", async () => {
+    lifecycle.requestCheck(); await settle();
+    state.hidden = true;
+    const resolved = jest.fn();
+    const timed = lifecycle.wait(500).then(resolved, error => resolved(error.message));
+    const untimed = lifecycle.wait().then(resolved, () => undefined);
+    await jest.advanceTimersByTimeAsync(25);
+    state.hidden = false;
+    await jest.advanceTimersByTimeAsync(50);
+    expect(resolved).toHaveBeenCalledTimes(2);
+    expect(resolved).toHaveBeenNthCalledWith(1, state);
+    expect(resolved).toHaveBeenNthCalledWith(2, state);
+    await Promise.all([timed, untimed]);
+    expect(ready).toHaveBeenCalledTimes(1);
+    expect(invalidated).not.toHaveBeenCalled();
+});
+
+test("does not release waiters if a ready handler synchronously resets the route", async () => {
+    const resolved = jest.fn();
+    ready.mockImplementationOnce(() => { state.pageLoaded = false; lifecycle.refresh(); });
+    const waiting = lifecycle.wait().then(resolved);
+    await settle();
+    expect(resolved).not.toHaveBeenCalled();
+    state.pageLoaded = true; lifecycle.requestCheck(); await settle();
+    await waiting;
+    expect(resolved).toHaveBeenCalledTimes(1);
+});
+
 test("publishes timeline changes without remounting controls or reacting to its own DOM updates", async () => {
     lifecycle.requestCheck(); await settle();
     for (let i = 0; i < 5; i++) { lifecycle.requestCheck(); await settle(); }

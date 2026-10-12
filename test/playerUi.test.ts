@@ -1,14 +1,11 @@
 /** @jest-environment jsdom */
-import { isPlayerUiReady, PlayerUIReadySnapshot } from "../src/content/playerUi";
+import { capturePlayerUiReadySnapshot, isPlayerUiReady, PlayerUIReadySnapshot } from "../src/content/playerUi";
+import { getVideo } from "../src/utils/video";
 
 jest.mock("../src/utils/video", () => ({ getVideo: jest.fn() }));
 jest.mock("../src/content/state", () => ({ getPageLoaded: jest.fn() }));
 jest.mock("../src/utils/logger", () => ({
     logUiLifecycle: jest.fn(), describeElement: jest.fn(), describeVideo: jest.fn(),
-}));
-jest.mock("../src/utils/pageUtils", () => ({
-    ...jest.requireActual("../src/utils/pageUtils"),
-    getControls: jest.fn(), getLeftControls: jest.fn(), getProgressBar: jest.fn(),
 }));
 
 afterEach(() => {
@@ -42,4 +39,21 @@ test("rejects detached controls even if their old geometry is still available", 
     const state = snapshot();
     state.rightControls.remove();
     expect(isPlayerUiReady(state)).toBe(false);
+});
+
+test("captures the video once and reads every host from the same root without rescanning the document", () => {
+    document.body.innerHTML = '<div class="bpx-player-container"><video></video>' +
+        '<div class="bpx-player-control-bottom-left"><span class="bpx-player-ctrl-time"></span></div>' +
+        '<div class="bpx-player-control-bottom-right"></div><div class="bpx-player-progress-schedule"></div>' +
+        '<div class="v-recommend-inline-player"><div class="bpx-player-control-bottom-right"></div></div></div>';
+    jest.mocked(getVideo).mockReturnValue(document.querySelector("video"));
+    const scan = jest.spyOn(document, "querySelectorAll");
+    const captured = capturePlayerUiReadySnapshot();
+    expect(getVideo).toHaveBeenCalledTimes(1);
+    expect(scan).not.toHaveBeenCalled();
+    expect(captured.leftControls).toBe(document.querySelector(".bpx-player-control-bottom-left"));
+    expect(captured.timeControl).toBe(captured.leftControls.firstElementChild);
+    expect(captured.rightControls).toBe(document.querySelector(".bpx-player-control-bottom-right"));
+    expect(captured.progressBar).toBe(document.querySelector(".bpx-player-progress-schedule"));
+    scan.mockRestore();
 });

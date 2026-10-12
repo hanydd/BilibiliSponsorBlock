@@ -78,8 +78,10 @@ export class PlayerUiLifecycle {
             this.options.ready(snapshot);
             // Handlers can synchronously reset the route/host. Do not resolve old waiters.
             if (this.current !== snapshot) return;
-            for (const waiter of this.waiters) waiter.resolve(snapshot);
         }
+        // A waiter can arrive during a brief readiness loss that recovers
+        // before this check. The host needs no new ready event in that case.
+        for (const waiter of this.waiters) waiter.resolve(snapshot);
     }
 
     wait(timeout?: number): Promise<PlayerUIReadySnapshot> {

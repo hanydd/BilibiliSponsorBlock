@@ -2,7 +2,7 @@ import Config from "../config";
 import PreviewBar, { PreviewBarSegment } from "../js-components/previewBar";
 import { VoteResponse } from "../messageTypes";
 import { ChapterVote } from "../render/ChapterVote";
-import { ActionType, BVID, Category, SegmentUUID, SponsorHideType } from "../types";
+import { ActionType, Category, SegmentUUID, SponsorHideType } from "../types";
 import Utils from "../utils";
 import { getPlayerContainer, isVisible } from "../utils/pageUtils";
 import { getFormattedTime } from "../utils/formating";
@@ -52,7 +52,7 @@ export function registerPreviewBarManager(): void {
 
     app.bus.on(CONTENT_EVENTS.PLAYER_UI_READY, () => {
         checkPreviewbarState();
-        createPreviewBar();
+        if (getPreviewBar()) updateDurationAfterSkips(); else createPreviewBar();
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_UI_INVALIDATED, () => checkPreviewbarState());
     app.bus.on(CONTENT_EVENTS.PLAYER_TIMELINE_CHANGED, () => {
@@ -161,27 +161,24 @@ export function updatePreviewBar(): void {
     });
     if (getVideo()) updateActiveSegment(getVideo().currentTime);
 
+    app.ui.patchState({ lastPreviewBarUpdate: getVideoID() });
+    updateDurationAfterSkips();
+}
+
+function updateDurationAfterSkips(): void {
     removeDurationAfterSkip();
-    if (Config.config.showTimeWithSkips) {
-        const skippedDuration = utils.getTimestampsDuration(
-            previewBarSegments.filter(({ actionType }) => actionType === ActionType.Skip)
-                .map(({ segment }) => [Math.max(0, segment[0]), Math.min(playerDuration, segment[1])])
-                .filter(([start, end]) => end > start)
-        );
-
-        showTimeWithoutSkips(skippedDuration);
-    }
-
-    app.ui.patchState({ lastPreviewBarUpdate: getVideoID() as BVID });
+    const bar = getPreviewBar();
+    if (!bar || !Config.config.showTimeWithSkips || !getLastPreviewBarUpdate() || getLastPreviewBarUpdate() !== getVideoID()) return;
+    const ranges = bar.segments.filter(({ actionType }) => actionType === ActionType.Skip)
+        .map(({ segment }) => segment).filter(([start, end]) => end > start);
+    showTimeWithoutSkips(utils.getTimestampsDuration(ranges));
 }
 
 export function checkPreviewbarState(): void {
     const app = getContentApp();
     const { previewBar } = app.ui.getState();
     if (previewBar && (!previewBar.container.isConnected ||
-        !getPlayerContainer()?.contains(previewBar.container) ||
-        (previewBar.shadowParent && (!previewBar.shadowContainer.isConnected ||
-            previewBar.shadowParent !== getPlayerContainer()?.querySelector(".bpx-player-shadow-progress-area"))))) {
+        !getPlayerContainer()?.contains(previewBar.container))) {
         logUiLifecycle("previewBar", "detach", {
             action: "hostRemoved",
             container: previewBar.container,

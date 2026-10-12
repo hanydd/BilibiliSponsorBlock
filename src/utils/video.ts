@@ -7,6 +7,7 @@ import { BVID, CID, NewVideoID, PageType } from "../types";
 import { waitFor } from "./";
 import { addCleanupListener, setupCleanupListener } from "./cleanup";
 import { isVisible, waitForElement } from "./dom";
+import { getActivePlayerVideo } from "./pageUtils";
 import { getPropertyFromWindow } from "./injectedScriptMessageUtils";
 import { logUiLifecycle } from "./logger";
 import { getBilibiliVideoID } from "./parseVideoID";
@@ -25,8 +26,6 @@ export interface ChannelIDInfo {
 }
 
 const embedTitleSelector = "h1.video-title";
-// Bilibili prepends a buffering video before handing playback over to it.
-const activeVideoSelector = "#bilibili-player video:not(.bpx-player-seamless-replacement)";
 
 let video: HTMLVideoElement | null = null;
 let videoMutationObserver: MutationObserver | null = null;
@@ -65,9 +64,7 @@ export function setupVideoModule() {
         url: window.location.href,
     });
 
-    // Direct Links after the config is loaded
-    void waitFor(() => Config.isReady(), 1000, 1)
-        .then(() => handleRouteChange(document.URL, "utils/video.setupVideoModule"));
+    void handleRouteChange(document.URL, "utils/video.setupVideoModule");
 
     // TODO: Add support for embed iframe videos
 
@@ -92,12 +89,10 @@ export function setupVideoModule() {
         });
     }
     // Record availability of Navigation API
-    void waitFor(() => Config.local !== null).then(() => {
-        if (Config.local!.navigationApiAvailable !== navigationApiAvailable) {
-            Config.local!.navigationApiAvailable = navigationApiAvailable;
-            Config.forceLocalUpdate("navigationApiAvailable");
-        }
-    });
+    if (Config.local!.navigationApiAvailable !== navigationApiAvailable) {
+        Config.local!.navigationApiAvailable = navigationApiAvailable;
+        Config.forceLocalUpdate("navigationApiAvailable");
+    }
 
     setupVideoMutationListener();
 
@@ -192,7 +187,8 @@ async function videoIDChange(id: NewVideoID | null, options: VideoIDChangeOption
     if (!id) return true;
 
     // Wait for options to be ready
-    await waitFor(() => Config.isReady(), 5000, 1);
+    await Config.ready;
+    if (videoID !== id) return true;
 
     // Update whitelist data when the video data is loaded
     void whitelistCheck();
@@ -408,7 +404,7 @@ let embedLastUrl = "";
 let waitingForEmbed = false;
 
 async function refreshVideoAttachments(trigger = "unknown"): Promise<void> {
-    const newVideo = document.querySelector<HTMLVideoElement>(activeVideoSelector);
+    const newVideo = getActivePlayerVideo();
     if (!newVideo || video === newVideo) return;
 
     video = newVideo;
@@ -520,7 +516,7 @@ export async function updateFrameRate(): Promise<number> {
 
 export function getVideo(): HTMLVideoElement | null {
     // Non-playback pages must not create media waiters or request player properties.
-    const currentVideo = document.querySelector<HTMLVideoElement>(activeVideoSelector);
+    const currentVideo = getActivePlayerVideo();
     if (!currentVideo) return null;
 
     setupVideoMutationListener();

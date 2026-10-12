@@ -8,12 +8,14 @@ import { PageType } from "../src/types";
 describe("video page type state", () => {
     let parsedVideoID: string | null;
     let parseVideoIDFromUrl: boolean;
+    let configReady: Promise<void>;
 
     beforeEach(() => {
         jest.resetModules();
         window.history.replaceState(null, "", "https://www.bilibili.com/video/BV1xx411c7mD/");
         parsedVideoID = "BV1xx411c7mD+12345";
         parseVideoIDFromUrl = false;
+        configReady = Promise.resolve();
 
         (global as unknown as { chrome: typeof chrome }).chrome = {
             runtime: {
@@ -26,7 +28,7 @@ describe("video page type state", () => {
         jest.doMock("../src/config", () => ({
             __esModule: true,
             default: {
-                isReady: jest.fn(() => true),
+                get ready() { return configReady; },
                 local: {},
                 forceLocalUpdate: jest.fn(),
             },
@@ -63,6 +65,28 @@ describe("video page type state", () => {
         await checkVideoIDChange();
 
         expect(getPageType()).toBe(PageType.Video);
+    });
+
+    test("uses config readiness without a timeout and discards a superseded video ID", async () => {
+        jest.useFakeTimers();
+        let release: () => void;
+        configReady = new Promise(resolve => { release = resolve; });
+        const { createContentApp } = await import("../src/content/app");
+        const { CONTENT_EVENTS } = await import("../src/content/app/events");
+        const { checkVideoIDChange, getVideoID } = await import("../src/utils/video");
+        const app = createContentApp(), changes = jest.fn();
+        app.bus.on(CONTENT_EVENTS.VIDEO_ID_CHANGED, changes);
+        const first = checkVideoIDChange();
+        await jest.advanceTimersByTimeAsync(40000);
+        expect(changes).not.toHaveBeenCalled();
+        parsedVideoID = "BV1xx411c7mD+54321";
+        const second = checkVideoIDChange();
+        await jest.advanceTimersByTimeAsync(0);
+        release(); await Promise.all([first, second]);
+        expect(getVideoID()).toBe(parsedVideoID);
+        expect(changes).toHaveBeenCalledTimes(1);
+        expect(changes).toHaveBeenCalledWith({ videoID: parsedVideoID }, expect.anything());
+        jest.useRealTimers();
     });
 
     test("keeps video context when video ID parsing temporarily fails on a video page", async () => {

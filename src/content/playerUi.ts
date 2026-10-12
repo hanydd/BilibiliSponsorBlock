@@ -4,7 +4,7 @@ import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
 import { PlayerUiLifecycle } from "./playerUiLifecycle";
 import { describeElement, describeVideo, logUiLifecycle } from "../utils/logger";
-import { getControls, getLeftControls, getProgressBar, isVisible } from "../utils/pageUtils";
+import { getControls, getLeftControls, getPlayerContainer, getProgressBar, isVisible } from "../utils/pageUtils";
 import { getVideo } from "../utils/video";
 import { getPageLoaded } from "./state";
 
@@ -36,15 +36,17 @@ function hasUsableVideo(video: HTMLVideoElement | null): boolean {
 }
 
 export function capturePlayerUiReadySnapshot(): PlayerUIReadySnapshot {
-    const leftControls = getLeftControls();
+    const video = getVideo();
+    const player = getPlayerContainer(video);
+    const leftControls = getLeftControls(player);
     return {
         hidden: document.hidden,
         pageLoaded: getPageLoaded(),
         leftControls,
         timeControl: leftControls?.querySelector<HTMLElement>(".bpx-player-ctrl-time") ?? null,
-        rightControls: getControls(),
-        progressBar: getProgressBar(),
-        video: getVideo(),
+        rightControls: getControls(player),
+        progressBar: getProgressBar(player),
+        video,
     };
 }
 

@@ -1,5 +1,5 @@
 /** @jest-environment jsdom */
-import { getControls, getLeftControls, getPlayerContainer, getProgressBar } from "../src/utils/pageUtils";
+import { getActivePlayerVideo, getControls, getLeftControls, getPlayerContainer, getProgressBar } from "../src/utils/pageUtils";
 
 afterEach(() => document.body.replaceChildren());
 
@@ -38,4 +38,16 @@ test("ignores a video prepared for seamless replacement", () => {
         <div class="bpx-player-container" id="replacement"><video class="bpx-player-seamless-replacement"></video></div>
         <div class="bpx-player-container" id="active"><video></video></div></div>`;
     expect(getPlayerContainer()?.id).toBe("active");
+});
+
+test("shares video selection rules for nested previews, prepared videos, and control ownership", () => {
+    document.body.innerHTML = '<div id="bilibili-player">' +
+        '<div class="v-recommend-inline-player"><video></video></div>' +
+        '<div class="bpx-player-container"><video class="bpx-player-seamless-replacement"></video></div>' +
+        '<div class="bpx-player-container" id="active"><video id="video"></video>' +
+        '<div class="bpx-player-control-bottom-right" id="controls"></div></div></div>';
+    const video = getActivePlayerVideo(), root = getPlayerContainer(video);
+    expect(video.id).toBe("video");
+    expect(root.id).toBe("active");
+    expect(getControls(root).id).toBe("controls");
 });

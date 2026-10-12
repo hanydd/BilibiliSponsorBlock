@@ -142,7 +142,7 @@ async function resolveThumbnailContainer(
 function waitForThumbnailReady(): Promise<boolean> {
     thumbnailReady ??= Promise.all([
         waitForPageReady(),
-        waitFor(() => Config.isReady(), 35000, 100),
+        Config.ready,
     ])
         .then(() => true)
         .catch(() => false);

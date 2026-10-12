@@ -13,7 +13,6 @@ import { StorageChangesObject } from "../../config/config";
 import { VoteResponse } from "../../messageTypes";
 import { FetchResponse } from "../../requests/type/requestType";
 import {
-    BVID,
     Category,
     ChannelIDInfo,
     NewVideoID,
@@ -57,7 +56,7 @@ export interface ContentUIRegistryState {
     categoryPill: CategoryPill | null;
     previewBar: PreviewBar | null;
     selectedSegment: SegmentUUID | null;
-    lastPreviewBarUpdate: BVID | null;
+    lastPreviewBarUpdate: NewVideoID | null;
 }
 
 export interface LastKnownVideoTimeState {

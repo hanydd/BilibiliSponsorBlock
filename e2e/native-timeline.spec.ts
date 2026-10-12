@@ -43,6 +43,46 @@ test("follows a trial-sized or full native axis and clips marks when only the na
     await expect(page.locator("#bsbPlayerButtonContainer")).toHaveCount(1);
     await expect(page.locator("#shadowPreviewbar > li")).toHaveCount(2);
     expect(await page.locator("video").first().evaluate((video: HTMLVideoElement) => video.duration)).toBe(120);
+    const point = await page.locator('#previewbar [sponsorblock-category="poi_highlight"]').elementHandle();
+    await page.locator(".bpx-player-ctrl-time").evaluate((time: HTMLElement) => {
+        const replacement = time.cloneNode(true) as HTMLElement;
+        replacement.querySelector("#sponsorBlockDurationAfterSkips").remove();
+        time.replaceWith(replacement);
+    });
+    await expect(page.locator("#sponsorBlockDurationAfterSkips")).toHaveText(" (0:50)");
+    // Restoring time text must preserve the rendered segment nodes.
+    expect(await point.evaluate(node => node.isConnected)).toBe(true);
+});
+
+test("attaches a late or replaced shadow host while controls stay collapsed", async ({
+    extensionPage: page, extensionContext, extensionServiceWorker, sendContentMessage,
+}) => {
+    await writeSyncStorage(extensionServiceWorker, { autoHideInfoButton: false });
+    await routeMockBilibiliVideoPage(page, { vueHydrationDelayMs: 2000 });
+    await routeMockSponsorSegments(extensionContext, defaultMockBvid, [{
+        segment: [30, 30], actionType: "poi", category: "poi_highlight", cid: defaultMockCid,
+        UUID: "1".repeat(64), videoDuration: 120,
+    }]);
+    await page.goto(`https://www.bilibili.com/video/${defaultMockBvid}/`, { waitUntil: "domcontentloaded" });
+    await page.locator(".bpx-player-shadow-progress-area").evaluate(node => node.remove());
+    await waitForBilibiliContentScript(page, sendContentMessage);
+    await sendContentMessage({ message: "refreshSegments" });
+    const point = await page.locator('#previewbar [sponsorblock-category="poi_highlight"]').elementHandle();
+    await expect(page.locator("#shadowPreviewbar")).toHaveCount(0);
+    await page.locator(".bpx-player-control-bottom-right").evaluate((node: HTMLElement) => { node.style.display = "none"; });
+    await page.waitForTimeout(250);
+    for (let i = 0; i < 2; i++) {
+        await page.locator(".bpx-player-video-area").evaluate(node => {
+            const shadow = document.createElement("div");
+            shadow.className = "bpx-player-shadow-progress-area";
+            const old = node.querySelector(".bpx-player-shadow-progress-area");
+            if (old) old.replaceWith(shadow); else node.append(shadow);
+        });
+        await expect(page.locator('#shadowPreviewbar [sponsorblock-category="poi_highlight"]')).toHaveCount(1);
+        expect(await point.evaluate(node => node.isConnected)).toBe(true);
+        await expect(page.locator("#previewbar")).toHaveCount(1);
+        await expect(page.locator(".bpx-player-control-bottom-right")).toBeHidden();
+    }
 });
 
 test("updates shadow marks while controls are hidden, for native labels and media duration", async ({
