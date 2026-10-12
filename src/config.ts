@@ -29,7 +29,6 @@ interface SBConfig {
     isVip: boolean;
     permissions: Partial<Record<Category, Permission | boolean>>;
     paddingCategoryMigrated: boolean;
-    jumpscareCategoryMigrated: boolean;
     defaultCategory: Category;
     renderSegmentsAsChapters: boolean;
     whitelistedChannels: WhitelistedChannel[];
@@ -315,7 +314,6 @@ const syncDefaults = {
     isVip: false,
     permissions: {},
     paddingCategoryMigrated: false,
-    jumpscareCategoryMigrated: false,
     defaultCategory: "chooseACategory" as Category,
     renderSegmentsAsChapters: false,
     whitelistedChannels: [],
@@ -443,7 +441,7 @@ const syncDefaults = {
     closeSkipNoticeKeybind: { key: "Backspace" },
 
     categorySelections: [
-        { name: "jumpscare" as Category, option: CategorySkipOption.AutoMute },
+        { name: "jumpscare" as Category, option: CategorySkipOption.AutoSkip },
         {
             name: "filler" as Category,
             option: CategorySkipOption.Disabled,

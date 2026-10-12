@@ -21,7 +21,6 @@ export interface RuleSegment {
     hidden?: boolean;
     externalSource?: boolean;
     draft?: boolean;
-    protectiveMute?: boolean;
     policyTrace?: readonly RuleTrace[];
 }
 export type CardPhase = 'preview' | 'pending' | 'speeding' | 'speed-paused' | 'muted' | 'completed';
@@ -46,7 +45,6 @@ export interface Visit {
     excluded?: 'dismiss' | 'cancel' | 'undo' | 'pause-speed' | 'user-rate';
     /** An explicit action on this visit can override protection from another segment. */
     overlapOverride?: boolean;
-    hiddenNotice?: boolean;
     phase?: CardPhase;
     start: number;
     end: number;

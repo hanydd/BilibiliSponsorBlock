@@ -505,9 +505,8 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         }
 
         const sponsorTime = this.props.contentContainer().sponsorTimesSubmitting[this.props.index];
-        const nextAction = chosenCategory === "jumpscare" && sponsorTime.category !== chosenCategory ? ActionType.Mute : sponsorTime.actionType;
-        this.handleReplacingLostTimes(chosenCategory, nextAction, sponsorTime);
-        this.saveEditTimes(nextAction);
+        this.handleReplacingLostTimes(chosenCategory, sponsorTime.actionType, sponsorTime);
+        this.saveEditTimes();
 
         if (this.props.categoryChangeListener) {
             this.props.categoryChangeListener(this.props.index, chosenCategory);

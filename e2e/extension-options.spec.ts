@@ -558,16 +558,16 @@ test('persists independent rule-engine resume preferences', async ({ extensionId
     await expect(extensionPage.locator('[data-rule-setting="speedUpResumeAction"]')).toHaveValue('manual');
 });
 
-test('jumpscare defaults, colors and all five saved choices', async ({ extensionId, extensionPage: page, extensionServiceWorker }) => {
+test('jumpscare defaults, colors and all four saved choices', async ({ extensionId, extensionPage: page, extensionServiceWorker }) => {
     await openOptions(page, extensionId);
     const select = page.locator('#jumpscareSkipOption select');
-    await expect(select).toHaveValue('autoMute');
-    await expect(select.locator('option')).toHaveCount(5);
+    await expect(select).toHaveValue('autoSkip');
+    await expect(select.locator('option')).toHaveCount(4);
     await expect(page.locator('#jumpscareColorOption input')).toHaveValue('#e53935');
     await expect(page.locator('#jumpscarePreviewColorOption input')).toHaveValue('#8e2424');
     await page.locator('#jumpscareOptionsRow').scrollIntoViewIfNeeded();
     await page.screenshot({ path: 'tmp/jumpscare-options.png' });
-    for (const [name, value] of [['disable', -1], ['showOverlay', 0], ['manualSkip', 1], ['autoSkip', 2], ['autoMute', 3]] as const) {
+    for (const [name, value] of [['disable', -1], ['showOverlay', 0], ['manualSkip', 1], ['autoSkip', 2]] as const) {
         await select.selectOption(name);
         await expect.poll(async () => (await readSyncStorage<any[]>(extensionServiceWorker, 'categorySelections'))?.find(s => s.name === 'jumpscare')?.option).toBe(value);
         await page.reload(); await expect(select).toHaveValue(name);

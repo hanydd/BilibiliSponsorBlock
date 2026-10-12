@@ -26,7 +26,6 @@ export enum CategorySkipOption {
     ShowOverlay,
     ManualSkip,
     AutoSkip,
-    AutoMute,
 }
 
 export interface CategorySelection {

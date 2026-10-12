@@ -2674,11 +2674,5 @@
     },
     "category_jumpscare_guideline2": {
         "message": "不要将整段恐怖题材视频笼统标记为惊吓片段。"
-    },
-    "autoMute": {
-        "message": "自动静音并手动跳过"
-    },
-    "restoreSound": {
-        "message": "恢复声音"
     }
 }

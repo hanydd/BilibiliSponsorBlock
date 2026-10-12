@@ -11,7 +11,7 @@ test('ambiguous old padding is upgraded once; other absent categories retain the
     migrateCategorySelections(config, categories);
     expect(optionFor(config, 'padding')).toBe(CategorySkipOption.AutoSkip);
     expect(optionFor(config, 'sponsor')).toBe(CategorySkipOption.ManualSkip);
-    for (const category of categories.filter(c => !['padding', 'sponsor', 'jumpscare'].includes(c))) expect(optionFor(config, category)).toBe(CategorySkipOption.Disabled);
+    for (const category of categories.filter(c => !['padding', 'sponsor'].includes(c))) expect(optionFor(config, category)).toBe(CategorySkipOption.Disabled);
     expect(original).toHaveLength(1);
     const migrated = config.categorySelections;
     migrateCategorySelections(config, categories);
@@ -49,15 +49,3 @@ test('only configured, non-disabled categories participate in playback, labels a
         expect(isCategoryEnabled({ name: 'sponsor' as Category, option })).toBe(option !== CategorySkipOption.Disabled);
     }
 });
-
- test('jumpscare defaults migrate once and explicit disable survives', () => {
-    const config = { categorySelections: [] as CategorySelection[], paddingCategoryMigrated: true, jumpscareCategoryMigrated: false };
-    migrateCategorySelections(config, categories);
-    expect(optionFor(config, 'jumpscare')).toBe(CategorySkipOption.AutoMute);
-    const choices = config.categorySelections;
-    migrateCategorySelections(config, categories);
-    expect(config.categorySelections).toBe(choices);
-    config.categorySelections = setCategorySelection(choices, 'jumpscare' as Category, CategorySkipOption.Disabled);
-    migrateCategorySelections(config, categories);
-    expect(optionFor(config, 'jumpscare')).toBe(CategorySkipOption.Disabled);
- });
