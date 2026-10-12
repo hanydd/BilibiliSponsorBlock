@@ -2,11 +2,11 @@
 import * as React from "react";
 import { act } from "react";
 import { CategoryPill } from "../src/render/CategoryPill";
-import { getPageLoaded } from "../src/content/state";
+import { waitForPageReady } from "../src/content/pageReadiness";
 import { ActionType, SponsorTime } from "../src/types";
 
 jest.mock("../src/config", () => ({ __esModule: true, default: { config: {} } }));
-jest.mock("../src/content/state", () => ({ getPageLoaded: jest.fn(() => true) }));
+jest.mock("../src/content/pageReadiness", () => ({ waitForPageReady: jest.fn(() => Promise.resolve()) }));
 jest.mock("../src/utils/logger", () => ({ logUiLifecycle: jest.fn() }));
 jest.mock("../src/utils/cleanup", () => ({ addCleanupListener: jest.fn() }));
 jest.mock("../src/components/CategoryPillComponent", () => {
@@ -26,7 +26,7 @@ const title = () => document.querySelector("h1");
 
 beforeEach(() => {
     Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
-    jest.mocked(getPageLoaded).mockReturnValue(true);
+    jest.mocked(waitForPageReady).mockResolvedValue(undefined);
     document.body.innerHTML = '<div class="video-info-container"><h1>Video A</h1></div>';
     pill = new CategoryPill();
 });
@@ -73,7 +73,11 @@ test("can reapply the same cached segment immediately after reset", async () => 
 
 test("waits for initial hydration and mounts the latest state even if title appears later", async () => {
     jest.useFakeTimers();
-    jest.mocked(getPageLoaded).mockReturnValue(false);
+    let resolvePage: () => void;
+    jest.mocked(waitForPageReady).mockImplementation((_timeout, signal) => new Promise((resolve, reject) => {
+        resolvePage = resolve;
+        signal?.addEventListener("abort", () => reject(new Error("cancelled")));
+    }));
     document.body.innerHTML = "";
     const attaching = pill.attachToPage(jest.fn());
     await pill.setSegment(segment());
@@ -82,7 +86,7 @@ test("waits for initial hydration and mounts the latest state even if title appe
     expect(pill.container).toBeUndefined();
     pill.resetSegment();
     await pill.setSegment(segment("selfpromo"));
-    jest.mocked(getPageLoaded).mockReturnValue(true);
+    resolvePage();
     await flush(async () => { await jest.advanceTimersByTimeAsync(100); await attaching; });
     await flush(() => { document.body.innerHTML = '<div class="video-info-container"><h1>Latest</h1></div>'; });
     expect(pill.container.textContent).toBe("selfpromo");
@@ -101,7 +105,11 @@ test("concurrent setup is idempotent and cleanup stops pending work and mutation
 
 test("closing before hydration cannot resurrect the pill", async () => {
     jest.useFakeTimers();
-    jest.mocked(getPageLoaded).mockReturnValue(false);
+    let resolvePage: () => void;
+    jest.mocked(waitForPageReady).mockImplementation((_timeout, signal) => new Promise((resolve, reject) => {
+        resolvePage = resolve;
+        signal?.addEventListener("abort", () => reject(new Error("cancelled")));
+    }));
     const attaching = pill.attachToPage(jest.fn());
     pill.close();
     await flush(async () => { await jest.advanceTimersByTimeAsync(100); await attaching; });

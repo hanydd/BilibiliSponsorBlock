@@ -78,3 +78,54 @@ test("records and edits a segment with the default keyboard shortcuts", async ({
     await expect(extensionPage.locator("#submissionNoticeContainer")).toHaveCount(1);
     await closeSubmissionNotice(extensionPage);
 });
+
+test("restores controls and timeline when native player rewrites hosts without changing video", async ({ extensionPage }) => {
+    await expect(extensionPage.locator("#previewbar")).toHaveCount(1);
+    await extensionPage.evaluate(() => {
+        const video = document.querySelector("#bilibili-player video");
+        video.setAttribute("data-e2e-retained-video", "true");
+        for (const selector of [".bpx-player-control-bottom-left", ".bpx-player-control-bottom-right", ".bpx-player-progress", ".bpx-player-shadow-progress-area"]) {
+            const host = document.querySelector(`#bilibili-player ${selector}`);
+            const native = host.cloneNode(true) as HTMLElement;
+            native.querySelectorAll("#bsbPlayerButtonContainer, .skipButtonControlBarContainer, #previewbar, #shadowPreviewbar, #sponsorBlockDurationAfterSkips").forEach((node) => node.remove());
+            host.replaceChildren(...Array.from(native.childNodes));
+        }
+    });
+    await expect(extensionPage.locator("#bsbPlayerButtonContainer")).toHaveCount(1);
+    await expect(extensionPage.locator("#startSegmentButton")).toBeVisible();
+    await expect(extensionPage.locator(".skipButtonControlBarContainer")).toHaveCount(1);
+    await expect(extensionPage.locator("#previewbar")).toHaveCount(1);
+    await expect(extensionPage.locator("#bilibili-player video")).toHaveAttribute("data-e2e-retained-video", "true");
+    // Leave enough time for MutationObserver-triggered work to reveal a feedback loop.
+    await extensionPage.waitForTimeout(1000);
+    await expect(extensionPage.locator("#bsbPlayerButtonContainer")).toHaveCount(1);
+    await expect(extensionPage.locator("#previewbar")).toHaveCount(1);
+});
+
+test("restores the legacy player's UI after rapid whole-player replacements", async ({
+    extensionPage: page, extensionServiceWorker,
+}) => {
+    await page.evaluate(async () => {
+        for (let generation = 1; generation <= 2; generation++) {
+            const player = document.querySelector("#bilibili-player");
+            const replacement = player.cloneNode(true) as HTMLElement;
+            replacement.querySelectorAll("#bsbPlayerButtonContainer, .skipButtonControlBarContainer, #previewbar, #shadowPreviewbar, #sponsorBlockDurationAfterSkips")
+                .forEach(node => node.remove());
+            replacement.dataset.e2eGeneration = String(generation);
+            player.replaceWith(replacement);
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    });
+    await expect(page.locator('#bilibili-player[data-e2e-generation="2"] #startSegmentButton')).toBeVisible();
+    await expect(page.locator("#bsbPlayerButtonContainer")).toHaveCount(1);
+    await expect(page.locator("#previewbar")).toHaveCount(1);
+    await expect(page.locator("#shadowPreviewbar")).toHaveCount(1);
+    await setMockVideoTime(page, 7);
+    await page.locator("#startSegmentButton").click();
+    await expect.poll(async () => {
+        const segments = await readLocalStorage<Record<string, Array<{ segment: number[] }>>>(
+            extensionServiceWorker, "unsubmittedSegments"
+        );
+        return segments?.[mockVideoId]?.[0]?.segment;
+    }).toEqual([7]);
+});

@@ -54,3 +54,21 @@ test("waits for Vue3 hydration before mounting into reconciled player controls",
     expect(playerReady).toBeGreaterThan(pageReady);
     expect(buttonsAttached).toBeGreaterThan(playerReady);
 });
+
+test("does not treat the 30-second deadline as hydration for a known SSR root", async ({
+    extensionPage, extensionServiceWorker, sendContentMessage,
+}) => {
+    test.setTimeout(90_000);
+    await writeSyncStorage(extensionServiceWorker, { autoHideInfoButton: false });
+    await routeMockBilibiliVideoPage(extensionPage, {
+        vueHydrationDelayMs: 34000, replacePlayerControlsOnHydration: true,
+    });
+    await extensionPage.goto(`https://www.bilibili.com/video/${defaultMockBvid}/`, { waitUntil: "domcontentloaded" });
+    await extensionPage.waitForTimeout(31000);
+    await expect(extensionPage.locator("#bsbPlayerButtonContainer")).toHaveCount(0);
+    const early = await getLifecycleLogs(sendContentMessage);
+    expect(findLifecycleIndex(early, "pageReady/ready")).toBe(-1);
+    await expect(extensionPage.locator("#startSegmentButton")).toBeVisible();
+    await expect(extensionPage.locator("#bsbPlayerButtonContainer").locator("..")).toHaveAttribute("data-e2e-generation", "hydrated");
+    await expect(extensionPage.locator("#previewbar")).toHaveCount(1);
+});

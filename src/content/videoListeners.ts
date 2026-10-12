@@ -1,6 +1,6 @@
 import Config from "../config";
 import { addCleanupListener } from "../utils/cleanup";
-import { getVideoID } from "../utils/video";
+import { getVideo, getVideoID } from "../utils/video";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
 import { danmakuForSkip } from "./danmakuSkip";
@@ -8,7 +8,22 @@ import { contentState } from "./state";
 
 let playbackRateCheckInterval: NodeJS.Timeout | null = null;
 let lastPlaybackSpeed = 1;
-let setupVideoListenersFirstTime = true;
+let boundVideo: HTMLVideoElement | null = null;
+let unbindVideo: (() => void) | null = null;
+let cleanupRegistered = false;
+
+export function registerVideoListeners(): void {
+    const off = getContentApp().bus.on(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, ({ video }) => {
+        if (!video) {
+            unbindVideo?.();
+            return;
+        }
+        // Content bootstrap already awaited Config.ready. Bind immediately so
+        // early media events cannot fall between discovery and registration.
+        if (video === getVideo()) setupVideoListeners(video);
+    });
+    addCleanupListener(off);
+}
 
 /**
  * Triggered every time the video duration changes.
@@ -22,7 +37,7 @@ export function durationChangeListener(event?: Event): void {
 }
 
 /**
- * Triggered once the video is ready.
+ * Triggered when a media source starts loading or its metadata becomes ready.
  * This is mainly to attach to embedded players who don't have a video element visible.
  */
 export function videoOnReadyListener(event?: Event): void {
@@ -33,19 +48,30 @@ export function videoOnReadyListener(event?: Event): void {
 }
 
 export function setupVideoListeners(video: HTMLVideoElement): void {
-    if (!video) return;
+    if (!video || boundVideo === video) return;
+    unbindVideo?.();
+    boundVideo = video;
+    const removers: Array<() => void> = [];
+    const listen = (type: string, listener: EventListener) => {
+        video.addEventListener(type, listener);
+        removers.push(() => video.removeEventListener(type, listener));
+    };
+    unbindVideo = () => {
+        removers.forEach((remove) => remove());
+        if (playbackRateCheckInterval) clearInterval(playbackRateCheckInterval);
+        playbackRateCheckInterval = null;
+        boundVideo = null;
+    };
+    if (!cleanupRegistered) {
+        cleanupRegistered = true;
+        addCleanupListener(() => unbindVideo?.());
+    }
 
     const app = getContentApp();
 
-    video.addEventListener("loadstart", videoOnReadyListener);
-    video.addEventListener("durationchange", durationChangeListener);
-
-    if (setupVideoListenersFirstTime) {
-        addCleanupListener(() => {
-            video.removeEventListener("loadstart", videoOnReadyListener);
-            video.removeEventListener("durationchange", durationChangeListener);
-        });
-    }
+    listen("loadstart", videoOnReadyListener);
+    listen("loadedmetadata", videoOnReadyListener);
+    listen("durationchange", durationChangeListener);
 
     if (!Config.config.disableSkipping) {
         danmakuForSkip();
@@ -55,15 +81,15 @@ export function setupVideoListeners(video: HTMLVideoElement): void {
         const rateChangeListener = () => {
             app.bus.emit(CONTENT_EVENTS.PLAYER_RATE_CHANGED, { video, playbackRate: video.playbackRate }, { source: "videoListeners.rateChange" });
         };
-        video.addEventListener("ratechange", rateChangeListener);
-        video.addEventListener("videoSpeed_ratechange", rateChangeListener);
+        listen("ratechange", rateChangeListener);
+        listen("videoSpeed_ratechange", rateChangeListener);
 
         const playListener = () => {
             if (video.readyState <= HTMLMediaElement.HAVE_CURRENT_DATA && video.currentTime === 0) return;
 
             app.bus.emit(CONTENT_EVENTS.PLAYER_PLAY, { video }, { source: "videoListeners.play" });
         };
-        video.addEventListener("play", playListener);
+        listen("play", playListener);
 
         const playingListener = () => {
             app.bus.emit(CONTENT_EVENTS.PLAYER_PLAYING, { video }, { source: "videoListeners.playing" });
@@ -86,12 +112,12 @@ export function setupVideoListeners(video: HTMLVideoElement): void {
                 }, 2000);
             }
         };
-        video.addEventListener("playing", playingListener);
+        listen("playing", playingListener);
 
         const seekingListener = () => {
             app.bus.emit(CONTENT_EVENTS.PLAYER_SEEKING, { video }, { source: "videoListeners.seeking" });
         };
-        video.addEventListener("seeking", seekingListener);
+        listen("seeking", seekingListener);
 
         const stoppedPlayback = () => {
             if (playbackRateCheckInterval) clearInterval(playbackRateCheckInterval);
@@ -101,30 +127,15 @@ export function setupVideoListeners(video: HTMLVideoElement): void {
 
             stoppedPlayback();
         };
-        video.addEventListener("pause", pauseListener);
+        listen("pause", pauseListener);
         const waitingListener = () => {
             app.bus.emit(CONTENT_EVENTS.PLAYER_WAITING, { video }, { source: "videoListeners.waiting" });
 
             stoppedPlayback();
         };
-        video.addEventListener("waiting", waitingListener);
+        listen("waiting", waitingListener);
 
         void app.commands.execute("skip/startSchedule", {});
 
-        if (setupVideoListenersFirstTime) {
-            addCleanupListener(() => {
-                video.removeEventListener("play", playListener);
-                video.removeEventListener("playing", playingListener);
-                video.removeEventListener("seeking", seekingListener);
-                video.removeEventListener("ratechange", rateChangeListener);
-                video.removeEventListener("videoSpeed_ratechange", rateChangeListener);
-                video.removeEventListener("pause", pauseListener);
-                video.removeEventListener("waiting", waitingListener);
-
-                if (playbackRateCheckInterval) clearInterval(playbackRateCheckInterval);
-            });
-        }
     }
-
-    setupVideoListenersFirstTime = false;
 }

@@ -2,13 +2,15 @@ import { ConfigProvider, message, theme } from "antd";
 import { NoticeType as MessageNoticeType } from "antd/es/message/interface";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-import { waitFor } from "../utils/";
+import { waitForPageReady } from "../content/pageReadiness";
 
 let messageText: string;
 let messageType: MessageNoticeType;
 
-export async function setMessageNotice(darkTheme: boolean = false, checkPageLoaded: () => boolean = () => true) {
-    await waitFor(() => checkPageLoaded(), 10000, 50);
+export async function setMessageNotice(darkTheme: boolean = false) {
+    // The same component is also used by extension options, which has no host hydration.
+    if (/^https?:$/.test(window.location.protocol)) await waitForPageReady();
+    if (document.getElementById("message-notice")) return;
 
     const container = document.createElement("div");
     container.id = "message-notice";
