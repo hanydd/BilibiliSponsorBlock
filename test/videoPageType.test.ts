@@ -96,6 +96,27 @@ describe("video page type state", () => {
         expect(getVideoID()).toBeNull();
     });
 
+    test.each(["/", "/opus/1129722427782201345", "/?keyword=python"])(
+        "does not wait for a player or request media properties when there is no player: %s", async path => {
+            window.history.replaceState(null, "", `https://www.bilibili.com${path}`);
+            // Inline card previews are also outside the main player's ownership.
+            document.body.innerHTML = '<div class="v-recommend-inline-player"><video></video></div>';
+            const { createContentApp } = await import("../src/content/app");
+            const { getVideo } = await import("../src/utils/video");
+            const { getPropertyFromWindow } = await import("../src/utils/injectedScriptMessageUtils");
+            const { waitForElement } = await import("../src/utils/dom");
+            createContentApp();
+            try {
+                expect(getVideo()).toBeNull();
+                expect(getVideo()).toBeNull();
+                expect(waitForElement).not.toHaveBeenCalled();
+                expect(getPropertyFromWindow).not.toHaveBeenCalled();
+            } finally {
+                document.body.replaceChildren();
+            }
+        }
+    );
+
     test("initializes replacement videos once and recognizes a detached video when reused", async () => {
         parsedVideoID = null;
         jest.doMock("../src/utils/dom", () => ({

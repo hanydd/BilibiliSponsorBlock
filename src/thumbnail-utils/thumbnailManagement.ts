@@ -1,5 +1,5 @@
 import Config from "../config";
-import { getPageLoaded } from "../content/state";
+import { waitForPageReady } from "../content/pageReadiness";
 import { PageType } from "../types";
 import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
@@ -141,7 +141,7 @@ async function resolveThumbnailContainer(
 
 function waitForThumbnailReady(): Promise<boolean> {
     thumbnailReady ??= Promise.all([
-        waitFor(getPageLoaded, 35000, 100),
+        waitForPageReady(),
         waitFor(() => Config.isReady(), 35000, 100),
     ])
         .then(() => true)

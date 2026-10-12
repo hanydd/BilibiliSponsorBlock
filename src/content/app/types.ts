@@ -1,3 +1,4 @@
+import type { PlayerUIReadySnapshot } from "../playerUi";
 import type { NoticeClock } from "../../notices/NoticeClock";
 import type { RuleCard } from "../skipRules/types";
 import SkipNoticeComponent from "../../components/SkipNoticeComponent";
@@ -122,6 +123,9 @@ export interface ContentEventMap {
     [CONTENT_EVENTS.SKIP_BUTTON_STATE_CHANGED]: { enabled: boolean; segment: SponsorTime | null; duration?: number };
     [CONTENT_EVENTS.SPEEDUP_STATE_CHANGED]: { active: boolean; pausedContext: boolean };
     [CONTENT_EVENTS.PLAYER_TIME_UPDATED]: { time: number };
+    [CONTENT_EVENTS.PLAYER_UI_READY]: { snapshot: PlayerUIReadySnapshot };
+    [CONTENT_EVENTS.PLAYER_UI_INVALIDATED]: Record<string, never>;
+    [CONTENT_EVENTS.PLAYER_TIMELINE_CHANGED]: { video: HTMLVideoElement; duration: number };
     [CONTENT_EVENTS.PLAYER_VIDEO_READY]: { video: HTMLVideoElement };
     [CONTENT_EVENTS.PLAYER_DURATION_CHANGED]: { video: HTMLVideoElement };
     [CONTENT_EVENTS.PLAYER_PLAY]: { video: HTMLVideoElement };

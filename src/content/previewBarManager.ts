@@ -4,8 +4,9 @@ import { VoteResponse } from "../messageTypes";
 import { ChapterVote } from "../render/ChapterVote";
 import { ActionType, BVID, Category, SegmentUUID, SponsorHideType } from "../types";
 import Utils from "../utils";
-import { findValidElement } from "../utils/dom";
+import { getPlayerContainer, isVisible } from "../utils/pageUtils";
 import { getFormattedTime } from "../utils/formating";
+import { getPlayerTimelineDuration } from "../utils/playerDuration";
 import { logUiLifecycle } from "../utils/logger";
 import { getVideo, getVideoID } from "../utils/video";
 import { getContentApp } from "./app";
@@ -14,6 +15,7 @@ import { isPlayerUiReady, waitForPlayerUiReady } from "./playerUi";
 import { contentState } from "./state";
 
 const utils = new Utils();
+let removeDurationWidthListener: (() => void) | null = null;
 
 function getPreviewBarState() {
     return getContentApp().ui.getState();
@@ -23,6 +25,7 @@ export function getPreviewBar() { return getPreviewBarState().previewBar; }
 export function getLastPreviewBarUpdate() { return getPreviewBarState().lastPreviewBarUpdate; }
 
 export function resetPreviewBarState(): void {
+    removeDurationAfterSkip();
     const { previewBar } = getPreviewBarState();
     if (previewBar) {
         previewBar.remove();
@@ -49,12 +52,13 @@ export function registerPreviewBarManager(): void {
     app.commands.register("ui/updateActiveSegment", ({ currentTime }) => updateActiveSegment(currentTime));
     app.commands.register("segments/select", ({ UUID }) => selectSegment(UUID));
 
-    app.bus.on(CONTENT_EVENTS.PLAYER_VIDEO_READY, () => {
+    app.bus.on(CONTENT_EVENTS.PLAYER_UI_READY, () => {
+        checkPreviewbarState();
         createPreviewBar();
         updatePreviewBar();
-        void app.commands.execute("ui/updatePlayerButtons", undefined);
     });
-    app.bus.on(CONTENT_EVENTS.PLAYER_DURATION_CHANGED, () => {
+    app.bus.on(CONTENT_EVENTS.PLAYER_UI_INVALIDATED, () => checkPreviewbarState());
+    app.bus.on(CONTENT_EVENTS.PLAYER_TIMELINE_CHANGED, () => {
         updatePreviewBar();
     });
     app.bus.on(CONTENT_EVENTS.SEGMENTS_LOADED, ({ videoID }) => {
@@ -96,21 +100,22 @@ export function createPreviewBar(): void {
         shadowProgress: document.querySelector(".bpx-player-shadow-progress-area"),
     });
 
+    const player = getPlayerContainer();
+    if (!player) return;
     const progressElementOptions = [
         {
             selector: ".bpx-player-progress",
             shadowSelector: ".bpx-player-shadow-progress-area",
-            isVisibleCheck: true,
         },
     ];
 
     for (const option of progressElementOptions) {
-        const allElements = document.querySelectorAll(option.selector) as NodeListOf<HTMLElement>;
-        const parent = option.isVisibleCheck ? findValidElement(allElements) : allElements[0];
-        const allshadowSelectorElements = document.querySelectorAll(option.shadowSelector) as NodeListOf<HTMLElement>;
-        const shadowParent = allshadowSelectorElements[0];
+        const parent = player.querySelector<HTMLElement>(option.selector);
+        const shadowParent = player.querySelector<HTMLElement>(option.shadowSelector);
 
-        if (parent) {
+        // Overlays and the floating player's controls can cover a healthy bar.
+        // Ownership and layout, rather than hit-testing, determine where to mount.
+        if (parent?.isConnected && isVisible(parent)) {
             const chapterVote = new ChapterVote(voteAsync);
             const nextPreviewBar = new PreviewBar(parent, shadowParent, chapterVote);
             app.ui.patchState({ previewBar: nextPreviewBar });
@@ -159,9 +164,10 @@ export function updatePreviewBar(): void {
         });
     });
 
+    const playerDuration = getPlayerTimelineDuration(getVideo());
     previewBar.set(
         previewBarSegments.filter((segment) => segment.actionType !== ActionType.Full),
-        getVideo()?.duration
+        playerDuration
     );
     logUiLifecycle("previewBar", "state", {
         action: "update",
@@ -171,12 +177,12 @@ export function updatePreviewBar(): void {
     });
     if (getVideo()) updateActiveSegment(getVideo().currentTime);
 
-    void app.commands.execute("ui/updatePlayerButtons", undefined);
-
     removeDurationAfterSkip();
     if (Config.config.showTimeWithSkips) {
         const skippedDuration = utils.getTimestampsDuration(
-            previewBarSegments.filter(({ actionType }) => actionType !== ActionType.Mute).map(({ segment }) => segment)
+            previewBarSegments.filter(({ actionType }) => actionType === ActionType.Skip)
+                .map(({ segment }) => [Math.max(0, segment[0]), Math.min(playerDuration, segment[1])])
+                .filter(([start, end]) => end > start)
         );
 
         showTimeWithoutSkips(skippedDuration);
@@ -188,7 +194,10 @@ export function updatePreviewBar(): void {
 export function checkPreviewbarState(): void {
     const app = getContentApp();
     const { previewBar } = app.ui.getState();
-    if (previewBar && !utils.findReferenceNode()?.contains(previewBar.container)) {
+    if (previewBar && (!previewBar.container.isConnected ||
+        !getPlayerContainer()?.contains(previewBar.container) ||
+        (previewBar.shadowParent && (!previewBar.shadowContainer.isConnected ||
+            previewBar.shadowParent !== getPlayerContainer()?.querySelector(".bpx-player-shadow-progress-area"))))) {
         logUiLifecycle("previewBar", "detach", {
             action: "hostRemoved",
             container: previewBar.container,
@@ -233,7 +242,7 @@ export function showTimeWithoutSkips(skippedDuration: number): void {
         display.appendChild(duration);
     }
 
-    const durationAfterSkips = getFormattedTime(getVideo()?.duration - skippedDuration);
+    const durationAfterSkips = getFormattedTime(getPlayerTimelineDuration(getVideo()) - skippedDuration);
 
     const refreshDurationTextWidth = () => {
         display.style.width = "auto";
@@ -245,10 +254,13 @@ export function showTimeWithoutSkips(skippedDuration: number): void {
 
         refreshDurationTextWidth();
         window.addEventListener("fullscreenchange", refreshDurationTextWidth);
+        removeDurationWidthListener = () => window.removeEventListener("fullscreenchange", refreshDurationTextWidth);
     }
 }
 
 export function removeDurationAfterSkip(): void {
+    removeDurationWidthListener?.();
+    removeDurationWidthListener = null;
     const duration = document.getElementById(durationID);
     duration?.remove();
 }

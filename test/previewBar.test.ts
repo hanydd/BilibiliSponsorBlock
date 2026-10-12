@@ -64,3 +64,37 @@ test("keeps mini-player colors synchronized and disconnects on removal", async (
     expect(document.querySelector("#miniPreviewbar")).toBeNull();
     document.body.replaceChildren();
 });
+
+test("clips truncated tails and excludes out-of-axis intervals and points across all player bars", () => {
+    document.body.innerHTML = `<div class="bpx-player-container">
+        <div class="bpx-player-progress"></div><div class="bpx-player-shadow-progress-area"></div>
+        <div class="bpx-player-mini-progress"></div></div>`;
+    const preview = new PreviewBar(document.querySelector(".bpx-player-progress"),
+        document.querySelector(".bpx-player-shadow-progress-area"), null);
+    const make = (segment: [number, number]) => ({ segment, category: "sponsor" } as PreviewBarSegment);
+    const original = [make([730, 754]), make([745, 754]), make([750, 750]), make([30, 30])];
+    preview.set(original, 742.8973333333333);
+    for (const id of ["previewbar", "shadowPreviewbar", "miniPreviewbar"]) {
+        const bars = document.querySelectorAll<HTMLElement>(`#${id} > li`);
+        expect(bars).toHaveLength(2);
+        expect(bars[0].style.right).toBe("0%");
+        expect(parseFloat(bars[0].style.left)).toBeCloseTo(730 / 742.8973333333333 * 100, 3);
+        expect(parseFloat(bars[1].style.left)).toBeCloseTo(30 / 742.8973333333333 * 100, 3);
+    }
+    expect(original[0].segment).toEqual([730, 754]);
+    // An axis correction back to the full length restores the omitted marks.
+    preview.set(original, 754);
+    expect(document.querySelectorAll("#previewbar > li")).toHaveLength(4);
+    preview.set(original, NaN);
+    expect(document.querySelectorAll("#previewbar > li")).toHaveLength(0);
+    preview.remove(); document.body.replaceChildren();
+});
+
+test("retains the start mark of an unfinished submission on a finite native axis", () => {
+    document.body.innerHTML = '<div class="bpx-player-progress"></div>';
+    const preview = new PreviewBar(document.querySelector(".bpx-player-progress"), null, null);
+    preview.set([{ segment: [40], category: "sponsor", unsubmitted: true } as unknown as PreviewBarSegment], 100);
+    expect(document.querySelectorAll("#previewbar > li")).toHaveLength(1);
+    expect((document.querySelector("#previewbar > li") as HTMLElement).style.left).toBe("40%");
+    preview.remove(); document.body.replaceChildren();
+});

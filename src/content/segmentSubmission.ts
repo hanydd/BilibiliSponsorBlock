@@ -327,12 +327,20 @@ export function registerSegmentSubmission(): void {
     app.commands.register("port/voteVideo", ({ UUID, vote }) => portVideoVote(UUID, vote));
     app.commands.register("port/updateSegments", ({ UUID }) => updateSegments(UUID));
 
+    app.bus.on(CONTENT_EVENTS.PLAYER_UI_READY, () => {
+        setupSkipButtonControlBar();
+        setupCategoryPill();
+        setupDescriptionPill();
+        void updateVisibilityOfPlayerControlsButton();
+    });
+
     app.bus.on(CONTENT_EVENTS.SEGMENTS_LOADED, ({ videoID }) => {
         if (videoID !== getVideoID()) {
             return;
         }
 
         setupCategoryPill();
+        void updateVisibilityOfPlayerControlsButton();
         sendInfoUpdatedMessage();
 
         if (Config.config.isVip) {

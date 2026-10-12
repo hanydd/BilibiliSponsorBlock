@@ -1,5 +1,14 @@
+export function getPlayerContainer(): HTMLElement | null {
+    const video = Array.from(document.querySelectorAll<HTMLVideoElement>(
+        "#bilibili-player video:not(.bpx-player-seamless-replacement)"
+    )).find((element) => !isInPreviewPlayer(element));
+    return video?.closest<HTMLElement>(".bpx-player-container") ?? null;
+}
+
 function getPlayerControls(selector: string): HTMLElement {
-    const controls = Array.from(document.querySelectorAll<HTMLElement>(selector)).filter(
+    const root = getPlayerContainer();
+    if (!root) return null;
+    const controls = Array.from(root.querySelectorAll<HTMLElement>(selector)).filter(
         (element) => !isInPreviewPlayer(element)
     );
 
@@ -15,7 +24,10 @@ export function getLeftControls(): HTMLElement {
 }
 
 export function getProgressBar(): HTMLElement {
-    return document.querySelector(".bpx-player-progress-schedule");
+    const root = getPlayerContainer();
+    if (!root) return null;
+    return Array.from(root.querySelectorAll<HTMLElement>(".bpx-player-progress-schedule"))
+        .find((element) => !isInPreviewPlayer(element)) ?? null;
 }
 
 export function isInPreviewPlayer(element: Element): boolean {

@@ -3,7 +3,7 @@ import { createRoot, Root } from "react-dom/client";
 import { DescriptionPortPillComponent } from "../components/DescriptionPortPillComponent";
 import YouTubeLogoButton from "../components/YouTubeLogoButton";
 import Config from "../config";
-import { getPageLoaded } from "../content/state";
+import { waitForPageReady } from "../content/pageReadiness";
 import { FetchResponse } from "../requests/type/requestType";
 import { PortVideo, BVID } from "../types";
 import { waitFor } from "../utils/index";
@@ -55,14 +55,14 @@ export class DescriptionPortPill {
 
         this.cleanup();
 
+        await waitForPageReady();
+        if (this.bvID !== videoId) return;
+
         this.hasDescription = true;
         const referenceNode = (await waitForElement(".basic-desc-info")) as HTMLElement;
         if (!referenceNode) {
             console.error("Description element not found");
         }
-
-        // wait for the sibling span to load, only when there is a description
-        await waitFor(getPageLoaded, 20000, 10);
 
         // if the desc from window object is empty, and the description container is hidden,
         // the video has no description

@@ -176,15 +176,19 @@ class PreviewBar {
     }
 
     set(segments: PreviewBarSegment[], videoDuration: number): void {
-        this.segments = segments ?? [];
-        this.videoDuration = videoDuration ?? 0;
-
-        // TODO: find an api to varify video duration
-        // Sometimes video duration is inaccurate, pull from accessibility info
-        // const ariaDuration = parseInt(this.progressBar?.getAttribute('aria-valuemax')) ?? 0;
-        // if (ariaDuration && Math.abs(ariaDuration - this.videoDuration) > 3) {
-        //     this.videoDuration = ariaDuration;
-        // }
+        this.videoDuration = Number.isFinite(videoDuration) && videoDuration > 0 ? videoDuration : 0;
+        // Display only the part belonging to the native axis. Keep the original
+        // business timestamps intact, including segments beyond a truncated tail.
+        this.segments = this.videoDuration === 0 ? [] : (segments ?? []).flatMap((item) => {
+            const [start, end] = item.segment;
+            if (!Number.isFinite(start)) return [];
+            // An in-progress submission contains only its start timestamp.
+            if (end === undefined) return start >= 0 && start <= this.videoDuration ? [item] : [];
+            if (!Number.isFinite(end) || end < start) return [];
+            if (start === end) return start >= 0 && start <= this.videoDuration ? [item] : [];
+            const clipped: [number, number] = [Math.max(0, start), Math.min(this.videoDuration, end)];
+            return clipped[1] > clipped[0] ? [{ ...item, segment: clipped }] : [];
+        });
 
         this.update();
     }

@@ -1,7 +1,6 @@
 import Config from "../config";
 import { keybindToString } from "../config/config";
 import { waitForPlayerUiReady } from "../content/playerUi";
-import { getPageLoaded } from "../content/state";
 import { SegmentUUID, SponsorTime } from "../types";
 import { getSkippingText } from "../utils/categoryUtils";
 import { waitFor } from "../utils/index";
@@ -74,7 +73,6 @@ export class SkipButtonControlBar {
             action: "attach",
             debugId: this.debugId,
         });
-        await waitFor(getPageLoaded, 10000, 10);
         const { leftControls } = await waitForPlayerUiReady();
         const timeControl = await waitFor(
             () => leftControls.querySelector<HTMLElement>(".bpx-player-ctrl-time"),

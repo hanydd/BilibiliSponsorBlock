@@ -110,4 +110,37 @@ describe("video listeners", () => {
             CONTENT_EVENTS.PLAYER_WAITING,
         ]);
     });
+
+    test("emits media readiness again when the same video element loads another source", async () => {
+        const { createContentApp } = await import("../src/content/app");
+        const { CONTENT_EVENTS } = await import("../src/content/app/events");
+        const { setupVideoListeners } = await import("../src/content/videoListeners");
+        const app = createContentApp();
+        const video = document.createElement("video");
+        const ready = jest.fn();
+        app.bus.on(CONTENT_EVENTS.PLAYER_VIDEO_READY, ready);
+        setupVideoListeners(video);
+        video.dispatchEvent(new Event("loadedmetadata"));
+        video.dispatchEvent(new Event("loadedmetadata"));
+        expect(ready).toHaveBeenCalledTimes(2);
+        expect(ready.mock.calls[1][0].video).toBe(video);
+    });
+    test("unbinds replaced media and avoids duplicate listeners on retained video", async () => {
+        const { createContentApp } = await import("../src/content/app");
+        const { CONTENT_EVENTS } = await import("../src/content/app/events");
+        const { setupVideoListeners } = await import("../src/content/videoListeners");
+        const app = createContentApp();
+        const oldVideo = document.createElement("video"), newVideo = document.createElement("video");
+        const ready = jest.fn();
+        app.bus.on(CONTENT_EVENTS.PLAYER_VIDEO_READY, ready);
+        setupVideoListeners(oldVideo);
+        setupVideoListeners(newVideo);
+        setupVideoListeners(newVideo);
+        oldVideo.dispatchEvent(new Event("loadedmetadata"));
+        expect(ready).not.toHaveBeenCalled();
+        newVideo.dispatchEvent(new Event("loadedmetadata"));
+        expect(ready).toHaveBeenCalledTimes(1);
+        expect(ready.mock.calls[0][0].video).toBe(newVideo);
+    });
+
 });

@@ -29,7 +29,27 @@
 
 视频身份切换先发送 `video/resetRequested`，再更新身份并发送 `video/idChanged`。前者触发旧视频清理，后者触发片段查询、草稿恢复和 UI 更新。`video/elementChanged` 表达实际 video 节点变化，`video/channelResolved` 表达频道解析完成。
 
-页面框架就绪与播放器 UI 就绪是不同条件。媒体事件由 [videoListeners.ts](../src/content/videoListeners.ts) 绑定，依赖控制栏的 UI 通过 [waitForPlayerUiReady()](../src/content/playerUi.ts) 等待宿主节点稳定。
+页面框架就绪由 [pageReadiness.ts](../src/content/pageReadiness.ts) 统一管理。MAIN world 在 [pageMount.ts](../src/document/pageMount.ts) 检查 Vue 挂载或 Next.js 已提交的 React root hydration 状态，再通过消息桥发布 `app/pageReady`。SSR 数据、`router.isReady` 和 DOM 可见都不能证明 hydration 已完成。已就绪的 MAIN 会响应重放请求，避免较晚注入的 content 漏掉信号。
+
+页面组件、缩略图、动态和评论过滤器调用 `waitForPageReady()`，不再各自轮询或设置 hydration 超时。晚到的调用从当前状态立即返回。调用方可以传入自己的超时或 AbortSignal，取消一个等待不会影响其他组件。已知框架根节点即使等待超过 30 秒也保持关闭注入；只有没有受支持框架根节点的页面才使用 document complete 兜底。
+
+首页、动态流、搜索、空间和 opus 等无播放器页面只等待 `app/pageReady`，页面功能不依赖 `player/uiReady`。动态过滤器在 hydration 后扫描已有卡片，并通过 DOM 变化发现晚到或替换的列表；评论过滤器同时保留对各层 shadow root 后续渲染的观察。MAIN world 的动态作者 ID 提取也在挂载确认后启动，先填充已有卡片的 ID，再发送页面就绪信号供白名单判断使用。没有动态列表时不启动超时轮询，扩展清理会取消 content 中未完成的页面等待和观察器。查询 `getVideo()` 在没有主播放器 video 时直接返回，不请求帧率或等待媒体节点；主播放器出现后由宿主变化重新触发绑定，卡片预览不参与绑定。
+
+播放器宿主就绪由 [playerUi.ts](../src/content/playerUi.ts) 和 [PlayerUiLifecycle](../src/content/playerUiLifecycle.ts) 管理。它订阅页面、视频身份、视频节点和媒体状态事件，并集中观察 DOM、页面可见性与尺寸变化。hydration、媒体元数据、宿主连接和布局都满足条件，且 video、左右控制区和进度条节点稳定 150 毫秒后，才发布 `player/uiReady`。
+
+| 事件 | 消费方与用途 |
+| --- | --- |
+| `player/uiReady` | 提交模块挂载或迁移按钮、跳过按钮与页面组件；进度条模块创建或恢复标记 |
+| `player/uiInvalidated` | 进度条模块检查已移除或已换主的宿主 |
+| `player/timelineChanged` | 进度条模块重算标记位置和跳过后的时长 |
+
+`waitForPlayerUiReady()` 使用同一个生命周期实例，保存稳定宿主快照供后续调用读取。每个等待有独立截止时间，清理时取消观察器、订阅、定时器与未完成等待。视频身份变化会重新确认宿主，即使 B 站复用了 video。宿主子节点被重写也会恢复扩展实例，不依赖固定的多组延迟补查。
+
+时间轴长度由 [getPlayerTimelineDuration()](../src/utils/playerDuration.ts) 从当前播放器读取。大会员和充电试看可能只有几分钟媒体，但原生进度条显示整片时长；标记和剩余时长使用整片时间轴。原生刻度也可能短于媒体或接口时长，不能取两者的最大值。普通视频保留媒体的小数精度，原生标签的一秒取整差异不会改变时间轴。媒体 durationchange 或原生时长文本变化都由生命周期层转为 `player/timelineChanged`，渲染模块不再单独监听时长文本。
+
+[#326](https://github.com/hanydd/BilibiliSponsorBlock/issues/326) 中的媒体时长在加载后重新计算，标记跟随最终的原生刻度。跨越末尾的区间裁剪，完全超出刻度的区间和点隐藏；原始片段时间保留，刻度恢复时可以重新显示。YouTube 匹配继续用媒体时长做源校验，与显示刻度分开。标记覆盖层不接收鼠标事件，原生进度条继续处理悬停预览和点击跳转。
+
+媒体事件由 [videoListeners.ts](../src/content/videoListeners.ts) 绑定。视频身份模块订阅媒体就绪事实，在复用 video 的 Next.js 页面上于新元数据到达后重新读取 manifest，处理路由先变化、manifest 后变化的情况。
 
 ## 片段和配置事件
 
@@ -47,7 +67,7 @@
 
 规则模式中，[SkipRulesRuntime](../src/content/skipRules/runtime.ts) 直接监听当前 video 的媒体事件，并订阅配置、片段、白名单和视频生命周期事件。经典入口通过 `isRuleEngineEnabled()` 退出或转交。注册着两套监听器不代表两套引擎同时执行播放操作。
 
-`player/videoReady` 和 `player/durationChanged` 也用于进度条初始化和更新。播放器 UI 的就绪不会替代规则 runtime 对当前位置的判断。
+`player/videoReady` 和 `player/durationChanged` 是媒体事实，由播放器生命周期层派生出 UI 就绪和时间轴变化。它们继续保留播放引擎原有的语义；播放器 UI 的就绪不会替代规则 runtime 对当前位置的判断。
 
 ## 播放结果与 UI
 

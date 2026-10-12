@@ -53,14 +53,6 @@ export class PlayerButton {
     }
 
     public async createButtons(): Promise<Record<string, { button: HTMLButtonElement; image: HTMLImageElement }>> {
-        if (this.playerButtons) {
-            logUiLifecycle("playerButtons", "state", {
-                action: "reuse",
-                debugId: this.debugId,
-            });
-            return this.playerButtons;
-        }
-
         if (this.creationPromise) {
             return this.creationPromise;
         }
@@ -88,11 +80,6 @@ export class PlayerButton {
         }
 
         if (!this.container) {
-            // wait for controls buttons to be loaded
-            await waitFor(() => controlsContainer.childElementCount > 4).catch(() => {
-                console.log("Get control chilren time out");
-            });
-
             if (this.creatingButtons) {
                 await waitFor(() => this.playerButtons !== undefined, 5000, 10);
                 return this.playerButtons;
@@ -141,6 +128,10 @@ export class PlayerButton {
                 debugId: this.debugId,
                 container: this.container,
             });
+        }
+        if (this.container.parentElement !== controlsContainer) {
+            controlsContainer.prepend(this.container);
+            logUiLifecycle("playerButtons", "attach", { action: "remount", debugId: this.debugId, controlsContainer });
         }
         return this.playerButtons;
     }

@@ -4,7 +4,8 @@ import Config from "./config";
 import { createContentApp } from "./content/app";
 import { CONTENT_EVENTS } from "./content/app/events";
 import { registerPopupManager } from "./content/popupManager";
-import { waitForPlayerUiReady } from "./content/playerUi";
+import { registerPlayerUiLifecycle } from "./content/playerUi";
+import { setupPageLoadingListener } from "./content/pageReadiness";
 import {
     getPreviewBar,
     registerPreviewBarManager,
@@ -20,7 +21,6 @@ import { registerSkipUIManager } from "./content/skipUIManager";
 import {
     contentState,
     getPageLoaded,
-    setupPageLoadingListener,
     syncContentStateStore,
 } from "./content/state";
 import {
@@ -31,7 +31,7 @@ import {
 import { registerSpeedUpManager, resetSpeedUpState } from "./content/speedUpManager";
 import { setupMessageListener } from "./content/messageHandler";
 import { addHotkeyListener } from "./content/hotkeyHandler";
-import { setupVideoListeners } from "./content/videoListeners";
+import { registerVideoListeners } from "./content/videoListeners";
 import { DynamicListener, CommentListener } from "./render/DynamicAndCommentSponsorBlock";
 import { setMessageNotice } from "./render/MessageNotice";
 import { checkPageForNewThumbnails, setupThumbnailListener } from "./thumbnail-utils/thumbnailManagement";
@@ -44,11 +44,9 @@ import { waitFor } from "./utils/";
 import { cleanPage } from "./utils/cleanup";
 import { GenericUtils } from "./utils/genericUtils";
 import { logDebug, logUiLifecycle } from "./utils/logger";
-import { getControls, getProgressBar } from "./utils/pageUtils";
 import {
     detectPageType,
     getPageType,
-    getVideo,
     getVideoID,
     setupVideoModule,
 } from "./utils/video";
@@ -107,9 +105,7 @@ function init(): void {
                 void app.commands.execute("skip/checkStartSponsors", undefined);
             }
         });
-        app.bus.on(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, ({ newVideo, video }) => {
-            videoElementChange(newVideo, video);
-        });
+
     }
 
     registerPreviewBarManager();
@@ -143,31 +139,14 @@ function init(): void {
         }
     });
 
-    if (
-        (document.hidden && getPageType() == PageType.Video) ||
-        [PageType.Video, PageType.Festival].includes(getPageType())
-    ) {
-        document.addEventListener("visibilitychange", () => {
-            logUiLifecycle("content", "state", {
-                action: "visibilitychange",
-                video: getVideo(),
-            });
-            videoElementChange(true, getVideo());
-        }, { once: true });
-        window.addEventListener("mouseover", () => {
-            logUiLifecycle("content", "state", {
-                action: "mouseover",
-                video: getVideo(),
-            });
-            videoElementChange(true, getVideo());
-        }, { once: true });
-    }
+    registerVideoListeners();
+    registerPlayerUiLifecycle();
 
     setupVideoModule();
 
     setupThumbnailListener();
 
-    setMessageNotice(false, getPageLoaded);
+    void setMessageNotice().catch(() => undefined);
 
     addHotkeyListener();
     setupMessageListener();
@@ -227,17 +206,6 @@ async function videoIDChange(): Promise<void> {
         progress: document.querySelector(".bpx-player-progress-schedule"),
     });
 
-    if (getPreviewBar() === null) {
-        waitFor(getControls).then((controls) => {
-            logUiLifecycle("content", "ready", {
-                target: "controls",
-                action: "videoIDChange",
-                controls,
-            });
-            void app.commands.execute("ui/createPreviewBar", undefined);
-        });
-    }
-
     chrome.runtime.sendMessage({
         message: "videoChanged",
         videoID: getVideoID(),
@@ -248,31 +216,6 @@ async function videoIDChange(): Promise<void> {
     checkPageForNewThumbnails();
 
     void app.commands.execute("segments/updateSubmitting", { getFromConfig: true });
-
-    const loadingPanel = await waitFor(() => document.querySelector(".bpx-player-loading-panel.bpx-state-loading"), 5000, 5)
-        .catch(() => null);
-    logUiLifecycle("content", "ready", {
-        target: "loadingPanel",
-        action: "videoIDChange",
-        found: Boolean(loadingPanel),
-        loadingPanel,
-    });
-
-    const progressBar = await waitFor(getProgressBar, 24 * 60 * 60, 500);
-    logUiLifecycle("content", "ready", {
-        target: "progress",
-        action: "videoIDChange",
-        progressBar,
-    });
-
-    void app.commands.execute("ui/setupSkipButtonControlBar", undefined);
-    void app.commands.execute("ui/updatePlayerButtons", undefined);
-    void app.commands.execute("ui/checkPreviewBarState", undefined);
-    void app.commands.execute("ui/setupDescriptionPill", undefined);
-    logUiLifecycle("content", "state", {
-        action: "uiCommandsDispatched",
-        videoID: getVideoID(),
-    });
 
     if (
         [PageType.Video, PageType.List, PageType.Dynamic, PageType.Channel, PageType.Opus, PageType.Festival].includes(getPageType()) &&
@@ -302,47 +245,6 @@ async function channelIDChange(channelIDInfo: ChannelIDInfo) {
             { source: "content.channelIDChange" }
         );
     }
-}
-
-function videoElementChange(newVideo: boolean, video: HTMLVideoElement | null): void {
-    logUiLifecycle("content", "state", {
-        action: "videoElementChange",
-        newVideo,
-        video,
-        controls: document.querySelector(".bpx-player-control-bottom-left"),
-        progress: document.querySelector(".bpx-player-progress-schedule"),
-    });
-    if (!video) {
-        return;
-    }
-
-    waitFor(() => Config.isReady(), 24 * 60 * 60, 500).then(() => {
-        if (newVideo) {
-            setupVideoListeners(video);
-        }
-
-        void waitForPlayerUiReady().then(() => {
-            logUiLifecycle("content", "ready", {
-                target: "playerUI",
-                action: "videoElementChange",
-                newVideo,
-                video,
-            });
-
-            if (newVideo) {
-                void app.commands.execute("ui/setupSkipButtonControlBar", undefined);
-                void app.commands.execute("ui/setupCategoryPill", undefined);
-                void app.commands.execute("ui/setupDescriptionPill", undefined);
-            }
-
-            void app.commands.execute("ui/updatePreviewBar", undefined);
-            void app.commands.execute("ui/checkPreviewBarState", undefined);
-
-            setTimeout(() => void app.commands.execute("ui/checkPreviewBarState", undefined), 100);
-            setTimeout(() => void app.commands.execute("ui/checkPreviewBarState", undefined), 1000);
-            setTimeout(() => void app.commands.execute("ui/checkPreviewBarState", undefined), 5000);
-        });
-    });
 }
 
 function setCategoryColorCSSVariables() {

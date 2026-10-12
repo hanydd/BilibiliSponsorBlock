@@ -2,10 +2,9 @@ import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
 import CategoryPillComponent, { CategoryPillState } from "../components/CategoryPillComponent";
 import Config from "../config";
-import { getPageLoaded } from "../content/state";
+import { waitForPageReady } from "../content/pageReadiness";
 import { VoteResponse } from "../messageTypes";
 import { Category, SegmentUUID, SponsorTime } from "../types";
-import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
 import { logUiLifecycle } from "../utils/logger";
 
@@ -22,6 +21,7 @@ export class CategoryPill {
     private attachment?: Promise<void>;
     private pageReady = false;
     private closed = false;
+    private pageWait = new AbortController();
     private titleNode?: HTMLElement;
 
     vote: (type: number, UUID: SegmentUUID, category?: Category) => Promise<VoteResponse>;
@@ -48,7 +48,7 @@ export class CategoryPill {
 
     private async waitForPage(): Promise<void> {
         try {
-            await waitFor(() => this.closed || getPageLoaded(), 35000, 100);
+            await waitForPageReady(undefined, this.pageWait.signal);
             if (this.closed) return;
             this.pageReady = true;
 
@@ -107,6 +107,7 @@ export class CategoryPill {
     close(): void {
         if (this.closed) return;
         this.closed = true;
+        this.pageWait.abort();
         this.mutationObserver?.disconnect();
         this.root?.unmount();
         this.container?.remove();

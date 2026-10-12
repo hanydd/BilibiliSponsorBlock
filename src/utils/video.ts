@@ -55,6 +55,13 @@ function pageTypeSupportsVideoID(type: PageType): boolean {
 }
 
 export function setupVideoModule() {
+    const offMetadata = getContentApp().bus.on(CONTENT_EVENTS.PLAYER_VIDEO_READY, ({ video: readyVideo }) => {
+        // Navigation can precede the new manifest on Next pages reusing a video.
+        if (readyVideo === getVideo() && readyVideo.readyState >= HTMLMediaElement.HAVE_METADATA) {
+            void checkIfNewVideoID();
+        }
+    });
+    addCleanupListener(offMetadata);
     setupCleanupListener();
     logUiLifecycle("video", "state", {
         action: "setupModule",
@@ -384,10 +391,12 @@ function setupVideoMutationListener() {
         lastMutationListenerCheck = Date.now();
         const mainVideoObject = getElement("#bilibili-player", false);
         if (!mainVideoObject) {
-            logUiLifecycle("video", "error", {
-                action: "missingPlayerRoot",
-                playerRoot: document.querySelector("#bilibili-player"),
-            });
+            if (pageTypeSupportsVideoID(getPageType())) {
+                logUiLifecycle("video", "error", {
+                    action: "missingPlayerRoot",
+                    playerRoot: document.querySelector("#bilibili-player"),
+                });
+            }
             return;
         }
 
@@ -439,7 +448,7 @@ let embedLastUrl = "";
 let waitingForEmbed = false;
 
 async function refreshVideoAttachments(trigger = "unknown"): Promise<void> {
-    if (waitingForNewVideo) return;
+    if (waitingForNewVideo || !document.querySelector(activeVideoSelector)) return;
 
     void updateFrameRate();
 
@@ -600,6 +609,10 @@ function shouldRefreshVideoAttachments(): boolean {
 }
 
 export function getVideo(): HTMLVideoElement | null {
+    // Page readiness also runs on home/feed/search pages. A state query there
+    // must not create a media waiter or request player properties. Host changes
+    // trigger another query when a real player appears later.
+    if (!document.querySelector(activeVideoSelector)) return video?.isConnected ? video : null;
     setupVideoMutationListener();
 
     if (shouldRefreshVideoAttachments() && Date.now() - lastRefresh > 500) {

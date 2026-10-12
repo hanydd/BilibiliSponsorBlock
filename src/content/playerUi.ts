@@ -1,4 +1,8 @@
-import { sleep, waitFor } from "../utils/";
+import { addCleanupListener } from "../utils/cleanup";
+import { getPlayerTimelineDuration } from "../utils/playerDuration";
+import { getContentApp } from "./app";
+import { CONTENT_EVENTS } from "./app/events";
+import { PlayerUiLifecycle } from "./playerUiLifecycle";
 import { describeElement, describeVideo, logUiLifecycle } from "../utils/logger";
 import { getControls, getLeftControls, getProgressBar, isVisible } from "../utils/pageUtils";
 import { getVideo } from "../utils/video";
@@ -14,7 +18,7 @@ export interface PlayerUIReadySnapshot {
 }
 
 function hasStableRect(element: HTMLElement | null): boolean {
-    if (!element) {
+    if (!element?.isConnected) {
         return false;
     }
 
@@ -60,9 +64,10 @@ export function summarizePlayerUiSnapshot(snapshot: PlayerUIReadySnapshot): Reco
 }
 
 export function isPlayerUiReady(snapshot = capturePlayerUiReadySnapshot()): boolean {
-    return (
+    return Boolean(
         !snapshot.hidden &&
         snapshot.pageLoaded &&
+        snapshot.video?.isConnected &&
         hasUsableVideo(snapshot.video) &&
         isVisible(snapshot.leftControls) &&
         hasStableRect(snapshot.leftControls) &&
@@ -73,38 +78,67 @@ export function isPlayerUiReady(snapshot = capturePlayerUiReadySnapshot()): bool
     );
 }
 
-let pendingPlayerUiReadyPromise: Promise<PlayerUIReadySnapshot> | null = null;
+let lifecycle: PlayerUiLifecycle | null = null;
 
-export async function waitForPlayerUiReady(timeout = 24 * 60 * 60 * 1000): Promise<PlayerUIReadySnapshot> {
-    if (pendingPlayerUiReadyPromise) {
-        return pendingPlayerUiReadyPromise;
-    }
-
-    logUiLifecycle("playerUI", "wait", {
-        target: "ready",
-        ...summarizePlayerUiSnapshot(capturePlayerUiReadySnapshot()),
+export function registerPlayerUiLifecycle(): void {
+    if (lifecycle) return;
+    const app = getContentApp();
+    const controller = new PlayerUiLifecycle({
+        capture: capturePlayerUiReadySnapshot,
+        isReady: isPlayerUiReady,
+        duration: getPlayerTimelineDuration,
+        ready: (snapshot) => {
+            logUiLifecycle("playerUI", "ready", { target: "ready", ...summarizePlayerUiSnapshot(snapshot) });
+            app.bus.emit(CONTENT_EVENTS.PLAYER_UI_READY, { snapshot }, { source: "playerUiLifecycle" });
+        },
+        invalidated: () => app.bus.emit(CONTENT_EVENTS.PLAYER_UI_INVALIDATED, {}, { source: "playerUiLifecycle" }),
+        timelineChanged: (video, duration) => app.bus.emit(CONTENT_EVENTS.PLAYER_TIMELINE_CHANGED, { video, duration }, { source: "playerUiLifecycle" }),
     });
-
-    pendingPlayerUiReadyPromise = waitFor(capturePlayerUiReadySnapshot, timeout, 100, isPlayerUiReady)
-        .then(async () => {
-            await sleep(150);
-
-            if (isPlayerUiReady()) {
-                return capturePlayerUiReadySnapshot();
-            }
-
-            return waitFor(capturePlayerUiReadySnapshot, timeout, 100, isPlayerUiReady);
-        })
-        .then((snapshot) => {
-            logUiLifecycle("playerUI", "ready", {
-                target: "ready",
-                ...summarizePlayerUiSnapshot(snapshot),
-            });
-            return snapshot;
-        })
-        .finally(() => {
-            pendingPlayerUiReadyPromise = null;
+    lifecycle = controller;
+    const off = [
+        app.bus.on(CONTENT_EVENTS.APP_PAGE_READY, controller.requestCheck),
+        app.bus.on(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, controller.requestCheck),
+        app.bus.on(CONTENT_EVENTS.VIDEO_ID_CHANGED, () => controller.refresh()),
+        app.bus.on(CONTENT_EVENTS.PLAYER_VIDEO_READY, controller.requestCheck),
+        app.bus.on(CONTENT_EVENTS.PLAYER_DURATION_CHANGED, controller.requestCheck),
+    ];
+    const hostSelector = ".bpx-player-container, .bpx-player-control-bottom-left, .bpx-player-control-bottom-right, .bpx-player-progress, .bpx-player-shadow-progress-area, .bpx-player-ctrl-time-duration, video";
+    const uiSelector = "#previewbar, #shadowPreviewbar, #bsbPlayerButtonContainer, .skipButtonControlBarContainer";
+    const contains = (node: Node, selector: string) => node instanceof Element &&
+        (node.matches(selector) || !!node.querySelector(selector));
+    const observer = new MutationObserver((records) => {
+        // Ignore danmaku, native elapsed-time ticks and our own segment rendering.
+        // Only host structure/layout and the native total-duration label matter.
+        const relevant = records.filter((record) => {
+            const target = record.target instanceof Element ? record.target : record.target.parentElement;
+            return target?.matches(hostSelector) || !!target?.closest(".bpx-player-ctrl-time-duration") ||
+                Array.from(record.addedNodes).some((node) => contains(node, hostSelector)) ||
+                Array.from(record.removedNodes).some((node) => contains(node, `${hostSelector}, ${uiSelector}`));
         });
+        if (!relevant.length) return;
+        // React/Vue or the player may rewrite a host's children without replacing
+        // the host. Restore our roots once; our own insertions do not trigger refresh.
+        const removedUi = relevant.some((record) => Array.from(record.removedNodes).some((node) => contains(node, uiSelector)));
+        if (removedUi) controller.refresh(); else controller.requestCheck();
+    });
+    observer.observe(document.documentElement, {
+        childList: true, subtree: true, characterData: true, attributes: true,
+        attributeFilter: ["class", "style", "data-screen"],
+    });
+    document.addEventListener("visibilitychange", controller.requestCheck);
+    window.addEventListener("resize", controller.requestCheck);
+    controller.requestCheck();
+    addCleanupListener(() => {
+        observer.disconnect();
+        off.forEach((unsubscribe) => unsubscribe());
+        document.removeEventListener("visibilitychange", controller.requestCheck);
+        window.removeEventListener("resize", controller.requestCheck);
+        controller.dispose();
+        lifecycle = null;
+    });
+}
 
-    return pendingPlayerUiReadyPromise;
+export function waitForPlayerUiReady(timeout?: number): Promise<PlayerUIReadySnapshot> {
+    registerPlayerUiLifecycle();
+    return lifecycle.wait(timeout);
 }
