@@ -40,6 +40,19 @@ export class PlayerUiLifecycle {
 
     private check(): void {
         const snapshot = this.options.capture();
+        // An existing shadow/mini timeline still needs updates with collapsed
+        // controls. Only UI attachment requires all control hosts to be visible.
+        const video = snapshot.video;
+        const duration = this.options.duration(video);
+        if (snapshot.pageLoaded && video?.isConnected && video.readyState >= HTMLMediaElement.HAVE_METADATA &&
+            Number.isFinite(duration) && duration > 0) {
+            if (this.timeline?.video !== video || this.timeline?.duration !== duration) {
+                this.timeline = { video, duration };
+                this.options.timelineChanged(video, duration);
+            }
+        } else {
+            this.timeline = null;
+        }
         if (!this.options.isReady(snapshot)) {
             this.candidate = null;
             if (this.current) {
@@ -66,12 +79,6 @@ export class PlayerUiLifecycle {
             // Handlers can synchronously reset the route/host. Do not resolve old waiters.
             if (this.current !== snapshot) return;
             for (const waiter of this.waiters) waiter.resolve(snapshot);
-        }
-        const video = snapshot.video;
-        const duration = this.options.duration(video);
-        if (this.timeline?.video !== video || this.timeline?.duration !== duration) {
-            this.timeline = { video, duration };
-            this.options.timelineChanged(video, duration);
         }
     }
 

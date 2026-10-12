@@ -117,7 +117,60 @@ describe("video page type state", () => {
         }
     );
 
-    test("initializes replacement videos once and recognizes a detached video when reused", async () => {
+    test("recovers after the whole player is replaced within the discovery throttle window", async () => {
+        jest.useFakeTimers();
+        parsedVideoID = null;
+        jest.doMock("../src/utils/dom", () => ({
+            getElement: jest.fn((selector: string) => document.querySelector(selector)),
+            isVisible: jest.fn(() => true),
+            waitForElement: jest.fn(async (selector: string) => document.querySelector(selector)),
+        }));
+        const { createContentApp } = await import("../src/content/app");
+        const { getVideo } = await import("../src/utils/video");
+        const { PlayerUiLifecycle } = await import("../src/content/playerUiLifecycle");
+        const { CONTENT_EVENTS } = await import("../src/content/app/events");
+        const app = createContentApp();
+        const ready = jest.fn();
+        const changes = jest.fn();
+        const replacePlayer = () => {
+            document.body.innerHTML = '<div id="bilibili-player"><div class="bpx-player-video-wrap"><video></video></div></div>';
+            const next = document.querySelector("video");
+            Object.defineProperties(next, { readyState: { value: 1 }, duration: { value: 120 } });
+            return next;
+        };
+        const lifecycle = new PlayerUiLifecycle({
+            capture: () => ({ video: getVideo(), pageLoaded: true, hidden: false,
+                leftControls: null, rightControls: null, progressBar: null }),
+            isReady: ({ video }) => !!video?.isConnected,
+            duration: () => 120, ready, invalidated: jest.fn(), timelineChanged: jest.fn(),
+        });
+        app.bus.on(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, lifecycle.requestCheck);
+        app.bus.on(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, changes);
+        try {
+            replacePlayer();
+            lifecycle.requestCheck();
+            await jest.advanceTimersByTimeAsync(250);
+            expect(ready).toHaveBeenCalledTimes(1);
+            const replacement = replacePlayer();
+            lifecycle.requestCheck();
+            await jest.advanceTimersByTimeAsync(5000);
+            expect(ready).toHaveBeenCalledTimes(2);
+            expect(ready.mock.lastCall[0].video).toBe(replacement);
+            // Discovery must also move its observer to the replacement wrapper.
+            const next = replacement.cloneNode() as HTMLVideoElement;
+            replacement.replaceWith(next);
+            await jest.advanceTimersByTimeAsync(0);
+            expect(changes).toHaveBeenLastCalledWith({ video: next }, expect.anything());
+            expect(getVideo()).toBe(next);
+        } finally {
+            lifecycle.dispose();
+            jest.clearAllTimers();
+            jest.useRealTimers();
+            document.body.replaceChildren();
+        }
+    });
+
+    test("publishes identity changes for replacements and reused videos without rediscovering the same node", async () => {
         parsedVideoID = null;
         jest.doMock("../src/utils/dom", () => ({
             getElement: jest.fn(() => null),
@@ -128,7 +181,7 @@ describe("video page type state", () => {
         const { CONTENT_EVENTS } = await import("../src/content/app/events");
         const { getVideo } = await import("../src/utils/video");
         const app = createContentApp();
-        const changes: Array<{ newVideo: boolean; video: HTMLVideoElement | null }> = [];
+        const changes: Array<{ video: HTMLVideoElement | null }> = [];
         app.bus.on(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, (event) => changes.push(event));
 
         document.body.innerHTML = '<div id="bilibili-player"></div>';
@@ -136,9 +189,6 @@ describe("video page type state", () => {
         const first = document.createElement("video");
         const replacement = document.createElement("video");
         const clone = first.cloneNode() as HTMLVideoElement;
-        let now = Date.now();
-        // Advance past the discovery throttle without installing a real player observer.
-        const clock = jest.spyOn(Date, "now").mockImplementation(() => now += 3000);
         try {
             for (const element of [first, first, replacement, first, clone]) {
                 player.replaceChildren(element);
@@ -148,13 +198,12 @@ describe("video page type state", () => {
             }
 
             expect(changes).toEqual([
-                { video: first, newVideo: true },
-                { video: replacement, newVideo: true },
-                { video: first, newVideo: false },
-                { video: clone, newVideo: true },
+                { video: first },
+                { video: replacement },
+                { video: first },
+                { video: clone },
             ]);
         } finally {
-            clock.mockRestore();
             document.body.innerHTML = "";
         }
     });
@@ -176,8 +225,6 @@ describe("video page type state", () => {
         const old = document.querySelector('video');
         const replacement = document.createElement('video');
         replacement.className = 'bpx-player-seamless-replacement';
-        let now = Date.now();
-        const clock = jest.spyOn(Date, "now").mockImplementation(() => now += 3000);
         const refresh = async () => {
             getVideo();
             await new Promise(resolve => setTimeout(resolve, 0));
@@ -203,7 +250,6 @@ describe("video page type state", () => {
             expect(changes).toHaveBeenCalledTimes(abort ? 0 : 1);
             expect(resets).not.toHaveBeenCalled();
         } finally {
-            clock.mockRestore();
             document.body.innerHTML = '';
         }
     });

@@ -320,9 +320,6 @@ export function registerSegmentSubmission(): void {
     );
     app.commands.register("segments/import", ({ importedSegments }) => importSegments(importedSegments));
     app.commands.register("ui/updatePlayerButtons", () => updateVisibilityOfPlayerControlsButton());
-    app.commands.register("ui/setupSkipButtonControlBar", () => setupSkipButtonControlBar());
-    app.commands.register("ui/setupCategoryPill", () => setupCategoryPill());
-    app.commands.register("ui/setupDescriptionPill", () => setupDescriptionPill());
     app.commands.register("port/submitVideo", ({ ytbID }) => submitPortVideo(ytbID));
     app.commands.register("port/voteVideo", ({ UUID, vote }) => portVideoVote(UUID, vote));
     app.commands.register("port/updateSegments", ({ UUID }) => updateSegments(UUID));

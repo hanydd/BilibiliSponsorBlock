@@ -101,3 +101,31 @@ test("restores controls and timeline when native player rewrites hosts without c
     await expect(extensionPage.locator("#bsbPlayerButtonContainer")).toHaveCount(1);
     await expect(extensionPage.locator("#previewbar")).toHaveCount(1);
 });
+
+test("restores the legacy player's UI after rapid whole-player replacements", async ({
+    extensionPage: page, extensionServiceWorker,
+}) => {
+    await page.evaluate(async () => {
+        for (let generation = 1; generation <= 2; generation++) {
+            const player = document.querySelector("#bilibili-player");
+            const replacement = player.cloneNode(true) as HTMLElement;
+            replacement.querySelectorAll("#bsbPlayerButtonContainer, .skipButtonControlBarContainer, #previewbar, #shadowPreviewbar, #sponsorBlockDurationAfterSkips")
+                .forEach(node => node.remove());
+            replacement.dataset.e2eGeneration = String(generation);
+            player.replaceWith(replacement);
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    });
+    await expect(page.locator('#bilibili-player[data-e2e-generation="2"] #startSegmentButton')).toBeVisible();
+    await expect(page.locator("#bsbPlayerButtonContainer")).toHaveCount(1);
+    await expect(page.locator("#previewbar")).toHaveCount(1);
+    await expect(page.locator("#shadowPreviewbar")).toHaveCount(1);
+    await setMockVideoTime(page, 7);
+    await page.locator("#startSegmentButton").click();
+    await expect.poll(async () => {
+        const segments = await readLocalStorage<Record<string, Array<{ segment: number[] }>>>(
+            extensionServiceWorker, "unsubmittedSegments"
+        );
+        return segments?.[mockVideoId]?.[0]?.segment;
+    }).toEqual([7]);
+});

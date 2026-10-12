@@ -17,7 +17,6 @@ export class PlayerButton {
     root: Root;
     container: HTMLElement;
     playerButtons: Record<string, { button: HTMLButtonElement; image: HTMLImageElement }>;
-    creatingButtons: boolean;
     creationPromise: Promise<Record<string, { button: HTMLButtonElement; image: HTMLImageElement }>> | null;
 
     buttonRef: React.RefObject<{ setSetgments(segments: SponsorTime[]): void }>;
@@ -46,7 +45,6 @@ export class PlayerButton {
         this.submitCallback = submitCallback;
         this.infoCallback = infoCallback;
 
-        this.creatingButtons = false;
         this.creationPromise = null;
 
         this.buttonRef = React.createRef();
@@ -80,12 +78,6 @@ export class PlayerButton {
         }
 
         if (!this.container) {
-            if (this.creatingButtons) {
-                await waitFor(() => this.playerButtons !== undefined, 5000, 10);
-                return this.playerButtons;
-            }
-
-            this.creatingButtons = true;
             this.container = document.createElement("div");
             this.container.id = containerId;
             this.container.style.display = "flex";
@@ -122,7 +114,6 @@ export class PlayerButton {
             if (Config.config.autoHideInfoButton) {
                 AnimationUtils.setupAutoHideAnimation(this.playerButtons.info.button, this.container);
             }
-            this.creatingButtons = false;
             logUiLifecycle("playerButtons", "ready", {
                 target: "buttons",
                 debugId: this.debugId,

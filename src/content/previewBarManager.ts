@@ -11,7 +11,7 @@ import { logUiLifecycle } from "../utils/logger";
 import { getVideo, getVideoID } from "../utils/video";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
-import { isPlayerUiReady, waitForPlayerUiReady } from "./playerUi";
+import { isPlayerUiReady } from "./playerUi";
 import { contentState } from "./state";
 
 const utils = new Utils();
@@ -46,16 +46,13 @@ function voteAsync(type: number, UUID: SegmentUUID, category?: Category): Promis
 export function registerPreviewBarManager(): void {
     const app = getContentApp();
 
-    app.commands.register("ui/createPreviewBar", () => createPreviewBar());
     app.commands.register("ui/updatePreviewBar", () => updatePreviewBar());
-    app.commands.register("ui/checkPreviewBarState", () => checkPreviewbarState());
     app.commands.register("ui/updateActiveSegment", ({ currentTime }) => updateActiveSegment(currentTime));
     app.commands.register("segments/select", ({ UUID }) => selectSegment(UUID));
 
     app.bus.on(CONTENT_EVENTS.PLAYER_UI_READY, () => {
         checkPreviewbarState();
         createPreviewBar();
-        updatePreviewBar();
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_UI_INVALIDATED, () => checkPreviewbarState());
     app.bus.on(CONTENT_EVENTS.PLAYER_TIMELINE_CHANGED, () => {
@@ -88,10 +85,7 @@ export function createPreviewBar(): void {
     const app = getContentApp();
     const { previewBar } = app.ui.getState();
     if (previewBar !== null) return;
-    if (!isPlayerUiReady()) {
-        void waitForPlayerUiReady().then(() => createPreviewBar()).catch(() => undefined);
-        return;
-    }
+    if (!isPlayerUiReady()) return;
 
     logUiLifecycle("previewBar", "wait", {
         target: "progress",
@@ -102,31 +96,21 @@ export function createPreviewBar(): void {
 
     const player = getPlayerContainer();
     if (!player) return;
-    const progressElementOptions = [
-        {
-            selector: ".bpx-player-progress",
-            shadowSelector: ".bpx-player-shadow-progress-area",
-        },
-    ];
+    const parent = player.querySelector<HTMLElement>(".bpx-player-progress");
+    const shadowParent = player.querySelector<HTMLElement>(".bpx-player-shadow-progress-area");
 
-    for (const option of progressElementOptions) {
-        const parent = player.querySelector<HTMLElement>(option.selector);
-        const shadowParent = player.querySelector<HTMLElement>(option.shadowSelector);
-
-        // Overlays and the floating player's controls can cover a healthy bar.
-        // Ownership and layout, rather than hit-testing, determine where to mount.
-        if (parent?.isConnected && isVisible(parent)) {
-            const chapterVote = new ChapterVote(voteAsync);
-            const nextPreviewBar = new PreviewBar(parent, shadowParent, chapterVote);
-            app.ui.patchState({ previewBar: nextPreviewBar });
-            logUiLifecycle("previewBar", "attach", {
-                action: "mount",
-                parent,
-                shadowParent,
-            });
-            updatePreviewBar();
-            break;
-        }
+    // Overlays and the floating player's controls can cover a healthy bar.
+    // Ownership and layout, rather than hit-testing, determine where to mount.
+    if (parent?.isConnected && isVisible(parent)) {
+        const chapterVote = new ChapterVote(voteAsync);
+        const nextPreviewBar = new PreviewBar(parent, shadowParent, chapterVote);
+        app.ui.patchState({ previewBar: nextPreviewBar });
+        logUiLifecycle("previewBar", "attach", {
+            action: "mount",
+            parent,
+            shadowParent,
+        });
+        updatePreviewBar();
     }
 }
 
@@ -206,8 +190,6 @@ export function checkPreviewbarState(): void {
         app.ui.patchState({ previewBar: null });
         removeDurationAfterSkip();
     }
-
-    void waitForPlayerUiReady().then(() => createPreviewBar()).catch(() => undefined);
 }
 
 export function selectSegment(UUID: SegmentUUID): void {

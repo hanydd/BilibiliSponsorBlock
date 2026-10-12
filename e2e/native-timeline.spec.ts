@@ -44,3 +44,47 @@ test("follows a trial-sized or full native axis and clips marks when only the na
     await expect(page.locator("#shadowPreviewbar > li")).toHaveCount(2);
     expect(await page.locator("video").first().evaluate((video: HTMLVideoElement) => video.duration)).toBe(120);
 });
+
+test("updates shadow marks while controls are hidden, for native labels and media duration", async ({
+    extensionPage: page, extensionContext, extensionServiceWorker, sendContentMessage,
+}) => {
+    await writeSyncStorage(extensionServiceWorker, { autoHideInfoButton: false });
+    await routeMockBilibiliVideoPage(page);
+    await routeMockSponsorSegments(extensionContext, defaultMockBvid, [{
+        segment: [30, 30], actionType: "poi", category: "poi_highlight", cid: defaultMockCid,
+        UUID: "1".repeat(64), videoDuration: 240,
+    }]);
+    await page.goto(`https://www.bilibili.com/video/${defaultMockBvid}/`);
+    await page.locator(".bpx-player-ctrl-time").evaluate((time: HTMLElement) => {
+        time.innerHTML = '<span class="bpx-player-ctrl-time-duration">02:00</span>';
+    });
+    await waitForBilibiliContentScript(page, sendContentMessage);
+    await sendContentMessage({ message: "refreshSegments" });
+    const point = page.locator('#shadowPreviewbar [sponsorblock-category="poi_highlight"]');
+    const position = () => point.evaluate((mark: HTMLElement) => parseFloat(mark.style.left));
+    await expect.poll(position).toBeCloseTo(25, 3);
+    await page.locator(".bpx-player-control-bottom-right").evaluate((controls: HTMLElement) => {
+        controls.style.display = "none";
+    });
+    await page.locator(".bpx-player-control-bottom-right").waitFor({ state: "hidden" });
+    await page.locator(".bpx-player-ctrl-time-duration").evaluate((label) => { label.textContent = "04:00"; });
+    await expect.poll(position).toBeCloseTo(12.5, 3);
+    // Property overrides must share the content script's isolated world;
+    // setting duration in the page world does not affect extension reads.
+    await extensionServiceWorker.evaluate(async () => {
+        const [tab] = await chrome.tabs.query({ url: "https://www.bilibili.com/video/*" });
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id }, world: "ISOLATED",
+            func: () => {
+                document.querySelector(".bpx-player-ctrl-time-duration").remove();
+                const video = document.querySelector("video");
+                Object.defineProperty(video, "duration", { configurable: true, value: 60 });
+                video.dispatchEvent(new Event("durationchange"));
+            },
+        });
+    });
+    await expect.poll(position).toBeCloseTo(50, 3);
+    await expect(page.locator(".bpx-player-control-bottom-right")).toBeHidden();
+    await expect(page.locator("#previewbar")).toHaveCount(1);
+    await expect(page.locator("#bsbPlayerButtonContainer")).toHaveCount(1);
+});

@@ -2,11 +2,14 @@
 import { PlayerUiLifecycle } from "../src/content/playerUiLifecycle";
 import type { PlayerUIReadySnapshot } from "../src/content/playerUi";
 
-const host = (): PlayerUIReadySnapshot => ({
-    hidden: false, pageLoaded: true, video: document.createElement("video"),
-    leftControls: document.createElement("div"), rightControls: document.createElement("div"),
-    progressBar: document.createElement("div"),
-});
+const host = (): PlayerUIReadySnapshot => {
+    const video = document.createElement("video");
+    Object.defineProperties(video, { readyState: { configurable: true, value: 1 } });
+    document.body.append(video);
+    return { hidden: false, pageLoaded: true, video,
+        leftControls: document.createElement("div"), rightControls: document.createElement("div"),
+        progressBar: document.createElement("div") };
+};
 let state: PlayerUIReadySnapshot;
 let duration: number;
 let lifecycle: PlayerUiLifecycle;
@@ -15,10 +18,10 @@ beforeEach(() => {
     jest.useFakeTimers();
     state = host(); duration = 1227;
     jest.clearAllMocks();
-    lifecycle = new PlayerUiLifecycle({ capture: () => state, isReady: (s) => s.pageLoaded && !s.hidden,
+    lifecycle = new PlayerUiLifecycle({ capture: () => state, isReady: (s) => s.pageLoaded && !s.hidden && !!s.leftControls && !!s.rightControls && !!s.progressBar,
         duration: () => duration, ready, invalidated, timelineChanged });
 });
-afterEach(() => { lifecycle.dispose(); jest.useRealTimers(); });
+afterEach(() => { lifecycle.dispose(); document.body.replaceChildren(); jest.useRealTimers(); });
 const settle = () => jest.advanceTimersByTimeAsync(250);
 
 test("waits for hydration and restarts stabilization when SSR hosts are replaced", async () => {
@@ -26,6 +29,7 @@ test("waits for hydration and restarts stabilization when SSR hosts are replaced
     const resolved = jest.fn();
     const waiting = lifecycle.wait(2000).then(resolved);
     await settle(); expect(resolved).not.toHaveBeenCalled();
+    expect(timelineChanged).not.toHaveBeenCalled();
     state.pageLoaded = true; lifecycle.requestCheck();
     await jest.advanceTimersByTimeAsync(100);
     state = host(); lifecycle.requestCheck();
@@ -73,4 +77,33 @@ test("cleanup rejects pending waits and stops all future emissions", async () =>
     const waiting = lifecycle.wait(1000).catch((error: Error) => error.message);
     lifecycle.dispose(); expect(await waiting).toContain("disposed");
     state.pageLoaded = true; lifecycle.requestCheck(); await settle(); expect(ready).not.toHaveBeenCalled();
+});
+
+
+test("keeps timeline facts current with collapsed controls without remounting", async () => {
+    lifecycle.requestCheck(); await settle();
+    state.rightControls = null;
+    duration = 240; lifecycle.requestCheck(); await settle();
+    expect(timelineChanged).toHaveBeenLastCalledWith(state.video, 240);
+    expect(ready).toHaveBeenCalledTimes(1);
+    expect(invalidated).toHaveBeenCalledTimes(1);
+    duration = 60; lifecycle.requestCheck(); await settle();
+    expect(timelineChanged).toHaveBeenLastCalledWith(state.video, 60);
+    expect(timelineChanged).toHaveBeenCalledTimes(3);
+});
+
+test("does not publish a stale timeline for unloaded or disconnected media", async () => {
+    state.rightControls = null;
+    Object.defineProperty(state.video, "readyState", { configurable: true, value: 0 });
+    lifecycle.requestCheck(); await settle();
+    expect(timelineChanged).not.toHaveBeenCalled();
+    Object.defineProperty(state.video, "readyState", { configurable: true, value: 1 });
+    lifecycle.requestCheck(); await settle();
+    expect(timelineChanged).toHaveBeenCalledTimes(1);
+    state.video.remove(); duration = 60;
+    lifecycle.requestCheck(); await settle();
+    expect(timelineChanged).toHaveBeenCalledTimes(1);
+    document.body.append(state.video);
+    lifecycle.requestCheck(); await settle();
+    expect(timelineChanged).toHaveBeenLastCalledWith(state.video, 60);
 });
