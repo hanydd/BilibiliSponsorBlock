@@ -408,7 +408,7 @@ describe("ServerRouter", () => {
         expect((await router.getStatus()).activeAddress).toBe(MIRROR);
     });
 
-    test("falls back once when a write request gets a node error", async () => {
+    test("does not replay a write request after a node error", async () => {
         executeRequest.mockResolvedValue(response(503));
         const router = createRouter();
 
@@ -416,8 +416,8 @@ describe("ServerRouter", () => {
             response(503)
         );
 
-        expect(executeRequest).toHaveBeenCalledTimes(2);
-        expect((await router.getStatus()).activeAddress).toBe(PRIMARY);
+        expect(executeRequest).toHaveBeenCalledTimes(1);
+        expect((await router.getStatus()).activeAddress).toBe(MIRROR);
         expect((await router.getStatus()).nodes[0].healthState).toBe("open");
     });
 
@@ -715,16 +715,14 @@ describe("ServerRouter", () => {
         expect(primary.openUntil).toBe(now + 60 * 60 * 1000);
     });
 
-    test("falls back from a healthy primary to one mirror for a write", async () => {
+    test("does not replay a write to a mirror after a node error", async () => {
         executeRequest.mockResolvedValueOnce(response(503)).mockResolvedValueOnce(response(200));
         const router = createRouter();
 
-        await expect(router.request("POST", "/api/voteOnSponsorTime", { UUID: "test" })).resolves.toEqual(response(200));
+        await expect(router.request("POST", "/api/voteOnSponsorTime", { UUID: "test" })).resolves.toEqual(response(503));
 
-        expect(executeRequest.mock.calls.map((call) => call[1])).toEqual([
-            PRIMARY + "/api/voteOnSponsorTime",
-            MIRROR + "/api/voteOnSponsorTime",
-        ]);
+        expect(executeRequest).toHaveBeenCalledTimes(1);
+        expect(executeRequest.mock.calls[0][1]).toBe(PRIMARY + "/api/voteOnSponsorTime");
     });
 
     test("does not use a write request as a recovery probe", async () => {

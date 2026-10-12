@@ -29,7 +29,7 @@ describe("backend capability routing", () => {
         expect(getBackendOperation("GET", "/api/segmentInfo")).toBeNull();
     });
 
-    test("uses mirrors for read requests and write fallback", async () => {
+    test("uses mirrors for reads and does not replay writes", async () => {
         const request = sendRealRequestToCustomServer as jest.Mock;
 
         const backend: BackendConfig = {
@@ -41,7 +41,6 @@ describe("backend capability routing", () => {
         };
 
         request.mockResolvedValueOnce({ responseText: "", status: 503, ok: false });
-        request.mockResolvedValueOnce({ responseText: "[]", status: 200, ok: true });
         await requestFromBackend(backend, "POST", "/api/skipSegments");
         expect(request).toHaveBeenNthCalledWith(
             1,
@@ -49,16 +48,10 @@ describe("backend capability routing", () => {
             "https://primary.example/api/skipSegments",
             {},
             {},
-            expect.any(AbortSignal)
+            expect.any(AbortSignal),
+            {}
         );
-        expect(request).toHaveBeenNthCalledWith(
-            2,
-            "POST",
-            "https://mirror.example/api/skipSegments",
-            {},
-            {},
-            expect.any(AbortSignal)
-        );
+        expect(request).toHaveBeenCalledTimes(1);
 
     });
 });

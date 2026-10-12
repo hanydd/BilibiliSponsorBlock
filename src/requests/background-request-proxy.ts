@@ -1,4 +1,4 @@
-import { FetchResponse } from "./type/requestType";
+import { FetchResponse, RequestClientOptions } from "./type/requestType";
 export { sendRealRequestToCustomServer } from "./backendTransport";
 import { requestToBackend, BackendRequestOptions } from "./backendRouter";
 
@@ -7,9 +7,10 @@ export async function callAPI(
     endpoint: string,
     extraRequestData: Record<string, unknown> = {},
     skipServerCache: boolean = false,
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
+    clientOptions: RequestClientOptions = {}
 ): Promise<FetchResponse> {
-    return requestToBackend(type, endpoint, extraRequestData, { skipServerCache }, headers);
+    return requestToBackend(type, endpoint, extraRequestData, { skipServerCache, clientOptions }, headers);
 }
 
 export async function callAPIWithOptions(

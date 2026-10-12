@@ -1,6 +1,6 @@
 import "content-scripts-register-polyfill";
 import Config from "./config";
-import { checkSponsorRegexConfigUpdate } from "./config/sponsorRegexOTA";
+import { checkSponsorRegexConfigUpdate } from "./requests/background/sponsorRegexConfigUpdate";
 import { callAPIWithOptions, sendRealRequestToCustomServer } from "./requests/background-request-proxy";
 import { clearAllCacheBackground, segmentsCache, videoLabelCache } from "./requests/background/backgroundCache";
 import { getSegmentsBackground } from "./requests/background/segmentRequest";

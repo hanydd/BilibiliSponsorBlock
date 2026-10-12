@@ -10,7 +10,7 @@ import {
     selectMatchedBackends,
 } from "../backends";
 import Config from "../config";
-import { FetchResponse } from "./type/requestType";
+import { FetchResponse, RequestClientOptions } from "./type/requestType";
 import { sendRealRequestToCustomServer } from "./backendTransport";
 import {
     BackendAddressCheckResult,
@@ -27,6 +27,7 @@ export interface BackendRequestOptions {
     operation?: BackendOperation;
     skipServerCache?: boolean;
     videoContext?: VideoMatchContext;
+    clientOptions?: RequestClientOptions;
 }
 
 export interface BackendRequestResult {
@@ -139,8 +140,8 @@ async function getRouter(backend: BackendRequestDefinition): Promise<ServerRoute
             const current = getBackendDefinition(backend.id, backend);
             return current ? [current.api_url, ...(current.mirrors ?? [])] : [];
         },
-        executeRequest: (type, url, data, headers, signal) =>
-            sendRealRequestToCustomServer(type, url, data, headers, signal),
+        executeRequest: (type, url, data, headers, signal, clientOptions) =>
+            sendRealRequestToCustomServer(type, url, data, headers, signal, clientOptions),
         loadState: () => Promise.resolve(persistedStates.get(backend.id) ?? null),
         saveState: savePersistedState,
     });
@@ -172,10 +173,11 @@ export async function requestFromBackend(
     endpoint: string,
     data: Record<string, unknown> = {},
     skipServerCache = false,
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
+    clientOptions: RequestClientOptions = {}
 ): Promise<FetchResponse> {
     const router = await getRouter(backend);
-    return router.request(type, endpoint, data, requestHeaders(skipServerCache, headers));
+    return router.request(type, endpoint, data, requestHeaders(skipServerCache, headers), clientOptions);
 }
 
 function resolveOperation(type: string, endpoint: string, options: BackendRequestOptions): BackendOperation | null {
@@ -208,7 +210,8 @@ export async function requestFromBackends(
                 endpoint,
                 data,
                 Boolean(options.skipServerCache),
-                headers
+                headers,
+                options.clientOptions
             ),
         }))
     );
@@ -222,12 +225,16 @@ export async function requestToBackend(
     headers: Record<string, string> = {}
 ): Promise<FetchResponse> {
     const operation = resolveOperation(type, endpoint, options);
-    if (!operation) return { responseText: "", status: 404, ok: false };
+    if (!operation) {
+        const backend = options.backendId ? getConfiguredBackends().find((item) => item.id === options.backendId) : getConfiguredBackends()[0];
+        if (!backend) return { responseText: "", status: 404, ok: false };
+        return requestFromBackend(backend, type, endpoint, data, Boolean(options.skipServerCache), headers, options.clientOptions);
+    }
 
     const backend = options.backendId
         ? getBackendById(options.backendId, operation, options.videoContext)
         : getEligibleBackends(operation, options.videoContext)[0];
     if (!backend) return { responseText: "", status: 404, ok: false };
 
-    return requestFromBackend(backend, type, endpoint, data, Boolean(options.skipServerCache), headers);
+    return requestFromBackend(backend, type, endpoint, data, Boolean(options.skipServerCache), headers, options.clientOptions);
 }

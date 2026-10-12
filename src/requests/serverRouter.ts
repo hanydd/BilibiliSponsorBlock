@@ -1,4 +1,4 @@
-import { FetchResponse } from "./type/requestType";
+import { FetchResponse, RequestClientOptions } from "./type/requestType";
 
 export const BACKEND_ROUTER_CONFIG = {
     backoffMs: [15 * 60 * 1000, 60 * 60 * 1000, 6 * 60 * 60 * 1000, 24 * 60 * 60 * 1000],
@@ -35,7 +35,7 @@ interface NodeHealth {
 
 export interface BackendRouterState {
     version: 1;
-    backendId: string;
+    backendId?: string;
     nodeSignature: string;
     activeAddress: string;
     lastUnavailableProbeAddress: string;
@@ -53,7 +53,7 @@ export interface ServerNodeStatus {
 }
 
 export interface BackendRouterStatus {
-    backendId: string;
+    backendId?: string;
     activeAddress: string;
     nodes: ServerNodeStatus[];
 }
@@ -68,14 +68,15 @@ type RequestData = Record<string, unknown> | null;
 type RetryMode = "none" | "single" | "all";
 
 interface ServerRouterOptions {
-    backendId: string;
+    backendId?: string;
     getServerAddresses: () => string[] | Promise<string[]>;
     executeRequest: (
         type: string,
         url: string,
         data: RequestData,
         headers: Record<string, string>,
-        signal: AbortSignal
+        signal: AbortSignal,
+        clientOptions?: RequestClientOptions
     ) => Promise<FetchResponse>;
     loadState: () => Promise<BackendRouterState | null>;
     saveState: (state: BackendRouterState) => Promise<void>;
@@ -125,27 +126,29 @@ export class ServerRouter {
         type: string,
         endpoint: string,
         data: RequestData = {},
-        headers: Record<string, string> = {}
+        headers: Record<string, string> = {},
+        clientOptions: RequestClientOptions = {}
     ): Promise<FetchResponse> {
         const normalizedType = type.toUpperCase();
-        const mergeHashRequest = isMergeableHashRequest(normalizedType, endpoint);
-        const retryMode: RetryMode = mergeHashRequest
-            ? "all"
-            : isRetryableReadRequest(normalizedType, endpoint)
-              ? "single"
-              : normalizedType === "GET"
-                ? "none"
-                : "single";
+        const hashRequest = isMergeableHashRequest(normalizedType, endpoint);
+        const mergeHashRequest = hashRequest && Object.keys(clientOptions).length === 0;
+        const retryMode: RetryMode = clientOptions.retry === false
+            ? "none"
+              : hashRequest
+                ? "all"
+                : clientOptions.retry === true || isRetryableReadRequest(normalizedType, endpoint)
+                  ? "single"
+                  : "none";
 
         if (!mergeHashRequest) {
-            return this.routeRequest(normalizedType, endpoint, data, headers, retryMode);
+            return this.routeRequest(normalizedType, endpoint, data, headers, retryMode, clientOptions);
         }
 
         const requestKey = this.getHashRequestKey(normalizedType, endpoint, data, headers);
         const existingRequest = this.inFlightHashRequests.get(requestKey);
         if (existingRequest) return existingRequest;
 
-        const request = this.routeRequest(normalizedType, endpoint, data, headers, retryMode);
+        const request = this.routeRequest(normalizedType, endpoint, data, headers, retryMode, clientOptions);
         this.inFlightHashRequests.set(requestKey, request);
 
         try {
@@ -225,20 +228,29 @@ export class ServerRouter {
         endpoint: string,
         data: RequestData,
         headers: Record<string, string>,
-        retryMode: RetryMode
+        retryMode: RetryMode,
+        clientOptions: RequestClientOptions = {}
     ): Promise<FetchResponse> {
-        const addresses = await this.getAddresses();
+        const configuredAddresses = await this.getAddresses();
+        const addresses = clientOptions.httpsOnly
+            ? configuredAddresses.filter((address) => {
+                  try { return new URL(address).protocol === "https:"; }
+                  catch { return false; }
+              })
+            : configuredAddresses;
         if (addresses.length === 0) return failedResponse();
 
         const retryRequest = retryMode !== "none";
-        const validateHashResponse = retryMode === "all";
+        const validateHashResponse = isMergeableHashRequest(type, endpoint);
         const selection = await this.selectRequestNode(addresses, type === "GET" && retryRequest);
-        const response = await this.execute(type, selection.address + endpoint, data, headers, validateHashResponse);
+        const rawResponse = await this.execute(type, selection.address + endpoint, data, headers, validateHashResponse, clientOptions);
+        const validationPassed = this.passesValidation(rawResponse, clientOptions.validateResponse);
+        const response = validationPassed === false ? { ...rawResponse, ok: false } : rawResponse;
 
         if (!retryRequest) {
-            if (this.isNodeFailure(response)) {
-                await this.recordFailure(selection.address, addresses, true);
-            } else {
+            if (this.isRetryableResponse(response, validateHashResponse, validationPassed)) {
+                if (clientOptions.recordFailure !== false) await this.recordFailure(selection.address, addresses, true);
+            } else if (validationPassed !== false) {
                 await this.recordRequestSuccess(selection.address);
             }
             return response;
@@ -246,8 +258,8 @@ export class ServerRouter {
 
         if (selection.recoveryProbe) {
             try {
-                if (this.isRetryableResponse(response, validateHashResponse)) {
-                    await this.recordFailure(selection.address, addresses, false);
+                if (this.isRetryableResponse(response, validateHashResponse, validationPassed)) {
+                    if (clientOptions.recordFailure !== false) await this.recordFailure(selection.address, addresses, false);
                     return (
                         (await this.retryRequestOnAvailableNodes(
                             type,
@@ -257,10 +269,11 @@ export class ServerRouter {
                             addresses,
                             new Set([selection.address]),
                             retryMode,
-                            validateHashResponse
+                            validateHashResponse,
+                            clientOptions
                         )) ?? response
                     );
-                } else if (this.isUsableResponse(response, validateHashResponse)) {
+                } else if (this.isUsableResponse(response, validateHashResponse, validationPassed)) {
                     await this.recordRequestSuccess(selection.address);
                 } else {
                     await this.postponeRecoveryProbe(selection.address);
@@ -271,14 +284,14 @@ export class ServerRouter {
             }
         }
 
-        if (!this.isRetryableResponse(response, validateHashResponse)) {
-            if (this.isUsableResponse(response, validateHashResponse)) {
+        if (!this.isRetryableResponse(response, validateHashResponse, validationPassed)) {
+            if (this.isUsableResponse(response, validateHashResponse, validationPassed)) {
                 await this.recordRequestSuccess(selection.address);
             }
             return response;
         }
 
-        await this.recordFailure(selection.address, addresses, false);
+        if (clientOptions.recordFailure !== false) await this.recordFailure(selection.address, addresses, false);
         return (
             (await this.retryRequestOnAvailableNodes(
                 type,
@@ -288,7 +301,8 @@ export class ServerRouter {
                 addresses,
                 new Set([selection.address]),
                 retryMode,
-                validateHashResponse
+                validateHashResponse,
+                clientOptions
             )) ?? response
         );
     }
@@ -301,7 +315,8 @@ export class ServerRouter {
         addresses: string[],
         attemptedAddresses: Set<string>,
         retryMode: RetryMode,
-        validateHashResponse: boolean
+        validateHashResponse: boolean,
+        clientOptions: RequestClientOptions = {}
     ): Promise<FetchResponse | null> {
         const retryLimit = retryMode === "all" ? addresses.length : 1;
         let retryCount = 0;
@@ -311,16 +326,18 @@ export class ServerRouter {
             attemptedAddresses.add(address);
             retryCount += 1;
 
-            const response = await this.execute(type, address + endpoint, data, headers, validateHashResponse);
+            const rawResponse = await this.execute(type, address + endpoint, data, headers, validateHashResponse, clientOptions);
+            const validationPassed = this.passesValidation(rawResponse, clientOptions.validateResponse);
+            const response = validationPassed === false ? { ...rawResponse, ok: false } : rawResponse;
             lastResponse = response;
-            if (this.isRetryableResponse(response, validateHashResponse)) {
-                await this.recordFailure(address, addresses, false);
+            if (this.isRetryableResponse(response, validateHashResponse, validationPassed)) {
+                if (clientOptions.recordFailure !== false) await this.recordFailure(address, addresses, false);
                 address = this.findAvailableNode(addresses, attemptedAddresses);
                 continue;
             }
 
-            if (this.isUsableResponse(response, validateHashResponse)) {
-                await this.setActiveNode(address);
+            if (this.isUsableResponse(response, validateHashResponse, validationPassed)) {
+                if (clientOptions.switchOnRetrySuccess !== false) await this.setActiveNode(address);
                 await this.recordRequestSuccess(address);
             }
             return response;
@@ -334,7 +351,8 @@ export class ServerRouter {
         url: string,
         data: RequestData,
         headers: Record<string, string>,
-        hashRequest: boolean
+        hashRequest: boolean,
+        clientOptions: RequestClientOptions = {}
     ): Promise<FetchResponse> {
         const controller = new AbortController();
         const timeoutMs = hashRequest
@@ -343,7 +361,7 @@ export class ServerRouter {
         const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
         try {
-            return await this.options.executeRequest(type, url, data, headers, controller.signal);
+            return await this.options.executeRequest(type, url, data, headers, controller.signal, clientOptions);
         } catch {
             return failedResponse();
         } finally {
@@ -501,7 +519,8 @@ export class ServerRouter {
         }
     }
 
-    private isRetryableResponse(response: FetchResponse, validateHashResponse: boolean): boolean {
+    private isRetryableResponse(response: FetchResponse, validateHashResponse: boolean, validationPassed?: boolean): boolean {
+        if (validationPassed === false) return true;
         return validateHashResponse ? this.isRetryableHashFailure(response) : this.isNodeFailure(response);
     }
 
@@ -517,10 +536,16 @@ export class ServerRouter {
         return response.status === 404 || (response.status === 200 && !this.isRetryableHashFailure(response));
     }
 
-    private isUsableResponse(response: FetchResponse, validateHashResponse: boolean): boolean {
+    private isUsableResponse(response: FetchResponse, validateHashResponse: boolean, validationPassed?: boolean): boolean {
+        if (validationPassed !== undefined) return validationPassed;
         return validateHashResponse
             ? this.isUsableHashResponse(response)
             : response.ok || response.status === 404;
+    }
+
+    private passesValidation(response: FetchResponse, validate?: RequestClientOptions["validateResponse"]): boolean | undefined {
+        if (!validate) return undefined;
+        try { return validate(response); } catch { return false; }
     }
 
     private getHashRequestKey(
