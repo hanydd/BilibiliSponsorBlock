@@ -1,5 +1,4 @@
 import Config from "../config";
-import { waitFor } from "../utils/";
 import { addCleanupListener } from "../utils/cleanup";
 import { getVideo, getVideoID } from "../utils/video";
 import { getContentApp } from "./app";
@@ -19,9 +18,9 @@ export function registerVideoListeners(): void {
             unbindVideo?.();
             return;
         }
-        void waitFor(() => Config.isReady(), 35000, 50).then(() => {
-            if (video === getVideo()) setupVideoListeners(video);
-        }).catch(() => undefined);
+        // Content bootstrap already awaited Config.ready. Bind immediately so
+        // early media events cannot fall between discovery and registration.
+        if (video === getVideo()) setupVideoListeners(video);
     });
     addCleanupListener(off);
 }

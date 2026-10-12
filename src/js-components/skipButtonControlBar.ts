@@ -1,9 +1,8 @@
 import Config from "../config";
 import { keybindToString } from "../config/config";
-import { waitForPlayerUiReady } from "../content/playerUi";
+import type { PlayerUIReadySnapshot } from "../content/playerUi";
 import { SegmentUUID, SponsorTime } from "../types";
 import { getSkippingText } from "../utils/categoryUtils";
-import { waitFor } from "../utils/index";
 import { logUiLifecycle } from "../utils/logger";
 
 export interface SkipButtonControlBarProps {
@@ -68,19 +67,11 @@ export class SkipButtonControlBar {
         return this.container;
     }
 
-    async attachToPage(): Promise<void> {
-        logUiLifecycle("skipButton", "wait", {
-            action: "attach",
-            debugId: this.debugId,
-        });
-        const { leftControls } = await waitForPlayerUiReady();
-        const timeControl = await waitFor(
-            () => leftControls.querySelector<HTMLElement>(".bpx-player-ctrl-time"),
-            10000,
-            50
-        );
+    attachToPage({ timeControl }: PlayerUIReadySnapshot): void {
+        // Late time controls are observed by the shared lifecycle. A new ready
+        // snapshot retries attachment instead of waiting on an obsolete host.
+        if (!timeControl?.isConnected) return;
         const mountingContainer = timeControl.parentElement;
-        // this.chapterText = document.querySelector(".ytp-chapter-container");
 
         document.querySelectorAll(".skipButtonControlBarContainer").forEach((container) => {
             if (container !== this.container) {

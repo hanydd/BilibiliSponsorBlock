@@ -23,7 +23,7 @@ function snapshot(): PlayerUIReadySnapshot {
     const video = document.createElement("video");
     Object.defineProperties(video, { readyState: { value: 1 }, duration: { value: 180.16 } });
     document.body.append(control, video);
-    return { hidden: false, pageLoaded: true, leftControls: control, rightControls: control, progressBar: control, video };
+    return { hidden: false, pageLoaded: true, leftControls: control, rightControls: control, timeControl: null, progressBar: control, video };
 }
 
 test("requires page hydration even when media and SSR controls look ready", () => {
@@ -34,7 +34,7 @@ test("requires page hydration even when media and SSR controls look ready", () =
 test("still requires metadata, controls, a progress bar, and a visible tab", () => {
     expect(isPlayerUiReady({ ...snapshot(), video: document.createElement("video") })).toBe(false);
     expect(isPlayerUiReady({ ...snapshot(), rightControls: null })).toBe(false);
-    expect(isPlayerUiReady({ ...snapshot(), progressBar: document.createElement("div") })).toBe(false);
+    expect(isPlayerUiReady({ ...snapshot(), timeControl: null, progressBar: document.createElement("div") })).toBe(false);
     expect(isPlayerUiReady({ ...snapshot(), hidden: true })).toBe(false);
 });
 

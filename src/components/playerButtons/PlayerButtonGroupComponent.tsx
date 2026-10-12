@@ -13,7 +13,11 @@ interface PlayerButtonGroupProps {
     infoCallback: () => void;
 }
 
-const PlayerButtonGroupComponent = React.forwardRef(function (
+export interface PlayerButtonGroupHandle {
+    setSetgments(segments: SponsorTime[]): void;
+}
+
+const PlayerButtonGroupComponent = React.forwardRef<PlayerButtonGroupHandle, PlayerButtonGroupProps>(function (
     {
         startSegmentCallback,
         cancelSegmentCallback,

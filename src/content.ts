@@ -40,7 +40,6 @@ import {
     ChannelIDStatus,
     PageType,
 } from "./types";
-import { waitFor } from "./utils/";
 import { cleanPage } from "./utils/cleanup";
 import { GenericUtils } from "./utils/genericUtils";
 import { logDebug, logUiLifecycle } from "./utils/logger";
@@ -62,7 +61,7 @@ syncContentStateStore("content.bootstrap");
 if (getPageType() === PageType.Unsupported || getPageType() === PageType.Live) {
     logDebug(`Skipping content initialization on unsupported page: ${window.location.href}`);
 } else {
-    init();
+    void Config.ready.then(init).catch(error => console.error("[SponsorBlock] Content initialization failed", error));
 }
 
 
@@ -121,23 +120,21 @@ function init(): void {
     registerSpeedUpManager();
     app.commands.register("config/applyCategoryColors", () => setCategoryColorCSSVariables());
 
-    waitFor(() => Config.isReady(), 5000, 10).then(() => {
-        setCategoryColorCSSVariables();
+    setCategoryColorCSSVariables();
 
-        if (
-            [PageType.Dynamic, PageType.Channel].includes(detectPageType()) &&
-            (Config.config.dynamicAndCommentSponsorBlocker && Config.config.dynamicSponsorBlock)
-        ) {
-            DynamicListener();
-        }
+    if (
+        [PageType.Dynamic, PageType.Channel].includes(detectPageType()) &&
+        (Config.config.dynamicAndCommentSponsorBlocker && Config.config.dynamicSponsorBlock)
+    ) {
+        DynamicListener();
+    }
 
-        if (
-            [PageType.Video, PageType.List, PageType.Dynamic, PageType.Channel, PageType.Opus, PageType.Festival].includes(getPageType()) &&
-            (Config.config.dynamicAndCommentSponsorBlocker && Config.config.commentSponsorBlock)
-        ) {
-            CommentListener();
-        }
-    });
+    if (
+        [PageType.Video, PageType.List, PageType.Dynamic, PageType.Channel, PageType.Opus, PageType.Festival].includes(getPageType()) &&
+        (Config.config.dynamicAndCommentSponsorBlocker && Config.config.commentSponsorBlock)
+    ) {
+        CommentListener();
+    }
 
     registerVideoListeners();
     registerPlayerUiLifecycle();

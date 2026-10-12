@@ -79,7 +79,7 @@ test("initial readiness mounts and draws once, then only timeline changes redraw
     Object.defineProperty(video, "readyState", { value: 1 });
     const lifecycle = new PlayerUiLifecycle({
         capture: () => ({ video, hidden: false, pageLoaded: true,
-            leftControls: null, rightControls: null, progressBar: null }),
+            leftControls: null, rightControls: null, timeControl: null, progressBar: null }),
         isReady: () => true, duration: () => duration,
         ready: snapshot => mockApp.bus.emit(CONTENT_EVENTS.PLAYER_UI_READY, { snapshot }),
         invalidated: () => mockApp.bus.emit(CONTENT_EVENTS.PLAYER_UI_INVALIDATED, {}),

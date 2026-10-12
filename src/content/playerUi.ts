@@ -13,6 +13,7 @@ export interface PlayerUIReadySnapshot {
     pageLoaded: boolean;
     leftControls: HTMLElement | null;
     rightControls: HTMLElement | null;
+    timeControl: HTMLElement | null;
     progressBar: HTMLElement | null;
     video: HTMLVideoElement | null;
 }
@@ -35,10 +36,12 @@ function hasUsableVideo(video: HTMLVideoElement | null): boolean {
 }
 
 export function capturePlayerUiReadySnapshot(): PlayerUIReadySnapshot {
+    const leftControls = getLeftControls();
     return {
         hidden: document.hidden,
         pageLoaded: getPageLoaded(),
-        leftControls: getLeftControls(),
+        leftControls,
+        timeControl: leftControls?.querySelector<HTMLElement>(".bpx-player-ctrl-time") ?? null,
         rightControls: getControls(),
         progressBar: getProgressBar(),
         video: getVideo(),
@@ -127,7 +130,7 @@ export function registerPlayerUiLifecycle(): void {
         app.bus.on(CONTENT_EVENTS.PLAYER_VIDEO_READY, controller.requestCheck),
         app.bus.on(CONTENT_EVENTS.PLAYER_DURATION_CHANGED, controller.requestCheck),
     ];
-    const hostSelector = ".bpx-player-container, .bpx-player-control-bottom-left, .bpx-player-control-bottom-right, .bpx-player-progress, .bpx-player-shadow-progress-area, .bpx-player-ctrl-time-duration, video";
+    const hostSelector = ".bpx-player-ctrl-time, .bpx-player-container, .bpx-player-control-bottom-left, .bpx-player-control-bottom-right, .bpx-player-progress, .bpx-player-shadow-progress-area, .bpx-player-ctrl-time-duration, video";
     const uiSelector = "#previewbar, #shadowPreviewbar, #bsbPlayerButtonContainer, .skipButtonControlBarContainer";
     const contains = (node: Node, selector: string) => node instanceof Element &&
         (node.matches(selector) || !!node.querySelector(selector));

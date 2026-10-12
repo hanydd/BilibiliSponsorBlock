@@ -11,7 +11,7 @@ interface LifecycleOptions {
 
 function sameHost(a: PlayerUIReadySnapshot | null, b: PlayerUIReadySnapshot): boolean {
     return !!a && a.video === b.video && a.leftControls === b.leftControls &&
-        a.rightControls === b.rightControls && a.progressBar === b.progressBar;
+        a.rightControls === b.rightControls && a.progressBar === b.progressBar && a.timeControl === b.timeControl;
 }
 
 /** Owns one host stabilization timer and independent deadlines for every waiter. */

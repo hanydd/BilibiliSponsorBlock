@@ -140,7 +140,7 @@ describe("video page type state", () => {
         };
         const lifecycle = new PlayerUiLifecycle({
             capture: () => ({ video: getVideo(), pageLoaded: true, hidden: false,
-                leftControls: null, rightControls: null, progressBar: null }),
+                leftControls: null, rightControls: null, timeControl: null, progressBar: null }),
             isReady: ({ video }) => !!video?.isConnected,
             duration: () => 120, ready, invalidated: jest.fn(), timelineChanged: jest.fn(),
         });

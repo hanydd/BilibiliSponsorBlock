@@ -8,7 +8,7 @@ const host = (): PlayerUIReadySnapshot => {
     document.body.append(video);
     return { hidden: false, pageLoaded: true, video,
         leftControls: document.createElement("div"), rightControls: document.createElement("div"),
-        progressBar: document.createElement("div") };
+        timeControl: null, progressBar: document.createElement("div") };
 };
 let state: PlayerUIReadySnapshot;
 let duration: number;
@@ -106,4 +106,17 @@ test("does not publish a stale timeline for unloaded or disconnected media", asy
     document.body.append(state.video);
     lifecycle.requestCheck(); await settle();
     expect(timelineChanged).toHaveBeenLastCalledWith(state.video, 60);
+});
+
+test("retries late or replaced time anchors without delaying other controls", async () => {
+    lifecycle.requestCheck(); await settle();
+    expect(ready).toHaveBeenCalledTimes(1);
+    state = { ...state, timeControl: document.createElement("span") };
+    lifecycle.requestCheck(); await settle();
+    expect(ready).toHaveBeenLastCalledWith(state);
+    expect(ready).toHaveBeenCalledTimes(2);
+    state = { ...state, timeControl: document.createElement("span") };
+    lifecycle.requestCheck(); await settle();
+    expect(ready).toHaveBeenCalledTimes(3);
+    expect(timelineChanged).toHaveBeenCalledTimes(1);
 });

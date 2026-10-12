@@ -2,7 +2,6 @@ import SkipNoticeComponent from "../components/SkipNoticeComponent";
 import Config from "../config";
 import { refreshMinimumDuration } from "./segmentVisibility";
 import { keybindToString } from "../config/config";
-import { SkipButtonControlBar } from "../js-components/skipButtonControlBar";
 import { VoteResponse } from "../messageTypes";
 import { CategoryPill } from "../render/CategoryPill";
 import { DescriptionPortPill } from "../render/DescriptionPortPill";
@@ -44,7 +43,7 @@ import { openWarningDialog } from "../utils/warnings";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
 import { seekFrameByKeyPressListener } from "./hotkeyHandler";
-import { waitForPlayerUiReady } from "./playerUi";
+import type { PlayerUIReadySnapshot } from "./playerUi";
 import { getSkipNoticeContentContainer } from "./skipNoticeContentContainer";
 import { isSponsorCounted, unmarkSponsorCounted } from "./skipScheduler";
 import { contentState, syncContentStateStore } from "./state";
@@ -324,11 +323,10 @@ export function registerSegmentSubmission(): void {
     app.commands.register("port/voteVideo", ({ UUID, vote }) => portVideoVote(UUID, vote));
     app.commands.register("port/updateSegments", ({ UUID }) => updateSegments(UUID));
 
-    app.bus.on(CONTENT_EVENTS.PLAYER_UI_READY, () => {
-        setupSkipButtonControlBar();
+    app.bus.on(CONTENT_EVENTS.PLAYER_UI_READY, ({ snapshot }) => {
         setupCategoryPill();
         setupDescriptionPill();
-        void updateVisibilityOfPlayerControlsButton();
+        void updateVisibilityOfPlayerControlsButton(snapshot);
     });
 
     app.bus.on(CONTENT_EVENTS.SEGMENTS_LOADED, ({ videoID }) => {
@@ -359,37 +357,6 @@ export function registerSegmentSubmission(): void {
 
         disableSkipButtonIfNoVisiblePoi("segmentSubmission.segmentUpdated");
     });
-}
-
-export function setupSkipButtonControlBar(): void {
-    const { skipButtonControlBar } = getUIState();
-    if (!skipButtonControlBar) {
-        const nextSkipButtonControlBar = new SkipButtonControlBar({
-            skip: (segment) =>
-                void getContentApp().commands.execute("skip/execute", {
-                    v: getVideo(),
-                    skipTime: segment.segment,
-                    skippingSegments: [segment],
-                    openNotice: true,
-                    forceAutoSkip: true,
-                }),
-            selectSegment: (UUID) => void getContentApp().commands.execute("segments/select", { UUID }),
-        });
-        patchUIState({ skipButtonControlBar: nextSkipButtonControlBar });
-        logUiLifecycle("skipButton", "attach", {
-            action: "create",
-            debugId: nextSkipButtonControlBar.debugId,
-        });
-    }
-
-    logUiLifecycle("skipButton", "wait", {
-        target: "controls",
-        action: "attach",
-        debugId: getSkipButtonControlBar()?.debugId,
-    });
-    void waitForPlayerUiReady()
-        .then(() => getSkipButtonControlBar()?.attachToPage())
-        .catch(() => undefined);
 }
 
 export function setupCategoryPill(): void {
@@ -586,11 +553,10 @@ export async function lockedCategoriesLookup(): Promise<void> {
 }
 
 /** Creates any missing buttons on the player and updates their visiblity. */
-export async function updateVisibilityOfPlayerControlsButton(): Promise<void> {
+export async function updateVisibilityOfPlayerControlsButton(snapshot?: PlayerUIReadySnapshot): Promise<void> {
     if (!getVideoID()) return;
 
-    await waitForPlayerUiReady();
-    const playerButtons = await getPlayerButton().createButtons();
+    const playerButtons = await getPlayerButton().createButtons(snapshot);
     patchUIState({ playerButtons: playerButtons ?? {} });
     logUiLifecycle("playerButtons", "state", {
         action: "updateVisibility",

@@ -23,6 +23,7 @@ describe("video listeners", () => {
         }));
         jest.doMock("../src/utils/video", () => ({
             getVideoID: jest.fn(() => "BV1test"),
+            getVideo: jest.fn(() => document.querySelector("video")),
         }));
     });
 
@@ -49,6 +50,26 @@ describe("video listeners", () => {
             CONTENT_EVENTS.PLAYER_VIDEO_READY,
             CONTENT_EVENTS.PLAYER_DURATION_CHANGED,
         ]);
+    });
+
+    test("binds synchronously after config bootstrap so immediate metadata is not missed", async () => {
+        const { createContentApp } = await import("../src/content/app");
+        const { CONTENT_EVENTS } = await import("../src/content/app/events");
+        const { registerVideoListeners } = await import("../src/content/videoListeners");
+        const app = createContentApp();
+        const video = document.createElement("video");
+        document.body.append(video);
+        const ready = jest.fn();
+        app.bus.on(CONTENT_EVENTS.PLAYER_VIDEO_READY, ready);
+        registerVideoListeners();
+        try {
+            app.bus.emit(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, { video });
+            video.dispatchEvent(new Event("loadedmetadata"));
+            expect(ready).toHaveBeenCalledTimes(1);
+        } finally {
+            app.bus.emit(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, { video: null });
+            video.remove();
+        }
     });
 
     test("playback event callbacks emit facts without skip command handlers", async () => {

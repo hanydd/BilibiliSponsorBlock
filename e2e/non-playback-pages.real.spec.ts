@@ -36,6 +36,10 @@ for (const item of cases) {
                 ids.map(videoID => ({ videoID, segments: [{ category: "sponsor" }] }))
             ) });
         });
+        const spaceFeed = item.name === "space dynamics" ? page.waitForResponse(
+            response => response.url().includes("/x/polymer/web-dynamic/v1/feed/space"),
+            { timeout: 30000 }
+        ).then(response => response.json()).catch(() => null) : null;
         await openRealBilibiliPage(page, testInfo, item.url);
         if (item.name === "space dynamics") {
             await page.waitForFunction(() => {
@@ -66,6 +70,11 @@ for (const item of cases) {
             await expect(page.locator(".sponsorThumbnailLabelVisible").first()).toBeVisible();
         }
         if (item.name === "dynamic feed logged out" || item.name === "space dynamics") {
+            if (spaceFeed) {
+                const feed = await spaceFeed;
+                test.skip(feed?.code === 0 && Array.isArray(feed.data?.items) && feed.data.items.length === 0,
+                    "Bilibili returned an empty space feed; hydration and no-player checks passed, but there are no cards to label.");
+            }
             await expect(page.locator(".bili-dyn-list__items #dynamicSponsorLabel").first()).toBeVisible();
         }
         const card = page.locator(item.name === "home"
