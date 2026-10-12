@@ -8,6 +8,7 @@ import { FetchResponse } from "../requests/type/requestType";
 import { PortVideo, BVID } from "../types";
 import { waitFor } from "../utils/index";
 import { waitForElement } from "../utils/dom";
+import { addCleanupListener } from "../utils/cleanup";
 import { getVideoDescriptionFromWindow } from "../utils/injectedScriptMessageUtils";
 import { showMessage } from "./MessageNotice";
 
@@ -29,6 +30,9 @@ export class DescriptionPortPill {
     ref: React.RefObject<DescriptionPortPillComponent>;
     buttonRef: React.RefObject<YouTubeLogoButton>;
     root: Root;
+    private buttonRoot: Root;
+    private initializedVideoID: BVID;
+    private portVideo: PortVideo = null;
 
     constructor(
         getPortVideo: (videoId: BVID, bypassCache?: boolean) => void,
@@ -42,21 +46,23 @@ export class DescriptionPortPill {
         this.portVideoVote = portVideoVote;
         this.updateSegments = updateSegments;
         this.sponsorsLookup = sponsorsLookup;
+        addCleanupListener(() => this.close());
     }
 
     setupDescription = async (videoId: BVID) => {
-        if (!Config.config.showPortVideoButton) {
+        if (!videoId || !Config.config.showPortVideoButton) {
             return;
         }
-        if (this.bvID === videoId) {
+        if (this.initializedVideoID === videoId) {
             return;
         }
+        this.cleanup();
+        // Binding responses contain a plain BV; initialization belongs to BV+cid.
+        this.initializedVideoID = videoId;
         this.bvID = videoId;
 
-        this.cleanup();
-
         await waitForPageReady();
-        if (this.bvID !== videoId) return;
+        if (this.initializedVideoID !== videoId) return;
 
         this.hasDescription = true;
         const referenceNode = (await waitForElement(".basic-desc-info")) as HTMLElement;
@@ -81,6 +87,7 @@ export class DescriptionPortPill {
             });
         }
 
+        if (this.initializedVideoID !== videoId || !referenceNode.isConnected) return;
         this.attachToPage(referenceNode);
 
         // wait for the element to be attached to the DOM and then get the port video data, to avoid racing conditions
@@ -88,6 +95,7 @@ export class DescriptionPortPill {
     };
 
     setPortVideoData = (portVideo: PortVideo) => {
+        this.portVideo = portVideo;
         if (portVideo) {
             this.bvID = portVideo.bvID;
             this.ytbID = portVideo.ytbID;
@@ -97,8 +105,8 @@ export class DescriptionPortPill {
             this.ytbID = null;
             this.portUUID = null;
         }
-        waitFor(() => this.ref?.current).then(() => this.ref?.current?.setPortVideoData(portVideo));
-        waitFor(() => this.buttonRef?.current).then(() => this.buttonRef?.current?.setPortVideo(portVideo));
+        this.ref?.current?.setPortVideoData(portVideo);
+        this.buttonRef?.current?.setPortVideo(portVideo);
     };
 
     private attachToPage(referenceNode: HTMLElement) {
@@ -114,7 +122,10 @@ export class DescriptionPortPill {
         this.ref = React.createRef();
         this.root.render(
             <DescriptionPortPillComponent
-                ref={this.ref}
+                ref={(component) => {
+                    (this.ref as React.MutableRefObject<DescriptionPortPillComponent>).current = component;
+                    component?.setPortVideoData(this.portVideo);
+                }}
                 bvID={this.bvID}
                 ytbID={this.ytbID}
                 showYtbVideoButton={Config.config.showPreviewYoutubeButton}
@@ -138,11 +149,14 @@ export class DescriptionPortPill {
         const buttonContainer = document.createElement("div");
         buttonContainer.id = "bsbPortButton";
 
-        const root = createRoot(buttonContainer);
+        this.buttonRoot = createRoot(buttonContainer);
         this.buttonRef = React.createRef();
-        root.render(
+        this.buttonRoot.render(
             <YouTubeLogoButton
-                ref={this.buttonRef}
+                ref={(component) => {
+                    (this.buttonRef as React.MutableRefObject<YouTubeLogoButton>).current = component;
+                    component?.setPortVideo(this.portVideo);
+                }}
                 onClick={() => {
                     this.ref.current.toggleInput();
                     // toggle display state of the input container
@@ -168,15 +182,23 @@ export class DescriptionPortPill {
 
     private cleanup = () => {
         this.root?.unmount();
+        this.buttonRoot?.unmount();
         this.inputContainer?.remove();
         this.buttonContainer?.remove();
 
         this.root = null;
+        this.buttonRoot = null;
         this.inputContainer = null;
         this.buttonContainer = null;
         this.ytbID = null;
         this.portUUID = null;
+        this.portVideo = null;
     };
+
+    close(): void {
+        this.initializedVideoID = null;
+        this.cleanup();
+    }
 
     private vote = async (voteType: number) => {
         if (!this.portUUID) {

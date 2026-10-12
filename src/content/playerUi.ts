@@ -18,8 +18,9 @@ export interface PlayerUIReadySnapshot {
     video: HTMLVideoElement | null;
 }
 
-function hasStableRect(element: HTMLElement | null): boolean {
-    if (!element?.isConnected) {
+// Host identity is stabilized by PlayerUiLifecycle; this only checks layout.
+function hasUsableLayout(element: HTMLElement | null): boolean {
+    if (!element?.isConnected || !isVisible(element)) {
         return false;
     }
 
@@ -56,13 +57,13 @@ export function summarizePlayerUiSnapshot(snapshot: PlayerUIReadySnapshot): Reco
         pageLoaded: snapshot.pageLoaded,
         leftControls: describeElement(snapshot.leftControls),
         leftControlsVisible: isVisible(snapshot.leftControls),
-        leftControlsRectReady: hasStableRect(snapshot.leftControls),
+        leftControlsRectReady: hasUsableLayout(snapshot.leftControls),
         rightControls: describeElement(snapshot.rightControls),
         rightControlsVisible: isVisible(snapshot.rightControls),
-        rightControlsRectReady: hasStableRect(snapshot.rightControls),
+        rightControlsRectReady: hasUsableLayout(snapshot.rightControls),
         progressBar: describeElement(snapshot.progressBar),
         progressBarVisible: isVisible(snapshot.progressBar),
-        progressBarRectReady: hasStableRect(snapshot.progressBar),
+        progressBarRectReady: hasUsableLayout(snapshot.progressBar),
         video: describeVideo(snapshot.video),
         videoReady: hasUsableVideo(snapshot.video),
     };
@@ -74,12 +75,9 @@ export function isPlayerUiReady(snapshot = capturePlayerUiReadySnapshot()): bool
         snapshot.pageLoaded &&
         snapshot.video?.isConnected &&
         hasUsableVideo(snapshot.video) &&
-        isVisible(snapshot.leftControls) &&
-        hasStableRect(snapshot.leftControls) &&
-        isVisible(snapshot.rightControls) &&
-        hasStableRect(snapshot.rightControls) &&
-        isVisible(snapshot.progressBar) &&
-        hasStableRect(snapshot.progressBar)
+        hasUsableLayout(snapshot.leftControls) &&
+        hasUsableLayout(snapshot.rightControls) &&
+        hasUsableLayout(snapshot.progressBar)
     );
 }
 

@@ -276,7 +276,8 @@ export function getSubmissionNotice() { return getUIState().submissionNotice; }
 export function resetSubmissionState(): void {
     loadedPreloadedSegment = false;
     lookupWaiting = false;
-    const { submissionNotice } = getUIState();
+    const { submissionNotice, descriptionPill } = getUIState();
+    descriptionPill?.close();
     if (submissionNotice) {
         submissionNotice.close();
     }

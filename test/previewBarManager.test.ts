@@ -107,6 +107,34 @@ test("attaches existing shadow marks when its optional host arrives or is replac
     draw.mockRestore();
 });
 
+test("restores duration after inner label rewrites without readiness or marker redraws", async () => {
+    const player = document.querySelector(".bpx-player-container");
+    player.insertAdjacentHTML("beforeend", '<div class="bpx-player-ctrl-time"><span class="bpx-player-ctrl-time-label"></span></div>');
+    createPreviewBar();
+    const bar = getPreviewBar();
+    bar.set([{ segment: [20, 30], actionType: ActionType.Skip, category: "sponsor" as Category,
+        unsubmitted: false, showLarger: false, source: SponsorSourceType.Server }], 180);
+    const draw = jest.spyOn(bar, "set");
+    const time = player.querySelector(".bpx-player-ctrl-time");
+    for (let i = 0; i < 2; i++) {
+        time.innerHTML = '<span class="bpx-player-ctrl-time-label">00:15 / 03:00</span>';
+        await Promise.resolve(); await Promise.resolve();
+        expect(time.querySelector<HTMLElement>("#sponsorBlockDurationAfterSkips")?.innerText).toBe(" (2:50)");
+        expect(time.querySelectorAll("#sponsorBlockDurationAfterSkips")).toHaveLength(1);
+    }
+    // A direct removal is recovered too, but a route reset must not revive old data.
+    time.querySelector("#sponsorBlockDurationAfterSkips").remove();
+    await Promise.resolve(); await Promise.resolve();
+    expect(time.querySelector("#sponsorBlockDurationAfterSkips")).not.toBeNull();
+    mockState.lastPreviewBarUpdate = null;
+    time.replaceChildren();
+    time.innerHTML = '<span class="bpx-player-ctrl-time-label"></span>';
+    await Promise.resolve(); await Promise.resolve();
+    expect(time.querySelector("#sponsorBlockDurationAfterSkips")).toBeNull();
+    expect(draw).not.toHaveBeenCalled();
+    draw.mockRestore();
+});
+
 test("keeps colors when floating player layers obscure the video area", async () => {
     createPreviewBar();
     const original = getPreviewBar();

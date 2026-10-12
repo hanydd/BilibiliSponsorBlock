@@ -52,6 +52,15 @@ test("follows a trial-sized or full native axis and clips marks when only the na
     await expect(page.locator("#sponsorBlockDurationAfterSkips")).toHaveText(" (0:50)");
     // Restoring time text must preserve the rendered segment nodes.
     expect(await point.evaluate(node => node.isConnected)).toBe(true);
+    // Keep the time-control host and native total unchanged; only replace its label.
+    await page.locator(".bpx-player-ctrl-time-label").evaluate(label => {
+        label.innerHTML = '<span class="bpx-player-ctrl-time-current">00:15</span> / <span class="bpx-player-ctrl-time-duration">01:00</span>';
+    });
+    await expect(page.locator("#sponsorBlockDurationAfterSkips")).toHaveText(" (0:50)");
+    expect(await point.evaluate(node => node.isConnected)).toBe(true);
+    await page.locator("#sponsorBlockDurationAfterSkips").evaluate(node => node.remove());
+    await expect(page.locator("#sponsorBlockDurationAfterSkips")).toHaveText(" (0:50)");
+    expect(await point.evaluate(node => node.isConnected)).toBe(true);
 });
 
 test("attaches a late or replaced shadow host while controls stay collapsed", async ({
