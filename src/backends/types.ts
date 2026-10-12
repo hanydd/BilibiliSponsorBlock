@@ -87,6 +87,7 @@ export interface BackendInfo {
 }
 
 export type BackendInfoMap = Record<string, BackendInfo>;
+export const VOTE_ON_SPONSOR_TIME_CAPABILITY = "POST /api/voteOnSponsorTime" as const;
 
 export interface VideoMatchContext {
     bvid: string;

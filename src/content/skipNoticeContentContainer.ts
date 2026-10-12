@@ -50,6 +50,7 @@ export const getSkipNoticeContentContainer: ContentContainer = () => ({
     getRealCurrentTime: () => getContentApp().commands.execute("segment/getRealCurrentTime", undefined) as number,
     lockedCategories: contentState.lockedCategories,
     channelIDInfo: getChannelIDInfo(),
+    backendInfo: contentState.backendInfo,
     getVideoMatchContext,
     getSubmissionBackends,
     getLastSubmissionBackendId,

@@ -7,12 +7,12 @@ import {
     ToggleSkippable,
     VideoInfo,
 } from "../types";
-import type { BackendInfoMap } from "../backends/types";
 import { sourceId } from "../utils/injectedScriptMessageUtils";
 import { logDebug, logUiLifecycle } from "../utils/logger";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
 import { ContentAppState } from "./app/types";
+import type { BackendInfoMap } from "../backends/types";
 
 export const skipBuffer = 0.003;
 export const endTimeSkipBuffer = 0.5;
@@ -26,6 +26,7 @@ export const maxExecutedSkipRanges = 20;
 
 let sponsorDataFound = false;
 let sponsorTimes: SponsorTime[] = [];
+let rawSegments: SponsorTime[] | undefined;
 let backendInfo: BackendInfoMap = {};
 const skipNotices: SkipNotice[] = [];
 let activeSkipKeybindElement: ToggleSkippable = null;
@@ -52,6 +53,7 @@ function buildContentStateSnapshot(): ContentAppState {
     return {
         sponsorDataFound,
         sponsorTimes,
+        rawSegments,
         backendInfo,
         skipNotices,
         activeSkipKeybindElement,
@@ -86,6 +88,16 @@ export function syncContentStateStore(source = "content/state"): void {
  * share it without circular dependency issues.
  */
 export const contentState = {
+    get rawSegments() { return rawSegments; },
+    set rawSegments(value: SponsorTime[] | undefined) {
+        rawSegments = value;
+        syncContentStateStore("contentState.rawSegments");
+    },
+    get backendInfo() { return backendInfo; },
+    set backendInfo(value: BackendInfoMap) {
+        backendInfo = value ?? {};
+        syncContentStateStore("contentState.backendInfo");
+    },
     get sponsorDataFound() { return sponsorDataFound; },
     set sponsorDataFound(v: boolean) {
         sponsorDataFound = v;
@@ -96,12 +108,6 @@ export const contentState = {
     set sponsorTimes(v: SponsorTime[]) {
         sponsorTimes = v;
         syncContentStateStore("contentState.sponsorTimes");
-    },
-
-    get backendInfo() { return backendInfo; },
-    set backendInfo(v: BackendInfoMap) {
-        backendInfo = v ?? {};
-        syncContentStateStore("contentState.backendInfo");
     },
 
     get skipNotices() { return skipNotices; },

@@ -1,3 +1,5 @@
+import type { NoticeClock } from "../../notices/NoticeClock";
+import type { RuleCard } from "../skipRules/types";
 import SkipNoticeComponent from "../../components/SkipNoticeComponent";
 import PreviewBar from "../../js-components/previewBar";
 import { SkipButtonControlBar } from "../../js-components/skipButtonControlBar";
@@ -29,6 +31,7 @@ import { CONTENT_EVENTS } from "./events";
 export interface ContentAppState {
     sponsorDataFound: boolean;
     sponsorTimes: SponsorTime[];
+    rawSegments?: SponsorTime[];
     backendInfo: BackendInfoMap;
     skipNotices: SkipNotice[];
     activeSkipKeybindElement: ToggleSkippable;
@@ -109,6 +112,8 @@ export interface ContentEventMap {
     };
     [CONTENT_EVENTS.SKIP_NOTICE_REQUESTED]: {
         noticeKind: "skip" | "advance";
+        ruleCard?: RuleCard;
+        noticeClock?: NoticeClock;
         /** Completion must not recreate a card the user already dismissed. */
         updateOnly?: boolean;
         skippingSegments: SponsorTime[];
@@ -172,14 +177,14 @@ export interface ContentCommandMap {
         currentTime?: number;
         includeNonIntersectingSegments?: boolean;
     }, void>;
-    "skip/closeNotices": ContentCommandDefinition<{ includeAdvance?: boolean }, void>;
+    "skip/closeNotices": ContentCommandDefinition<{ includeAdvance?: boolean; dismiss?: boolean }, void>;
     "skip/closeNoticesForSegments": ContentCommandDefinition<{ segments: SponsorTime[] }, void>;
     "skip/dontShowNoticeAgain": ContentCommandDefinition<void, void>;
     "skip/checkStartSponsors": ContentCommandDefinition<void, void>;
     "skip/unskip": ContentCommandDefinition<{ segment: SponsorTime; unskipTime?: number; forceSeek?: boolean }, void>;
     "skip/reskip": ContentCommandDefinition<{ segment: SponsorTime; forceSeek?: boolean }, void>;
     "skip/execute": ContentCommandDefinition<SkipToTimeParams, void>;
-    "skip/previewTime": ContentCommandDefinition<{ time: number; unpause?: boolean }, void>;
+    "skip/previewTime": ContentCommandDefinition<{ time: number; unpause?: boolean; segmentId?: string }, void>;
     "skip/updateVirtualTime": ContentCommandDefinition<void, void>;
     "skip/updateWaitingTime": ContentCommandDefinition<void, void>;
     "skip/clearWaitingTime": ContentCommandDefinition<void, void>;

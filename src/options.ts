@@ -17,6 +17,7 @@ import {
 import { StorageChangesObject } from "./config/config";
 import { showDonationLink } from "./config/configUtils";
 import { CategoryChooser, DynamicSponsorChooser } from "./render/CategoryChooser";
+import DynamicSponsorRegexManager from "./render/DynamicSponsorRegexManager";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import UnsubmittedVideos from "./render/UnsubmittedVideos";
 import WhitelistManager from "./render/WhitelistManager";
@@ -26,6 +27,8 @@ import { waitFor } from "./utils/";
 import { getHash } from "./utils/hash";
 import { localizeHtmlPage } from "./utils/setup";
 import { applyFadeOut, clamp01 } from "./utils/soundFade";
+import { setupRuleRollout } from "./options/rules/rollout";
+import { mountRulesPage } from "./options/rules/RulesPage";
 
 let embed = false;
 
@@ -33,6 +36,8 @@ const categoryChoosers: CategoryChooser[] = [];
 const unsubmittedVideos: UnsubmittedVideos[] = [];
 const whitelistManagers: WhitelistManager[] = [];
 let backendConfigComponent: BackendConfigComponent | null = null;
+const dependentOptionTimers = new WeakMap<Element, ReturnType<typeof setTimeout>>();
+const dynamicSponsorRegexManagers: DynamicSponsorRegexManager[] = [];
 
 if (document.readyState === "complete") {
     init();
@@ -47,6 +52,9 @@ async function init() {
 
     // setup message component
     setMessageNotice(Config.config.darkMode);
+    if (location.hash === "#skip-rules") location.hash = "behavior";
+    if (Config.config.skipEngineMode === "shadow") Config.config.skipEngineMode = "legacy";
+    updateBehaviorMode();
 
     // selected tab
     if (location.hash != "") {
@@ -179,20 +187,7 @@ async function init() {
                     }
 
                     // If other options depend on this, hide/show them
-                    const dependents = optionsContainer.querySelectorAll(`[data-dependent-on='${option}']`);
-                    for (let j = 0; j < dependents.length; j++) {
-                        const disableWhenChecked = dependents[j].getAttribute("data-dependent-on-inverted") === "true";
-                        if (
-                            !(await shouldHideOption(dependents[j])) &&
-                            ((!disableWhenChecked && checkbox.checked) || (disableWhenChecked && !checkbox.checked))
-                        ) {
-                            dependents[j].classList.remove("hidden");
-                            setTimeout(() => dependents[j].classList.remove("hiding"), 1);
-                        } else {
-                            dependents[j].classList.add("hiding");
-                            setTimeout(() => dependents[j].classList.add("hidden"), 400);
-                        }
-                    }
+                    void updateDependentOptions(optionsContainer, option);
                 });
                 break;
             }
@@ -324,6 +319,9 @@ async function init() {
             case "react-WhitelistManagerComponent":
                 whitelistManagers.push(new WhitelistManager(optionsElements[i]));
                 break;
+            case "react-DynamicSponsorRegexManagerComponent":
+                dynamicSponsorRegexManagers.push(new DynamicSponsorRegexManager(optionsElements[i]));
+                break;
             case "react-BackendConfigComponent": {
                 const root = createRoot(optionsElements[i]);
                 root.render(
@@ -342,6 +340,7 @@ async function init() {
         }
     }
 
+    mountRulesPage(document.getElementById("skip-rules-root"), document.getElementById("category-type"));
     // Tab interaction
     const tabElements = document.getElementsByClassName("tab-heading");
     for (let i = 0; i < tabElements.length; i++) {
@@ -369,6 +368,14 @@ async function init() {
     window.addEventListener("scroll", () => createStickyHeader());
 
     optionsContainer.classList.add("animated");
+    setupRuleRollout(updateBehaviorMode, () => document.querySelector<HTMLElement>('[data-for="behavior"]').click(), embed);
+}
+
+function updateBehaviorMode(): void {
+    const enabled = Config.config.skipEngineMode === "rules";
+    document.getElementById("classic-behavior")?.classList.toggle("hidden", enabled);
+    document.getElementById("skip-rules")?.classList.toggle("hidden", !enabled);
+    document.getElementById("behavior")?.classList.toggle("rules-enabled", enabled);
 }
 
 function createStickyHeader() {
@@ -398,6 +405,18 @@ async function shouldHideOption(element: Element): Promise<boolean> {
     );
 }
 
+async function updateDependentOptions(container: Element, key: string): Promise<void> {
+    for (const dependent of container.querySelectorAll(`[data-dependent-on='${key}']`)) {
+        const hidden = await shouldHideOption(dependent) || !Config.config[key];
+        clearTimeout(dependentOptionTimers.get(dependent));
+        if (hidden) dependent.classList.add("hiding"); else dependent.classList.remove("hidden");
+        dependentOptionTimers.set(dependent, setTimeout(() => {
+            dependent.classList.toggle("hidden", hidden);
+            dependent.classList.toggle("hiding", !hidden);
+        }, hidden ? 400 : 1));
+    }
+}
+
 /**
  * Called when the config is updated
  */
@@ -406,12 +425,19 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
     const optionsElements = optionsContainer.querySelectorAll("*");
 
     for (let i = 0; i < optionsElements.length; i++) {
+        const key = optionsElements[i].getAttribute("data-sync");
+        if (key && key in changes) {
+            const input = optionsElements[i].querySelector("input") as HTMLInputElement;
+            if (input && optionsElements[i].getAttribute("data-type") === "toggle") input.checked = !!Config.config[key];
+        }
         switch (optionsElements[i].getAttribute("data-type")) {
             case "display":
                 updateDisplayElement(<HTMLElement>optionsElements[i]);
                 break;
         }
     }
+    for (const key of Object.keys(changes)) void updateDependentOptions(optionsContainer, key);
+    if (changes.skipEngineMode) updateBehaviorMode();
 
     if (changes.categorySelections) {
         for (const chooser of categoryChoosers) {
@@ -423,6 +449,9 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
         for (const manager of whitelistManagers) {
             manager.update();
         }
+    }
+    if (changes.dynamicAndCommentSponsorRegexUserRules || changes.dynamicAndCommentSponsorRegexFlags) {
+        for (const manager of dynamicSponsorRegexManagers) manager.update();
     }
 }
 
@@ -439,6 +468,7 @@ function optionsLocalConfigUpdateListener(changes: StorageChangesObject) {
             chooser.update();
         }
     }
+    if (changes.sponsorRegexRemoteConfig) for (const manager of dynamicSponsorRegexManagers) manager.update();
 }
 
 /**

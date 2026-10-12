@@ -1,7 +1,6 @@
-import { BackendInfoMap } from "../../backends";
+import { BackendInfoMap, VOTE_ON_SPONSOR_TIME_CAPABILITY } from "../../backends";
 import { SponsorSourceType, SponsorTime } from "../../types";
-
-export const VOTE_ON_SPONSOR_TIME_CAPABILITY = "POST /api/voteOnSponsorTime" as const;
+export { VOTE_ON_SPONSOR_TIME_CAPABILITY };
 
 export type PopupSegmentSource =
     | { kind: "backend"; name: string; backendId: string; canVote: boolean }

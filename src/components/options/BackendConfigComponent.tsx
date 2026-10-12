@@ -60,6 +60,7 @@ interface BackendConfigComponentProps {
 
 interface BackendConfigComponentState extends BackendConfigState {
     configText: string;
+    configTextDirty: boolean;
     error: string;
     status: string;
     saving: boolean;
@@ -299,6 +300,7 @@ export default class BackendConfigComponent extends React.Component<
         this.state = {
             ...initial,
             configText: formatConfig(initial.backendConfig),
+            configTextDirty: false,
             error: "",
             status: "",
             saving: false,
@@ -318,7 +320,7 @@ export default class BackendConfigComponent extends React.Component<
             const loaded = await loadState(this.service);
             this.setState({
                 ...loaded,
-                configText: formatConfig(loaded.backendConfig),
+                configText: this.state.configTextDirty ? this.state.configText : formatConfig(loaded.backendConfig),
                 error: "",
             });
             const statuses = await Promise.all(
@@ -358,6 +360,7 @@ export default class BackendConfigComponent extends React.Component<
                 backendEnabledMap: enabledMap,
                 backendSubscription: subscription,
                 configText: formatConfig(config),
+                configTextDirty: false,
                 status: chrome.i18n.getMessage("backendConfigSaved"),
                 saving: false,
             });
@@ -374,7 +377,7 @@ export default class BackendConfigComponent extends React.Component<
     async handleFormatConfig(): Promise<void> {
         try {
             const config = await this.validate(this.state.configText);
-            this.setState({ configText: formatConfig(config), error: "", status: chrome.i18n.getMessage("backendConfigFormatted") });
+            this.setState({ configText: formatConfig(config), configTextDirty: true, error: "", status: chrome.i18n.getMessage("backendConfigFormatted") });
         } catch (error) {
             this.setState({ error: error instanceof Error ? error.message : String(error), status: "" });
         }
@@ -394,6 +397,7 @@ export default class BackendConfigComponent extends React.Component<
                 backendEnabledMap: enabledMap,
                 backendSubscription: subscription,
                 configText: formatConfig(config),
+                configTextDirty: false,
                 status: chrome.i18n.getMessage("backendConfigRestored"),
                 saving: false,
             });
@@ -429,6 +433,7 @@ export default class BackendConfigComponent extends React.Component<
                 backendConfig: config,
                 backendEnabledMap: reconcileEnabledMap(config, state.backendEnabledMap),
                 configText: formatConfig(config),
+                configTextDirty: false,
                 syncing: false,
                 status: chrome.i18n.getMessage("backendConfigSynced"),
             });
@@ -461,10 +466,7 @@ export default class BackendConfigComponent extends React.Component<
     }
 
     async handleJsonChange(value: string): Promise<void> {
-        this.setState({ configText: value, status: "", error: "" });
-        if (this.state.backendSubscription.enabled) {
-            await this.handleSubscriptionChange({ enabled: false });
-        }
+        this.setState({ configText: value, configTextDirty: true, status: "", error: "" });
     }
 
     async handleBackendEnabled(id: string, enabled?: boolean): Promise<void> {
