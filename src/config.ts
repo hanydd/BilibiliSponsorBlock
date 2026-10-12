@@ -29,7 +29,7 @@ import {
     todaySponsorRuleDate,
 } from "./utils/sponsorRegex";
 import type { SponsorRegexRemoteConfig } from "./config/sponsorRegexOTA";
-import * as shippedSponsorRegexConfig from "../config/sponsorRegex.json";
+import * as shippedSponsorRegexConfig from "../ota/sponsorRegex.json";
 
 export interface Permission {
     canSubmit: boolean;
@@ -213,13 +213,13 @@ interface SBStorage {
     // 未提交片段对应稿件的 CID 映射集合，用于跨上下文共享
     videoPageCidMap: Record<BVID, Record<string, CID>>;
 
-    // OTA 拉取到的柔性推广屏蔽词条配置；null 表示尚未成功应用过在线配置
+    // 已应用的 OTA 默认规则快照，仅保存在本地；null 时使用随包规则。
     sponsorRegexRemoteConfig: SponsorRegexRemoteConfig | null;
 
-    // 上次尝试检查 OTA 正则词条配置的时间戳
+    // 上次 OTA 检查开始时间，单位为毫秒；用于跨后台生命周期节流。
     lastSponsorRegexConfigCheck: number;
 
-    // 上次检查是否失败；失败后用更短的间隔重试
+    // 检查开始前置为 true，成功后清除；后台中断也按失败间隔重试。
     lastSponsorRegexConfigCheckFailed: boolean;
 }
 
@@ -299,13 +299,13 @@ function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<st
         config["danmakuOffsetMatchingRegexPattern"] = syncDefaults.danmakuOffsetMatchingRegexPattern;
     }
 
-    // 0.8.1 之前这个正则叫 dynamicSponsorRegexPattern
+    // 兼容 0.8.1 之前的配置键名，再统一迁移到规则列表。
     if (config["dynamicSponsorRegexPattern"] && !config["dynamicAndCommentSponsorRegexPattern"]) {
         config["dynamicAndCommentSponsorRegexPattern"] = config["dynamicSponsorRegexPattern"];
         delete config["dynamicSponsorRegexPattern"];
     }
 
-    // 旧版只有一个正则字符串：曾经随扩展发布过的默认值直接丢掉交给内置词条
+    // 已识别的默认分支由内置规则提供；其余分支合并为一条用户规则。
     const legacyRegexPattern = config["dynamicAndCommentSponsorRegexPattern"];
     if (legacyRegexPattern !== undefined) {
         const legacy = splitLegacySponsorPattern(legacyRegexPattern);
@@ -366,9 +366,7 @@ function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<st
     }
 }
 
-/**
- * 历史上随扩展发布过的默认正则
- */
+/** 用于识别旧配置中的默认分支；修改当前规则时仍需保留这些已发布值。 */
 const legacyDefaultSponsorRegexPatterns = [
     // 0.7.4
     "(618|11(?!1).11|双(11|十一|12|十二))|恰(?:个|了|到)?饭|((领(?:取)?|抢|有)(?:神|优惠)?券|券后)|(淘宝|京东|拼多多)搜索|(点(?:击)|戳|来|我)评论区(?:置顶)|(立即|蓝链)(?:购买|下单)|满\\d+|(大促|促销)|折扣|特价|秒杀|广告|低至|热卖|抢购|新品|豪礼|赠品",
@@ -392,8 +390,8 @@ function getKnownSponsorAlternatives(): Set<string> {
     };
 
     for (const pattern of legacyDefaultSponsorRegexPatterns) add(splitLegacySponsorPattern(pattern).source);
-    // 默认关闭的词条不算已知内容，否则用户的分支会被丢掉而屏蔽也随之失效
-    for (const rule of shippedSponsorRegexConfig.rules) if (rule.enabled) add(rule.pattern);
+    // 默认停用的规则不参与识别，避免移除用户仍需启用的分支。
+    for (const rule of shippedSponsorRegexConfig.data.rules) if (rule.enabled) add(rule.pattern);
 
     knownSponsorAlternatives = alternatives;
     return alternatives;

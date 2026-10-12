@@ -11,7 +11,6 @@ import {
     todaySponsorRuleDate,
 } from "../../utils/sponsorRegex";
 import {
-    checkSponsorRegexConfigUpdate,
     getBuiltinSponsorRegexRule,
     getDefaultSponsorRegexRules,
     getEffectiveSponsorRegexRules,
@@ -31,7 +30,6 @@ export interface DynamicSponsorRegexManagerState {
     checkState: SponsorRegexCheckState;
 }
 
-/** 内置词条（默认词条：本地 OTA 快照或随包配置）可以修改内容，但不能删除，只能重置 */
 function isBuiltinRule(ruleId: string): boolean {
     return getBuiltinSponsorRegexRule(ruleId) !== undefined;
 }
@@ -41,8 +39,8 @@ function getRuleName(rule: DynamicSponsorRegexRule): string {
 }
 
 /**
- * 默认词条已有的元数据（locales、version）不重复存，生效时兜底；名称单独存一份，
- * 词条从在线配置移除后仍能显示（代价是不再跟随在线改名）。
+ * 内置规则只同步 id、pattern、enabled 和当前显示名称，其他元数据从默认规则继承。
+ * 保存名称可在默认规则被移除后继续显示；已保存的名称也会覆盖后续 OTA 改名。
  */
 function toSyncedUserRule(
     rule: DynamicSponsorRegexRule,
@@ -81,7 +79,7 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
         this.state = { flags, ...loadRules(flags), checkState: "idle" };
     }
 
-    /** 配置被其它页面/设备修改后重新载入（不影响检查结果的展示） */
+    /** 存储事件刷新规则时保留本次手动检查的状态。 */
     update(): void {
         const flags = sanitizeSponsorRegexFlags(Config.config.dynamicAndCommentSponsorRegexFlags);
 
@@ -236,7 +234,6 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
         );
     }
 
-    /** 状态栏：检查结果优先，否则展示当前默认词条的来源与最近更新日期 */
     private renderConfigStatus(): string {
         const latestDate = getLatestDefaultUpdateDate() ?? "";
 
@@ -281,8 +278,12 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
         if (this.state.checkState === "checking") return;
 
         this.setState({ checkState: "checking" });
-        const result = await checkSponsorRegexConfigUpdate(true);
-        // storage.onChanged 是异步的，这里主动刷新，立即展示刚落地的词条
+        const result = await new Promise<{ status: "updated" | "up-to-date" | "failed" }>((resolve) => {
+            chrome.runtime.sendMessage({ message: "checkSponsorRegexConfigUpdate" }, (response) => {
+                resolve(chrome.runtime.lastError ? { status: "failed" } : response ?? { status: "failed" });
+            });
+        });
+        // 先读取当前页面的配置；后台写入尚未同步到本页时，由存储事件补充刷新。
         this.update();
         this.setState({ checkState: result.status });
     }
@@ -295,24 +296,22 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
             selected.delete(flag);
         }
 
-        // 按固定顺序保存，避免 UI 与存储里的 flags 顺序漂移
+        // 按控件顺序序列化，保证相同选项生成相同的 flags。
         const flags = SPONSOR_REGEX_FLAGS.filter((candidate) => selected.has(candidate)).join("");
 
         this.setState({ flags, invalidRuleIds: getInvalidRuleIds(this.state.rules, flags) });
         Config.config.dynamicAndCommentSponsorRegexFlags = flags;
     }
 
-    /** 改过的词条写进用户词条，生效时覆盖默认词条的对应字段 */
     private updateRule(ruleId: string, changes: Partial<DynamicSponsorRegexRule>): void {
         const userRules = [...getUserSponsorRegexRules()];
         const index = userRules.findIndex((rule) => rule.id === ruleId);
         const builtin = getBuiltinSponsorRegexRule(ruleId);
-        // 首次修改内置词条时以默认词条为底，带上名称与更新日期
         const base = index >= 0 ? userRules[index] : builtin ?? { id: ruleId, pattern: "", enabled: true };
         const updated: DynamicSponsorRegexRule = {
             ...base,
             ...changes,
-            // 自定义词条没有在线配置可更新，记录最后一次修改日期
+            // 默认规则的日期由 OTA 提供；自定义规则记录用户修改日期。
             ...(builtin ? {} : { updateAt: todaySponsorRuleDate() }),
         };
 
@@ -324,7 +323,6 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
         this.refreshState();
     }
 
-    /** 重置内置词条 = 丢掉用户版本，恢复默认（随包或在线）内容 */
     private resetRule(ruleId: string): void {
         setUserSponsorRegexRules(getUserSponsorRegexRules().filter((rule) => rule.id !== ruleId));
         this.refreshState();
@@ -335,7 +333,7 @@ class DynamicSponsorRegexManagerComponent extends React.Component<
     }
 
     private addCustomRule(): void {
-        // 同一毫秒内连点两次会撞 id，加随机后缀
+        // 随机后缀降低同一毫秒创建多条规则时的 id 冲突概率。
         const id = `custom_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
         setUserSponsorRegexRules([
             ...getUserSponsorRegexRules(),

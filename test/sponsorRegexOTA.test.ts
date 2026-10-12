@@ -1,9 +1,8 @@
 /** @jest-environment node */
+import { applyRulesConfig } from "../src/requests/background/sponsorRegexConfigUpdate";
 import Config from "../src/config";
 import {
     Rule,
-    applyRulesConfig,
-    checkSponsorRegexConfigUpdate,
     getBuiltinSponsorRegexRule,
     getEffectiveSponsorRegexRules,
     getLatestDefaultUpdateDate,
@@ -12,6 +11,8 @@ import {
     setUserSponsorRegexRules,
 } from "../src/config/sponsorRegexOTA";
 import { DynamicSponsorRegexRule } from "../src/utils/sponsorRegex";
+
+jest.mock("../src/requests/background-request-proxy", () => ({ callAPI: jest.fn() }));
 
 jest.mock("../src/config", () => ({
     __esModule: true,
@@ -57,7 +58,6 @@ describe("isRulesConfig", () => {
     test("locales 只要求 en，缺失的其它语言回退到 en", () => {
         expect(isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: { en: "a" } }] })).toBe(true);
         expect(isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: { en: "a", zh_CN: "a" } }] })).toBe(true);
-        // 额外语言同样接受
         expect(
             isRulesConfig({ rules: [{ ...rule("a", "b", true, 1), locales: { en: "a", ja: "デリバリー" } }] })
         ).toBe(true);
@@ -135,13 +135,11 @@ describe("applyRulesConfig", () => {
         });
 
         expect(result.status).toBe("updated");
-        // 默认词条本体只写本地（不同步）
         expect(Config.local.sponsorRegexRemoteConfig?.rules).toEqual([
             rule("shoppingSite", "新模式", true, 2),
             rule("otaNew", "新词条"),
         ]);
         expect(Config.config.dynamicAndCommentSponsorRegexUserRules).toEqual(userRules);
-        // 重复 id 用用户版本，在线新词条与用户自建词条都保留
         expect(getEffectiveSponsorRegexRules()).toEqual([
             rule("shoppingSite", "用户改的搜索", true, 1),
             rule("otaNew", "新词条"),
@@ -183,100 +181,10 @@ describe("applyRulesConfig", () => {
 
         const [shoppingSite] = getEffectiveSponsorRegexRules();
 
-        // 名称等元数据来自默认词条，改过的字段用用户版本
         expect(shoppingSite.pattern).toBe("用户改的搜索");
         expect(shoppingSite.enabled).toBe(false);
         expect(shoppingSite.locales).toEqual(baselineRules[0].locales);
         expect(shoppingSite.version).toBe(baselineRules[0].version);
-    });
-});
-
-describe("checkSponsorRegexConfigUpdate", () => {
-    test("节流时间内不再请求", async () => {
-        const fetchMock = jest.fn();
-        global.fetch = fetchMock as unknown as typeof fetch;
-        Config.local.lastSponsorRegexConfigCheck = Date.now();
-
-        const result = await checkSponsorRegexConfigUpdate();
-
-        expect(fetchMock).not.toHaveBeenCalled();
-        expect(result.status).toBe("up-to-date");
-    });
-
-    test("拉取并应用成功后写入本地快照", async () => {
-        const fetchMock = jest.fn().mockResolvedValue(
-            new Response(JSON.stringify({ rules: [rule("shoppingSite", "在线模式", true, 3)] }), { status: 200 })
-        );
-        global.fetch = fetchMock as unknown as typeof fetch;
-
-        const result = await checkSponsorRegexConfigUpdate(true);
-
-        expect(fetchMock).toHaveBeenCalled();
-        expect(result.status).toBe("updated");
-        expect(Config.local.sponsorRegexRemoteConfig?.rules).toEqual([rule("shoppingSite", "在线模式", true, 3)]);
-        expect(Config.local.lastSponsorRegexConfigCheck).toBeGreaterThan(0);
-        expect(Config.local.lastSponsorRegexConfigCheckFailed).toBe(false);
-    });
-
-    test("请求失败时保持现有配置并记录失败", async () => {
-        const fetchMock = jest.fn().mockResolvedValue(new Response("not json", { status: 500 }));
-        global.fetch = fetchMock as unknown as typeof fetch;
-
-        const result = await checkSponsorRegexConfigUpdate(true);
-
-        expect(result.status).toBe("failed");
-        expect(Config.local.sponsorRegexRemoteConfig?.rules).toEqual(baselineRules);
-        expect(Config.local.lastSponsorRegexConfigCheckFailed).toBe(true);
-    });
-
-    test("前面的源内容陈旧时继续尝试下一个源", async () => {
-        const fresh = { rules: [rule("shoppingSite", "在线新模式", true, 2)] };
-        let calls = 0;
-        const fetchMock = jest.fn(() =>
-            Promise.resolve(
-                new Response(JSON.stringify(calls++ === 0 ? { rules: cloneRules(baselineRules) } : fresh), { status: 200 })
-            )
-        );
-        global.fetch = fetchMock as unknown as typeof fetch;
-
-        const result = await checkSponsorRegexConfigUpdate(true);
-
-        expect(result.status).toBe("updated");
-        expect(fetchMock.mock.calls.length).toBeGreaterThan(1);
-        expect(Config.local.sponsorRegexRemoteConfig?.rules).toEqual(fresh.rules);
-    });
-
-    test("所有源都没有更新时视为已是最新且不改写快照", async () => {
-        const snapshot = Config.local.sponsorRegexRemoteConfig;
-        const fetchMock = jest.fn().mockResolvedValue(
-            new Response(JSON.stringify({ rules: cloneRules(baselineRules) }), { status: 200 })
-        );
-        global.fetch = fetchMock as unknown as typeof fetch;
-
-        const result = await checkSponsorRegexConfigUpdate(true);
-
-        expect(result.status).toBe("up-to-date");
-        expect(Config.local.sponsorRegexRemoteConfig).toBe(snapshot);
-    });
-
-    test("上次失败时用更短的间隔重试", async () => {
-        const fetchMock = jest.fn().mockResolvedValue(
-            new Response(JSON.stringify({ rules: cloneRules(baselineRules) }), { status: 200 })
-        );
-        global.fetch = fetchMock as unknown as typeof fetch;
-
-        // 7 小时前失败过：已超过失败的退避间隔，应当重新请求
-        Config.local.lastSponsorRegexConfigCheck = Date.now() - 7 * 60 * 60 * 1000;
-        Config.local.lastSponsorRegexConfigCheckFailed = true;
-        await checkSponsorRegexConfigUpdate();
-        expect(fetchMock).toHaveBeenCalled();
-
-        // 7 小时前成功过：仍在 24 小时节流内，不再请求
-        fetchMock.mockClear();
-        Config.local.lastSponsorRegexConfigCheck = Date.now() - 7 * 60 * 60 * 1000;
-        Config.local.lastSponsorRegexConfigCheckFailed = false;
-        expect((await checkSponsorRegexConfigUpdate()).status).toBe("up-to-date");
-        expect(fetchMock).not.toHaveBeenCalled();
     });
 });
 

@@ -1,6 +1,6 @@
 import "content-scripts-register-polyfill";
 import Config from "./config";
-import { checkSponsorRegexConfigUpdate } from "./config/sponsorRegexOTA";
+import { checkSponsorRegexConfigUpdate } from "./requests/background/sponsorRegexConfigUpdate";
 import { callAPI, serverRouter } from "./requests/background-request-proxy";
 import { clearAllCacheBackground, segmentsCache, videoLabelCache } from "./requests/background/backgroundCache";
 import { getSegmentsBackground } from "./requests/background/segmentRequest";
@@ -20,10 +20,10 @@ const contentScriptRegistrations = {};
 setupBackgroundRequestProxy();
 setupTabUpdates(Config);
 
-// 服务脚本每次唤醒时检查柔性推广屏蔽词条的在线更新（内部有 24 小时节流，失败静默）
+// 后台唤醒不保证持续运行，检查间隔由持久化的时间戳控制。
 void Config.ready
     .then(() => checkSponsorRegexConfigUpdate())
-    .catch((error) => console.warn("[BSB] Sponsor regex config check failed", error));
+    .catch((error) => console.warn("[BSB] OTA config check failed", error));
 
 if (chrome.runtime.getManifest().manifest_version === 3) {
     // Dynamic MAIN-world injection supports Chromium 102+, unlike the static manifest entry (111+).
@@ -207,6 +207,10 @@ async function unregisterFirefoxContentScript(id: string) {
 
 function setupBackgroundRequestProxy() {
     chrome.runtime.onMessage.addListener((request, sender, callback) => {
+        if (request.message === "checkSponsorRegexConfigUpdate") {
+            checkSponsorRegexConfigUpdate(true).then(callback).catch(() => callback({ status: "failed" }));
+            return true;
+        }
         if (request.message === "sendRequest") {
             callAPI(request.type, request.endpoint, request.data, false, request.headers)
                 .then(callback)
