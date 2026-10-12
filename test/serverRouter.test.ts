@@ -34,10 +34,109 @@ describe("ServerRouter", () => {
         });
     }
 
+    function requestOta(router: ServerRouter, validateResponse: (result: FetchResponse) => boolean) {
+        return router.request("GET", "/api/ota", {}, {}, { httpsOnly: true, retry: true, recordFailure: false, validateResponse });
+    }
+
     beforeEach(() => {
         now = 0;
         savedState = null;
         executeRequest = jest.fn();
+    });
+
+    test("OTA 跳过 HTTP 镜像，主站坏配置时继续尝试 HTTPS 镜像", async () => {
+        const valid = response(200, '{"schemaVersion":1}');
+        executeRequest.mockResolvedValueOnce(response(200, "not json")).mockResolvedValueOnce(valid);
+        const router = createRouter([PRIMARY, MIRROR, SECOND_MIRROR]);
+        expect(await requestOta(router, (result) => result.responseText === valid.responseText)).toEqual(valid);
+        expect(executeRequest.mock.calls.map((call) => call[1])).toEqual([PRIMARY + "/api/ota", SECOND_MIRROR + "/api/ota"]);
+        expect((await router.getStatus()).activeAddress).toBe(SECOND_MIRROR);
+        expect((await router.getStatus()).nodes[0].healthState).toBe("available");
+    });
+
+    test("OTA 接口 404 不熔断节点，也不会影响普通 API", async () => {
+        executeRequest.mockResolvedValueOnce(response(404)).mockResolvedValueOnce(response(200));
+        const router = createRouter([PRIMARY, SECOND_MIRROR]);
+        expect((await requestOta(router, (result) => result.ok)).ok).toBe(true);
+        expect((await router.getStatus()).nodes.every((node) => node.healthState === "available")).toBe(true);
+        executeRequest.mockResolvedValueOnce(response(200));
+        await router.request("GET", "/api/userInfo");
+        expect(executeRequest.mock.calls[2][1]).toBe(SECOND_MIRROR + "/api/userInfo");
+    });
+
+    test("OTA 未启用或上游故障的 503 不熔断普通 API", async () => {
+        executeRequest.mockResolvedValueOnce(response(503)).mockResolvedValueOnce(response(503));
+        const router = createRouter([PRIMARY, SECOND_MIRROR]);
+        expect((await requestOta(router, (result) => result.ok)).ok).toBe(false);
+        expect((await router.getStatus()).nodes.every((node) => node.healthState === "available")).toBe(true);
+    });
+
+    test("OTA 关闭失败记录后仍只重试一次，不影响节点健康状态", async () => {
+        const third = "https://third.test";
+        executeRequest.mockResolvedValueOnce(response(-1)).mockResolvedValueOnce(response(503)).mockResolvedValueOnce(response(200));
+        const router = createRouter([PRIMARY, SECOND_MIRROR, third]);
+        expect((await requestOta(router, (result) => result.ok)).ok).toBe(false);
+        expect(executeRequest).toHaveBeenCalledTimes(2);
+        expect((await router.getStatus()).nodes.every((node) => node.healthState === "available")).toBe(true);
+    });
+
+    test("只有 HTTP 地址时不发起 OTA 请求", async () => {
+        expect((await requestOta(createRouter([MIRROR]), () => true)).ok).toBe(false);
+        expect(executeRequest).not.toHaveBeenCalled();
+    });
+
+    test("其他 API 也能使用同一校验和备用重试，不额外请求健康接口", async () => {
+        const endpoint = "/api/getUsername";
+        executeRequest.mockResolvedValueOnce(response(200, "bad response")).mockResolvedValueOnce(response(200, "username"));
+        const router = createRouter([PRIMARY, SECOND_MIRROR]);
+        const result = await router.request("GET", endpoint, {}, {}, {
+            validateResponse: (value) => value.ok && value.responseText === "username",
+        });
+        expect(result.responseText).toBe("username");
+        expect(executeRequest.mock.calls.map((call) => call[1])).toEqual([PRIMARY + endpoint, SECOND_MIRROR + endpoint]);
+    });
+
+    test("业务校验异常按失败重试，默认记录节点失败", async () => {
+        executeRequest.mockResolvedValueOnce(response(200, "bad json")).mockResolvedValueOnce(response(200, '{"enabled":true}'));
+        const router = createRouter();
+        const result = await router.request("GET", "/api/userInfo", {}, {}, {
+            validateResponse: (value) => value.ok && JSON.parse(value.responseText).enabled === true,
+        });
+        expect(result.responseText).toBe('{"enabled":true}');
+        expect(executeRequest).toHaveBeenCalledTimes(2);
+        expect((await router.getStatus()).nodes[0].healthState).toBe("open");
+    });
+
+    test.each([-1, 408, 503, 200])("任意接口关闭失败记录后仍能重试失败状态 %s", async (status) => {
+        executeRequest.mockResolvedValueOnce(response(status, "bad response")).mockResolvedValueOnce(response(200, "valid"));
+        const router = createRouter();
+        const result = await router.request("GET", "/api/anotherConfig", {}, {}, {
+            retry: true,
+            recordFailure: false,
+            validateResponse: (value) => value.ok && value.responseText === "valid",
+        });
+        expect(result.responseText).toBe("valid");
+        expect(executeRequest).toHaveBeenCalledTimes(2);
+        expect((await router.getStatus()).nodes.every((node) => node.healthState === "available")).toBe(true);
+    });
+
+    test("禁用备用重试仍保留默认失败记录", async () => {
+        executeRequest.mockResolvedValue(response(503));
+        const router = createRouter();
+        await router.request("GET", HASH_ENDPOINT, {}, {}, { retry: false });
+        expect(executeRequest).toHaveBeenCalledTimes(1);
+        expect((await router.getStatus()).nodes[0].healthState).toBe("open");
+    });
+
+    test("写请求的校验失败不自动重放，也可关闭失败记录", async () => {
+        executeRequest.mockResolvedValue(response(200, "invalid"));
+        const router = createRouter();
+        await router.request("POST", "/api/settings", { enabled: true }, {}, {
+            recordFailure: false,
+            validateResponse: (value) => value.responseText === "valid",
+        });
+        expect(executeRequest).toHaveBeenCalledTimes(1);
+        expect((await router.getStatus()).nodes.every((node) => node.healthState === "available")).toBe(true);
     });
 
     test("retries a failed hash request and switches to the successful mirror", async () => {
@@ -115,7 +214,8 @@ describe("ServerRouter", () => {
             PRIMARY + HASH_ENDPOINT,
             {},
             {},
-            expect.any(AbortSignal)
+            expect.any(AbortSignal),
+            {}
         );
     });
 
@@ -277,7 +377,7 @@ describe("ServerRouter", () => {
             healthState: "available",
         });
 
-        expect(executeRequest).toHaveBeenCalledWith("GET", candidate + "/api/ready", {}, {}, expect.any(AbortSignal));
+        expect(executeRequest).toHaveBeenCalledWith("GET", candidate + "/api/ready", {}, {}, expect.any(AbortSignal), {});
         expect((await router.getStatus()).nodes.map((node) => node.address)).toEqual([PRIMARY, MIRROR]);
     });
 

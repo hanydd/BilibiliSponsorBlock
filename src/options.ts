@@ -542,7 +542,7 @@ function optionsLocalConfigUpdateListener(changes: StorageChangesObject) {
         }
     }
 
-    // 后台服务脚本可能在本页面打开期间应用了在线词条配置
+    // OTA 默认规则使用 local 存储，需独立于用户规则的 sync 事件刷新设置页。
     if (changes.sponsorRegexRemoteConfig) {
         for (const manager of dynamicSponsorRegexManagers) {
             manager.update();
