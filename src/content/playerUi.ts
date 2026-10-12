@@ -1,6 +1,10 @@
-import { sleep, waitFor } from "../utils/";
+import { addCleanupListener } from "../utils/cleanup";
+import { getPlayerTimelineDuration } from "../utils/playerDuration";
+import { getContentApp } from "./app";
+import { CONTENT_EVENTS } from "./app/events";
+import { PlayerUiLifecycle } from "./playerUiLifecycle";
 import { describeElement, describeVideo, logUiLifecycle } from "../utils/logger";
-import { getControls, getLeftControls, getProgressBar, isVisible } from "../utils/pageUtils";
+import { getControls, getLeftControls, getPlayerContainer, getProgressBar, isVisible } from "../utils/pageUtils";
 import { getVideo } from "../utils/video";
 import { getPageLoaded } from "./state";
 
@@ -9,12 +13,14 @@ export interface PlayerUIReadySnapshot {
     pageLoaded: boolean;
     leftControls: HTMLElement | null;
     rightControls: HTMLElement | null;
+    timeControl: HTMLElement | null;
     progressBar: HTMLElement | null;
     video: HTMLVideoElement | null;
 }
 
-function hasStableRect(element: HTMLElement | null): boolean {
-    if (!element) {
+// Host identity is stabilized by PlayerUiLifecycle; this only checks layout.
+function hasUsableLayout(element: HTMLElement | null): boolean {
+    if (!element?.isConnected || !isVisible(element)) {
         return false;
     }
 
@@ -31,13 +37,17 @@ function hasUsableVideo(video: HTMLVideoElement | null): boolean {
 }
 
 export function capturePlayerUiReadySnapshot(): PlayerUIReadySnapshot {
+    const video = getVideo();
+    const player = getPlayerContainer(video);
+    const leftControls = getLeftControls(player);
     return {
         hidden: document.hidden,
         pageLoaded: getPageLoaded(),
-        leftControls: getLeftControls(),
-        rightControls: getControls(),
-        progressBar: getProgressBar(),
-        video: getVideo(),
+        leftControls,
+        timeControl: leftControls?.querySelector<HTMLElement>(".bpx-player-ctrl-time") ?? null,
+        rightControls: getControls(player),
+        progressBar: getProgressBar(player),
+        video,
     };
 }
 
@@ -47,64 +57,118 @@ export function summarizePlayerUiSnapshot(snapshot: PlayerUIReadySnapshot): Reco
         pageLoaded: snapshot.pageLoaded,
         leftControls: describeElement(snapshot.leftControls),
         leftControlsVisible: isVisible(snapshot.leftControls),
-        leftControlsRectReady: hasStableRect(snapshot.leftControls),
+        leftControlsRectReady: hasUsableLayout(snapshot.leftControls),
         rightControls: describeElement(snapshot.rightControls),
         rightControlsVisible: isVisible(snapshot.rightControls),
-        rightControlsRectReady: hasStableRect(snapshot.rightControls),
+        rightControlsRectReady: hasUsableLayout(snapshot.rightControls),
         progressBar: describeElement(snapshot.progressBar),
         progressBarVisible: isVisible(snapshot.progressBar),
-        progressBarRectReady: hasStableRect(snapshot.progressBar),
+        progressBarRectReady: hasUsableLayout(snapshot.progressBar),
         video: describeVideo(snapshot.video),
         videoReady: hasUsableVideo(snapshot.video),
     };
 }
 
 export function isPlayerUiReady(snapshot = capturePlayerUiReadySnapshot()): boolean {
-    return (
+    return Boolean(
         !snapshot.hidden &&
         snapshot.pageLoaded &&
+        snapshot.video?.isConnected &&
         hasUsableVideo(snapshot.video) &&
-        isVisible(snapshot.leftControls) &&
-        hasStableRect(snapshot.leftControls) &&
-        isVisible(snapshot.rightControls) &&
-        hasStableRect(snapshot.rightControls) &&
-        isVisible(snapshot.progressBar) &&
-        hasStableRect(snapshot.progressBar)
+        hasUsableLayout(snapshot.leftControls) &&
+        hasUsableLayout(snapshot.rightControls) &&
+        hasUsableLayout(snapshot.progressBar)
     );
 }
 
-let pendingPlayerUiReadyPromise: Promise<PlayerUIReadySnapshot> | null = null;
+let lifecycle: PlayerUiLifecycle | null = null;
 
-export async function waitForPlayerUiReady(timeout = 24 * 60 * 60 * 1000): Promise<PlayerUIReadySnapshot> {
-    if (pendingPlayerUiReadyPromise) {
-        return pendingPlayerUiReadyPromise;
-    }
-
-    logUiLifecycle("playerUI", "wait", {
-        target: "ready",
-        ...summarizePlayerUiSnapshot(capturePlayerUiReadySnapshot()),
-    });
-
-    pendingPlayerUiReadyPromise = waitFor(capturePlayerUiReadySnapshot, timeout, 100, isPlayerUiReady)
-        .then(async () => {
-            await sleep(150);
-
-            if (isPlayerUiReady()) {
-                return capturePlayerUiReadySnapshot();
+export function registerPlayerUiLifecycle(): void {
+    if (lifecycle) return;
+    const app = getContentApp();
+    const sizeTargets = new Set<Element>();
+    const sizeObserver = typeof ResizeObserver === "undefined" ? null :
+        new ResizeObserver(() => controller.requestCheck());
+    const controller = new PlayerUiLifecycle({
+        capture: () => {
+            const snapshot = capturePlayerUiReadySnapshot();
+            if (sizeObserver) {
+                const targets = new Set<Element>([
+                    snapshot.video, snapshot.leftControls, snapshot.rightControls, snapshot.progressBar,
+                ].filter((element) => element?.isConnected));
+                for (const element of sizeTargets) {
+                    if (!targets.has(element)) {
+                        sizeObserver.unobserve(element);
+                        sizeTargets.delete(element);
+                    }
+                }
+                for (const element of targets) {
+                    if (!sizeTargets.has(element)) {
+                        sizeTargets.add(element);
+                        // Hover rules, stylesheets and ancestor layout can change
+                        // geometry without mutating the native hosts themselves.
+                        sizeObserver.observe(element, { box: "border-box" });
+                    }
+                }
             }
-
-            return waitFor(capturePlayerUiReadySnapshot, timeout, 100, isPlayerUiReady);
-        })
-        .then((snapshot) => {
-            logUiLifecycle("playerUI", "ready", {
-                target: "ready",
-                ...summarizePlayerUiSnapshot(snapshot),
-            });
             return snapshot;
-        })
-        .finally(() => {
-            pendingPlayerUiReadyPromise = null;
+        },
+        isReady: isPlayerUiReady,
+        duration: getPlayerTimelineDuration,
+        ready: (snapshot) => {
+            logUiLifecycle("playerUI", "ready", { target: "ready", ...summarizePlayerUiSnapshot(snapshot) });
+            app.bus.emit(CONTENT_EVENTS.PLAYER_UI_READY, { snapshot }, { source: "playerUiLifecycle" });
+        },
+        invalidated: () => app.bus.emit(CONTENT_EVENTS.PLAYER_UI_INVALIDATED, {}, { source: "playerUiLifecycle" }),
+        timelineChanged: (video, duration) => app.bus.emit(CONTENT_EVENTS.PLAYER_TIMELINE_CHANGED, { video, duration }, { source: "playerUiLifecycle" }),
+    });
+    lifecycle = controller;
+    const off = [
+        app.bus.on(CONTENT_EVENTS.APP_PAGE_READY, controller.requestCheck),
+        app.bus.on(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, controller.requestCheck),
+        app.bus.on(CONTENT_EVENTS.VIDEO_ID_CHANGED, () => controller.refresh()),
+        app.bus.on(CONTENT_EVENTS.PLAYER_VIDEO_READY, controller.requestCheck),
+        app.bus.on(CONTENT_EVENTS.PLAYER_DURATION_CHANGED, controller.requestCheck),
+    ];
+    const hostSelector = ".bpx-player-ctrl-time, .bpx-player-container, .bpx-player-control-bottom-left, .bpx-player-control-bottom-right, .bpx-player-progress, .bpx-player-shadow-progress-area, .bpx-player-ctrl-time-duration, video";
+    const uiSelector = "#previewbar, #shadowPreviewbar, #bsbPlayerButtonContainer, .skipButtonControlBarContainer";
+    const contains = (node: Node, selector: string) => node instanceof Element &&
+        (node.matches(selector) || !!node.querySelector(selector));
+    const observer = new MutationObserver((records) => {
+        // Ignore danmaku, native elapsed-time ticks and our own segment rendering.
+        // Only host structure/layout and the native total-duration label matter.
+        const relevant = records.filter((record) => {
+            const target = record.target instanceof Element ? record.target : record.target.parentElement;
+            return target?.matches(hostSelector) || !!target?.closest(".bpx-player-ctrl-time-duration") ||
+                Array.from(record.addedNodes).some((node) => contains(node, hostSelector)) ||
+                Array.from(record.removedNodes).some((node) => contains(node, `${hostSelector}, ${uiSelector}`));
         });
+        if (!relevant.length) return;
+        // React/Vue or the player may rewrite a host's children without replacing
+        // the host. Restore our roots once; our own insertions do not trigger refresh.
+        const removedUi = relevant.some((record) => Array.from(record.removedNodes).some((node) => contains(node, uiSelector)));
+        if (removedUi) controller.refresh(); else controller.requestCheck();
+    });
+    observer.observe(document.documentElement, {
+        childList: true, subtree: true, characterData: true, attributes: true,
+        attributeFilter: ["class", "style", "data-screen"],
+    });
+    document.addEventListener("visibilitychange", controller.requestCheck);
+    window.addEventListener("resize", controller.requestCheck);
+    controller.requestCheck();
+    addCleanupListener(() => {
+        observer.disconnect();
+        sizeObserver?.disconnect();
+        sizeTargets.clear();
+        off.forEach((unsubscribe) => unsubscribe());
+        document.removeEventListener("visibilitychange", controller.requestCheck);
+        window.removeEventListener("resize", controller.requestCheck);
+        controller.dispose();
+        lifecycle = null;
+    });
+}
 
-    return pendingPlayerUiReadyPromise;
+export function waitForPlayerUiReady(timeout?: number): Promise<PlayerUIReadySnapshot> {
+    registerPlayerUiLifecycle();
+    return lifecycle.wait(timeout);
 }

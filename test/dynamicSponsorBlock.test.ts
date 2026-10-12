@@ -4,6 +4,8 @@ import { DynamicSponsorOption } from "../src/types";
 jest.mock("../src/config", () => ({ __esModule: true, default: { config: {}, local: {} } }));
 jest.mock("../src/thumbnail-utils/thumbnails", () => ({ insertSBIconDefinition: jest.fn() }));
 jest.mock("../src/utils/cleanup", () => ({ addCleanupListener: jest.fn() }));
+jest.mock("../src/content/state", () => ({ getPageLoaded: () => true }));
+jest.mock("../src/content/pageReadiness", () => ({ waitForPageReady: jest.fn() }));
 
 let Config: typeof import("../src/config").default;
 let DynamicListener: typeof import("../src/render/DynamicAndCommentSponsorBlock").DynamicListener;
@@ -65,6 +67,8 @@ beforeEach(async () => {
     };
 
     Object.assign(Config.config, {
+        dynamicAndCommentSponsorBlocker: true,
+        dynamicSponsorBlock: true,
         dynamicAndCommentSponsorRegexFlags: "gi",
         dynamicAndCommentSponsorRegexPatternKeywordNumber: KEYWORD_THRESHOLD,
         dynamicAndCommentSponsorRegexUserRules: [],
@@ -91,6 +95,9 @@ beforeEach(async () => {
 });
 
 afterEach(() => {
+    const { addCleanupListener } = jest.requireMock("../src/utils/cleanup");
+    for (const [cleanup] of addCleanupListener.mock.calls) cleanup();
+    jest.clearAllMocks();
     document.body.replaceChildren();
 });
 

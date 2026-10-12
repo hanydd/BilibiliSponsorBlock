@@ -345,7 +345,7 @@ describe("speedUp 核心行为与交互契约", () => {
 
         // 清晰度切换等场景：video 元素被替换
         currentVideo = makeVideo();
-        app.bus.emit(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, { newVideo: true, video: currentVideo }, { source: "test" });
+        app.bus.emit(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, { video: currentVideo }, { source: "test" });
 
         expect(oldVideo.playbackRate).toBe(1);
         expect(currentVideo.playbackRate).toBe(1);

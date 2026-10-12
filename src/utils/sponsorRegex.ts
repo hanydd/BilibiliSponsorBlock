@@ -1,5 +1,5 @@
 export interface DynamicSponsorRegexRule {
-    /** 稳定标识；内置词条使用固定 id，自定义词条使用 "custom_*" id */
+    /** 默认规则和用户覆盖记录通过此 id 关联；迁移规则保留 legacyCustom，新建规则使用 custom_ 前缀。 */
     id: string;
     name?: string;
     locales?: { [locale: string]: string };
@@ -24,7 +24,6 @@ export const SPONSOR_REGEX_FLAGS = ["g", "i", "m", "s", "u"] as const;
 export type SponsorRegexFlag = (typeof SPONSOR_REGEX_FLAGS)[number];
 const MIN_MATCH_LENGTH = 2;
 
-/** 去掉不支持的 flag 与重复项，避免 new RegExp 因 flags 抛错 */
 export function sanitizeSponsorRegexFlags(flags: string | undefined): string {
     const seen = new Set<string>();
     let result = "";
@@ -82,6 +81,7 @@ export function splitLegacySponsorPattern(value: string): { source: string; flag
     return literal ? { source: literal[1], flags: literal[2] } : { source: value, flags: null };
 }
 
+/** 迁移仅拆分顶层分支，保留分组、字符类和转义中的 |。 */
 export function splitTopLevelAlternatives(source: string): string[] {
     const alternatives: string[] = [];
     let current = "";
@@ -127,15 +127,16 @@ export function splitTopLevelAlternatives(source: string): string[] {
     return alternatives;
 }
 
+/** 迁移时清理移除默认分支后留下的空分组和分支；使用文本替换，不解析正则语法树。 */
 export function stripEmptySponsorAlternatives(pattern: string): string {
     let result = pattern;
 
     for (;;) {
         const next = result
-            .replace(/\((?:\?:)?\)/g, "") // 空分组 () / (?:)
-            .replace(/\(\?:\|/g, "(") // (?:|a) -> (a)
-            .replace(/\(\|/g, "(") // (|a) -> (a)
-            .replace(/\|\)/g, ")") // (a|) -> (a)
+            .replace(/\((?:\?:)?\)/g, "")
+            .replace(/\(\?:\|/g, "(")
+            .replace(/\(\|/g, "(")
+            .replace(/\|\)/g, ")")
             .replace(/\|{2,}/g, "|")
             .replace(/^\|+|\|+$/g, "")
             .trim();
@@ -145,7 +146,7 @@ export function stripEmptySponsorAlternatives(pattern: string): string {
     }
 }
 
-/** 编译结果缓存：内容页每条动态都要用全部词条匹配，避免重复构造 RegExp */
+/** 跨动态和评论复用编译结果；无效模式也缓存为 null，避免重复编译并抛错。 */
 const patternCache = new Map<string, RegExp | null>();
 const MAX_PATTERN_CACHE_ENTRIES = 256;
 
@@ -170,22 +171,21 @@ export function compileSponsorPattern(pattern: string, flags = ""): RegExp | nul
     const source = pattern?.trim();
     if (!source) return null;
 
-    // g/y 会让 test() 在多次调用间保留 lastIndex，这里始终以无状态方式编译
+    // 缓存的正则跨文本复用，移除会推进 lastIndex 的标志，保证 test() 结果不依赖调用顺序。
     const statelessFlags = sanitizeSponsorRegexFlags(flags).replace(/[gy]/g, "");
     return cacheCompiledPattern(`stateless\u0000${statelessFlags}\u0000${source}`, () =>
         new RegExp(source, statelessFlags)
     );
 }
 
-/** global 变体，供收集全部命中使用；与无状态变体分开缓存，避免每次匹配都重新构造 */
+/** 收集全部命中的全局正则与 test() 使用的正则分开缓存。 */
 function compileGlobalSponsorPattern(regex: RegExp): RegExp | null {
     const flags = `${sanitizeSponsorRegexFlags(regex.flags).replace(/[gy]/g, "")}g`;
     return cacheCompiledPattern(`global\u0000${flags}\u0000${regex.source}`, () => new RegExp(regex.source, flags));
 }
 
-/** 收集命中：global 时返回全部匹配，否则只取首个（regex 已由调用方编译并剥掉 g） */
 function collectMatches(text: string, regex: RegExp, global: boolean): string[] {
-    // String.prototype.match 对 global 正则会先把 lastIndex 归零，因此缓存的 global 变体可安全复用
+    // 全局 match 会重置 lastIndex，因此缓存的全局正则可跨文本复用。
     const matcher = global ? compileGlobalSponsorPattern(regex) : regex;
     if (!matcher) return [];
 
@@ -195,7 +195,7 @@ function collectMatches(text: string, regex: RegExp, global: boolean): string[] 
     return global ? matches : [matches[0]];
 }
 
-/** 用启用的词条匹配文本；命中去重且忽略单字符，`matched` 表示命中数是否达到 keywordNumber 阈值 */
+/** 阈值按去重后的匹配文本数计算；过滤长度小于 MIN_MATCH_LENGTH 的命中。 */
 export function matchSponsorRules(
     text: string,
     rules: DynamicSponsorRegexRule[] | undefined,

@@ -2,7 +2,6 @@ import SkipNoticeComponent from "../components/SkipNoticeComponent";
 import Config from "../config";
 import { refreshMinimumDuration } from "./segmentVisibility";
 import { keybindToString } from "../config/config";
-import { SkipButtonControlBar } from "../js-components/skipButtonControlBar";
 import { VoteResponse } from "../messageTypes";
 import { CategoryPill } from "../render/CategoryPill";
 import { DescriptionPortPill } from "../render/DescriptionPortPill";
@@ -45,7 +44,7 @@ import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
 import { getBackendIdFromSegment, getVideoMatchContext, requestWithBackendId } from "./backendService";
 import { seekFrameByKeyPressListener } from "./hotkeyHandler";
-import { waitForPlayerUiReady } from "./playerUi";
+import type { PlayerUIReadySnapshot } from "./playerUi";
 import { getSkipNoticeContentContainer } from "./skipNoticeContentContainer";
 import { isSponsorCounted, unmarkSponsorCounted } from "./skipScheduler";
 import { contentState, syncContentStateStore } from "./state";
@@ -279,7 +278,8 @@ export function getSubmissionNotice() { return getUIState().submissionNotice; }
 export function resetSubmissionState(): void {
     loadedPreloadedSegment = false;
     lookupWaiting = false;
-    const { submissionNotice } = getUIState();
+    const { submissionNotice, descriptionPill } = getUIState();
+    descriptionPill?.close();
     if (submissionNotice) {
         submissionNotice.close();
     }
@@ -325,12 +325,15 @@ export function registerSegmentSubmission(): void {
     );
     app.commands.register("segments/import", ({ importedSegments }) => importSegments(importedSegments));
     app.commands.register("ui/updatePlayerButtons", () => updateVisibilityOfPlayerControlsButton());
-    app.commands.register("ui/setupSkipButtonControlBar", () => setupSkipButtonControlBar());
-    app.commands.register("ui/setupCategoryPill", () => setupCategoryPill());
-    app.commands.register("ui/setupDescriptionPill", () => setupDescriptionPill());
     app.commands.register("port/submitVideo", ({ ytbID }) => submitPortVideo(ytbID));
     app.commands.register("port/voteVideo", ({ UUID, vote }) => portVideoVote(UUID, vote));
     app.commands.register("port/updateSegments", ({ UUID }) => updateSegments(UUID));
+
+    app.bus.on(CONTENT_EVENTS.PLAYER_UI_READY, ({ snapshot }) => {
+        setupCategoryPill();
+        setupDescriptionPill();
+        void updateVisibilityOfPlayerControlsButton(snapshot);
+    });
 
     app.bus.on(CONTENT_EVENTS.SEGMENTS_LOADED, ({ videoID }) => {
         if (videoID !== getVideoID()) {
@@ -338,6 +341,7 @@ export function registerSegmentSubmission(): void {
         }
 
         setupCategoryPill();
+        void updateVisibilityOfPlayerControlsButton();
         sendInfoUpdatedMessage();
 
         if (Config.config.isVip) {
@@ -359,37 +363,6 @@ export function registerSegmentSubmission(): void {
 
         disableSkipButtonIfNoVisiblePoi("segmentSubmission.segmentUpdated");
     });
-}
-
-export function setupSkipButtonControlBar(): void {
-    const { skipButtonControlBar } = getUIState();
-    if (!skipButtonControlBar) {
-        const nextSkipButtonControlBar = new SkipButtonControlBar({
-            skip: (segment) =>
-                void getContentApp().commands.execute("skip/execute", {
-                    v: getVideo(),
-                    skipTime: segment.segment,
-                    skippingSegments: [segment],
-                    openNotice: true,
-                    forceAutoSkip: true,
-                }),
-            selectSegment: (UUID) => void getContentApp().commands.execute("segments/select", { UUID }),
-        });
-        patchUIState({ skipButtonControlBar: nextSkipButtonControlBar });
-        logUiLifecycle("skipButton", "attach", {
-            action: "create",
-            debugId: nextSkipButtonControlBar.debugId,
-        });
-    }
-
-    logUiLifecycle("skipButton", "wait", {
-        target: "controls",
-        action: "attach",
-        debugId: getSkipButtonControlBar()?.debugId,
-    });
-    void waitForPlayerUiReady()
-        .then(() => getSkipButtonControlBar()?.attachToPage())
-        .catch(() => undefined);
 }
 
 export function setupCategoryPill(): void {
@@ -589,11 +562,10 @@ export async function lockedCategoriesLookup(): Promise<void> {
 }
 
 /** Creates any missing buttons on the player and updates their visiblity. */
-export async function updateVisibilityOfPlayerControlsButton(): Promise<void> {
+export async function updateVisibilityOfPlayerControlsButton(snapshot?: PlayerUIReadySnapshot): Promise<void> {
     if (!getVideoID()) return;
 
-    await waitForPlayerUiReady();
-    const playerButtons = await getPlayerButton().createButtons();
+    const playerButtons = await getPlayerButton().createButtons(snapshot);
     patchUIState({ playerButtons: playerButtons ?? {} });
     logUiLifecycle("playerButtons", "state", {
         action: "updateVisibility",

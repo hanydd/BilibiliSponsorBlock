@@ -158,7 +158,7 @@ export const test = base.extend<ExtensionFixtures>({
                             const tabs = await new Promise<chrome.tabs.Tab[]>((resolve) =>
                                 chromeApi.tabs.query({}, resolve)
                             );
-                            const tab = tabs.find((candidate) => candidate.url?.startsWith("https://www.bilibili.com/"));
+                            const tab = tabs.find((candidate) => /^https:\/\/(www|t|space|search)\.bilibili\.com\//.test(candidate.url ?? ""));
 
                             if (!tab?.id) {
                                 return { ok: false, error: "No bilibili tab found" };

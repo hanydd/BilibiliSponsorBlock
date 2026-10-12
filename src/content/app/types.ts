@@ -1,3 +1,4 @@
+import type { PlayerUIReadySnapshot } from "../playerUi";
 import type { NoticeClock } from "../../notices/NoticeClock";
 import type { RuleCard } from "../skipRules/types";
 import SkipNoticeComponent from "../../components/SkipNoticeComponent";
@@ -13,7 +14,6 @@ import type { BackendInfoMap } from "../../backends/types";
 import { VoteResponse } from "../../messageTypes";
 import { FetchResponse } from "../../requests/type/requestType";
 import {
-    BVID,
     Category,
     ChannelIDInfo,
     NewVideoID,
@@ -58,7 +58,7 @@ export interface ContentUIRegistryState {
     categoryPill: CategoryPill | null;
     previewBar: PreviewBar | null;
     selectedSegment: SegmentUUID | null;
-    lastPreviewBarUpdate: BVID | null;
+    lastPreviewBarUpdate: NewVideoID | null;
 }
 
 export interface LastKnownVideoTimeState {
@@ -83,7 +83,7 @@ export interface ContentEventMap {
     };
     [CONTENT_EVENTS.VIDEO_RESET_REQUESTED]: { reason: string };
     [CONTENT_EVENTS.VIDEO_ID_CHANGED]: { videoID: NewVideoID | null };
-    [CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED]: { newVideo: boolean; video: HTMLVideoElement | null };
+    [CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED]: { video: HTMLVideoElement | null };
     [CONTENT_EVENTS.VIDEO_CHANNEL_RESOLVED]: { channelIDInfo: ChannelIDInfo };
     [CONTENT_EVENTS.CHANNEL_WHITELIST_CHANGED]: {
         videoID: NewVideoID | null;
@@ -124,6 +124,9 @@ export interface ContentEventMap {
     [CONTENT_EVENTS.SKIP_BUTTON_STATE_CHANGED]: { enabled: boolean; segment: SponsorTime | null; duration?: number };
     [CONTENT_EVENTS.SPEEDUP_STATE_CHANGED]: { active: boolean; pausedContext: boolean };
     [CONTENT_EVENTS.PLAYER_TIME_UPDATED]: { time: number };
+    [CONTENT_EVENTS.PLAYER_UI_READY]: { snapshot: PlayerUIReadySnapshot };
+    [CONTENT_EVENTS.PLAYER_UI_INVALIDATED]: Record<string, never>;
+    [CONTENT_EVENTS.PLAYER_TIMELINE_CHANGED]: { video: HTMLVideoElement; duration: number };
     [CONTENT_EVENTS.PLAYER_VIDEO_READY]: { video: HTMLVideoElement };
     [CONTENT_EVENTS.PLAYER_DURATION_CHANGED]: { video: HTMLVideoElement };
     [CONTENT_EVENTS.PLAYER_PLAY]: { video: HTMLVideoElement };
@@ -194,14 +197,9 @@ export interface ContentCommandMap {
     "skip/markRangeExecuted": ContentCommandDefinition<{ start: number; end: number }, void>;
     "skip/recordSkipped": ContentCommandDefinition<{ segments: SponsorTime[]; rate: number }, void>;
     "skip/isSegmentMarkedNearCurrentTime": ContentCommandDefinition<{ currentTime: number; range?: number }, boolean>;
-    "ui/createPreviewBar": ContentCommandDefinition<void, void>;
     "ui/updatePreviewBar": ContentCommandDefinition<void, void>;
-    "ui/checkPreviewBarState": ContentCommandDefinition<void, void>;
     "ui/updateActiveSegment": ContentCommandDefinition<{ currentTime: number }, void>;
     "ui/updatePlayerButtons": ContentCommandDefinition<void, void>;
-    "ui/setupDescriptionPill": ContentCommandDefinition<void, void>;
-    "ui/setupCategoryPill": ContentCommandDefinition<void, void>;
-    "ui/setupSkipButtonControlBar": ContentCommandDefinition<void, void>;
     "popup/openInfoMenu": ContentCommandDefinition<void, void>;
     "popup/closeInfoMenu": ContentCommandDefinition<{ onlyOverlay?: boolean } | void, void>;
     "port/submitVideo": ContentCommandDefinition<{ ytbID: YTID }, PortVideo>;

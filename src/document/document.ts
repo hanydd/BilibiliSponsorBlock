@@ -9,6 +9,8 @@ import {
 import { getBvid } from "./aidMap";
 import { getCidFromBvIdPage, getCidMap } from "./cidListMap";
 import { getFrameRate } from "./frameRateUtils";
+import { isPageMountReady, readPageMountState } from "./pageMount";
+import { observeDynamicAuthors } from "./dynamicAuthors";
 
 type PlayerManifest = { aid: AID | null; cid: CID | null; bvid: BVID | null; p: number };
 
@@ -64,7 +66,13 @@ async function getPlayerManifest(timeout = 2500): Promise<PlayerManifest | null>
     }
 }
 
+let pageReadyDetails: Record<string, unknown> | null = null;
+
 async function windowMessageListener(message: MessageEvent) {
+    if (message.source === window && message.data?.source === sourceId && message.data?.type === "requestPageReady") {
+        if (pageReadyDetails) window.postMessage({ source: sourceId, type: "pageReady", details: pageReadyDetails }, "/");
+        return;
+    }
     const data: InjectedScriptMessageSend = message.data;
     if (!data || !data?.source) {
         return;
@@ -98,48 +106,19 @@ async function windowMessageListener(message: MessageEvent) {
     }
 }
 
-async function addMid() {
-    const pageObserver = new MutationObserver((mutationList) => {
-        for (const mutation of mutationList) {
-            const el = (mutation.addedNodes[0] as HTMLElement).querySelector(".bili-dyn-item");
-            const vueInstance = (el as unknown as { __vue__?: { author?: { mid: number; type: string } } }).__vue__;
-            if (vueInstance?.author?.mid && vueInstance.author.type === "AUTHOR_TYPE_NORMAL") {
-                const mid = vueInstance.author.mid;
-                el.querySelector(".bili-dyn-item__avatar")?.setAttribute("bilisponsor-userid", mid.toString());
-            }
-        }
-    });
-
-    pageObserver.observe(await getElementWaitFor(".bili-dyn-list__items"), {
-        attributeFilter: ["class"],
-        childList: true,
-    });
-
-    (await getElementWaitFor(".bili-dyn-up-list__content, .nav-bar__main-left")).addEventListener("click", async () => {
-        pageObserver.disconnect();
-
-        pageObserver.observe(await getElementWaitFor(".bili-dyn-list__items"), {
-            attributeFilter: ["class"],
-            childList: true,
-        });
-    });
-
-    async function getElementWaitFor(element: string) {
-        return await waitFor(() => document.querySelector(element) as HTMLElement, 5000, 50);
-    }
-}
-
 /**
- * Detect when Vue has finished mounting / hydrating the page.
- *
- * poll for the `__vue__` (Vue 2) or `__vue_app__` (Vue 3) property on
- * `#app`, then notify the ISOLATED-world content script via postMessage.
+ * Detect Vue mounting or Next.js root hydration, then notify the content script.
  */
-function detectVueMountAndNotify(): void {
+function detectPageMountAndNotify(): void {
     const t0 = performance.now();
     let checkCount = 0;
 
     const notifyPageReady = (details: Record<string, unknown>) => {
+        pageReadyDetails = details;
+        // Populate whitelist IDs before content consumers receive pageReady.
+        if (["t.bilibili.com", "space.bilibili.com"].includes(window.location.hostname)) {
+            observeDynamicAuthors();
+        }
         window.postMessage(
             {
                 source: sourceId,
@@ -152,31 +131,14 @@ function detectVueMountAndNotify(): void {
 
     const check = () => {
         checkCount++;
-        const app = document.querySelector("#app");
-        const vue2 = !!(app as unknown as { __vue__?: unknown })?.__vue__;
-        const vue3 = !!(app as unknown as { __vue_app__?: unknown })?.__vue_app__;
+        const state = readPageMountState();
 
         const elapsed = Math.round(performance.now() - t0);
-        if (vue2 || vue3) {
-            setTimeout(() => {
-                notifyPageReady({
-                    stage: "main/pageReadyDetected",
-                    vue2,
-                    vue3,
-                    elapsed,
-                    checkCount,
-                    readyState: document.readyState,
-                });
-            }, 500);
-            return;
-        }
-
-        // 30 seconds timeout
-        if (elapsed >= 30000) {
+        if (isPageMountReady(state)) {
             notifyPageReady({
-                stage: "main/pageReadyTimeout",
-                vue2,
-                vue3,
+                stage: "main/pageReadyDetected",
+                ...state,
+                framework: state.next ? "next" : "vue",
                 elapsed,
                 checkCount,
                 readyState: document.readyState,
@@ -184,7 +146,10 @@ function detectVueMountAndNotify(): void {
             return;
         }
 
-        setTimeout(check, 100);
+        if (elapsed >= 30000 && !document.querySelector("#app, #__next, #__NEXT_DATA__")) return;
+
+        // Keep waiting on known framework roots: elapsed time cannot prove hydration.
+        setTimeout(check, elapsed >= 30000 ? 250 : 100);
     };
 
     check();
@@ -192,10 +157,7 @@ function detectVueMountAndNotify(): void {
 
 function init(): void {
     window.addEventListener("message", windowMessageListener);
-    detectVueMountAndNotify();
-    if (window.location.href.includes("t.bilibili.com") || window.location.href.includes("space.bilibili.com")) {
-        addMid();
-    }
+    detectPageMountAndNotify();
 }
 
 init();

@@ -1,5 +1,6 @@
 import Config from "../config";
-import { waitFor } from "../utils/";
+import { waitForPageReady } from "../content/pageReadiness";
+import { getPageLoaded } from "../content/state";
 import { DynamicSponsorOption, DynamicSponsorSelection } from "../types";
 import { addCleanupListener } from "../utils/cleanup";
 import { insertSBIconDefinition } from "../thumbnail-utils/thumbnails";
@@ -8,11 +9,34 @@ import { getEffectiveSponsorRegexRules } from "../config/sponsorRegexOTA";
 
 export { DynamicListener, CommentListener };
 
-async function DynamicListener() {
-    const observer = new MutationObserver(async (mutationList) => {
-        for (const mutation of mutationList) {
-            const element = mutation.addedNodes[0] as HTMLElement;
-            if (element.querySelector("#dynamicSponsorLabel")) break;
+const pendingPageListeners = new Map<() => void, AbortController>();
+
+function pageReadyFor(listener: () => void): boolean {
+    if (getPageLoaded()) return true;
+    if (!pendingPageListeners.has(listener)) {
+        const controller = new AbortController();
+        pendingPageListeners.set(listener, controller);
+        addCleanupListener(() => controller.abort());
+        void waitForPageReady(undefined, controller.signal).then(() => {
+            pendingPageListeners.delete(listener);
+            if (!controller.signal.aborted) listener();
+        }).catch(() => pendingPageListeners.delete(listener));
+    }
+    return false;
+}
+
+let scanDynamics: (() => void) | null = null;
+
+function DynamicListener() {
+    if (!pageReadyFor(DynamicListener)) return;
+    if (scanDynamics) {
+        scanDynamics();
+        return;
+    }
+    const scan = () => {
+        if (document.hidden || !Config.config.dynamicAndCommentSponsorBlocker || !Config.config.dynamicSponsorBlock) return;
+        for (const element of document.querySelectorAll<HTMLElement>(".bili-dyn-list__items > *")) {
+            if (element.querySelector("#dynamicSponsorLabel")) continue;
 
             let category = isSponsor(element);
             const action = getCategorySelection(category)?.option;
@@ -32,7 +56,7 @@ async function DynamicListener() {
             if (category === null || action === DynamicSponsorOption.Disabled) continue;
             const debugMode = category === "dynamicSponsor_suspicion_sponsor" && Config.config.dynamicSponsorBlockerDebug;
 
-            const upId = element.querySelector('.bili-dyn-item__avatar').getAttribute('bilisponsor-userid');
+            const upId = element.querySelector('.bili-dyn-item__avatar')?.getAttribute('bilisponsor-userid');
             const upIdOrigin = element?.querySelector('.dyn-orig-author__face')?.getAttribute('bilisponsor-userid');
             if ((!(Config.config.whitelistedChannels.some(ch => ch.id === upId) ||
                 Config.config.whitelistedChannels?.some(ch => ch.id === upIdOrigin)) ||
@@ -40,35 +64,49 @@ async function DynamicListener() {
                 !(!Config.config.dynamicSpaceSponsorBlocker &&
                 window.location.href.includes("space.bilibili.com"))
             ) {
-                labelSponsorStyle("dynamicSponsorLabel", element.querySelector('.bili-dyn-title__text'), category, debugMode, dynamicSponsorMatch);
+                const title = element.querySelector<HTMLElement>('.bili-dyn-title__text');
+                if (!title) continue;
+                labelSponsorStyle("dynamicSponsorLabel", title, category, debugMode, dynamicSponsorMatch);
                 if (action !== DynamicSponsorOption.Hide) continue;
                 if (!meetsKeywordThreshold) continue;
 
                 const bodyElement = element.querySelector('.bili-dyn-content') as HTMLElement;
-                hideSponsorContent(bodyElement, element.querySelectorAll('.bili-dyn-item__action')[2] as HTMLElement);
+                const actionButton = element.querySelectorAll<HTMLElement>('.bili-dyn-item__action')[2];
+                if (bodyElement && actionButton) hideSponsorContent(bodyElement, actionButton);
             }
         }
+    };
+    scanDynamics = scan;
+    const containsList = (node: Node) => node instanceof Element &&
+        (node.matches(".bili-dyn-list__items") || !!node.querySelector(".bili-dyn-list__items"));
+    const observer = new MutationObserver((records) => {
+        // Lists can appear after login or be replaced by a feed filter. Existing
+        // cards must also be scanned after hydration, without waiting for a click.
+        if (records.some((record) => {
+            const target = record.target instanceof Element ? record.target : record.target.parentElement;
+            if (target?.closest("#dynamicSponsorLabel, #showDynamicSponsor")) return false;
+            return !!target?.closest(".bili-dyn-list__items") ||
+                [...record.addedNodes, ...record.removedNodes].some(containsList);
+        })) scan();
     });
-
-    observer.observe(await getElementWaitFor(() => document.querySelector(".bili-dyn-list__items")), {
-        attributeFilter: ['class'],
-        childList: true
+    observer.observe(document.documentElement, {
+        childList: true, subtree: true, characterData: true,
+        attributes: true, attributeFilter: ["bilisponsor-userid"],
     });
-
-    (await getElementWaitFor(() => document.querySelector(".bili-dyn-up-list__content, .nav-bar__main-left"))).addEventListener("click", async () => {
+    document.addEventListener("visibilitychange", scan);
+    addCleanupListener(() => {
         observer.disconnect();
-
-        observer.observe(await getElementWaitFor(() => document.querySelector(".bili-dyn-list__items")), {
-            attributeFilter: ['class'],
-            childList: true
-        });
+        document.removeEventListener("visibilitychange", scan);
+        scanDynamics = null;
     });
+    scan();
 }
 
 let scanComments: (() => void) | null = null;
 let commentCompensationScheduled = false;
 
 function CommentListener() {
+    if (!pageReadyFor(CommentListener)) return;
     if (scanComments) {
         scanComments();
         return;
@@ -141,14 +179,6 @@ function CommentListener() {
         scanComments = null;
     });
     scan();
-}
-
-async function getElementWaitFor<T>(element: () => T): Promise<T> {
-    return await waitFor(
-        () => element(),
-        10000,
-        50
-    );
 }
 
 function getCategorySelection(category: string): DynamicSponsorSelection {
@@ -261,11 +291,8 @@ function isSponsor(element: HTMLElement) {
 }
 
 function isDynamicSponsorSuspicionSponsor(element: HTMLElement) {
-    //文本动态
     const contentDivText = element?.querySelectorAll('.bili-rich-text__content span:not(.bili-dyn-item__interaction *)');
-    //专栏/文字动态
     const contentDivOpus = element?.querySelectorAll('.opus-paragraph-children span');
-    //专栏/文字动态标题
     const contentOpusTitle = element?.querySelectorAll('.dyn-card-opus__title');
     
     const content = [...contentOpusTitle, ...contentDivText, ...contentDivOpus];

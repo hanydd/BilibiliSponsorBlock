@@ -9,7 +9,6 @@ jest.mock("../src/config", () => ({
             dynamicAndCommentSponsorRegexUserRules: [],
             dynamicAndCommentSponsorRegexFlags: "gi",
         },
-        // 未应用在线配置：默认词条取自随包的 config/sponsorRegex.json
         local: { sponsorRegexRemoteConfig: null },
     },
 }));
@@ -31,28 +30,23 @@ describe("DynamicSponsorRegexManagerComponent", () => {
 
         const markup = renderToStaticMarkup(React.createElement(DynamicSponsorRegexManagerComponent));
 
-        // 词条名来自默认词条自带的 locales（测试浏览器 UI 语言为 en-US）
         expect(markup).toContain("Shopping Sites");
         expect(markup).toContain("Food Delivery");
 
-        // 匹配模式 = 正则 flags（g/i/m/s/u）
         for (const flag of ["g", "i", "m", "s", "u"]) {
             expect(markup).toContain(`id="sponsorRegexFlag_${flag}"`);
         }
 
-        // 未应用在线配置时展示内置来源
         expect(markup).toContain("dynamicSponsorRegexConfigSourceBuiltin");
 
-        // 每条词条展示自己的更新日期（取自随包配置 config/sponsorRegex.json）
         expect(markup).toContain("2025-10-17");
 
-        // 内置词条内容可编辑、可以重置，但不能删除
         expect(markup).toContain("dynamicSponsorRegexRuleReset");
         expect(markup).not.toContain("dynamicSponsorRegexRuleDelete");
         expect(markup).not.toContain("data-rule-name");
 
-        // 默认词条名不可编辑；启用状态 = 2 个 flags + 全部默认词条
         expect(markup).not.toContain("dynamicSponsorRegexRuleNamePlaceholder");
+        // 同时统计已选 flags 和已启用规则。
         expect(markup.match(/type="checkbox" checked=""/g) ?? []).toHaveLength(12);
     });
 
@@ -72,7 +66,6 @@ describe("DynamicSponsorRegexManagerComponent", () => {
 
         const markup = renderToStaticMarkup(React.createElement(DynamicSponsorRegexManagerComponent));
 
-        // 用户版本的内容与启用状态优先，自建词条可编辑名称
         expect(markup).toContain('value="用户改的"');
         expect(markup).toContain('value="某某产品"');
         expect(markup).toContain("data-rule-name");

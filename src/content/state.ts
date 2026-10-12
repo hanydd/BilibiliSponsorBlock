@@ -7,10 +7,7 @@ import {
     ToggleSkippable,
     VideoInfo,
 } from "../types";
-import { sourceId } from "../utils/injectedScriptMessageUtils";
-import { logDebug, logUiLifecycle } from "../utils/logger";
 import { getContentApp } from "./app";
-import { CONTENT_EVENTS } from "./app/events";
 import { ContentAppState } from "./app/types";
 import type { BackendInfoMap } from "../backends/types";
 
@@ -192,77 +189,6 @@ export const contentState = {
         syncContentStateStore("contentState.pageUrl");
     },
 };
-
-/**
- * Wait for the page to be truly available (Vue mount / hydration completed)
- * before allowing the plugin to operate on the DOM.
- *
- * Primary: Listen for "pageReady" messages from MAIN world.
- * Fallback: If no message is received within 30 s, use readyState=complete + 2 s delay.
- */
-export function setupPageLoadingListener(): void {
-    const TAG = "[BSB-pageReady]";
-    const t0 = performance.now();
-
-    let resolved = false;
-    const markReady = (reason: string) => {
-        if (resolved) return;
-        resolved = true;
-        const elapsed = Math.round(performance.now() - t0);
-        logDebug(`${TAG} Page ready (${reason}) at +${elapsed}ms`);
-        logUiLifecycle("pageReady", "ready", {
-            action: "resolved",
-            reason,
-            elapsed,
-        });
-        contentState.pageLoaded = true;
-        try {
-            getContentApp().bus.emit(CONTENT_EVENTS.APP_PAGE_READY, { pageLoaded: true }, { source: "content/state" });
-        } catch (error) {
-            // The app may not have finished bootstrapping yet.
-        }
-    };
-
-    window.addEventListener("message", (e: MessageEvent) => {
-        if (e.data?.source === sourceId && e.data?.type === "pageReady") {
-            const mainWorldDetails = e.data?.details && typeof e.data.details === "object"
-                ? e.data.details as Record<string, unknown>
-                : {};
-            const forwardedStage = typeof mainWorldDetails.stage === "string"
-                ? mainWorldDetails.stage
-                : "main/pageReadyDetected";
-            const resolveReason = forwardedStage === "main/pageReadyTimeout"
-                ? "MAIN world pageReady timeout"
-                : "vue-mount signal from MAIN world";
-
-            logUiLifecycle("pageReady", "state", {
-                action: "mainWorldSignal",
-                stage: forwardedStage,
-                ...mainWorldDetails,
-            });
-            logUiLifecycle("pageReady", "state", {
-                action: "messageReceived",
-                source: e.data?.source,
-                messageType: e.data?.type,
-                mainWorldStage: forwardedStage,
-            });
-            markReady(resolveReason);
-        }
-    });
-
-    const FALLBACK_TIMEOUT = 30000;
-    setTimeout(() => {
-        if (!resolved) {
-            if (document.readyState === "complete") {
-                markReady(`fallback: readyState already complete after ${FALLBACK_TIMEOUT}ms`);
-            } else {
-                window.addEventListener("load", () => {
-                    setTimeout(() => markReady("fallback: window.load + 2s delay"), 2000);
-                }, { once: true });
-            }
-        }
-    }, FALLBACK_TIMEOUT);
-}
 
 export function getPageLoaded(): boolean {
     return contentState.pageLoaded;
