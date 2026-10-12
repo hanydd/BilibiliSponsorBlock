@@ -10,6 +10,7 @@ export type MockBilibiliPageOptions = {
     paused?: boolean;
     vueHydrationDelayMs?: number;
     replacePlayerControlsOnHydration?: boolean;
+    extraCss?: string;
 };
 
 export const defaultMockBvid = "BV1JfLg6qEtf";
@@ -59,7 +60,7 @@ function createMockBilibiliVideoPageHtml(options: MockBilibiliPageOptions): stri
                 }),
             };
         </script>
-        <style>
+        <style id="bsb-e2e-page-style">
             html,
             body {
                 margin: 0;
@@ -127,6 +128,7 @@ function createMockBilibiliVideoPageHtml(options: MockBilibiliPageOptions): stri
             #danmukuBox {
                 width: 374px;
             }
+            ${options.extraCss ?? ""}
         </style>
     </head>
     <body>

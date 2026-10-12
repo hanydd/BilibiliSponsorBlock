@@ -35,7 +35,7 @@
 
 首页、动态流、搜索、空间和 opus 等无播放器页面只等待 `app/pageReady`，页面功能不依赖 `player/uiReady`。动态过滤器在 hydration 后扫描已有卡片，并通过 DOM 变化发现晚到或替换的列表；评论过滤器同时保留对各层 shadow root 后续渲染的观察。MAIN world 的动态作者 ID 提取也在挂载确认后启动，先填充已有卡片的 ID，再发送页面就绪信号供白名单判断使用。没有动态列表时不启动超时轮询，扩展清理会取消 content 中未完成的页面等待和观察器。查询 `getVideo()` 在没有主播放器 video 时直接返回，不请求帧率或等待媒体节点；主播放器出现后由宿主变化重新触发绑定，卡片预览不参与绑定。
 
-播放器宿主就绪由 [playerUi.ts](../src/content/playerUi.ts) 和 [PlayerUiLifecycle](../src/content/playerUiLifecycle.ts) 管理。它订阅页面、视频身份、视频节点和媒体状态事件，并集中观察 DOM、页面可见性与尺寸变化。hydration、媒体元数据、宿主连接和布局都满足条件，且 video、左右控制区和进度条节点稳定 150 毫秒后，才发布 `player/uiReady`。
+播放器宿主就绪由 [playerUi.ts](../src/content/playerUi.ts) 和 [PlayerUiLifecycle](../src/content/playerUiLifecycle.ts) 管理。它订阅页面、视频身份、视频节点和媒体状态事件，通过 DOM 观察器和 ResizeObserver 监听宿主及纯 CSS 尺寸变化，同时处理页面可见性与窗口尺寸变化。hydration、媒体元数据、宿主连接和布局都满足条件，且 video、左右控制区和进度条节点稳定 150 毫秒后，才发布 `player/uiReady`。
 
 | 事件 | 消费方与用途 |
 | --- | --- |

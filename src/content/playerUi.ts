@@ -83,8 +83,33 @@ let lifecycle: PlayerUiLifecycle | null = null;
 export function registerPlayerUiLifecycle(): void {
     if (lifecycle) return;
     const app = getContentApp();
+    const sizeTargets = new Set<Element>();
+    const sizeObserver = typeof ResizeObserver === "undefined" ? null :
+        new ResizeObserver(() => controller.requestCheck());
     const controller = new PlayerUiLifecycle({
-        capture: capturePlayerUiReadySnapshot,
+        capture: () => {
+            const snapshot = capturePlayerUiReadySnapshot();
+            if (sizeObserver) {
+                const targets = new Set<Element>([
+                    snapshot.video, snapshot.leftControls, snapshot.rightControls, snapshot.progressBar,
+                ].filter((element) => element?.isConnected));
+                for (const element of sizeTargets) {
+                    if (!targets.has(element)) {
+                        sizeObserver.unobserve(element);
+                        sizeTargets.delete(element);
+                    }
+                }
+                for (const element of targets) {
+                    if (!sizeTargets.has(element)) {
+                        sizeTargets.add(element);
+                        // Hover rules, stylesheets and ancestor layout can change
+                        // geometry without mutating the native hosts themselves.
+                        sizeObserver.observe(element, { box: "border-box" });
+                    }
+                }
+            }
+            return snapshot;
+        },
         isReady: isPlayerUiReady,
         duration: getPlayerTimelineDuration,
         ready: (snapshot) => {
@@ -130,6 +155,8 @@ export function registerPlayerUiLifecycle(): void {
     controller.requestCheck();
     addCleanupListener(() => {
         observer.disconnect();
+        sizeObserver?.disconnect();
+        sizeTargets.clear();
         off.forEach((unsubscribe) => unsubscribe());
         document.removeEventListener("visibilitychange", controller.requestCheck);
         window.removeEventListener("resize", controller.requestCheck);
