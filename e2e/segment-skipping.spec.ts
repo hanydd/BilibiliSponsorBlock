@@ -288,18 +288,18 @@ test("renders segment colors on the mini player's separate progress bar", async 
         if (entry === 0) {
             await extensionPage.locator("#bilibili-player").screenshot({ path: testInfo.outputPath("mini-preview.png") });
         }
-        const barTypes = await readSyncStorage<Record<string, { color: string; opacity: string }>>(
+        const barTypes = await readSyncStorage<Record<string, [string, string]>>(
             extensionServiceWorker, "barTypes"
         );
         await writeSyncStorage(extensionServiceWorker, {
-            barTypes: { ...barTypes, sponsor: { color: "#ff00ff", opacity: "0.25" } },
+            barTypes: { ...barTypes, sponsor: ["#ff00ff", "#007800"] },
         });
         for (const id of ["previewbar", "shadowPreviewbar", "miniPreviewbar"]) {
             await expect(extensionPage.locator(`#${id} .previewbar`)).toHaveCSS("background-color", "rgb(255, 0, 255)");
-            await expect(extensionPage.locator(`#${id} .previewbar`)).toHaveCSS("opacity", "0.25");
+            await expect(extensionPage.locator(`#${id} .previewbar`)).toHaveCSS("opacity", "0.7");
         }
         await writeSyncStorage(extensionServiceWorker, {
-            barTypes: { ...barTypes, sponsor: { color: originalHexColor, opacity: "0.7" } },
+            barTypes: { ...barTypes, sponsor: [originalHexColor, "#007800"] },
         });
         await expect(mark).toHaveCSS("background-color", segmentColor);
         // Replacing the progress element must move the existing overlay, without duplicating it.

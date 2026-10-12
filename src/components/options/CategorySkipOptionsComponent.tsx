@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import Config from "../../config";
+import { setCategorySelection } from "../../config/categoryConfig";
 import * as CompileConfig from "../../../config.json";
 import { Category, CategorySkipOption, DynamicSponsorOption } from "../../types";
 
@@ -66,6 +67,10 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                         {chrome.i18n.getMessage("category_" + this.props.category)}
                     </td>
 
+                    <td className="categoryInlineDescription">
+                        <div>{this.renderDescription()}</div>
+                    </td>
+
                     <td id={this.props.category + "SkipOption"} className="skipOption">
                         <select
                             className="optionsSelector"
@@ -76,20 +81,22 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                         </select>
                     </td>
 
-                    <td id={this.props.category + "ColorOption"} className="colorOption">
+                    <td id={this.props.category + "ColorOption"} className="colorOption" data-label={chrome.i18n.getMessage("seekBarColor")}>
                         <input
                             className="categoryColorTextBox option-text-box"
                             type="color"
+                            aria-label={chrome.i18n.getMessage("seekBarColor")}
                             onChange={(event) => this.setColorState(event, false)}
                             value={this.state.color}
                         />
                     </td>
 
                     {!["exclusive_access"].includes(this.props.category) && (
-                        <td id={this.props.category + "PreviewColorOption"} className="previewColorOption">
+                        <td id={this.props.category + "PreviewColorOption"} className="previewColorOption" data-label={chrome.i18n.getMessage("previewColor")}>
                             <input
                                 className="categoryColorTextBox option-text-box"
                                 type="color"
+                                aria-label={chrome.i18n.getMessage("previewColor")}
                                 onChange={(event) => this.setColorState(event, true)}
                                 value={this.state.previewColor}
                             />
@@ -102,10 +109,7 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                     className={`small-description categoryTableDescription`}
                 >
                     <td colSpan={2}>
-                        {chrome.i18n.getMessage("category_" + this.props.category + "_description")}{" "}
-                        <a href={CompileConfig.wikiLinks[this.props.category]} target="_blank" rel="noreferrer">
-                            {`${chrome.i18n.getMessage("LearnMore")}`}
-                        </a>
+                        {this.renderDescription()}
                     </td>
                 </tr>
 
@@ -114,15 +118,21 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
         );
     }
 
+    renderDescription(): JSX.Element {
+        const description = chrome.i18n.getMessage("category_" + this.props.category + "_description");
+        return <><span title={description}>{description}</span>{" "}
+            <a href={CompileConfig.wikiLinks[this.props.category]} target="_blank" rel="noreferrer">
+                {chrome.i18n.getMessage("LearnMore")}
+            </a></>;
+    }
+
     skipOptionSelected(event: React.ChangeEvent<HTMLSelectElement>): void {
         let option: CategorySkipOption;
 
         switch (event.target.value) {
             case "disable":
-                Config.config.categorySelections = Config.config.categorySelections.filter(
-                    (categorySelection) => categorySelection.name !== this.props.category
-                );
-                return;
+                option = CategorySkipOption.Disabled;
+                break;
             case "showOverlay":
                 option = CategorySkipOption.ShowOverlay;
 
@@ -143,19 +153,7 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
                 break;
         }
 
-        const existingSelection = Config.config.categorySelections.find(
-            (selection) => selection.name === this.props.category
-        );
-        if (existingSelection) {
-            existingSelection.option = option;
-        } else {
-            Config.config.categorySelections.push({
-                name: this.props.category,
-                option: option,
-            });
-        }
-
-        Config.forceSyncUpdate("categorySelections");
+        Config.config.categorySelections = setCategorySelection(Config.config.categorySelections, this.props.category, option);
     }
 
     getCategorySkipOptions(): JSX.Element[] {
@@ -205,7 +203,7 @@ class CategorySkipOptionsComponent extends React.Component<CategorySkipOptionsPr
         for (const option of this.getExtraOptions(category)) {
             result.push(
                 <tr key={option.configKey}>
-                    <td id={`${category}_${option.configKey}`} className="categoryExtraOptions">
+                    <td id={`${category}_${option.configKey}`} className="categoryExtraOptions" colSpan={5}>
                         <ToggleOptionComponent
                             configKey={option.configKey}
                             label={option.label}

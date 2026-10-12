@@ -1,5 +1,5 @@
 import { DailyCacheStats } from "../types";
-import { chromeP } from "../utils/browserApi";
+import { logLocalStorageError } from "../utils/storage";
 
 type TimestampedValue<V> = {
     maxAge: number;
@@ -60,7 +60,11 @@ export class PersistentTTLCache<K extends string, V> {
         this.loadingPromise = (async () => {
             console.debug("loading", this.storageKey);
             const data = await new Promise<Record<string, unknown>>((resolve) => {
-                chromeP.storage?.local?.get(this.storageKey, (items) => resolve(items || {}));
+                chrome.storage.local.get(this.storageKey, (items) => {
+                    const error = chrome.runtime.lastError;
+                    if (error) logLocalStorageError("get", this.storageKey, error);
+                    resolve(error ? {} : items || {});
+                });
             });
             const stored = data?.[this.storageKey] as StoredData<K, V>;
 
@@ -204,12 +208,27 @@ export class PersistentTTLCache<K extends string, V> {
     async clear(): Promise<void> {
         return this.queueOperation(async () => {
             await this.ensureLoaded();
+            // A pending save must not recreate the cache after it has been removed.
+            if (this.persistTimer != null) clearTimeout(this.persistTimer);
+            this.persistTimer = null;
+            this.firstPersistTime = null;
+            this.persistWaiters.splice(0).forEach((resolve) => resolve());
+
+            await new Promise<void>((resolve, reject) => {
+                chrome.storage.local.remove(this.storageKey, () => {
+                    const error = chrome.runtime.lastError;
+                    if (error) {
+                        logLocalStorageError("remove", this.storageKey, error);
+                        reject(new Error(error.message));
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+            // Keep the cache and its statistics intact if storage removal fails.
             this.cache = {} as Record<K, TimestampedValue<V>>;
             this.totalSizeBytes = 0;
             this.resetDailyStats();
-            await new Promise<void>((resolve) => {
-                chromeP.storage?.local?.remove(this.storageKey, () => resolve());
-            });
         });
     }
 
@@ -246,7 +265,9 @@ export class PersistentTTLCache<K extends string, V> {
                     cache: this.cache,
                     stats: this.dailyStats,
                 };
-                chromeP.storage?.local?.set({ [this.storageKey]: dataToStore }, () => {
+                chrome.storage.local.set({ [this.storageKey]: dataToStore }, () => {
+                    const error = chrome.runtime.lastError;
+                    if (error) logLocalStorageError("set", this.storageKey, error);
                     const waiters = this.persistWaiters.splice(0);
                     waiters.forEach((w) => w());
                 });

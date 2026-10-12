@@ -24,6 +24,8 @@ class CategoryChooserComponent extends React.Component<CategoryChooserProps, Cat
                     <tr id={"CategoryOptionsRow"} className="categoryTableElement categoryTableHeader">
                         <th id={"CategoryOptionName"}>{chrome.i18n.getMessage("category")}</th>
 
+                        <th className="categoryInlineDescription">{chrome.i18n.getMessage("rules_categoryDescription")}</th>
+
                         <th id={"CategorySkipOption"} className="skipOption">
                             {chrome.i18n.getMessage("skipOption")}
                         </th>

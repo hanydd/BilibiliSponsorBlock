@@ -76,26 +76,34 @@ test('keeps same-segment seeks and notice undo/redo, but clears distant seeks in
     await expect(card).toHaveCount(0);
 });
 
-test('renders intermediate opacity frames before removing a closed card', async ({ extensionPage: page }) => {
+test('interpolates opacity before removing a closed card', async ({ extensionPage: page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     const card = page.locator(cards);
     await card.locator('.sponsorSkipNoticeCloseButton').hover();
-    await page.waitForTimeout(450);
-    const frames = await card.evaluate(async el => {
-        const samples: { time: number; opacity: number; visibility: string; clip: string }[] = [];
-        const start = performance.now();
+    await expect(card).not.toHaveClass(/sponsorSkipStackArriving/);
+    const frames = await card.evaluate(el => {
         (el.querySelector('.sponsorSkipNoticeCloseButton') as HTMLButtonElement).click();
-        return await new Promise<typeof samples>(resolve => {
-            function frame() {
-                if (!el.isConnected || performance.now() - start > 1500) { resolve(samples); return; }
-                const style = getComputedStyle(el);
-                samples.push({ time: performance.now() - start, opacity: Number(style.opacity), visibility: style.visibility, clip: style.clipPath });
-                requestAnimationFrame(frame);
-            }
-            requestAnimationFrame(frame);
+        const animation = el.getAnimations().find(animation =>
+            animation instanceof CSSTransition && animation.transitionProperty === 'opacity');
+        if (!animation) throw new Error('Closing a card must start an opacity transition');
+        const duration = Number(animation.effect.getTiming().duration);
+        const exitDuration = parseFloat(getComputedStyle(el).getPropertyValue('--sb-exit-duration'));
+        if (duration <= 0 || duration !== exitDuration) throw new Error('The close transition must match the disposal delay');
+        // Sample the real CSS interpolation in one task, before the disposal timer
+        // can run. CI frame rate must not decide how many samples we observe.
+        animation.pause();
+        const samples = [0, 0.25, 0.5, 0.75, 1].map(progress => {
+            animation.currentTime = duration * progress;
+            const style = getComputedStyle(el);
+            return { opacity: Number(style.opacity), visibility: style.visibility, clip: style.clipPath };
         });
+        animation.currentTime = 0;
+        animation.play();
+        return samples;
     });
-    expect(frames.filter(frame => frame.opacity > 0.05 && frame.opacity < 0.95).length).toBeGreaterThanOrEqual(4);
+    expect(frames[0].opacity).toBeCloseTo(1, 3);
+    expect(frames[4].opacity).toBeCloseTo(0, 3);
+    for (let i = 1; i < frames.length; i++) expect(frames[i].opacity).toBeLessThan(frames[i - 1].opacity);
     expect(frames.every(frame => frame.visibility === 'visible' && frame.clip === 'none')).toBe(true);
     await expect(card).toHaveCount(0);
 });

@@ -1,11 +1,14 @@
-import type { Page } from "@playwright/test";
-import { expect, test } from "./fixtures/extension";
+import type { Locator, Page } from "@playwright/test";
+import { expect, test as extensionTest } from "./fixtures/extension";
 import { defaultMockBvid, defaultMockCid, pauseMockVideo, routeMockBilibiliVideoPage, setMockVideoTime } from "./support/bilibiliPage";
 import { writeSyncStorage } from "./support/extensionStorage";
 import { routeMockSponsorSegments } from "./support/sponsorBlockApi";
 import { waitForBilibiliContentScript } from "./support/submissionNotice";
 
 const cardSelector = ".sponsorSkipStackCard";
+const test = extensionTest.extend<{ skipEngineMode: "legacy" | "rules" }>({
+    skipEngineMode: ["legacy", { option: true }],
+});
 
 // Skip idle playback between test segments without simulating a user seek.
 // Resume just before the next segment so the real scheduler performs the skip.
@@ -26,9 +29,9 @@ async function advancePlayback(page: Page, time: number): Promise<void> {
 }
 
 
-test.beforeEach(async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
+test.beforeEach(async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage, skipEngineMode }) => {
     await writeSyncStorage(extensionServiceWorker, {
-        skipOnSeekToSegment: true, noticeVisibilityMode: 2, skipNoticeDuration: 60,
+        skipEngineMode, skipOnSeekToSegment: true, noticeVisibilityMode: 2, skipNoticeDuration: 60,
     });
     await routeMockSponsorSegments(extensionContext, defaultMockBvid, Array.from({ length: 9 }, (_, i) => ({
         segment: [5 + i * 10, 8 + i * 10], UUID: `stack-${i}`, category: "sponsor", actionType: "skip",
@@ -278,18 +281,34 @@ test("expands downward with one bottom reserve and moves only the lower cards", 
 test("new cards enter downward from above their final slots without moving existing cards", async ({ extensionPage: page }) => {
     const existing = await page.locator(`${cardSelector} .sponsorSkipStackHeader`).evaluateAll(elements =>
         elements.map(element => ({ id: element.closest('.sponsorSkipStackCard').id, y: element.getBoundingClientRect().y })));
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.evaluate(() => {
-        const samples: Record<string, number[]> = { 'stack-5': [], 'stack-6': [] };
+        const samples: Record<string, number[]> = {};
         (window as Window & { arrivalSamples: typeof samples }).arrivalSamples = samples;
-        const start = performance.now();
-        function frame() {
-            for (const id of Object.keys(samples)) {
-                const header = document.querySelector(`.sponsorSkipStackCard[id*="${id}"] .sponsorSkipStackHeader`);
-                if (header) samples[id].push(header.getBoundingClientRect().y);
-            }
-            if (performance.now() - start < 1800) requestAnimationFrame(frame);
-        }
-        requestAnimationFrame(frame);
+        document.addEventListener('animationstart', event => {
+            if ((event as AnimationEvent).animationName !== 'sb-stack-arrive') return;
+            const target = event.target as Element;
+            const card = target.closest('.sponsorSkipStackCard');
+            const id = ['stack-5', 'stack-6'].find(id => card?.id.includes(id));
+            if (!id) return;
+            // Advance both the inner entrance and any outer positioning transition.
+            // Sampling only the child would miss an incorrectly moving outer slot.
+            const animations = card.getAnimations({ subtree: true }).filter(animation => {
+                const element = (animation.effect as KeyframeEffect).target;
+                return element === card || element === target;
+            });
+            const entrance = animations.find(animation =>
+                animation instanceof CSSAnimation && animation.animationName === 'sb-stack-arrive');
+            if (!entrance) return;
+            const duration = Number(entrance.effect.getTiming().duration);
+            if (duration <= 0) return;
+            animations.forEach(animation => animation.pause());
+            samples[id] = [0, 0.25, 0.5, 0.75, 1].map(progress => {
+                animations.forEach(animation => { animation.currentTime = duration * progress; });
+                return card.querySelector('.sponsorSkipStackHeader').getBoundingClientRect().y;
+            });
+            animations.forEach(animation => animation.finish());
+        });
     });
     await page.locator('video').evaluate((video: HTMLVideoElement) => video.play());
     for (const [time, count] of [[56, 6], [66, 7]]) {
@@ -300,14 +319,15 @@ test("new cards enter downward from above their final slots without moving exist
         await expect.poll(() => page.locator('video').evaluate((video: HTMLVideoElement) => video.seeking)).toBe(false);
     }
     await pauseMockVideo(page);
-    await page.waitForTimeout(700);
+    await expect.poll(() => page.evaluate(() => Object.keys((window as Window & { arrivalSamples: Record<string, number[]> }).arrivalSamples).length)).toBe(2);
     const samples = await page.evaluate(() => (window as Window & { arrivalSamples: Record<string, number[]> }).arrivalSamples);
     for (const id of Object.keys(samples)) {
         const final = await page.locator(`${cardSelector}[id*="${id}"] .sponsorSkipStackHeader`).boundingBox();
-        expect(samples[id].length).toBeGreaterThan(5);
+        expect(samples[id]).toHaveLength(5);
         // Read the composed on-screen position, not just the child's animation keyframes.
         expect(Math.max(...samples[id]), id).toBeLessThanOrEqual(final.y + 0.5);
-        expect(samples[id].filter(y => y < final.y - 1 && y > final.y - 40).length, id).toBeGreaterThan(3);
+        expect(final.y - samples[id][0], id).toBeCloseTo(40, 1);
+        expect(samples[id].slice(1, -1).every(y => y > samples[id][0] && y < final.y), id).toBe(true);
         for (let i = 1; i < samples[id].length; i++) expect(samples[id][i], id).toBeGreaterThanOrEqual(samples[id][i - 1] - 0.5);
     }
     for (const item of existing) {
@@ -317,6 +337,8 @@ test("new cards enter downward from above their final slots without moving exist
 });
 
 test("two and three digit countdowns fit one line and keep action positions when paused", async ({ extensionPage: page, extensionServiceWorker }) => {
+    // This checks typography and hover targets, not motion (covered separately).
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     const card = page.locator(cardSelector).first();
     const timer = card.locator('.sponsorSkipNoticeTimeLeft');
     const text = card.locator('[id^="skipNoticeTimerText"]');
@@ -326,6 +348,7 @@ test("two and three digit countdowns fit one line and keep action positions when
             el.style.height = `${size[1]}px`;
         }, [width, height]);
         for (const duration of [58, 300]) {
+            await page.mouse.move(1200, 700);
             await page.locator(cardSelector).evaluateAll(cards => cards.forEach(card =>
                 (card.querySelector('.sponsorSkipNoticeCloseButton') as HTMLButtonElement).click()));
             await expect(page.locator(cardSelector)).toHaveCount(0);
@@ -336,6 +359,16 @@ test("two and three digit countdowns fit one line and keep action positions when
             await page.locator('video').evaluate((video: HTMLVideoElement) => video.play());
             await expect(card).toHaveCount(1);
             await pauseMockVideo(page);
+            // The legacy compact-parent max-height once clipped/scrolled this header,
+            // causing hover retries to hit the stack body instead of the timer.
+            // Scrolling belongs to the detail/stack, never to the action header's card.
+            await expect(card).toHaveCSS('overflow', 'visible');
+            await expect.poll(() => card.evaluate(el => {
+                const card = el.getBoundingClientRect();
+                const header = el.querySelector('.sponsorSkipStackHeader').getBoundingClientRect();
+                return header.height > 0 && header.top >= card.top - 0.5 &&
+                    header.bottom <= card.bottom + 0.5 && el.scrollTop === 0;
+            })).toBe(true);
             await timer.hover();
             await page.mouse.move(1200, 700);
             await expect(text).toBeVisible();
@@ -460,3 +493,85 @@ test('closing the shortcut target transfers Enter to the newest remaining card',
     await page.keyboard.press('Enter');
     await expect(action).not.toHaveText(before);
 });
+
+for (const mode of ["legacy", "rules"] as const) {
+    test.describe(`${mode} card interactions`, () => {
+        test.use({ skipEngineMode: mode });
+
+        for (const [index, width, height] of [[0, 960, 540], [2, 960, 540], [0, 320, 180]]) {
+            test(`keeps card ${index} anchored through editing and feedback at ${width}x${height}`, async ({ extensionPage: page }, testInfo) => {
+                await page.locator("#bilibili-player").evaluate((el, size) => {
+                    el.style.width = `${size[0]}px`;
+                    el.style.height = `${size[1]}px`;
+                }, [width, height]);
+                const cards = page.locator(cardSelector);
+                const card = cards.nth(index);
+                const pencil = card.locator(".voteButton").nth(2);
+                await card.locator(".sponsorSkipStackHeader").hover();
+                await expect.poll(() => card.evaluate(el => el.getAnimations({ subtree: true })
+                    .filter(animation => animation instanceof CSSTransition &&
+                        ["height", "transform"].includes(animation.transitionProperty) && animation.playState === "running").length)).toBe(0);
+                const before = await pencil.boundingBox();
+                const lowerBefore = index > 0 ? await cards.nth(index - 1).boundingBox() : undefined;
+                // Sample throughout the interaction, including animated layout changes.
+                await card.evaluate(el => {
+                    const positions: number[] = [];
+                    (window as Window & { interactionPositions: number[] }).interactionPositions = positions;
+                    function frame() {
+                        positions.push(el.querySelector(".sponsorSkipStackHeader").getBoundingClientRect().y);
+                        if (el.isConnected) requestAnimationFrame(frame);
+                    }
+                    frame();
+                });
+                // Native clicks do not automatically scroll clipped controls into view.
+                const click = async (target: Locator) => {
+                    await expect.poll(() => target.evaluate(el => {
+                        const rect = el.getBoundingClientRect();
+                        return [rect.top + 1, rect.bottom - 1].every(y =>
+                            el.contains(document.elementFromPoint(rect.left + rect.width / 2, y)));
+                    })).toBe(true);
+                    const box = await target.boundingBox();
+                    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+                };
+                await click(pencil);
+                const editButtons = card.locator("[id^='sponsorSkipNoticeEditSegmentsRow'] button");
+                await expect(editButtons).toHaveCount(2);
+                // Both actions must be exposed without scrolling, including on the bottom card.
+                for (const button of await editButtons.all()) {
+                    await expect.poll(() => button.evaluate(el => {
+                        const rect = el.getBoundingClientRect();
+                        return el.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.bottom - 1));
+                    })).toBe(true);
+                }
+                expect((await pencil.boundingBox()).y).toBeCloseTo(before.y, 1);
+                expect((await pencil.boundingBox()).x).toBeCloseTo(before.x, 1);
+                if (lowerBefore) expect((await cards.nth(index - 1).boundingBox()).y).toBeGreaterThan(lowerBefore.y + 10);
+                await page.locator("#bilibili-player").screenshot({ path: testInfo.outputPath("expanded-editor.png") });
+                await click(editButtons.nth(1));
+                await card.locator("select.sponsorTimeCategories").selectOption("selfpromo");
+                // Votes are intercepted by the extension fixture; no real feedback is sent.
+                await click(card.locator("[id^='sponsorSkipNoticeCategoryChooserRow'] button"));
+                const continueVoting = card.locator("[id^='sponsorTimesContinueVotingContainer']");
+                await expect(continueVoting).toBeVisible();
+                await click(continueVoting);
+                await click(card.locator(".voteButton").first());
+                await expect(continueVoting).toBeVisible();
+                await click(continueVoting);
+                // Keyboard actions with the pointer still inside must use the same anchor.
+                const primary = card.locator("[id^='sponsorSkipUnskipButton']").first();
+                // locator.hover() can scroll the compact stack before moving the pointer,
+                // which would invalidate the stationary-position check by moving it itself.
+                const primaryBox = await primary.boundingBox();
+                await page.mouse.move(primaryBox.x + primaryBox.width / 2, primaryBox.y + primaryBox.height / 2);
+                const text = await primary.textContent();
+                await page.keyboard.press("Enter");
+                await expect(primary).not.toHaveText(text);
+                // Observe the full transition; assert rendered positions, including intermediate frames.
+                await page.waitForTimeout(700);
+                const positions = await page.evaluate(() => (window as Window & { interactionPositions: number[] }).interactionPositions);
+                expect(Math.max(...positions) - Math.min(...positions)).toBeLessThan(0.5);
+                expect(await card.locator(".sponsorSkipStackDetail").evaluate(el => el.scrollTop)).toBe(0);
+            });
+        }
+    });
+}

@@ -106,7 +106,8 @@ test('empty space in the card column remains clickable with a fractional player 
     expect(await page.evaluate(({ x, y }) => document.elementsFromPoint(x, y)
         .some(element => element.matches('.sponsorSkipStack, .sponsorSkipStackBody, .sponsorSkipNoticeContainer')), point)).toBe(false);
     expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.tagName, point)).toBe('VIDEO');
-    const below = { x: point.x, y: rect.y + rect.height + 20 };
+    // Probe immediately below the card, before the player's own progress-bar hit area.
+    const below = { x: point.x, y: rect.y + rect.height + 2 };
     expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.tagName, below)).toBe('VIDEO');
     await page.locator('.sponsorSkipStackHeader').hover();
     const detailHeight = await page.locator('.sponsorSkipStackDetailInner').evaluate(el => el.getBoundingClientRect().height);

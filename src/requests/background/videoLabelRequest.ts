@@ -1,5 +1,6 @@
 import Config from "../../config";
-import { BVID, Category, CategorySkipOption, NewVideoID } from "../../types";
+import { isCategoryEnabled } from "../../config/categoryConfig";
+import { BVID, Category, NewVideoID } from "../../types";
 import { getVideoIDHash } from "../../utils/hash";
 import { parseBvidAndCidFromVideoId } from "../../utils/videoIdUtils";
 import { callAPIWithOptions } from "../background-request-proxy";
@@ -40,13 +41,6 @@ async function getOrFetchLabelBlock(prefix: string, refreshCache: boolean): Prom
     return {} as LabelBlock;
 }
 
-function isCategoryEnabled(category: Category): boolean {
-    const selections = Config?.config?.categorySelections ?? [];
-    const selection = selections.find((s) => s.name === category);
-    const option = selection?.option ?? CategorySkipOption.Disabled;
-    return option !== CategorySkipOption.Disabled;
-}
-
 export async function getVideoLabelBackground(videoID: NewVideoID, refreshCache: boolean): Promise<Category | null> {
     const { bvId } = parseBvidAndCidFromVideoId(videoID);
     if (!bvId) return null;
@@ -56,5 +50,5 @@ export async function getVideoLabelBackground(videoID: NewVideoID, refreshCache:
     const category = block?.[bvId];
     if (!category) return null;
 
-    return isCategoryEnabled(category) ? category : null;
+    return isCategoryEnabled(Config?.config?.categorySelections?.find(selection => selection.name === category)) ? category : null;
 }

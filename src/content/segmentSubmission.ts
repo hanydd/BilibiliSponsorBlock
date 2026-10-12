@@ -1,5 +1,6 @@
 import SkipNoticeComponent from "../components/SkipNoticeComponent";
 import Config from "../config";
+import { refreshMinimumDuration } from "./segmentVisibility";
 import { keybindToString } from "../config/config";
 import { SkipButtonControlBar } from "../js-components/skipButtonControlBar";
 import { VoteResponse } from "../messageTypes";
@@ -282,12 +283,13 @@ export function resetSubmissionState(): void {
     if (submissionNotice) {
         submissionNotice.close();
     }
+    // The category pill belongs to the page, not the video element. The route
+    // reset clears its segment while preserving its root and title observer.
     patchUIState({
         playerButtons: {},
         descriptionPill: null,
         submissionNotice: null,
         skipButtonControlBar: null,
-        categoryPill: null,
     });
 }
 
@@ -335,6 +337,7 @@ export function registerSegmentSubmission(): void {
             return;
         }
 
+        setupCategoryPill();
         sendInfoUpdatedMessage();
 
         if (Config.config.isVip) {
@@ -418,6 +421,8 @@ export function setupCategoryPill(): void {
             videoID: getVideoID(),
         });
         void categoryPill.setSegment(fullVideoSegment);
+    } else {
+        categoryPill.resetSegment();
     }
 }
 
@@ -504,6 +509,7 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
 
     if (segmentResponse.status === 200) {
         let receivedSegments: SponsorTime[] = segmentResponse.segments?.filter(segment => segment.cid === cid);
+        let acceptedCids = new Set([cid]);
 
         const uniqueCids = new Set(segmentResponse?.segments?.filter((segment) => durationEquals(segment.videoDuration, getVideo()?.duration, 5)).map(s => s.cid));
         console.log("unique cids from segments", uniqueCids)
@@ -512,11 +518,15 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
             console.log("[BSB] Multiple CIDs found, using the one from the window object", cidMap);
             if (cidMap.size == 1) {
                 receivedSegments = segmentResponse.segments?.filter(segment => uniqueCids.has(segment.cid));
+                acceptedCids = uniqueCids;
             }
         }
 
-        if (receivedSegments && receivedSegments.length) {
-            contentState.sponsorDataFound = true;
+        const raw = (segmentResponse.rawSegments ?? segmentResponse.segments ?? []).filter(segment => acceptedCids.has(segment.cid));
+
+        if (receivedSegments) {
+            const rawById = new Map(raw.map(segment => [segment.UUID, segment]));
+            receivedSegments = receivedSegments.map(segment => rawById.get(segment.UUID) ?? segment);
 
             if (contentState.sponsorTimes !== null && keepOldSubmissions) {
                 for (let i = 0; i < contentState.sponsorTimes.length; i++) {
@@ -526,24 +536,15 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
                 }
             }
 
-            const oldSegments = contentState.sponsorTimes || [];
-            contentState.sponsorTimes = receivedSegments;
-
-            if (Config.config.minDuration !== 0) {
-                for (const segment of contentState.sponsorTimes) {
-                    const duration = segment.segment[1] - segment.segment[0];
-                    if (duration > 0 && duration < Config.config.minDuration) {
-                        segment.hidden = SponsorHideType.MinimumDuration;
-                    }
-                }
-            }
+            const oldSegments = new Map([...(contentState.rawSegments ?? []), ...(contentState.sponsorTimes ?? [])].map(segment => [segment.UUID, segment]));
+            const candidates = new Map([...raw, ...receivedSegments].map(segment => [segment.UUID, segment]));
 
             if (keepOldSubmissions) {
-                for (const segment of oldSegments) {
-                    const otherSegment = contentState.sponsorTimes.find((other) => segment.UUID === other.UUID);
-                    if (otherSegment) {
-                        otherSegment.hidden = segment.hidden;
-                        otherSegment.category = segment.category;
+                for (const segment of candidates.values()) {
+                    const previous = oldSegments.get(segment.UUID);
+                    if (previous) {
+                        segment.hidden = previous.hidden;
+                        segment.category = previous.category;
                     }
                 }
             }
@@ -551,7 +552,7 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
             const hashPrefix = (await getHash(bvId, 1)).slice(0, 4);
             const downvotedData = Config.local.downvotedSegments[hashPrefix];
             if (downvotedData) {
-                for (const segment of contentState.sponsorTimes) {
+                for (const segment of candidates.values()) {
                     const hashedUUID = await getHash(segment.UUID, 1);
                     const segmentDownvoteData = downvotedData.segments.find((downvote) => downvote.uuid === hashedUUID);
                     if (segmentDownvoteData) {
@@ -559,6 +560,12 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
                     }
                 }
             }
+            refreshMinimumDuration(receivedSegments, Config.config.minDuration);
+            if (videoID !== getVideoID()) return;
+            // Publish only after all candidates have inherited user exclusions.
+            contentState.rawSegments = raw;
+            contentState.sponsorTimes = receivedSegments;
+            contentState.sponsorDataFound = receivedSegments.length > 0;
         }
     }
     emitSegmentsLoaded("segmentSubmission.sponsorsLookup");
@@ -870,9 +877,11 @@ export function openSubmissionMenu(): void {
 
 export function previewRecentSegment(): void {
     if (contentState.sponsorTimesSubmitting !== undefined && contentState.sponsorTimesSubmitting.length > 0) {
+        const segment = contentState.sponsorTimesSubmitting[contentState.sponsorTimesSubmitting.length - 1];
         void getContentApp().commands.execute("skip/previewTime", {
-            time: contentState.sponsorTimesSubmitting[contentState.sponsorTimesSubmitting.length - 1].segment[0] - defaultPreviewTime,
+            time: segment.segment[0] - defaultPreviewTime,
             unpause: true,
+            segmentId: segment.UUID,
         });
 
         const { submissionNotice } = getUIState();
@@ -988,9 +997,6 @@ export async function sendSubmitMessage(backendId?: string): Promise<boolean> {
 
         const fullVideoSegment = contentState.sponsorTimes.filter((time) => time.actionType === ActionType.Full)[0];
         if (fullVideoSegment) {
-            waitFor(() => getUIState().categoryPill).then(() => {
-                getUIState().categoryPill?.setSegment(fullVideoSegment);
-            });
             getVideoLabel(getVideoID(), true);
         }
 
