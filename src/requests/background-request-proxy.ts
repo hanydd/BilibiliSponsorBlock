@@ -53,15 +53,7 @@ export async function sendRealRequestToCustomServer(
     } else {
         responseText = await response.text();
     }
-    if (response?.ok) {
-        return {
-            responseText,
-            status: response.status,
-            ok: response.ok,
-        };
-    } else {
-        return { responseText, status: response.status, ok: false };
-    }
+    return { responseText, status: response.status, ok: response.ok };
 }
 
 async function getServerAddresses(): Promise<string[]> {

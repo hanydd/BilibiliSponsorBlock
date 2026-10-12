@@ -215,12 +215,14 @@ export class ServerRouter {
         const retryRequest = retryMode !== "none";
         const validateHashResponse = isMergeableHashRequest(type, endpoint);
         const selection = await this.selectRequestNode(addresses, retryRequest);
-        const response = await this.execute(type, selection.address + endpoint, data, headers, validateHashResponse, clientOptions);
+        const rawResponse = await this.execute(type, selection.address + endpoint, data, headers, validateHashResponse, clientOptions);
+        const validationPassed = this.passesValidation(rawResponse, clientOptions.validateResponse);
+        const response = validationPassed === false ? { ...rawResponse, ok: false } : rawResponse;
 
         if (!retryRequest) {
-            if (this.isRetryableResponse(response, validateHashResponse, clientOptions.validateResponse)) {
+            if (this.isRetryableResponse(response, validateHashResponse, validationPassed)) {
                 if (clientOptions.recordFailure !== false) await this.recordFailure(selection.address, addresses, true);
-            } else if (!clientOptions.validateResponse || this.passesValidation(response, clientOptions.validateResponse)) {
+            } else if (validationPassed !== false) {
                 await this.recordRequestSuccess(selection.address);
             }
             return response;
@@ -228,7 +230,7 @@ export class ServerRouter {
 
         if (selection.recoveryProbe) {
             try {
-                if (this.isRetryableResponse(response, validateHashResponse, clientOptions.validateResponse)) {
+                if (this.isRetryableResponse(response, validateHashResponse, validationPassed)) {
                     if (clientOptions.recordFailure !== false) {
                         await this.recordFailure(selection.address, addresses, false);
                     } else {
@@ -247,7 +249,7 @@ export class ServerRouter {
                             clientOptions
                         )) ?? response
                     );
-                } else if (this.isUsableResponse(response, validateHashResponse, clientOptions.validateResponse)) {
+                } else if (this.isUsableResponse(response, validateHashResponse, validationPassed)) {
                     await this.recordRequestSuccess(selection.address);
                 } else {
                     await this.postponeRecoveryProbe(selection.address);
@@ -258,8 +260,8 @@ export class ServerRouter {
             }
         }
 
-        if (!this.isRetryableResponse(response, validateHashResponse, clientOptions.validateResponse)) {
-            if (this.isUsableResponse(response, validateHashResponse, clientOptions.validateResponse)) {
+        if (!this.isRetryableResponse(response, validateHashResponse, validationPassed)) {
+            if (this.isUsableResponse(response, validateHashResponse, validationPassed)) {
                 await this.recordRequestSuccess(selection.address);
             }
             return response;
@@ -302,9 +304,11 @@ export class ServerRouter {
             attemptedAddresses.add(address);
             retryCount += 1;
 
-            const response = await this.execute(type, address + endpoint, data, headers, validateHashResponse, clientOptions);
+            const rawResponse = await this.execute(type, address + endpoint, data, headers, validateHashResponse, clientOptions);
+            const validationPassed = this.passesValidation(rawResponse, clientOptions.validateResponse);
+            const response = validationPassed === false ? { ...rawResponse, ok: false } : rawResponse;
             lastResponse = response;
-            if (this.isRetryableResponse(response, validateHashResponse, clientOptions.validateResponse)) {
+            if (this.isRetryableResponse(response, validateHashResponse, validationPassed)) {
                 if (clientOptions.recordFailure !== false) {
                     await this.recordFailure(address, addresses, false);
                 }
@@ -312,8 +316,8 @@ export class ServerRouter {
                 continue;
             }
 
-            if (this.isUsableResponse(response, validateHashResponse, clientOptions.validateResponse)) {
-                await this.setActiveNode(address);
+            if (this.isUsableResponse(response, validateHashResponse, validationPassed)) {
+                if (clientOptions.switchOnRetrySuccess !== false) await this.setActiveNode(address);
                 await this.recordRequestSuccess(address);
             }
             return response;
@@ -492,8 +496,8 @@ export class ServerRouter {
         }
     }
 
-    private isRetryableResponse(response: FetchResponse, validateHashResponse: boolean, validate?: RequestClientOptions["validateResponse"]): boolean {
-        if (validate && !this.passesValidation(response, validate)) return true;
+    private isRetryableResponse(response: FetchResponse, validateHashResponse: boolean, validationPassed?: boolean): boolean {
+        if (validationPassed === false) return true;
         return validateHashResponse ? this.isRetryableHashFailure(response) : this.isNodeFailure(response);
     }
 
@@ -510,14 +514,15 @@ export class ServerRouter {
         return response.status === 404 || (response.status === 200 && !this.isRetryableHashFailure(response));
     }
 
-    private isUsableResponse(response: FetchResponse, validateHashResponse: boolean, validate?: RequestClientOptions["validateResponse"]): boolean {
-        if (validate) return this.passesValidation(response, validate);
+    private isUsableResponse(response: FetchResponse, validateHashResponse: boolean, validationPassed?: boolean): boolean {
+        if (validationPassed !== undefined) return validationPassed;
         return validateHashResponse
             ? this.isUsableHashResponse(response)
             : response.ok || response.status === 404;
     }
 
-    private passesValidation(response: FetchResponse, validate: NonNullable<RequestClientOptions["validateResponse"]>): boolean {
+    private passesValidation(response: FetchResponse, validate?: RequestClientOptions["validateResponse"]): boolean | undefined {
+        if (!validate) return undefined;
         try {
             return validate(response);
         } catch {

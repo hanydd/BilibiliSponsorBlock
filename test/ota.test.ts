@@ -23,7 +23,7 @@ beforeEach(() => {
     Config.local.lastSponsorRegexConfigCheckFailed = false;
     requestApi.mockImplementation(async (_type, _endpoint, _data, _skip, _headers, { validateResponse: validate }) => {
         const response = { ok: true, status: 200, responseText: JSON.stringify(packageFor()) };
-        return validate(response) ? response : { ok: false, status: -1, responseText: "" };
+        return validate(response) ? response : { ...response, ok: false };
     });
 });
 
@@ -33,7 +33,7 @@ test("拉取通用配置包，应用已注册配置", async () => {
     expect(Config.local.lastSponsorRegexConfigCheckFailed).toBe(false);
     expect(Config.local.lastSponsorRegexConfigCheck).toBeGreaterThan(0);
     expect(requestApi).toHaveBeenCalledWith("GET", "/api/ota", {}, false, {}, expect.objectContaining({
-        retry: true, maxResponseBytes: OTA_MAX_BYTES, recordFailure: false,
+        retry: true, maxResponseBytes: OTA_MAX_BYTES, recordFailure: false, switchOnRetrySuccess: false,
         validateResponse: expect.any(Function),
     }));
 });
@@ -72,8 +72,21 @@ test("坏正则、重复 ID、未知 schema、原型污染和超大响应全部�
 
 test("坏响应保持现有配置并记录失败", async () => {
     requestApi.mockImplementation(async (_type, _endpoint, _data, _skip, _headers, { validateResponse: validate }) => {
-        expect(validate({ ok: true, status: 200, responseText: JSON.stringify(packageFor({ rules: [{ ...rule, pattern: "(" }] })) })).toBe(false);
-        return { ok: false, status: -1, responseText: "" };
+        const response = { ok: true, status: 200, responseText: JSON.stringify(packageFor({ rules: [{ ...rule, pattern: "(" }] })) };
+        expect(validate(response)).toBe(false);
+        return { ...response, ok: false };
+    });
+    const snapshot = Config.local.sponsorRegexRemoteConfig;
+    expect(await checkSponsorRegexConfigUpdate(true)).toEqual({ status: "failed" });
+    expect(Config.local.sponsorRegexRemoteConfig).toBe(snapshot);
+    expect(Config.local.lastSponsorRegexConfigCheckFailed).toBe(true);
+});
+
+test("以请求最终返回值为准，候选配置通过校验也不能覆盖失败结果", async () => {
+    requestApi.mockImplementation(async (_type, _endpoint, _data, _skip, _headers, { validateResponse: validate }) => {
+        const response = { ok: true, status: 200, responseText: JSON.stringify(packageFor()) };
+        expect(validate(response)).toBe(true);
+        return { ...response, ok: false };
     });
     const snapshot = Config.local.sponsorRegexRemoteConfig;
     expect(await checkSponsorRegexConfigUpdate(true)).toEqual({ status: "failed" });

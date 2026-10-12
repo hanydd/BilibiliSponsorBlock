@@ -13,10 +13,12 @@ export interface RequestClientOptions {
     retry?: boolean;
     /** 正文读取上限，单位为字节；不设置时沿用普通文本读取。 */
     maxResponseBytes?: number;
-    /** 校验失败与请求失败一样参与重试，不向服务器发送此回调。 */
+    /** 校验失败参与重试，最终返回 ok: false 并保留 HTTP 状态和正文；回调仅在本地执行。 */
     validateResponse?: (response: FetchResponse) => boolean;
     /** 默认记录节点失败；false 只跳过失败记录，不禁用重试。 */
     recordFailure?: boolean;
+    /** 备用成功后是否切换全局活动节点，默认 true；不影响节点恢复计数。 */
+    switchOnRetrySuccess?: boolean;
 }
 
 export interface SegmentResponse {

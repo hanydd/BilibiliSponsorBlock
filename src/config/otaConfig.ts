@@ -1,4 +1,5 @@
 import { isRulesConfig } from "./sponsorRegexConfig";
+import type { RulesConfig } from "./sponsorRegexConfig";
 
 /** OTA 仅分发数据；新增配置类型的校验和应用逻辑需随扩展发布。 */
 export interface OtaConfig {
@@ -6,12 +7,16 @@ export interface OtaConfig {
     configs: Record<string, { schemaVersion: number; data: Record<string, unknown> }>;
 }
 
+export type ValidatedOtaConfig = OtaConfig & {
+    configs: { sponsorRegex?: { schemaVersion: 1; data: RulesConfig } };
+};
+
 export const OTA_MAX_BYTES = 256 * 1024;
 export const OTA_MAX_FILE_BYTES = 64 * 1024;
 export const OTA_MAX_FILES = 32;
 
 /** 已知配置类型必须通过业务校验；未知类型仅校验通用结构，供旧客户端兼容。 */
-export function parseOtaConfig(text: string): OtaConfig {
+export function parseOtaConfig(text: string): ValidatedOtaConfig {
     if (new TextEncoder().encode(text).length > OTA_MAX_BYTES) throw new Error("OTA response too large");
     const value: unknown = JSON.parse(text);
     if (!isOtaConfig(value)) throw new Error("Invalid OTA config");
@@ -19,7 +24,7 @@ export function parseOtaConfig(text: string): OtaConfig {
     if (sponsorRegex && (sponsorRegex.schemaVersion !== 1 || !isRulesConfig(sponsorRegex.data))) {
         throw new Error("Invalid sponsor regex config");
     }
-    return value;
+    return value as ValidatedOtaConfig;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

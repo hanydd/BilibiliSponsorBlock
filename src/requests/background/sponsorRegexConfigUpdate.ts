@@ -1,8 +1,7 @@
 import Config from "../../config";
 import { callAPI } from "../background-request-proxy";
 import { OTA_MAX_BYTES, parseOtaConfig } from "../../config/otaConfig";
-import type { OtaConfig } from "../../config/otaConfig";
-import { isRulesConfig } from "../../config/sponsorRegexConfig";
+import type { ValidatedOtaConfig } from "../../config/otaConfig";
 import type { RulesConfig } from "../../config/sponsorRegexConfig";
 import type { SponsorRegexCheckResult } from "../../config/sponsorRegexOTA";
 import type { DynamicSponsorRegexRule } from "../../utils/sponsorRegex";
@@ -14,30 +13,29 @@ const MANUAL_INTERVAL = 5 * 60 * 1000;
 let inFlight: Promise<SponsorRegexCheckResult> | null = null;
 
 async function fetchAndApplyOtaConfig(): Promise<SponsorRegexCheckResult> {
-    let config: OtaConfig | undefined;
     try {
-        await callAPI("GET", "/api/ota", {}, false, {}, {
+        const response = await callAPI("GET", "/api/ota", {}, false, {}, {
             httpsOnly: true,
             retry: true,
             maxResponseBytes: OTA_MAX_BYTES,
             recordFailure: false,
+            switchOnRetrySuccess: false,
             validateResponse: (response) => {
                 if (!response.ok) return false;
                 try {
-                    config = parseOtaConfig(response.responseText);
+                    parseOtaConfig(response.responseText);
                     return true;
                 } catch {
                     return false;
                 }
             },
         });
-        if (!config) return { status: "failed" };
+        if (!response.ok) return { status: "failed" };
 
+        // ok 为 true 表示正文已通过上述 OTA 校验；只解码最终响应，不重复校验规则。
+        const config = JSON.parse(response.responseText) as ValidatedOtaConfig;
         const sponsorRegex = config.configs.sponsorRegex;
-        // parseOtaConfig 已完成已知类型的校验；客户端只应用已支持的配置类型。
-        return sponsorRegex && isRulesConfig(sponsorRegex.data)
-            ? applyRulesConfig(sponsorRegex.data)
-            : { status: "up-to-date" };
+        return sponsorRegex ? applyRulesConfig(sponsorRegex.data) : { status: "up-to-date" };
     } catch (error) {
         console.warn("[BSB] OTA config check failed", error);
         return { status: "failed" };

@@ -1,7 +1,6 @@
 import { lstatSync, readdirSync, readFileSync } from "fs";
 import { join } from "path";
-import { isOtaConfig, OtaConfig, OTA_MAX_BYTES, OTA_MAX_FILES, OTA_MAX_FILE_BYTES } from "../src/config/otaConfig";
-import { isRulesConfig } from "../src/config/sponsorRegexConfig";
+import { parseOtaConfig, OtaConfig, OTA_MAX_FILES, OTA_MAX_FILE_BYTES } from "../src/config/otaConfig";
 
 /** 校验与后端约定的平铺 JSON 目录，并复用客户端的已知配置类型校验。 */
 export function validateOtaDirectory(directory: string): OtaConfig {
@@ -16,13 +15,7 @@ export function validateOtaDirectory(directory: string): OtaConfig {
         }
         configs[file.slice(0, -5)] = JSON.parse(readFileSync(path, "utf8"));
     }
-    const config: OtaConfig = { schemaVersion: 1, configs };
-    if (!isOtaConfig(config) || Buffer.byteLength(JSON.stringify(config)) > OTA_MAX_BYTES) throw new Error("Invalid OTA package");
-    const sponsorRegex = config.configs.sponsorRegex;
-    if (sponsorRegex && (sponsorRegex.schemaVersion !== 1 || !isRulesConfig(sponsorRegex.data))) {
-        throw new Error("Invalid sponsor regex config");
-    }
-    return config;
+    return parseOtaConfig(JSON.stringify({ schemaVersion: 1, configs }));
 }
 
 if (require.main === module) {
