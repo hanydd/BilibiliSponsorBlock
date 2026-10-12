@@ -1,10 +1,10 @@
 import { readFileSync } from "node:fs";
 import type { Page, Worker } from "@playwright/test";
+import type { RulesConfig } from "../src/config/sponsorRegexConfig";
 import { expect, test } from "./fixtures/extension";
-import { readLocalStorage, readSyncStorage, writeSyncStorage } from "./support/extensionStorage";
+import { readLocalStorage, readSyncStorage, writeLocalStorage, writeSyncStorage } from "./support/extensionStorage";
 
 type RegexRule = { id: string; pattern: string; enabled: boolean; name?: string };
-type RemoteRegexConfig = { rules: RegexRule[] };
 
 /** 从随包配置生成默认规则的预期值，避免另存一份测试规则。 */
 const shippedRegexRules = (
@@ -307,7 +307,7 @@ test("applies OTA regex config updates without shipping a new version", async ({
 }) => {
     await openBehaviorOptions(extensionPage, extensionId, extensionServiceWorker);
 
-    let remoteConfig: RemoteRegexConfig = {
+    let remoteConfig: RulesConfig = {
         rules: [
             {
                 id: "shoppingSite",
@@ -327,22 +327,33 @@ test("applies OTA regex config updates without shipping a new version", async ({
             },
         ],
     };
-    // TODO: 将旧词条文件接口的路由桩更新为 /api/ota 聚合响应。
-    await extensionContext.route("**/sponsorRegex.json", (route) =>
-        route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(remoteConfig) })
-    );
+    let otaRequestCount = 0;
+    await extensionContext.route("**/api/ota", (route) => {
+        otaRequestCount++;
+        return route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({
+                schemaVersion: 1,
+                configs: { sponsorRegex: { schemaVersion: 1, data: remoteConfig } },
+            }),
+        });
+    });
+
+    // 启动时的自动检查可能已记录时间；将时间回拨到手动检查冷却期之外。
+    await writeLocalStorage(extensionServiceWorker, { lastSponsorRegexConfigCheck: Date.now() - 6 * 60 * 1000 });
 
     await extensionPage.locator("#checkSponsorRegexUpdate").click();
 
     await expect
         .poll(async () => {
-            const remote = await readLocalStorage<RemoteRegexConfig>(extensionServiceWorker, "sponsorRegexRemoteConfig");
+            const remote = await readLocalStorage<RulesConfig>(extensionServiceWorker, "sponsorRegexRemoteConfig");
             return remote?.rules.find((rule) => rule.id === "shoppingSite")?.version;
         })
         .toBe(2);
     await expect
         .poll(async () => {
-            const remote = await readLocalStorage<RemoteRegexConfig>(extensionServiceWorker, "sponsorRegexRemoteConfig");
+            const remote = await readLocalStorage<RulesConfig>(extensionServiceWorker, "sponsorRegexRemoteConfig");
             return remote?.rules.find((rule) => rule.id === "otaDelivery")?.pattern;
         })
         .toBe("某团外卖|某了么");
@@ -350,13 +361,24 @@ test("applies OTA regex config updates without shipping a new version", async ({
     await expect(extensionPage.locator("#sponsorRegexConfigStatus")).toContainText("已应用在线更新");
     await expect(extensionPage.locator("[data-rule-id='otaDelivery']")).toBeVisible();
     await expect(extensionPage.locator("[data-rule-id='otaDelivery']")).toContainText("2026-10-08");
+    expect(otaRequestCount).toBe(1);
 
     await extensionPage.locator("#checkSponsorRegexUpdate").click();
     await expect(extensionPage.locator("#sponsorRegexConfigStatus")).toContainText("已是最新");
+    expect(otaRequestCount).toBe(1);
 
     const builtinRow = extensionPage.locator("[data-rule-id='shoppingSite']");
     const patternInput = builtinRow.locator("[data-rule-pattern]");
     await patternInput.fill("用户自定义搜索");
+    await expect
+        .poll(async () => {
+            const userRules = await readSyncStorage<RegexRule[]>(
+                extensionServiceWorker,
+                "dynamicAndCommentSponsorRegexUserRules"
+            );
+            return userRules.find((rule) => rule.id === "shoppingSite")?.pattern;
+        })
+        .toBe("用户自定义搜索");
     remoteConfig = {
         rules: [
             {
@@ -377,13 +399,15 @@ test("applies OTA regex config updates without shipping a new version", async ({
             },
         ],
     };
+    await writeLocalStorage(extensionServiceWorker, { lastSponsorRegexConfigCheck: Date.now() - 6 * 60 * 1000 });
     await extensionPage.locator("#checkSponsorRegexUpdate").click();
     await expect
         .poll(async () => {
-            const remote = await readLocalStorage<RemoteRegexConfig>(extensionServiceWorker, "sponsorRegexRemoteConfig");
+            const remote = await readLocalStorage<RulesConfig>(extensionServiceWorker, "sponsorRegexRemoteConfig");
             return remote?.rules.find((rule) => rule.id === "shoppingSite")?.version;
         })
         .toBe(3);
+    expect(otaRequestCount).toBe(2);
     await expect(patternInput).toHaveValue("用户自定义搜索");
 
     await builtinRow.locator(".option-button").click();
