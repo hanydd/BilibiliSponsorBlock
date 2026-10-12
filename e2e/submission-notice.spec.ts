@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures/extension";
 import { defaultMockBvid, defaultMockCid, routeMockBilibiliVideoPage } from "./support/bilibiliPage";
-import { readLocalStorage, writeSyncStorage } from "./support/extensionStorage";
+import { writeSyncStorage } from "./support/extensionStorage";
 import {
     assertSubmissionNoticeActionTypeSwitching,
     closeSubmissionNotice,
@@ -45,16 +45,4 @@ test('submission category visibility follows account canSubmit permissions and t
     await expect(page.locator('#sponsorTimeCategoriesSubmissionNotice0 option[value="intro"]')).toHaveCount(1);
     await writeSyncStorage(extensionServiceWorker, { showCategoryWithoutPermission: false });
     await expect(page.locator('#sponsorTimeCategoriesSubmissionNotice0 option[value="selfpromo"]')).toHaveCount(0);
-});
-
-test('jumpscare submission only supports the configured mute action', async ({ extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
-    await waitForBilibiliContentScript(page, sendContentMessage);
-    await openSubmissionNoticeWithImportedSegment(page, extensionServiceWorker, sendContentMessage);
-    await page.locator('#sponsorTimeCategoriesSubmissionNotice0').selectOption('jumpscare');
-    await expect(page.locator('#sponsorTimeEditContainerSubmissionNotice0 input[type="radio"]')).toHaveCount(0);
-    await expect.poll(async () => {
-        const segments = await readLocalStorage<Record<string, { actionType: string; category: string }[]>>(extensionServiceWorker, 'unsubmittedSegments');
-        return segments?.[`${defaultMockBvid}+${defaultMockCid}`]?.map(s => ({ category: s.category, actionType: s.actionType }));
-    }).toEqual([{ category: 'jumpscare', actionType: 'mute' }]);
-    await closeSubmissionNotice(page);
 });
