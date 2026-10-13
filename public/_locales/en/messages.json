@@ -1,4 +1,19 @@
 {
+    "officialPrimaryServer": {
+        "message": "Primary server"
+    },
+    "customMirrorServer": {
+        "message": "Custom mirror"
+    },
+    "serverSourceOfficial": {
+        "message": "Official feed · auto update"
+    },
+    "serverSourceManual": {
+        "message": "Manually configured"
+    },
+    "officialAliasServer": {
+        "message": "Official alias"
+    },
     "0": {
         "message": "连接超时。请检查您的网络连接。如果您的网络运行正常，则可能是服务器宕机。"
     },
@@ -586,7 +601,7 @@
         "message": "小电视空降助手的服务器地址。\n不建议更改，除非您有自己的服务器。"
     },
     "mirrorServerAddresses": {
-        "message": "镜像站"
+        "message": "Fallback servers"
     },
     "officialMirrorServer": {
         "message": "官方镜像"
@@ -607,7 +622,7 @@
         "message": "服务器连接"
     },
     "serverNodeStatusDescription": {
-        "message": "请求优先使用主站，必要时自动切换到可用镜像。"
+        "message": "Requests prefer the primary server and fall back when needed. Official addresses update automatically. Aliases connect to the primary server; mirrors run on a separate server. Manual addresses and removed nodes are preserved. Reset follows the latest official list."
     },
     "refreshServerStatus": {
         "message": "刷新节点状态"

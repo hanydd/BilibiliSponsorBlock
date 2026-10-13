@@ -235,11 +235,10 @@ test("shows mirror servers as individual rows and removes one", async ({
     extensionServiceWorker,
 }) => {
     await writeSyncStorage(extensionServiceWorker, {
-        mirrorServerAddresses: [
-            "https://www.bsbsb.xyz",
-            "http://103.236.70.57:9876",
-            "http://mirror-community.test:9876/",
-        ],
+        serverPreferences: {
+            migratedFrom: "0.16.0", primary: null, followOfficial: true,
+            excludedIds: [], added: ["http://mirror-community.test:9876"],
+        },
     });
     await openOptions(extensionPage, extensionId, "#advanced");
 
@@ -264,15 +263,20 @@ test("shows mirror servers as individual rows and removes one", async ({
     await expect(settings.locator(".server-node-row")).toHaveCount(3);
     await expect(settings.locator("#serverNodeCount")).toContainText("3");
     await expect(settings.locator(".server-node-badge.official")).toHaveCount(2);
+    await expect(settings.locator(".server-node-badge.official").filter({ hasText: "官方别名" })).toHaveCount(1);
+    await expect(settings.locator(".server-node-badge.official").filter({ hasText: "官方镜像" })).toHaveCount(1);
     await expect(settings.locator(".server-node-badge.community")).toHaveCount(1);
+    await expect(settings.locator("[data-server-kind='custom'] .server-node-badge.community")).toHaveText("自定义镜像");
+    await expect(settings.locator("#primaryServerRow")).toHaveAttribute("data-server-kind", "primary");
+    await expect(settings.locator("[data-server-kind='alias'] .server-node-address")).toHaveText("https://bsbsb.cc");
+    await expect(settings.locator("[data-server-kind='mirror'] .server-node-address")).toHaveText("http://103.236.70.57:9876");
 
     const communityMirror = settings.locator(".server-node-row").filter({ hasText: "mirror-community.test" });
     await communityMirror.locator("[data-server-action='remove']").click();
 
-    await expectSyncStorage(extensionServiceWorker, "mirrorServerAddresses", [
-        "https://www.bsbsb.xyz",
-        "http://103.236.70.57:9876",
-    ]);
+    await expectSyncStorage(extensionServiceWorker, "serverPreferences", {
+        migratedFrom: "0.16.0", primary: null, followOfficial: true, excludedIds: [], added: [],
+    });
     await expect(settings.locator(".server-node-row")).toHaveCount(2);
 });
 
@@ -310,11 +314,12 @@ test("checks an edited primary server before saving it", async ({
     await expect(primaryRow).toHaveCSS("border-image-source", "none");
     await expect(input).toHaveValue(draftAddress);
     expect(readyRequests).toBe(1);
-    expect(await readSyncStorage<string>(extensionServiceWorker, "serverAddress")).not.toBe(draftAddress);
+    expect((await readSyncStorage<{ primary: string | null }>(extensionServiceWorker, "serverPreferences")).primary).not.toBe(draftAddress);
 
     await saveButton.click();
-    await expectSyncStorage(extensionServiceWorker, "serverAddress", draftAddress);
-    await expectSyncStorage(extensionServiceWorker, "mirrorServerAddresses", []);
+    await expectSyncStorage(extensionServiceWorker, "serverPreferences", {
+        migratedFrom: "0.16.0", primary: draftAddress, followOfficial: false, excludedIds: [], added: [],
+    });
     await expect(saveButton).toBeDisabled();
 });
 
@@ -326,8 +331,9 @@ test("updates the primary server state bar while checking", async ({
 }) => {
     const address = permittedTestServerAddress;
     await writeSyncStorage(extensionServiceWorker, {
-        serverAddress: address,
-        mirrorServerAddresses: [],
+        serverPreferences: {
+            migratedFrom: "0.16.0", primary: address, followOfficial: false, excludedIds: [], added: [],
+        },
     });
     await openOptions(extensionPage, extensionId, "#advanced");
 
@@ -374,8 +380,8 @@ test("updates node status when a background request opens the circuit", async ({
     await expect(primaryRow.locator("#primaryServerHealth")).toHaveText("可用");
 
     const endpoint = "/api/voteOnSponsorTime";
-    await extensionContext.unroute("https://www.bsbsb.top/**");
-    await extensionContext.route(`https://www.bsbsb.top${endpoint}`, async (route) => {
+    await extensionContext.unroute("https://bsbsb.top/**");
+    await extensionContext.route(`https://bsbsb.top${endpoint}`, async (route) => {
         await route.fulfill({ status: 503, body: "Unavailable" });
     });
 
@@ -402,7 +408,7 @@ test("updates node status when a background request opens the circuit", async ({
     await expect(primaryRow).not.toHaveClass(/active/);
 
     await extensionPage.locator("#serverMirrorToggle").click();
-    const activeMirror = extensionPage.locator(".server-node-row").filter({ hasText: "https://www.bsbsb.xyz" });
+    const activeMirror = extensionPage.locator(".server-node-row").filter({ hasText: "https://bsbsb.cc" });
     await expect(activeMirror).toHaveClass(/active/);
     await expect(activeMirror).toHaveCSS("animation-name", activeServerAnimationName);
 });
@@ -418,15 +424,15 @@ test("uses a later mirror when earlier nodes fail a hash request", async ({
     const endpoint = "/api/skipSegments/abcd";
     const requestedAddresses: string[] = [];
     const responses = [
-        ["https://www.bsbsb.top", 503, "Unavailable"],
-        ["https://www.bsbsb.xyz", 503, "Unavailable"],
+        ["https://bsbsb.top", 503, "Unavailable"],
+        ["https://bsbsb.cc", 503, "Unavailable"],
         ["http://103.236.70.57:9876", 200, "[]"],
     ] as const;
 
     const requiredHostPermissions = await extensionServiceWorker.evaluate(async () => {
         const origins = [
-            "https://www.bsbsb.top/*",
-            "https://www.bsbsb.xyz/*",
+            "https://bsbsb.top/*",
+            "https://bsbsb.cc/*",
             "http://103.236.70.57/*",
         ];
         return Promise.all(
@@ -440,7 +446,7 @@ test("uses a later mirror when earlier nodes fail a hash request", async ({
     });
     expect(requiredHostPermissions).toEqual([false, false, false]);
 
-    await extensionContext.unroute("https://www.bsbsb.top/**");
+    await extensionContext.unroute("https://bsbsb.top/**");
     for (const [address, status, body] of responses) {
         await extensionContext.route(`${address}${endpoint}`, async (route) => {
             requestedAddresses.push(address);
@@ -480,11 +486,11 @@ test("retries a safe read on only one mirror", async ({ extensionContext, extens
     const endpoint = "/api/chapterNames";
     const requestedAddresses: string[] = [];
     const responses = [
-        ["https://www.bsbsb.top", 503],
-        ["https://www.bsbsb.xyz", 200],
+        ["https://bsbsb.top", 503],
+        ["https://bsbsb.cc", 200],
     ] as const;
 
-    await extensionContext.unroute("https://www.bsbsb.top/**");
+    await extensionContext.unroute("https://bsbsb.top/**");
     for (const [address, status] of responses) {
         await extensionContext.route(`${address}${endpoint}**`, async (route) => {
             requestedAddresses.push(address);

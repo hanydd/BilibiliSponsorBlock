@@ -6,6 +6,8 @@ import type { RulesConfig } from "../../config/sponsorRegexConfig";
 import type { SponsorRegexCheckResult } from "../../config/sponsorRegexOTA";
 import type { DynamicSponsorRegexRule } from "../../utils/sponsorRegex";
 import * as shippedSponsorRegexFile from "../../../ota/sponsorRegex.json";
+import { getOfficialServers } from "../../config/serverPreferences";
+import { normalizeOfficialServers } from "../../config/officialServers";
 
 const CHECK_INTERVAL = 24 * 60 * 60 * 1000;
 const RETRY_INTERVAL = 6 * 60 * 60 * 1000;
@@ -35,7 +37,14 @@ async function fetchAndApplyOtaConfig(): Promise<SponsorRegexCheckResult> {
         // ok 为 true 表示正文已通过上述 OTA 校验；只解码最终响应，不重复校验规则。
         const config = JSON.parse(response.responseText) as ValidatedOtaConfig;
         const sponsorRegex = config.configs.sponsorRegex;
-        return sponsorRegex ? applyRulesConfig(sponsorRegex.data) : { status: "up-to-date" };
+        const rulesResult = sponsorRegex ? applyRulesConfig(sponsorRegex.data) : { status: "up-to-date" };
+        const servers = config.configs.servers;
+        let serversUpdated = false;
+        if (servers && servers.data.version > getOfficialServers().version) {
+            Config.local.officialServers = normalizeOfficialServers(servers.data);
+            serversUpdated = true;
+        }
+        return { status: serversUpdated || rulesResult.status === "updated" ? "updated" : "up-to-date" };
     } catch (error) {
         console.warn("[BSB] OTA config check failed", error);
         return { status: "failed" };

@@ -1,5 +1,6 @@
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
+import { getEffectiveServers } from "../config/serverPreferences";
 import { SERVER_ROUTER_STORAGE_KEY } from "../config/serverConfig";
 import { readResponseText } from "./readResponseText";
 import { objectToURI } from "../utils/";
@@ -60,10 +61,8 @@ async function getServerAddresses(): Promise<string[]> {
     await Config.ready;
     if (Config.config.testingServer) return [CompileConfig.testingServerAddress];
 
-    return [
-        Config.config.serverAddress,
-        ...Config.config.mirrorServerAddresses,
-    ];
+    const servers = getEffectiveServers();
+    return [servers.primary, ...servers.mirrors];
 }
 
 export const serverRouter = new ServerRouter({

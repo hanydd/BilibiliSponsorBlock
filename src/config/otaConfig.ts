@@ -1,5 +1,7 @@
 import { isRulesConfig } from "./sponsorRegexConfig";
 import type { RulesConfig } from "./sponsorRegexConfig";
+import { isOfficialServers } from "./officialServers";
+import type { OfficialServers } from "./officialServers";
 
 /** OTA 仅分发数据；新增配置类型的校验和应用逻辑需随扩展发布。 */
 export interface OtaConfig {
@@ -8,7 +10,10 @@ export interface OtaConfig {
 }
 
 export type ValidatedOtaConfig = OtaConfig & {
-    configs: { sponsorRegex?: { schemaVersion: 1; data: RulesConfig } };
+    configs: {
+        sponsorRegex?: { schemaVersion: 1; data: RulesConfig };
+        servers?: { schemaVersion: 1; data: OfficialServers };
+    };
 };
 
 export const OTA_MAX_BYTES = 256 * 1024;
@@ -23,6 +28,10 @@ export function parseOtaConfig(text: string): ValidatedOtaConfig {
     const sponsorRegex = value.configs.sponsorRegex;
     if (sponsorRegex && (sponsorRegex.schemaVersion !== 1 || !isRulesConfig(sponsorRegex.data))) {
         throw new Error("Invalid sponsor regex config");
+    }
+    const servers = value.configs.servers;
+    if (servers && (servers.schemaVersion !== 1 || !isOfficialServers(servers.data))) {
+        throw new Error("Invalid official server config");
     }
     return value as ValidatedOtaConfig;
 }

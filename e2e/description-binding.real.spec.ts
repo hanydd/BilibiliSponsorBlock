@@ -9,7 +9,7 @@ test("@real retains description binding when the same player becomes ready again
     testInfo.setTimeout(120_000);
     await writeSyncStorage(extensionServiceWorker, { showPortVideoButton: true, autoHideInfoButton: false });
     let lookups = 0;
-    await extensionContext.route("https://www.bsbsb.top/api/portVideo/**", async route => {
+    await extensionContext.route("https://bsbsb.top/api/portVideo/**", async route => {
         lookups++;
         const manifest = await page.evaluate(() => (window as unknown as {
             player: { getManifest(): { bvid: string; cid: string } };

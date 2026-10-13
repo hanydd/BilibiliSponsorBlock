@@ -14,7 +14,7 @@ type ExtensionFixtures = {
 const extensionPath = process.env.BSB_E2E_EXTENSION_PATH || path.resolve(__dirname, "../../dist");
 const contentMessageTimeoutMs = 30_000;
 const contentMessageRetryMs = 100;
-const sponsorBlockApiPattern = "https://www.bsbsb.top/**";
+const sponsorBlockApiPattern = "https://bsbsb.top/**";
 
 type ContentMessageResult<TResponse> = {
     ok: boolean;

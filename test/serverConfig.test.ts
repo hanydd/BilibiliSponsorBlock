@@ -1,77 +1,10 @@
-import * as CompileConfig from "../config.json";
 import {
     addMirrorServerAddress,
-    getMigratedMirrorServerAddresses,
-    getMirrorServerAddressesAfterPrimaryChange,
-    isOfficialServerAddress,
     isRetryableReadRequest,
     removeMirrorServerAddress,
 } from "../src/config/serverConfig";
 
-describe("server configuration migration", () => {
-    test.each([
-        "https://www.bsbsb.top",
-        "https://www.bsbsb.top/",
-        "https://bsbsb.top",
-        "https://www.bsbsb.xyz",
-        "http://103.236.70.57:9876",
-    ])("recognizes the official address %s", (address) => {
-        expect(isOfficialServerAddress(address)).toBe(true);
-    });
-
-    test.each(["https://custom.test", "https://www.bsbsb.top:444", "https://www.bsbsb.top/custom"])(
-        "does not treat the custom address %s as official",
-        (address) => {
-            expect(isOfficialServerAddress(address)).toBe(false);
-        }
-    );
-
-    test("does not add official mirrors to an existing custom primary", () => {
-        expect(
-            getMigratedMirrorServerAddresses(
-                "https://custom.test",
-                [...CompileConfig.mirrorServerAddresses],
-                false
-            )
-        ).toEqual([]);
-    });
-
-    test("keeps defaults for both official primary spellings", () => {
-        for (const address of ["https://www.bsbsb.top", "https://bsbsb.top"]) {
-            expect(
-                getMigratedMirrorServerAddresses(address, [...CompileConfig.mirrorServerAddresses], false)
-            ).toEqual(CompileConfig.mirrorServerAddresses);
-        }
-    });
-
-    test("preserves an explicitly configured mirror list for a custom primary", () => {
-        const configuredMirrors = ["https://mirror.custom.test"];
-        expect(getMigratedMirrorServerAddresses("https://custom.test", configuredMirrors, true)).toBe(
-            configuredMirrors
-        );
-    });
-
-    test("removes default official mirrors when the primary changes to a custom server", () => {
-        expect(
-            getMirrorServerAddressesAfterPrimaryChange(
-                "https://bsbsb.top",
-                "https://custom.test",
-                [...CompileConfig.mirrorServerAddresses]
-            )
-        ).toEqual([]);
-    });
-
-    test("keeps a user-configured mirror list when the primary changes", () => {
-        const configuredMirrors = ["https://mirror.custom.test"];
-        expect(
-            getMirrorServerAddressesAfterPrimaryChange(
-                "https://www.bsbsb.top",
-                "https://custom.test",
-                configuredMirrors
-            )
-        ).toBe(configuredMirrors);
-    });
-
+describe("server address utilities", () => {
     test("does not add a duplicate mirror with different trailing slashes", () => {
         const configuredMirrors = ["https://mirror.custom.test/"];
         expect(addMirrorServerAddress(configuredMirrors, "https://mirror.custom.test")).toBe(

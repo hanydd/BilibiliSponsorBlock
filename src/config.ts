@@ -15,7 +15,7 @@ import {
     WhitelistedChannel,
 } from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
-import { getMigratedMirrorServerAddresses } from "./config/serverConfig";
+import { migrateServerPreferences, normalizeServerPreferences, ServerPreferences, OfficialServers } from "./config/officialServers";
 import { migrateSkipRulesRollout, SkipRulesRollout, SkipRulesNotice } from "./config/skipRulesRollout";
 import { migrateCategorySelections } from "./config/categoryConfig";
 import { decodeBarColors, encodeBarColors, decodeDynamicSponsorColors, encodeDynamicSponsorColors, RuntimeColors } from "./config/categoryColors";
@@ -84,6 +84,7 @@ interface SBConfig {
     invidiousInstances: string[];
     serverAddress: string;
     mirrorServerAddresses: string[];
+    serverPreferences: ServerPreferences;
     minDuration: number;
     skipNoticeDuration: number;
     skipNoticeDurationBefore: number;
@@ -196,6 +197,7 @@ interface SBConfig {
 export type VideoDownvotes = { segments: { uuid: HashedValue; hidden: SponsorHideType }[]; lastAccess: number };
 
 interface SBStorage {
+    officialServers: OfficialServers | null;
     /* VideoID prefixes to UUID prefixes */
     downvotedSegments: Record<BVID & HashedValue, VideoDownvotes>;
     navigationApiAvailable: boolean;
@@ -228,6 +230,7 @@ class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
         if (value === undefined) return value;
         if (key === "barTypes") return decodeBarColors(value, this.syncDefaults.barTypes);
         if (key === "dynamicSponsorTypes") return decodeDynamicSponsorColors(value, this.syncDefaults.dynamicSponsorTypes);
+        if (key === "serverPreferences" && value !== null) return normalizeServerPreferences(value as ServerPreferences);
         return value;
     }
 
@@ -275,13 +278,10 @@ function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<st
         config["serverAddress"] = CompileConfig.serverAddress;
     }
 
-    const migratedMirrorServerAddresses = getMigratedMirrorServerAddresses(
-        config["serverAddress"],
-        config["mirrorServerAddresses"],
-        initialSyncKeys.has("mirrorServerAddresses")
-    );
-    if (migratedMirrorServerAddresses !== config["mirrorServerAddresses"]) {
-        config["mirrorServerAddresses"] = migratedMirrorServerAddresses;
+    if (!initialSyncKeys.has("serverPreferences") || !config.serverPreferences) {
+        config.serverPreferences = migrateServerPreferences(
+            config.serverAddress, config.mirrorServerAddresses, initialSyncKeys.has("mirrorServerAddresses")
+        );
     }
 
     // "danmakuRegexPattern" 在 0.6.0 版本中被移除，
@@ -449,6 +449,7 @@ const syncDefaults = {
     invidiousInstances: ["invidious.snopyta.org"], // leave as default
     serverAddress: CompileConfig.serverAddress,
     mirrorServerAddresses: CompileConfig.mirrorServerAddresses,
+    serverPreferences: { migratedFrom: "0.16.0" as const, primary: null, followOfficial: true, excludedIds: [], added: [] },
     minDuration: 0,
     skipNoticeDuration: 4,
     skipNoticeDurationBefore: 3,
@@ -693,6 +694,7 @@ const syncDefaults = {
 };
 
 const localDefaults = {
+    officialServers: null,
     downvotedSegments: {},
     navigationApiAvailable: null,
     alreadyInstalled: false,

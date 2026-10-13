@@ -4,6 +4,8 @@ import { checkSponsorRegexConfigUpdate } from "../src/requests/background/sponso
 import { OTA_MAX_BYTES, parseOtaConfig } from "../src/config/otaConfig";
 import { readResponseText } from "../src/requests/readResponseText";
 import { callAPI } from "../src/requests/background-request-proxy";
+import { builtinServers, migrateServerPreferences } from "../src/config/officialServers";
+import { getEffectiveServers, removeServer } from "../src/config/serverPreferences";
 
 jest.mock("../src/config", () => ({
     __esModule: true,
@@ -18,6 +20,8 @@ const requestApi = callAPI as jest.Mock;
 
 beforeEach(() => {
     jest.clearAllMocks();
+    Config.local.officialServers = null;
+    Config.config.serverPreferences = migrateServerPreferences(builtinServers.nodes[0].address, [], false);
     Config.local.sponsorRegexRemoteConfig = { rules: [{ ...rule, version: 1 }] };
     Config.local.lastSponsorRegexConfigCheck = 0;
     Config.local.lastSponsorRegexConfigCheckFailed = false;
@@ -25,6 +29,91 @@ beforeEach(() => {
         const response = { ok: true, status: 200, responseText: JSON.stringify(packageFor()) };
         return validate(response) ? response : { ...response, ok: false };
     });
+});
+
+const servers = {
+    version: 2,
+    nodes: [
+        { id: "official-primary", address: "https://new-primary.test", kind: "primary" },
+        { id: "official-alias", address: "https://new-alias.test", kind: "alias" },
+    ],
+};
+
+function serveConfig(configs: Record<string, unknown>): void {
+    requestApi.mockImplementation(async (_type, _endpoint, _data, _skip, _headers, { validateResponse: validate }) => {
+        const response = { ok: true, status: 200, responseText: JSON.stringify({ schemaVersion: 1, configs }) };
+        return validate(response) ? response : { ...response, ok: false };
+    });
+}
+
+test("正则与官方地址共用一次后台 OTA 请求，用户设置保持不变", async () => {
+    Config.config.serverPreferences.added = ["https://user.test"];
+    const preferences = JSON.stringify(Config.config.serverPreferences);
+    serveConfig({ ...packageFor().configs, servers: { schemaVersion: 1, data: servers } });
+    expect(await checkSponsorRegexConfigUpdate()).toEqual({ status: "updated" });
+    expect(requestApi).toHaveBeenCalledTimes(1);
+    expect(Config.local.sponsorRegexRemoteConfig.rules).toEqual([rule]);
+    expect(getEffectiveServers()).toEqual({
+        primary: servers.nodes[0].address, mirrors: [servers.nodes[1].address, "https://user.test"],
+    });
+    expect(JSON.stringify(Config.config.serverPreferences)).toBe(preferences);
+});
+
+test("仅官方地址更新也返回 updated，旧清单不能回退缓存", async () => {
+    serveConfig({ servers: { schemaVersion: 1, data: servers } });
+    expect(await checkSponsorRegexConfigUpdate(true)).toEqual({ status: "updated" });
+    const snapshot = Config.local.officialServers;
+    Config.local.lastSponsorRegexConfigCheck = 0;
+    serveConfig({ servers: { schemaVersion: 1, data: builtinServers } });
+    expect(await checkSponsorRegexConfigUpdate(true)).toEqual({ status: "up-to-date" });
+    expect(Config.local.officialServers).toBe(snapshot);
+});
+
+test("OTA addresses are normalized before saving and deleting a displayed address remains effective", async () => {
+    const feed = { ...servers, nodes: servers.nodes.map((node) => ({ ...node, address: `${node.address}/` })) };
+    serveConfig({ servers: { schemaVersion: 1, data: feed } });
+    expect(await checkSponsorRegexConfigUpdate()).toEqual({ status: "updated" });
+    expect(Config.local.officialServers).toEqual(servers);
+    expect(feed.nodes[1].address).toBe("https://new-alias.test/");
+    const displayedAddress = getEffectiveServers().mirrors[0];
+    expect(displayedAddress).toBe(Config.local.officialServers.nodes[1].address);
+    removeServer(displayedAddress);
+    expect(Config.config.serverPreferences.excludedIds).toEqual(["official-alias"]);
+    expect(getEffectiveServers().mirrors).toEqual([]);
+    Config.local.lastSponsorRegexConfigCheck = 0;
+    serveConfig({ servers: { schemaVersion: 1, data: { ...feed, version: 3 } } });
+    await checkSponsorRegexConfigUpdate();
+    expect(getEffectiveServers().mirrors).toEqual([]);
+});
+
+test("OTA 可清空全部官方地址，保留手动地址且不恢复随包节点", async () => {
+    Config.config.serverPreferences.added = ["https://user.test"];
+    serveConfig({ servers: { schemaVersion: 1, data: { version: 2, nodes: [] } } });
+    expect(await checkSponsorRegexConfigUpdate()).toEqual({ status: "updated" });
+    expect(getEffectiveServers()).toEqual({ primary: "", mirrors: ["https://user.test"] });
+});
+
+test.each([
+    { schemaVersion: 2, data: servers },
+    { schemaVersion: 1, data: { ...servers, nodes: null } },
+    { schemaVersion: 1, data: { ...servers, nodes: [servers.nodes[0], servers.nodes[0]] } },
+])("非法服务器配置拒绝整个包，不部分应用正则：%j", async (invalid) => {
+    const rules = Config.local.sponsorRegexRemoteConfig;
+    serveConfig({ ...packageFor().configs, servers: invalid });
+    expect(await checkSponsorRegexConfigUpdate()).toEqual({ status: "failed" });
+    expect(Config.local.sponsorRegexRemoteConfig).toBe(rules);
+    expect(Config.local.officialServers).toBeNull();
+});
+
+test("旧后端未提供服务器清单时保留地址缓存，网络失败也不清空", async () => {
+    Config.local.officialServers = { ...servers, nodes: [] };
+    const snapshot = Config.local.officialServers;
+    await checkSponsorRegexConfigUpdate();
+    expect(Config.local.officialServers).toBe(snapshot);
+    Config.local.lastSponsorRegexConfigCheck = 0;
+    requestApi.mockResolvedValue({ ok: false, status: 503, responseText: "Unavailable" });
+    expect(await checkSponsorRegexConfigUpdate()).toEqual({ status: "failed" });
+    expect(Config.local.officialServers).toBe(snapshot);
 });
 
 test("拉取通用配置包，应用已注册配置", async () => {

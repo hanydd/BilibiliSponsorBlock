@@ -7,6 +7,7 @@ import { parseOtaConfig } from "../src/config/otaConfig";
 
 test("随包目录通过发布校验", () => {
     expect(validateOtaDirectory("ota").configs.sponsorRegex.schemaVersion).toBe(1);
+    expect(validateOtaDirectory("ota").configs.servers.schemaVersion).toBe(1);
 });
 
 test.each<[number, boolean]>([[28, true], [29, false], [30, false]])(

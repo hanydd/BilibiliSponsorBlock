@@ -18,7 +18,7 @@ for (const mode of ['instant', 'speedup', 'manual']) {
                 skipOnSeekToSegment: true, enableCache: false, trackViewCount: false,
                 dontShowNotice: false, categorySelections: [{ name: 'sponsor', option: mode === 'manual' ? 1 : 2 }],
             });
-            await extensionContext.route('https://www.bsbsb.top/**', async route => {
+            await extensionContext.route('https://bsbsb.top/**', async route => {
                 if (!new URL(route.request().url()).pathname.startsWith('/api/skipSegments/')) {
                     await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
                     return;

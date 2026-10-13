@@ -29,7 +29,7 @@ for (const item of cases) {
         });
         // Keep Bilibili's real DOM, scripts and media; supply deterministic labels
         // for IDs discovered by the extension on this page, without posting data.
-        await extensionContext.route("https://www.bsbsb.top/api/videoLabels/**", async route => {
+        await extensionContext.route("https://bsbsb.top/api/videoLabels/**", async route => {
             const ids = await page.locator("[data-bsb-bvid]").evaluateAll(cards =>
                 [...new Set(cards.map(card => card.getAttribute("data-bsb-bvid")))]);
             await route.fulfill({ contentType: "application/json", body: JSON.stringify(

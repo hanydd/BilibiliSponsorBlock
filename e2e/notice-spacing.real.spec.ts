@@ -12,7 +12,7 @@ test('@real notice card vertical spacing', async ({ extensionContext, extensionP
         skipOnSeekToSegment: true, enableCache: false, trackViewCount: false,
         dontShowNotice: false, categorySelections: [{ name: 'sponsor', option: 1 }],
     });
-    await extensionContext.route('https://www.bsbsb.top/api/skipSegments/**', async route => {
+    await extensionContext.route('https://bsbsb.top/api/skipSegments/**', async route => {
         const data = await page.evaluate(() => ({
             cid: String(window['player']?.getManifest()?.cid ?? window['__INITIAL_STATE__']?.cid),
             duration: document.querySelector('video')?.duration,
@@ -72,7 +72,7 @@ test('@real notice card vertical spacing', async ({ extensionContext, extensionP
         await page.screenshot({ path: testInfo.outputPath(`${size}-bilibili-page.png`) });
         await card.locator('.sponsorSkipNoticeTableContainer').screenshot({ path: testInfo.outputPath(`${size}-card.png`) });
     }
-    await extensionContext.route('https://www.bsbsb.top/api/voteOnSponsorTime*', route => route.fulfill({
+    await extensionContext.route('https://bsbsb.top/api/voteOnSponsorTime*', route => route.fulfill({
         status: 400, contentType: 'text/plain',
         body: 'Layout test: the voting service is temporarily unavailable. Please retry after checking your connection. Reference: ' + 'a'.repeat(100),
     }));

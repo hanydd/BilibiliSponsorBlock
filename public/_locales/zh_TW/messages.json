@@ -1,4 +1,19 @@
 {
+    "officialPrimaryServer": {
+        "message": "主站"
+    },
+    "customMirrorServer": {
+        "message": "自訂鏡像"
+    },
+    "serverSourceOfficial": {
+        "message": "官方提供 · 自動更新"
+    },
+    "serverSourceManual": {
+        "message": "使用者手動設定"
+    },
+    "officialAliasServer": {
+        "message": "官方別名"
+    },
     "0": {
         "message": "連接超時。請檢查您的網路連接。如果您的網路執行正常，則可能是伺服器當機。"
     },
@@ -586,7 +601,7 @@
         "message": "小电视空降助手的伺服器地址。\n不建議更改，除非您有自己的伺服器。"
     },
     "mirrorServerAddresses": {
-        "message": "鏡像站"
+        "message": "備用位址"
     },
     "officialMirrorServer": {
         "message": "官方鏡像"
@@ -607,7 +622,7 @@
         "message": "伺服器連線"
     },
     "serverNodeStatusDescription": {
-        "message": "請求優先使用主站，必要時自動切換至可用鏡像。"
+        "message": "請求優先使用主站，必要時自動切換備用位址。官方位址自動更新；官方別名連接主站，官方鏡像運行於獨立伺服器。保留手動位址與已刪除節點的選擇；重設後跟隨最新官方清單。"
     },
     "refreshServerStatus": {
         "message": "重新整理節點狀態"

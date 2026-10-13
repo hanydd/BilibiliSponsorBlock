@@ -24,7 +24,7 @@ async function expectLabel(page: Page, category?: string) {
     }
 }
 async function api(context: BrowserContext) {
-    await context.route("https://www.bsbsb.top/api/skipSegments/**", route => route.fulfill({
+    await context.route("https://bsbsb.top/api/skipSegments/**", route => route.fulfill({
         contentType: "application/json", body: JSON.stringify(labels),
     }));
 }
@@ -130,7 +130,7 @@ for (const mode of ["legacy", "rules"] as const) {
         let requested = false;
         let release: () => void;
         const gate = new Promise<void>(resolve => { release = resolve; });
-        await extensionContext.route(`https://www.bsbsb.top/api/skipSegments/${prefix}**`, async r => {
+        await extensionContext.route(`https://bsbsb.top/api/skipSegments/${prefix}**`, async r => {
             requested = true;
             await gate;
             await r.fulfill({ contentType: "application/json", body: JSON.stringify(labels) });

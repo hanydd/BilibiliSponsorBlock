@@ -22,7 +22,7 @@ for (const engine of ['legacy', 'rules']) {
                 categorySelections: [{ name: category, option: highlight ? 1 : 2 }],
             });
             // Keep the real page/player; only supply deterministic extension API responses.
-            await extensionContext.route('https://www.bsbsb.top/api/skipSegments/**', async route => {
+            await extensionContext.route('https://bsbsb.top/api/skipSegments/**', async route => {
                 const data = await page.evaluate(() => ({
                     cid: String(window['player']?.getManifest()?.cid ?? window['__INITIAL_STATE__']?.cid),
                     duration: document.querySelector('video')?.duration,

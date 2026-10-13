@@ -124,7 +124,7 @@ test("relabels a reused card when its link changes during an in-flight request",
         releaseFirstRequest = resolve;
     });
     let requestCount = 0;
-    await extensionContext.route("https://www.bsbsb.top/api/videoLabels/**", async (route) => {
+    await extensionContext.route("https://bsbsb.top/api/videoLabels/**", async (route) => {
         requestCount++;
         if (requestCount === 1) await firstRequestGate;
         await route.fulfill({

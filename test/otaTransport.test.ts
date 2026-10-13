@@ -5,7 +5,7 @@ jest.mock("../src/config", () => ({
     __esModule: true,
     default: {
         ready: Promise.resolve(),
-        config: { serverAddress: "https://primary.test", mirrorServerAddresses: [] },
+        config: { serverPreferences: { primary: "https://primary.test", followOfficial: false, added: [], excludedIds: [] } },
     },
 }));
 

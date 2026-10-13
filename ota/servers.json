@@ -1,0 +1,23 @@
+{
+    "schemaVersion": 1,
+    "data": {
+        "version": 1,
+        "nodes": [
+            {
+                "id": "official-primary",
+                "address": "https://bsbsb.top",
+                "kind": "primary"
+            },
+            {
+                "id": "official-alias",
+                "address": "https://bsbsb.cc",
+                "kind": "alias"
+            },
+            {
+                "id": "official-mirror",
+                "address": "http://103.236.70.57:9876",
+                "kind": "mirror"
+            }
+        ]
+    }
+}
