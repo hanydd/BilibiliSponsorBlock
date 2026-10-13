@@ -37,6 +37,7 @@ const unsubmittedVideos: UnsubmittedVideos[] = [];
 const whitelistManagers: WhitelistManager[] = [];
 let backendConfigComponent: BackendConfigComponent | null = null;
 const dependentOptionTimers = new WeakMap<Element, ReturnType<typeof setTimeout>>();
+const dependentOptionGenerations = new WeakMap<Element, number>();
 const dynamicSponsorRegexManagers: DynamicSponsorRegexManager[] = [];
 
 if (document.readyState === "complete") {
@@ -407,12 +408,23 @@ async function shouldHideOption(element: Element): Promise<boolean> {
 
 async function updateDependentOptions(container: Element, key: string): Promise<void> {
     for (const dependent of container.querySelectorAll(`[data-dependent-on='${key}']`)) {
-        const hidden = await shouldHideOption(dependent) || !Config.config[key];
+        const generation = (dependentOptionGenerations.get(dependent) ?? 0) + 1;
+        dependentOptionGenerations.set(dependent, generation);
+        const source = container.querySelector(`[data-sync='${key}']`);
+        const reverse = source?.getAttribute("data-toggle-type") === "reverse" ||
+            dependent.getAttribute("data-dependent-on-inverted") === "true";
+        const forceHide = await shouldHideOption(dependent);
+        if (dependentOptionGenerations.get(dependent) !== generation) continue;
+        const hidden = forceHide || (reverse ? !!Config.config[key] : !Config.config[key]);
         clearTimeout(dependentOptionTimers.get(dependent));
         if (hidden) dependent.classList.add("hiding"); else dependent.classList.remove("hidden");
         dependentOptionTimers.set(dependent, setTimeout(() => {
-            dependent.classList.toggle("hidden", hidden);
-            dependent.classList.toggle("hiding", !hidden);
+            if (hidden) dependent.classList.add("hidden");
+            else {
+                dependent.classList.remove("hidden");
+                dependent.classList.remove("hiding");
+            }
+            dependentOptionTimers.delete(dependent);
         }, hidden ? 400 : 1));
     }
 }
@@ -429,6 +441,12 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
         if (key && key in changes) {
             const input = optionsElements[i].querySelector("input") as HTMLInputElement;
             if (input && optionsElements[i].getAttribute("data-type") === "toggle") input.checked = !!Config.config[key];
+            const selector = optionsElements[i].querySelector("select") as HTMLSelectElement;
+            if (selector && optionsElements[i].getAttribute("data-type") === "selector") selector.value = String(Config.config[key]);
+            const number = optionsElements[i].querySelector("input") as HTMLInputElement;
+            if (number && optionsElements[i].getAttribute("data-type") === "number-change" && document.activeElement !== number) {
+                number.value = String(Config.config[key]);
+            }
         }
         switch (optionsElements[i].getAttribute("data-type")) {
             case "display":
@@ -704,6 +722,11 @@ function setupSkipSoundVolume(element: HTMLElement) {
         Config.config.skipSoundVolume = Number(slider.value) / 100;
         updateDisplay();
     });
+    Config.configSyncListeners.push(changes => {
+        if (!changes.skipSoundVolume) return;
+        slider.value = String(Math.round(getSkipSoundVolume() * 100));
+        updateDisplay();
+    });
 }
 
 function setupSkipSoundFade(element: HTMLElement) {
@@ -719,6 +742,11 @@ function setupSkipSoundFade(element: HTMLElement) {
 
     slider.addEventListener("input", () => {
         Config.config.skipSoundFadeStart = Number(slider.value) / 100;
+        updateDisplay();
+    });
+    Config.configSyncListeners.push(changes => {
+        if (!changes.skipSoundFadeStart) return;
+        slider.value = String(Math.round(getSkipSoundFadeStart() * 100));
         updateDisplay();
     });
 }
@@ -737,6 +765,11 @@ function setupCustomSkipSound(element: HTMLElement) {
             : chrome.i18n.getMessage("customSkipSoundDefault");
         status.title = customSound?.dataUrl ? customSound.name : "";
     };
+    Config.configLocalListeners.push(changes => {
+        if (!changes.customSkipSound) return;
+        stopPreview();
+        updateStatus();
+    });
 
     let previewAudio: HTMLAudioElement | null = null;
     let stopPreviewFade: (() => void) | null = null;
@@ -917,7 +950,8 @@ function clearAllCache() {
             showMessage(chrome.i18n.getMessage("clearAllCacheSuccess"), "success");
             refreshCacheStats(); // Refresh display after clearing
         } else {
-            showMessage(chrome.i18n.getMessage("clearAllCacheFailed"), "error");
+            const detail = chrome.runtime.lastError?.message || response?.error;
+            showMessage(`${chrome.i18n.getMessage("clearAllCacheFailed")}${detail ? `: ${detail}` : ""}`, "error");
         }
     });
 }

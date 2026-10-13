@@ -4,7 +4,7 @@ import { ActionType, NewVideoID, SponsorSourceType, SponsorTime, SponsorTimeHash
 import { BackendConfig, BackendSegmentResult, VideoMatchContext, createBackendInfoMap, mergeBackendSegments } from "../../backends";
 import { getVideoIDHash } from "../../utils/hash";
 import { parseBvidAndCidFromVideoId } from "../../utils/videoIdUtils";
-import { getEligibleBackends, requestFromBackend } from "../backendRouter";
+import { getConfiguredBackends, getEligibleBackends, requestFromBackend } from "../backendRouter";
 import { FetchResponse, SegmentResponse } from "../type/requestType";
 import { segmentsCache } from "./backgroundCache";
 
@@ -51,7 +51,7 @@ async function fetchSegmentsByBackends(
     }
 
     const responses = await Promise.all(backends.map(async (backend, priority) => {
-        const response = await requestFromBackend(backend, "GET", "/api/skipSegments", { videoID: bvId, cid }, ignoreCache);
+        const response = await requestFromBackend(backend, "GET", `/api/skipSegments/${hashPrefix}`, { videoID: bvId, cid }, ignoreCache);
         const segments = response.status === 404 ? [] : response.ok ? parseBackendSegments(response.responseText, bvId) : null;
         return { backend, priority, response, segments };
     }));
@@ -86,7 +86,8 @@ export async function getSegmentsBackground(
         up_mid: videoContext?.up_mid ?? "",
         up_name: videoContext?.up_name ?? "",
     };
-    const backends = getEligibleBackends("querySegments", context) as BackendConfig[];
+    let backends = getEligibleBackends("querySegments", context) as BackendConfig[];
+    if (backends.length === 0) backends = getConfiguredBackends() as BackendConfig[];
     const response = await fetchSegmentsByBackends(bvId, cid, backends, context, ignoreCache);
 
     const responseSegments: SegmentResponse = { segments: null, status: response.status };

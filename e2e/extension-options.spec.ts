@@ -362,7 +362,7 @@ test("formats and saves symmetric backend conflicts", async ({
         .toEqual(JSON.parse(await editor.inputValue()));
 });
 
-test("falls back to a configured mirror for a write request", async ({ extensionContext, extensionId, extensionPage }) => {
+test("does not replay a write request to a mirror", async ({ extensionContext, extensionId, extensionPage }) => {
     const endpoint = "/api/voteOnSponsorTime";
     const requestedAddresses: string[] = [];
     await extensionContext.unroute("https://www.bsbsb.top/**");
@@ -393,8 +393,8 @@ test("falls back to a configured mirror for a write request", async ({ extension
             }),
         endpoint
     );
-    expect(response.status).toBe(200);
-    expect(requestedAddresses).toEqual(["https://www.bsbsb.top", "https://www.bsbsb.xyz"]);
+    expect(response.status).toBe(503);
+    expect(requestedAddresses).toEqual(["https://www.bsbsb.top"]);
 });
 
 test("uses a later mirror when earlier nodes fail a hash request", async ({

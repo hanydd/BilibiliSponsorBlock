@@ -26,7 +26,7 @@ setupTabUpdates(Config);
 
 // 服务脚本每次唤醒时检查柔性推广屏蔽词条的在线更新（内部有 24 小时节流，失败静默）
 void Config.ready
-    .then(() => checkSponsorRegexConfigUpdate())
+    .then(() => Config.local.lastSponsorRegexConfigCheck > 0 ? checkSponsorRegexConfigUpdate() : { status: "up-to-date" as const })
     .catch((error) => console.warn("[BSB] Sponsor regex config check failed", error));
 
 if (chrome.alarms?.onAlarm) {
@@ -226,6 +226,10 @@ async function unregisterFirefoxContentScript(id: string) {
 
 function setupBackgroundRequestProxy() {
     chrome.runtime.onMessage.addListener((request, sender, callback) => {
+        if (request.message === "checkSponsorRegexConfigUpdate") {
+            checkSponsorRegexConfigUpdate(true).then(callback).catch(() => callback({ status: "failed" }));
+            return true;
+        }
         if (request.message === "sendRequest") {
             const requestPromise = request.endpoint
                 ? callAPIWithOptions(request.type, request.endpoint, request.data, {
@@ -319,7 +323,7 @@ function setupBackgroundRequestProxy() {
         if (request.message === "clearAllCache") {
             clearAllCacheBackground()
                 .then(() => callback({ ok: true }))
-                .catch(() => callback({ ok: false }));
+                .catch((error: Error) => callback({ ok: false, error: error.message }));
             return true;
         }
 

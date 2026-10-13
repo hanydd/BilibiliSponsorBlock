@@ -28,6 +28,7 @@ export interface BackendRequestOptions {
     skipServerCache?: boolean;
     videoContext?: VideoMatchContext;
     clientOptions?: RequestClientOptions;
+    allowUnknownOperation?: boolean;
 }
 
 export interface BackendRequestResult {
@@ -64,7 +65,18 @@ function getEnabledMap(): Record<string, boolean> {
 }
 
 export function getConfiguredBackends(): BackendRequestDefinition[] {
-    return getConfiguredSnapshot()?.backends.filter((backend) => isBackendEnabled(backend, getEnabledMap())) ?? [];
+    const configured = getConfiguredSnapshot()?.backends;
+    if (configured) return configured.filter((backend) => isBackendEnabled(backend, getEnabledMap()));
+
+    const config = Config.config as unknown as { serverAddress?: string; mirrorServerAddresses?: string[] } | null;
+    if (!config?.serverAddress) return [];
+    return [{
+        id: "main",
+        name: "SponsorBlock",
+        api_url: config.serverAddress,
+        mirrors: config.mirrorServerAddresses ?? [],
+        capabilities: [],
+    }];
 }
 
 export function getEligibleBackends(
@@ -126,7 +138,8 @@ async function savePersistedState(state: BackendRouterState): Promise<void> {
 }
 
 function getBackendDefinition(id: string, fallback?: BackendRequestDefinition): BackendRequestDefinition | null {
-    return getConfiguredSnapshot()?.backends.find((backend) => backend.id === id) ?? fallback ?? null;
+    return getConfiguredSnapshot()?.backends.find((backend) => backend.id === id) ??
+        getConfiguredBackends().find((backend) => backend.id === id) ?? fallback ?? null;
 }
 
 async function getRouter(backend: BackendRequestDefinition): Promise<ServerRouter> {
@@ -226,6 +239,7 @@ export async function requestToBackend(
 ): Promise<FetchResponse> {
     const operation = resolveOperation(type, endpoint, options);
     if (!operation) {
+        if (!options.allowUnknownOperation) return { responseText: "", status: 404, ok: false };
         const backend = options.backendId ? getConfiguredBackends().find((item) => item.id === options.backendId) : getConfiguredBackends()[0];
         if (!backend) return { responseText: "", status: 404, ok: false };
         return requestFromBackend(backend, type, endpoint, data, Boolean(options.skipServerCache), headers, options.clientOptions);

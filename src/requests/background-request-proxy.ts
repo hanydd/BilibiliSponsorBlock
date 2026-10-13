@@ -10,7 +10,7 @@ export async function callAPI(
     headers: Record<string, string> = {},
     clientOptions: RequestClientOptions = {}
 ): Promise<FetchResponse> {
-    return requestToBackend(type, endpoint, extraRequestData, { skipServerCache, clientOptions }, headers);
+    return requestToBackend(type, endpoint, extraRequestData, { skipServerCache, clientOptions, allowUnknownOperation: true }, headers);
 }
 
 export async function callAPIWithOptions(
@@ -20,5 +20,5 @@ export async function callAPIWithOptions(
     options: BackendRequestOptions = {},
     headers: Record<string, string> = {}
 ): Promise<FetchResponse> {
-    return requestToBackend(type, endpoint, extraRequestData, options, headers);
+    return requestToBackend(type, endpoint, { ...extraRequestData }, { ...options, allowUnknownOperation: true }, headers);
 }
