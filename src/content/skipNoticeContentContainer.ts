@@ -1,4 +1,10 @@
 import { ContentContainer } from "../ContentContainerTypes";
+import {
+    getLastSubmissionBackendId,
+    getSubmissionBackends,
+    getVideoMatchContext,
+    setLastSubmissionBackendId,
+} from "./backendService";
 import { getChannelIDInfo } from "../utils/video";
 import { getContentApp } from "./app";
 import { contentState } from "./state";
@@ -44,4 +50,9 @@ export const getSkipNoticeContentContainer: ContentContainer = () => ({
     getRealCurrentTime: () => getContentApp().commands.execute("segment/getRealCurrentTime", undefined) as number,
     lockedCategories: contentState.lockedCategories,
     channelIDInfo: getChannelIDInfo(),
+    backendInfo: contentState.backendInfo,
+    getVideoMatchContext,
+    getSubmissionBackends,
+    getLastSubmissionBackendId,
+    setLastSubmissionBackendId,
 });

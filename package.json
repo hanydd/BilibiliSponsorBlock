@@ -25,6 +25,8 @@
     "@types/wicg-mediasession": "^1.1.4",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "concurrently": "^7.6.0",
     "copy-webpack-plugin": "^14.0.0",
     "eslint": "^8.57.0",

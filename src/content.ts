@@ -157,6 +157,7 @@ function resetValues() {
     contentState.previewedSegment = false;
     contentState.sponsorTimes = [];
     contentState.rawSegments = undefined;
+    contentState.backendInfo = {};
     resetSponsorSkipped();
     contentState.lastResponseStatus = 0;
     contentState.shownSegmentFailedToFetchWarning = false;

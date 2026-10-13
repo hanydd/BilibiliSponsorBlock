@@ -5,7 +5,12 @@ jest.mock("../src/config", () => ({
     __esModule: true,
     default: {
         ready: Promise.resolve(),
-        config: { serverAddress: "https://primary.test", mirrorServerAddresses: [] },
+        local: {
+            backendConfig: {
+                backends: [{ id: "main", api_url: "https://primary.test", mirrors: [], enabled: true, capabilities: [] }],
+            },
+            backendEnabledMap: {},
+        },
     },
 }));
 

@@ -1,11 +1,15 @@
 import "content-scripts-register-polyfill";
 import Config from "./config";
 import { checkSponsorRegexConfigUpdate } from "./requests/background/sponsorRegexConfigUpdate";
-import { callAPI, serverRouter } from "./requests/background-request-proxy";
+import { callAPIWithOptions, sendRealRequestToCustomServer } from "./requests/background-request-proxy";
 import { clearAllCacheBackground, segmentsCache, videoLabelCache } from "./requests/background/backgroundCache";
 import { getSegmentsBackground } from "./requests/background/segmentRequest";
 import { getVideoLabelBackground } from "./requests/background/videoLabelRequest";
 import { submitVote } from "./requests/background/voteRequest";
+import { getUserWorkStatsBackground } from "./requests/background/userStatsRequest";
+import { BackendConfigService } from "./config/backendConfigService";
+import type { VideoMatchContext } from "./backends";
+import { checkBackendAddress, getBackendStatus, getEligibleBackends, probeBackendNode } from "./requests/backendRouter";
 import { CacheStats, NewVideoID, Registration } from "./types";
 import { chromeP } from "./utils/browserApi";
 import { getHash } from "./utils/hash";
@@ -20,10 +24,25 @@ const contentScriptRegistrations = {};
 setupBackgroundRequestProxy();
 setupTabUpdates(Config);
 
-// 后台唤醒不保证持续运行，检查间隔由持久化的时间戳控制。
+// 服务脚本每次唤醒时检查柔性推广屏蔽词条的在线更新（内部有 24 小时节流，失败静默）
 void Config.ready
-    .then(() => checkSponsorRegexConfigUpdate())
-    .catch((error) => console.warn("[BSB] OTA config check failed", error));
+    .then(() => Config.local.lastSponsorRegexConfigCheck > 0 ? checkSponsorRegexConfigUpdate() : { status: "up-to-date" as const })
+    .catch((error) => console.warn("[BSB] Sponsor regex config check failed", error));
+
+if (chrome.alarms?.onAlarm) {
+    chrome.alarms.onAlarm.addListener((alarm) => {
+        if (alarm.name === "backend-config-sync") void BackendConfigService.syncFromUrl();
+    });
+}
+void Config.ready.then(() => BackendConfigService.ensureSubscriptionAlarm());
+chrome.runtime.onInstalled.addListener((details) => {
+    if ((details.reason === "install" || details.reason === "update") && Config.local?.backendSubscription?.enabled) {
+        void BackendConfigService.syncFromUrl();
+    }
+});
+chrome.runtime.onStartup.addListener(() => {
+    if (Config.local?.backendSubscription?.enabled) void BackendConfigService.syncFromUrl();
+});
 
 if (chrome.runtime.getManifest().manifest_version === 3) {
     // Dynamic MAIN-world injection supports Chromium 102+, unlike the static manifest entry (111+).
@@ -212,7 +231,13 @@ function setupBackgroundRequestProxy() {
             return true;
         }
         if (request.message === "sendRequest") {
-            callAPI(request.type, request.endpoint, request.data, false, request.headers)
+            const requestPromise = request.endpoint
+                ? callAPIWithOptions(request.type, request.endpoint, request.data, {
+                      backendId: request.backendId,
+                      skipServerCache: Boolean(request.skipServerCache),
+                  }, request.headers)
+                : sendRealRequestToCustomServer(request.type, request.url, request.data, request.headers);
+            requestPromise
                 .then(callback)
                 .catch(() => {
                     callback({ responseText: "", status: -1, ok: false });
@@ -229,27 +254,24 @@ function setupBackgroundRequestProxy() {
             return true;
         }
 
-        if (request.message === "getServerStatus") {
-            serverRouter
-                .getStatus()
+        if (request.message === "getBackendStatus") {
+            getBackendStatus(String(request.backendId ?? ""))
                 .then(callback)
-                .catch(() => callback({ activeAddress: "", nodes: [] }));
+                .catch(() => callback({ backendId: request.backendId, activeAddress: "", nodes: [] }));
             return true;
         }
 
-        if (request.message === "probeServerNode") {
-            serverRouter
-                .probe(request.address)
+        if (request.message === "probeBackendNode") {
+            probeBackendNode(String(request.backendId ?? ""), String(request.address ?? ""))
                 .then(callback)
-                .catch(() => callback({ activeAddress: "", nodes: [] }));
+                .catch(() => callback({ backendId: request.backendId, activeAddress: "", nodes: [] }));
             return true;
         }
 
-        if (request.message === "checkServerAddress") {
-            serverRouter
-                .checkAddress(request.address)
+        if (request.message === "checkBackendAddress") {
+            checkBackendAddress(String(request.backendId ?? ""), String(request.address ?? ""))
                 .then(callback)
-                .catch(() => callback({ address: request.address, healthState: "open" }));
+                .catch(() => callback({ backendId: request.backendId, address: request.address, healthState: "open" }));
             return true;
         }
 
@@ -264,7 +286,8 @@ function setupBackgroundRequestProxy() {
         if (request.message === "getSegments") {
             getSegmentsBackground(
                 request.videoID as NewVideoID,
-                Boolean(request.ignoreCache)
+                Boolean(request.ignoreCache),
+                (request.videoContext as VideoMatchContext) || undefined
             )
                 .then((response) => callback({ response }))
                 .catch(() => callback({ response: { segments: null, status: -1 } }));
@@ -272,9 +295,22 @@ function setupBackgroundRequestProxy() {
         }
 
         if (request.message === "submitVote") {
-            submitVote(request.type, request.UUID, request.category).then(callback);
+            submitVote(request.type, request.UUID, request.category, request.backendId, request.videoContext).then(callback);
             return true;
         }
+
+        if (request.message === "getVideoMatchContext") { callback(request.context ?? null); return false; }
+        if (request.message === "getSubmissionBackends") {
+            const context = request.context ?? { bvid: "", title: "", description: "", up_mid: "", up_name: "" };
+            callback(getEligibleBackends("submitSegments", context).map((backend) => ({ id: backend.id, name: backend.name, desc: backend.desc, enabled: true })));
+            return false;
+        }
+        if (request.message === "getUserWorkStats") {
+            getUserWorkStatsBackground(request.publicUserID, Boolean(request.skipServerCache)).then(callback).catch(() => callback({ ok: false, partial: false, successfulBackendIds: [], failedBackendIds: [] }));
+            return true;
+        }
+        if (request.message === "getLastSubmissionBackendId") { callback({ backendId: Config.local?.lastSubmissionBackendId ?? null }); return false; }
+        if (request.message === "setLastSubmissionBackendId") { BackendConfigService.setLastSubmissionBackendId(request.backendId ?? null); callback({}); return false; }
 
         // ============ Cache Management Handlers ============
         if (request.message === "getCacheStats") {

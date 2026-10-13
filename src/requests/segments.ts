@@ -1,4 +1,5 @@
 import { NewVideoID } from "../types";
+import { VideoMatchContext } from "../backends";
 import { SegmentResponse } from "./type/requestType";
 
 /**
@@ -6,11 +7,12 @@ import { SegmentResponse } from "./type/requestType";
  */
 export async function getSegmentsByVideoID(
     videoID: NewVideoID,
-    ignoreCache: boolean = false
+    ignoreCache: boolean = false,
+    videoContext?: VideoMatchContext
 ): Promise<SegmentResponse> {
     return await new Promise<SegmentResponse>((resolve) => {
         chrome.runtime.sendMessage(
-            { message: "getSegments", videoID, ignoreCache },
+            { message: "getSegments", videoID, ignoreCache, videoContext },
             (response: { response?: SegmentResponse }) => resolve(response?.response ?? { segments: null, status: -1 })
         );
     });

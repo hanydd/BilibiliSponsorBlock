@@ -81,6 +81,9 @@ export interface SponsorTime {
     hidden?: SponsorHideType;
     source: SponsorSourceType;
     videoDuration?: number;
+
+    /** Internal provenance for multi-backend responses; stripped before submission. */
+    backendId?: string;
 }
 
 export interface SponsorTimeHashedID {

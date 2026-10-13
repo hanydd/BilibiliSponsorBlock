@@ -3,20 +3,25 @@ import { isCategoryEnabled } from "../../config/categoryConfig";
 import { BVID, Category, NewVideoID } from "../../types";
 import { getVideoIDHash } from "../../utils/hash";
 import { parseBvidAndCidFromVideoId } from "../../utils/videoIdUtils";
-import { callAPI } from "../background-request-proxy";
+import { getConfiguredBackends, requestFromBackend } from "../backendRouter";
 import { LabelBlock } from "../type/requestType";
 import { videoLabelCache } from "./backgroundCache";
 
-async function fetchLabelBlock(prefix: string, skipServerCache: boolean): Promise<LabelBlock | null> {
-    const response = await callAPI("GET", `/api/videoLabels/${prefix}`, {}, skipServerCache);
-
-    if (!response.ok || response.status !== 200) return null;
-
-    const data = JSON.parse(response.responseText) as Array<{ videoID: BVID; segments: Array<{ category: Category }> }>;
-    const block: LabelBlock = Object.fromEntries(
-        (data || []).map((video) => [video.videoID, video.segments?.[0]?.category]).filter(([, c]) => !!c)
-    ) as LabelBlock;
-    return block;
+async function fetchLabelBlock(prefix: string, skipServerCache: boolean): Promise<LabelBlock> {
+    const backends = getConfiguredBackends().filter((backend) => backend.capabilities.includes("GET /api/videoLabels/:sha256HashPrefix"));
+    const results = await Promise.all(backends.map(async backend => {
+        const response = await requestFromBackend(backend, "GET", `/api/videoLabels/${prefix}`, {}, skipServerCache);
+        if (response.status === 404) return {} as LabelBlock;
+        if (!response.ok || response.status !== 200) return null;
+        try {
+            const data: Array<{ videoID: BVID; segments: Array<{ category: Category }> }> = JSON.parse(response.responseText);
+            return Object.fromEntries((data || []).map(video => [video.videoID, video.segments?.[0]?.category]).filter(([, category]) => !!category)) as LabelBlock;
+        } catch {
+            return null;
+        }
+    }));
+    if (!results.length || results.some(result => result === null)) return null;
+    return Object.assign({}, ...results);
 }
 
 async function getOrFetchLabelBlock(prefix: string, refreshCache: boolean): Promise<LabelBlock> {

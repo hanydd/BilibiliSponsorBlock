@@ -1,21 +1,19 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 
-import * as CompileConfig from "../config.json";
 import Config from "./config";
-import {
-    addMirrorServerAddress,
-    getMirrorServerAddressesAfterPrimaryChange,
-    isOfficialMirrorServerAddress,
-    normalizeServerAddress,
-    removeMirrorServerAddress,
-    SERVER_ROUTER_STORAGE_KEY,
-} from "./config/serverConfig";
 
 // Make the config public for debugging purposes
 window.SB = Config;
 
 import KeybindComponent from "./components/options/KeybindComponent";
+import BackendConfigComponent from "./components/options/BackendConfigComponent";
+import {
+    createOptionsBackup,
+    createOtherDataBackup,
+    parseOptionsBackup,
+    parseOtherDataBackup,
+} from "./config/backup";
 import { StorageChangesObject } from "./config/config";
 import { showDonationLink } from "./config/configUtils";
 import { CategoryChooser, DynamicSponsorChooser } from "./render/CategoryChooser";
@@ -24,13 +22,11 @@ import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import UnsubmittedVideos from "./render/UnsubmittedVideos";
 import WhitelistManager from "./render/WhitelistManager";
 import { asyncRequestToServer } from "./requests/requests";
-import type { ServerAddressCheckResult, ServerRouterStatus } from "./requests/serverRouter";
 import { CacheStats } from "./types";
 import { waitFor } from "./utils/";
 import { getHash } from "./utils/hash";
 import { localizeHtmlPage } from "./utils/setup";
 import { applyFadeOut, clamp01 } from "./utils/soundFade";
-
 import { setupRuleRollout } from "./options/rules/rollout";
 import { mountRulesPage } from "./options/rules/RulesPage";
 
@@ -39,7 +35,9 @@ let embed = false;
 const categoryChoosers: CategoryChooser[] = [];
 const unsubmittedVideos: UnsubmittedVideos[] = [];
 const whitelistManagers: WhitelistManager[] = [];
+let backendConfigComponent: BackendConfigComponent | null = null;
 const dependentOptionTimers = new WeakMap<Element, ReturnType<typeof setTimeout>>();
+const dependentOptionGenerations = new WeakMap<Element, number>();
 const dynamicSponsorRegexManagers: DynamicSponsorRegexManager[] = [];
 
 if (document.readyState === "complete") {
@@ -55,16 +53,10 @@ async function init() {
 
     // setup message component
     setMessageNotice(Config.config.darkMode);
-
-    // Retired links only select the behavior section, never enable the experiment.
-    if (location.hash === "#skip-rules") {
-        const url = new URL(location.href);
-        url.hash = "behavior";
-        window.history.replaceState(null, "", url.toString());
-    }
-    // The public rollout switch has exactly two states. Shadow remains an internal diagnostic mode.
+    if (location.hash === "#skip-rules") location.hash = "behavior";
     if (Config.config.skipEngineMode === "shadow") Config.config.skipEngineMode = "legacy";
     updateBehaviorMode();
+
     // selected tab
     if (location.hash != "") {
         const substr = location.hash.slice(1);
@@ -203,41 +195,12 @@ async function init() {
             case "text-change": {
                 const textChangeInput = <HTMLInputElement>optionsElements[i].querySelector(".option-text-box");
 
-                const textChangeSetButton = <HTMLButtonElement>optionsElements[i].querySelector(".text-change-set");
+                const textChangeSetButton = <HTMLElement>optionsElements[i].querySelector(".text-change-set");
 
                 textChangeInput.value = Config.config[option];
 
                 textChangeSetButton.addEventListener("click", async () => {
-                    // See if anything extra must be done
-                    switch (option) {
-                        case "serverAddress": {
-                            const result = validateServerAddress(textChangeInput.value);
-
-                            if (result !== null) {
-                                textChangeInput.value = result;
-                            } else {
-                                return;
-                            }
-
-                            if (!(await requestServerPermissions([textChangeInput.value]))) return;
-
-                            const nextMirrorServerAddresses = getMirrorServerAddressesAfterPrimaryChange(
-                                Config.config.serverAddress,
-                                textChangeInput.value,
-                                Config.config.mirrorServerAddresses
-                            );
-                            if (nextMirrorServerAddresses !== Config.config.mirrorServerAddresses) {
-                                Config.config.mirrorServerAddresses = nextMirrorServerAddresses;
-                            }
-
-                            break;
-                        }
-                    }
-
                     Config.config[option] = textChangeInput.value;
-                    if (option === "serverAddress") {
-                        updatePrimaryServerSaveButton(textChangeInput, textChangeSetButton);
-                    }
                 });
 
                 // Reset to the default if needed
@@ -248,27 +211,8 @@ async function init() {
                     Config.config[option] = Config.syncDefaults[option];
 
                     textChangeInput.value = Config.config[option];
-                    if (option === "serverAddress") {
-                        updatePrimaryServerSaveButton(textChangeInput, textChangeSetButton);
-                    }
                 });
 
-                if (option === "serverAddress") {
-                    updatePrimaryServerSaveButton(textChangeInput, textChangeSetButton);
-                    textChangeInput.addEventListener("input", () => {
-                        updatePrimaryServerSaveButton(textChangeInput, textChangeSetButton);
-                        if (isPrimaryServerAddressChanged(textChangeInput)) {
-                            setPrimaryServerDisplayState(null, false);
-                        } else {
-                            refreshServerStatus();
-                        }
-                    });
-                }
-
-                break;
-            }
-            case "server-list": {
-                setupServerList(optionsElements[i] as HTMLElement);
                 break;
             }
             case "private-text-change": {
@@ -379,6 +323,17 @@ async function init() {
             case "react-DynamicSponsorRegexManagerComponent":
                 dynamicSponsorRegexManagers.push(new DynamicSponsorRegexManager(optionsElements[i]));
                 break;
+            case "react-BackendConfigComponent": {
+                const root = createRoot(optionsElements[i]);
+                root.render(
+                    React.createElement(BackendConfigComponent, {
+                        ref: (instance: BackendConfigComponent) => {
+                            backendConfigComponent = instance;
+                        },
+                    })
+                );
+                break;
+            }
             case "cache-stats": {
                 setupCacheManagement(optionsElements[i] as HTMLElement);
                 break;
@@ -417,12 +372,11 @@ async function init() {
     setupRuleRollout(updateBehaviorMode, () => document.querySelector<HTMLElement>('[data-for="behavior"]').click(), embed);
 }
 
-/** The saved engine choice is also the only source of truth for the behavior page. */
 function updateBehaviorMode(): void {
     const enabled = Config.config.skipEngineMode === "rules";
-    document.getElementById("classic-behavior").classList.toggle("hidden", enabled);
-    document.getElementById("skip-rules").classList.toggle("hidden", !enabled);
-    document.getElementById("behavior").classList.toggle("rules-enabled", enabled);
+    document.getElementById("classic-behavior")?.classList.toggle("hidden", enabled);
+    document.getElementById("skip-rules")?.classList.toggle("hidden", !enabled);
+    document.getElementById("behavior")?.classList.toggle("rules-enabled", enabled);
 }
 
 function createStickyHeader() {
@@ -452,20 +406,24 @@ async function shouldHideOption(element: Element): Promise<boolean> {
     );
 }
 
-/** Local clicks and storage updates share one cancellable visibility transition. */
 async function updateDependentOptions(container: Element, key: string): Promise<void> {
     for (const dependent of container.querySelectorAll(`[data-dependent-on='${key}']`)) {
-        const forceHide = await shouldHideOption(dependent);
+        const generation = (dependentOptionGenerations.get(dependent) ?? 0) + 1;
+        dependentOptionGenerations.set(dependent, generation);
         const source = container.querySelector(`[data-sync='${key}']`);
-        const reverse = source?.getAttribute("data-toggle-type") === "reverse" || dependent.getAttribute("data-dependent-on-inverted") === "true";
-        // Read the current setting after the async check, including any intervening clicks.
+        const reverse = source?.getAttribute("data-toggle-type") === "reverse" ||
+            dependent.getAttribute("data-dependent-on-inverted") === "true";
+        const forceHide = await shouldHideOption(dependent);
+        if (dependentOptionGenerations.get(dependent) !== generation) continue;
         const hidden = forceHide || (reverse ? !!Config.config[key] : !Config.config[key]);
         clearTimeout(dependentOptionTimers.get(dependent));
-        if (hidden) dependent.classList.add("hiding");
-        else dependent.classList.remove("hidden");
+        if (hidden) dependent.classList.add("hiding"); else dependent.classList.remove("hidden");
         dependentOptionTimers.set(dependent, setTimeout(() => {
             if (hidden) dependent.classList.add("hidden");
-            else dependent.classList.remove("hiding");
+            else {
+                dependent.classList.remove("hidden");
+                dependent.classList.remove("hiding");
+            }
             dependentOptionTimers.delete(dependent);
         }, hidden ? 400 : 1));
     }
@@ -481,17 +439,13 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
     for (let i = 0; i < optionsElements.length; i++) {
         const key = optionsElements[i].getAttribute("data-sync");
         if (key && key in changes) {
-            const element = optionsElements[i];
-            const type = element.getAttribute("data-type");
-            if (type === "toggle") {
-                const input = element.querySelector("input") as HTMLInputElement;
-                if (input) input.checked = element.getAttribute("data-toggle-type") === "reverse" ? !Config.config[key] : !!Config.config[key];
-            } else if (type === "selector") {
-                const select = element.querySelector("select") as HTMLSelectElement;
-                if (select) select.value = String(Config.config[key]);
-            } else if (type === "number-change") {
-                const input = element.querySelector("input") as HTMLInputElement;
-                if (input && document.activeElement !== input) input.value = String(Config.config[key]);
+            const input = optionsElements[i].querySelector("input") as HTMLInputElement;
+            if (input && optionsElements[i].getAttribute("data-type") === "toggle") input.checked = !!Config.config[key];
+            const selector = optionsElements[i].querySelector("select") as HTMLSelectElement;
+            if (selector && optionsElements[i].getAttribute("data-type") === "selector") selector.value = String(Config.config[key]);
+            const number = optionsElements[i].querySelector("input") as HTMLInputElement;
+            if (number && optionsElements[i].getAttribute("data-type") === "number-change" && document.activeElement !== number) {
+                number.value = String(Config.config[key]);
             }
         }
         switch (optionsElements[i].getAttribute("data-type")) {
@@ -500,13 +454,8 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
                 break;
         }
     }
-
-    // Settings edited on the rules page must also update dependent native controls.
     for (const key of Object.keys(changes)) void updateDependentOptions(optionsContainer, key);
-
-    if (changes.skipEngineMode) {
-        updateBehaviorMode();
-    }
+    if (changes.skipEngineMode) updateBehaviorMode();
 
     if (changes.categorySelections) {
         for (const chooser of categoryChoosers) {
@@ -519,21 +468,17 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
             manager.update();
         }
     }
-
     if (changes.dynamicAndCommentSponsorRegexUserRules || changes.dynamicAndCommentSponsorRegexFlags) {
-        for (const manager of dynamicSponsorRegexManagers) {
-            manager.update();
-        }
-    }
-
-    if (changes.serverAddress || changes.mirrorServerAddresses) {
-        refreshServerStatus();
+        for (const manager of dynamicSponsorRegexManagers) manager.update();
     }
 }
 
 function optionsLocalConfigUpdateListener(changes: StorageChangesObject) {
-    if (changes[SERVER_ROUTER_STORAGE_KEY]) {
-        refreshServerStatus();
+    if (
+        backendConfigComponent &&
+        (changes.backendConfig || changes.backendEnabledMap || changes.backendSubscription)
+    ) {
+        void backendConfigComponent.refresh();
     }
 
     if (changes.unsubmittedSegments) {
@@ -541,13 +486,7 @@ function optionsLocalConfigUpdateListener(changes: StorageChangesObject) {
             chooser.update();
         }
     }
-
-    // OTA 默认规则使用 local 存储，需独立于用户规则的 sync 事件刷新设置页。
-    if (changes.sponsorRegexRemoteConfig) {
-        for (const manager of dynamicSponsorRegexManagers) {
-            manager.update();
-        }
-    }
+    if (changes.sponsorRegexRemoteConfig) for (const manager of dynamicSponsorRegexManagers) manager.update();
 }
 
 /**
@@ -588,9 +527,9 @@ function activatePrivateTextChange(element: HTMLElement) {
     switch (option) {
         case "*": {
             if (optionType === "local") {
-                result = JSON.stringify(Config.cachedLocalStorage);
+                result = JSON.stringify(createOtherDataBackup(Config.cachedLocalStorage));
             } else {
-                result = JSON.stringify(Config.cachedSyncConfig);
+                result = JSON.stringify(createOptionsBackup(Config.cachedSyncConfig, Config.cachedLocalStorage));
             }
             break;
         }
@@ -641,12 +580,35 @@ async function setTextOption(option: string, element: HTMLElement, value: string
         switch (option) {
             case "*":
                 try {
-                    const newConfig = JSON.parse(value);
-                    for (const key in newConfig) {
-                        if (optionType === "local") {
-                            Config.local[key] = newConfig[key];
-                        } else {
-                            Config.config[key] = newConfig[key];
+                    if (optionType === "local") {
+                        const backup = parseOtherDataBackup(value);
+                        const localValues = { ...backup.local };
+                        if (backup.backendRuntime) {
+                            localValues.backendSubscription = {
+                                ...Config.cachedLocalStorage.backendSubscription,
+                                lastSyncAt: backup.backendRuntime.lastSyncAt,
+                                lastError: backup.backendRuntime.lastError,
+                            };
+                            localValues.lastSubmissionBackendId = backup.backendRuntime.lastSubmissionBackendId;
+                        }
+                        Object.assign(Config.cachedLocalStorage, localValues);
+                        void chrome.storage.local.set(localValues);
+                    } else {
+                        const backup = parseOptionsBackup(value);
+                        Object.assign(Config.cachedSyncConfig, backup.sync);
+                        void chrome.storage.sync.set(backup.sync);
+
+                        if (backup.backendSettings) {
+                            const localValues = {
+                                backendConfig: backup.backendSettings.backendConfig,
+                                backendEnabledMap: backup.backendSettings.backendEnabledMap,
+                                backendSubscription: {
+                                    ...Config.cachedLocalStorage.backendSubscription,
+                                    ...backup.backendSettings.backendSubscription,
+                                },
+                            };
+                            Object.assign(Config.cachedLocalStorage, localValues);
+                            void chrome.storage.local.set(localValues);
                         }
                     }
 
@@ -668,9 +630,10 @@ function downloadConfig(element: Element) {
     const optionType = element.getAttribute("data-sync-type");
 
     const file = document.createElement("a");
-    const jsonData = JSON.parse(
-        JSON.stringify(optionType === "local" ? Config.cachedLocalStorage : Config.cachedSyncConfig)
-    );
+    const jsonData =
+        optionType === "local"
+            ? createOtherDataBackup(Config.cachedLocalStorage)
+            : createOptionsBackup(Config.cachedSyncConfig, Config.cachedLocalStorage);
     const dateTimeString = new Date().toJSON().replace("T", "_").replace(/:/g, ".").replace(/.\d+Z/g, "");
     file.setAttribute("href", `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(jsonData))}`);
     file.setAttribute(
@@ -696,350 +659,6 @@ function uploadConfig(e: Event, element: HTMLElement) {
     }
 }
 
-/**
- * Validates the value used for the database server address.
- * Returns null and alerts the user if there is an issue.
- *
- * @param input Input server address
- */
-function validateServerAddress(input: string): string {
-    input = normalizeServerAddress(input);
-
-    // If it isn't HTTP protocol
-    if (!input.startsWith("https://") && !input.startsWith("http://")) {
-        showMessage(chrome.i18n.getMessage("customAddressError", "error"));
-
-        return null;
-    }
-
-    return input;
-}
-
-function getServerPermissionPattern(address: string): string | null {
-    try {
-        const url = new URL(address);
-        return `${url.protocol}//${url.hostname}/*`;
-    } catch {
-        return null;
-    }
-}
-
-async function requestServerPermissions(addresses: string[]): Promise<boolean> {
-    const origins = [
-        ...new Set(addresses.map(getServerPermissionPattern).filter((origin): origin is string => origin !== null)),
-    ];
-    if (origins.length === 0) return true;
-
-    const hasPermissions = await new Promise<boolean>((resolve) => {
-        chrome.permissions.contains({ origins, permissions: [] }, resolve);
-    });
-    if (hasPermissions) return true;
-
-    return new Promise<boolean>((resolve) => {
-        chrome.permissions.request({ origins, permissions: [] }, resolve);
-    });
-}
-
-function setupServerList(element: HTMLElement): void {
-    const input = element.querySelector(".server-new-address") as HTMLInputElement;
-    const addButton = element.querySelector(".server-add-button") as HTMLButtonElement;
-    const resetButton = element.querySelector(".server-list-reset") as HTMLButtonElement;
-    const container = element.querySelector("#serverNodeList") as HTMLElement;
-    const toggleButton = element.querySelector("#serverMirrorToggle") as HTMLButtonElement;
-    const toggleCaret = toggleButton.querySelector(".server-mirror-caret") as HTMLElement;
-    const mirrorContent = element.querySelector("#serverMirrorContent") as HTMLElement;
-
-    const addServer = async (): Promise<void> => {
-        const address = validateServerAddress(input.value);
-        if (!address || !(await requestServerPermissions([address]))) return;
-
-        const addresses = Config.config.mirrorServerAddresses ?? [];
-        const nextAddresses = addMirrorServerAddress(addresses, address);
-        if (nextAddresses !== addresses) {
-            Config.config.mirrorServerAddresses = nextAddresses;
-        }
-
-        input.value = "";
-        addButton.disabled = true;
-        setTimeout(() => probeServerNode(address, addButton), 100);
-    };
-
-    addButton.addEventListener("click", addServer);
-    input.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") void addServer();
-    });
-
-    resetButton.addEventListener("click", () => {
-        if (!confirm(chrome.i18n.getMessage("areYouSureReset"))) return;
-        Config.config.mirrorServerAddresses = [...Config.syncDefaults.mirrorServerAddresses];
-    });
-
-    toggleButton.addEventListener("click", () => {
-        const expanded = toggleButton.getAttribute("aria-expanded") === "true";
-        toggleButton.setAttribute("aria-expanded", String(!expanded));
-        toggleButton.setAttribute(
-            "aria-label",
-            chrome.i18n.getMessage(expanded ? "expandMirrorServers" : "collapseMirrorServers")
-        );
-        toggleCaret.textContent = expanded ? "▶" : "▼";
-        mirrorContent.hidden = expanded;
-    });
-
-    container.addEventListener("click", (event) => {
-        const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-server-action]");
-        const row = button?.closest<HTMLElement>(".server-node-row");
-        const address = row?.dataset.serverAddress;
-        if (!button || !address) return;
-
-        if (button.dataset.serverAction === "check") {
-            void probeServerNode(address, button);
-        } else if (button.dataset.serverAction === "remove") {
-            Config.config.mirrorServerAddresses = removeMirrorServerAddress(
-                Config.config.mirrorServerAddresses,
-                address
-            );
-        }
-    });
-
-    document.getElementById("refreshPrimaryServerStatus")?.addEventListener("click", async (event) => {
-        const button = event.currentTarget as HTMLButtonElement;
-        const primaryInput = document.querySelector<HTMLInputElement>("#primaryServerRow .server-address-input");
-        if (!primaryInput) return;
-
-        const address = validateServerAddress(primaryInput.value);
-        if (!address || !(await requestServerPermissions([address]))) return;
-
-        primaryInput.value = address;
-        const saveButton = document.querySelector<HTMLButtonElement>("#primaryServerRow .text-change-set");
-        if (saveButton) updatePrimaryServerSaveButton(primaryInput, saveButton);
-
-        if (address === normalizeServerAddress(Config.config.serverAddress)) {
-            probeServerNode(address, button);
-        } else {
-            checkPrimaryServerAddress(address, primaryInput, button);
-        }
-    });
-
-    refreshServerStatus();
-}
-
-function checkPrimaryServerAddress(
-    address: string,
-    input: HTMLInputElement,
-    button: HTMLButtonElement
-): void {
-    button.disabled = true;
-    setPrimaryServerDisplayState("checking", false);
-
-    chrome.runtime.sendMessage({ message: "checkServerAddress", address }, (result: ServerAddressCheckResult) => {
-        button.disabled = false;
-        if (normalizeServerAddress(input.value) !== address) return;
-
-        if (chrome.runtime.lastError || !result || result.address !== address) {
-            setPrimaryServerDisplayState(null, false);
-            return;
-        }
-
-        setPrimaryServerDisplayState(result.healthState, false);
-    });
-}
-
-function probeServerNode(address: string, button?: HTMLButtonElement): void {
-    if (button) button.disabled = true;
-    setServerNodeChecking(address);
-
-    chrome.runtime.sendMessage({ message: "probeServerNode", address }, (status: ServerRouterStatus) => {
-        if (button) button.disabled = false;
-        if (chrome.runtime.lastError || !status) {
-            refreshServerStatus();
-            return;
-        }
-
-        renderServerStatus(status);
-    });
-}
-
-function setServerNodeChecking(address: string): void {
-    if (address === Config.config.serverAddress) {
-        const primaryRow = document.getElementById("primaryServerRow");
-        setPrimaryServerDisplayState("checking", Boolean(primaryRow?.classList.contains("active")));
-    }
-
-    const row = [...document.querySelectorAll<HTMLElement>(".server-node-row")].find(
-        (element) => element.dataset.serverAddress === address
-    );
-    if (!row) return;
-
-    setServerRowState(row, "checking");
-    const state = row.querySelector(".server-node-state");
-    if (state) setServerNodeState(state as HTMLElement, "checking");
-}
-
-function refreshServerStatus(): void {
-    if (!document.getElementById("serverNodeList")) return;
-
-    chrome.runtime.sendMessage({ message: "getServerStatus" }, (status: ServerRouterStatus) => {
-        if (chrome.runtime.lastError || !status) return;
-        renderServerStatus(status);
-    });
-}
-
-function renderServerStatus(status: ServerRouterStatus): void {
-    const container = document.getElementById("serverNodeList");
-    const primaryRow = document.getElementById("primaryServerRow");
-    const primaryHealth = document.getElementById("primaryServerHealth");
-    const mirrorState = document.getElementById("serverMirrorState");
-    const mirrorHeading = mirrorState?.closest<HTMLElement>(".server-mirror-heading");
-    const count = document.getElementById("serverNodeCount");
-    if (!container || !primaryRow || !primaryHealth || !mirrorState || !mirrorHeading || !count) {
-        return;
-    }
-
-    const primaryInput = primaryRow.querySelector<HTMLInputElement>(".server-address-input");
-    const primaryAddress = normalizeServerAddress(Config.config.serverAddress);
-    const primary = status.nodes.find((node) => node.address === primaryAddress);
-    if (primaryInput && isPrimaryServerAddressChanged(primaryInput)) {
-        setPrimaryServerDisplayState(null, false);
-    } else if (primary) {
-        setServerNodeState(primaryHealth, primary.healthState);
-        setServerRowState(primaryRow, primary.healthState);
-        primaryRow.classList.toggle("active", primary.active);
-    } else {
-        primaryHealth.className = "server-node-state";
-        primaryHealth.textContent = chrome.i18n.getMessage("serverNodeUnknown");
-        setServerRowState(primaryRow, null);
-        primaryRow.classList.remove("active");
-    }
-
-    const mirrorAddresses = new Set(Config.config.mirrorServerAddresses.map(normalizeServerAddress));
-    const mirrors = status.nodes.filter((node) => node.address !== primaryAddress && mirrorAddresses.has(node.address));
-    count.textContent = chrome.i18n.getMessage("serverNodeCount", [String(mirrors.length)]);
-    const mirrorHealth = getMirrorSummaryState(mirrors);
-    mirrorState.hidden = mirrorHealth === null;
-    setServerRowState(mirrorHeading, mirrorHealth);
-    if (mirrorHealth) setServerNodeState(mirrorState, mirrorHealth);
-    container.replaceChildren();
-
-    if (mirrors.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "server-empty-state";
-        empty.textContent = chrome.i18n.getMessage("serverNodeEmpty");
-        container.append(empty);
-        return;
-    }
-
-    for (const node of mirrors) {
-        const row = document.createElement("div");
-        row.className = `server-node-row ${node.healthState}${node.active ? " active" : ""}`;
-        row.dataset.serverAddress = node.address;
-
-        const copy = document.createElement("div");
-        copy.className = "server-node-copy";
-
-        const address = document.createElement("span");
-        address.className = "server-node-address";
-        address.textContent = node.address;
-
-        const meta = document.createElement("div");
-        meta.className = "server-node-meta";
-
-        const official = isOfficialMirrorServerAddress(node.address);
-        const badge = document.createElement("span");
-        badge.className = `server-node-badge ${official ? "official" : "community"}`;
-        badge.textContent = chrome.i18n.getMessage(official ? "officialMirrorServer" : "communityMirrorServer");
-        meta.append(badge);
-
-        copy.append(address, meta);
-
-        const statusBlock = document.createElement("div");
-        statusBlock.className = "server-node-status";
-
-        const state = document.createElement("span");
-        setServerNodeState(state, node.healthState);
-        statusBlock.append(state);
-
-        const nextProbeAt = node.openUntil > Date.now() ? node.openUntil : node.nextRecoveryProbeAt;
-        if (nextProbeAt > Date.now()) {
-            const retryTime = document.createElement("span");
-            retryTime.className = "server-node-retry-time";
-            retryTime.textContent = chrome.i18n.getMessage("serverNodeRetryAt", [
-                new Date(nextProbeAt).toLocaleString(),
-            ]);
-            statusBlock.append(retryTime);
-        }
-
-        const actions = document.createElement("div");
-        actions.className = "server-node-actions";
-        actions.append(
-            createServerNodeAction("checkServerStatus", "check"),
-            createServerNodeAction("removeServer", "remove")
-        );
-
-        row.append(copy, statusBlock, actions);
-        container.append(row);
-    }
-}
-
-type ServerNodeDisplayState = ServerRouterStatus["nodes"][number]["healthState"] | "checking";
-
-function setServerNodeState(element: HTMLElement, state: ServerNodeDisplayState): void {
-    element.className = `server-node-state ${state}`;
-    element.textContent = chrome.i18n.getMessage(
-        {
-            available: "serverNodeAvailable",
-            open: "serverNodeOpen",
-            recovering: "serverNodeRecovering",
-            checking: "serverNodeChecking",
-        }[state]
-    );
-}
-
-function setServerRowState(element: HTMLElement, state: ServerNodeDisplayState | null): void {
-    element.classList.remove("available", "open", "recovering", "checking");
-    if (state) element.classList.add(state);
-}
-
-function isPrimaryServerAddressChanged(input: HTMLInputElement): boolean {
-    return normalizeServerAddress(input.value) !== normalizeServerAddress(Config.config.serverAddress);
-}
-
-function updatePrimaryServerSaveButton(input: HTMLInputElement, button: HTMLButtonElement): void {
-    button.disabled = !isPrimaryServerAddressChanged(input);
-}
-
-function setPrimaryServerDisplayState(state: ServerNodeDisplayState | null, active: boolean): void {
-    const primaryHealth = document.getElementById("primaryServerHealth");
-    const primaryRow = document.getElementById("primaryServerRow");
-    if (!primaryHealth || !primaryRow) return;
-
-    if (state) {
-        setServerNodeState(primaryHealth, state);
-    } else {
-        primaryHealth.className = "server-node-state";
-        primaryHealth.textContent = chrome.i18n.getMessage("serverNodeUnknown");
-    }
-    setServerRowState(primaryRow, state);
-    primaryRow.classList.toggle("active", active);
-}
-
-function getMirrorSummaryState(
-    mirrors: ServerRouterStatus["nodes"]
-): ServerRouterStatus["nodes"][number]["healthState"] | null {
-    if (mirrors.length === 0) return null;
-    if (mirrors.some((node) => node.healthState === "available")) return "available";
-    if (mirrors.some((node) => node.healthState === "recovering")) return "recovering";
-    return "open";
-}
-
-function createServerNodeAction(message: string, action: string): HTMLButtonElement {
-    const button = document.createElement("button");
-    button.className = "server-node-action";
-    button.type = "button";
-    button.dataset.serverAction = action;
-    button.textContent = chrome.i18n.getMessage(message);
-    return button;
-}
-
 function copyDebugOutputToClipboard() {
     // Build output debug information object
     const output = {
@@ -1054,11 +673,6 @@ function copyDebugOutputToClipboard() {
 
     // Sanitise sensitive user config values
     delete output.config.userID;
-    output.config.serverAddress =
-        output.config.serverAddress === CompileConfig.serverAddress
-            ? "Default server address"
-            : "Custom server address";
-    output.config.mirrorServerAddresses = output.config.mirrorServerAddresses.length;
     output.config.invidiousInstances = output.config.invidiousInstances.length;
     output.config.whitelistedChannels = output.config.whitelistedChannels.length;
 
@@ -1151,6 +765,11 @@ function setupCustomSkipSound(element: HTMLElement) {
             : chrome.i18n.getMessage("customSkipSoundDefault");
         status.title = customSound?.dataUrl ? customSound.name : "";
     };
+    Config.configLocalListeners.push(changes => {
+        if (!changes.customSkipSound) return;
+        stopPreview();
+        updateStatus();
+    });
 
     let previewAudio: HTMLAudioElement | null = null;
     let stopPreviewFade: (() => void) | null = null;
@@ -1261,14 +880,6 @@ function setupCustomSkipSound(element: HTMLElement) {
         Config.local.customSkipSound = null;
         updateStatus();
     });
-    Config.configLocalListeners.push(changes => {
-        if (!changes.customSkipSound) return;
-        stopPreview();
-        updateStatus();
-    });
-    Config.configSyncListeners.push(changes => {
-        if (changes.audioNotificationOnSkip && !Config.config.audioNotificationOnSkip) stopPreview();
-    });
 
     updateStatus();
 }
@@ -1335,16 +946,12 @@ function refreshCacheStats() {
  */
 function clearAllCache() {
     chrome.runtime.sendMessage({ message: "clearAllCache" }, (response) => {
-        const error = chrome.runtime.lastError;
         if (response?.ok) {
             showMessage(chrome.i18n.getMessage("clearAllCacheSuccess"), "success");
             refreshCacheStats(); // Refresh display after clearing
         } else {
-            const detail = error?.message || response?.error;
-            showMessage(
-                `${chrome.i18n.getMessage("clearAllCacheFailed")}${detail ? `: ${detail}` : ""}`,
-                "error"
-            );
+            const detail = chrome.runtime.lastError?.message || response?.error;
+            showMessage(`${chrome.i18n.getMessage("clearAllCacheFailed")}${detail ? `: ${detail}` : ""}`, "error");
         }
     });
 }

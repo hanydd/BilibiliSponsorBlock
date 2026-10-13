@@ -9,6 +9,7 @@ import {
 } from "../types";
 import { getContentApp } from "./app";
 import { ContentAppState } from "./app/types";
+import type { BackendInfoMap } from "../backends/types";
 
 export const skipBuffer = 0.003;
 export const endTimeSkipBuffer = 0.5;
@@ -23,6 +24,7 @@ export const maxExecutedSkipRanges = 20;
 let sponsorDataFound = false;
 let sponsorTimes: SponsorTime[] = [];
 let rawSegments: SponsorTime[] | undefined;
+let backendInfo: BackendInfoMap = {};
 const skipNotices: SkipNotice[] = [];
 let activeSkipKeybindElement: ToggleSkippable = null;
 let shownSegmentFailedToFetchWarning = false;
@@ -49,6 +51,7 @@ function buildContentStateSnapshot(): ContentAppState {
         sponsorDataFound,
         sponsorTimes,
         rawSegments,
+        backendInfo,
         skipNotices,
         activeSkipKeybindElement,
         shownSegmentFailedToFetchWarning,
@@ -86,6 +89,11 @@ export const contentState = {
     set rawSegments(value: SponsorTime[] | undefined) {
         rawSegments = value;
         syncContentStateStore("contentState.rawSegments");
+    },
+    get backendInfo() { return backendInfo; },
+    set backendInfo(value: BackendInfoMap) {
+        backendInfo = value ?? {};
+        syncContentStateStore("contentState.backendInfo");
     },
     get sponsorDataFound() { return sponsorDataFound; },
     set sponsorDataFound(v: boolean) {

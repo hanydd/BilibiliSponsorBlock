@@ -1,4 +1,5 @@
 import * as CompileConfig from "../config.json";
+import * as DefaultBackendConfig from "../backends.json";
 import {
     Category,
     CategorySelection,
@@ -15,7 +16,6 @@ import {
     WhitelistedChannel,
 } from "./types";
 import { Keybind, ProtoConfig, keybindEquals } from "./config/config";
-import { getMigratedMirrorServerAddresses } from "./config/serverConfig";
 import { migrateSkipRulesRollout, SkipRulesRollout, SkipRulesNotice } from "./config/skipRulesRollout";
 import { migrateCategorySelections } from "./config/categoryConfig";
 import { decodeBarColors, encodeBarColors, decodeDynamicSponsorColors, encodeDynamicSponsorColors, RuntimeColors } from "./config/categoryColors";
@@ -30,6 +30,28 @@ import {
 } from "./utils/sponsorRegex";
 import type { SponsorRegexRemoteConfig } from "./config/sponsorRegexOTA";
 import * as shippedSponsorRegexConfig from "../ota/sponsorRegex.json";
+
+export interface BackendConfigStorageDefinition {
+    id: string;
+    name: string;
+    desc?: string;
+    api_url: string;
+    enabled?: boolean;
+    capabilities: string[];
+    match?: unknown[];
+    mirrors?: string[];
+    conflicts?: string[];
+}
+export interface BackendConfigStorageDocument {
+    backends: BackendConfigStorageDefinition[];
+}
+export interface BackendSubscriptionStorage {
+    url: string;
+    intervalMinutes: number;
+    enabled: boolean;
+    lastSyncAt: number | null;
+    lastError: string | null;
+}
 
 export interface Permission {
     canSubmit: boolean;
@@ -82,8 +104,6 @@ interface SBConfig {
     hideDiscordLaunches: number;
     hideDiscordLink: boolean;
     invidiousInstances: string[];
-    serverAddress: string;
-    mirrorServerAddresses: string[];
     minDuration: number;
     skipNoticeDuration: number;
     skipNoticeDurationBefore: number;
@@ -92,7 +112,6 @@ interface SBConfig {
     skipSoundVolume: number;
     skipSoundFadeStart: number;
     checkForUnlistedVideos: boolean;
-    testingServer: boolean;
     ytInfoPermissionGranted: boolean;
     allowExperiments: boolean;
     showDonationLink: boolean;
@@ -212,6 +231,10 @@ interface SBStorage {
 
     // 未提交片段对应稿件的 CID 映射集合，用于跨上下文共享
     videoPageCidMap: Record<BVID, Record<string, CID>>;
+    backendConfig: BackendConfigStorageDocument;
+    backendEnabledMap: Record<string, boolean>;
+    backendSubscription: BackendSubscriptionStorage;
+    lastSubmissionBackendId: string | null;
 
     // 已应用的 OTA 默认规则快照，仅保存在本地；null 时使用随包规则。
     sponsorRegexRemoteConfig: SponsorRegexRemoteConfig | null;
@@ -266,24 +289,6 @@ function migrateOldSyncFormats(config: SBConfig, initialSyncKeys: ReadonlySet<st
     }
 
     // move to new server endpoint v0.1.8
-    if (config["serverAddress"].includes("47.103.74.95")) {
-        config["serverAddress"] = CompileConfig.serverAddress;
-    }
-
-    // move back to the server endpoint v0.8.2
-    if (config["serverAddress"].includes("115.190.32.254")) {
-        config["serverAddress"] = CompileConfig.serverAddress;
-    }
-
-    const migratedMirrorServerAddresses = getMigratedMirrorServerAddresses(
-        config["serverAddress"],
-        config["mirrorServerAddresses"],
-        initialSyncKeys.has("mirrorServerAddresses")
-    );
-    if (migratedMirrorServerAddresses !== config["mirrorServerAddresses"]) {
-        config["mirrorServerAddresses"] = migratedMirrorServerAddresses;
-    }
-
     // "danmakuRegexPattern" 在 0.6.0 版本中被移除，
     // 取而代之的是 "danmakuTimeMatchingRegexPattern" 和 "danmakuOffsetMatchingRegexPattern"
     delete config["danmakuRegexPattern"];
@@ -447,8 +452,6 @@ const syncDefaults = {
     hideDiscordLaunches: 0,
     hideDiscordLink: false,
     invidiousInstances: ["invidious.snopyta.org"], // leave as default
-    serverAddress: CompileConfig.serverAddress,
-    mirrorServerAddresses: CompileConfig.mirrorServerAddresses,
     minDuration: 0,
     skipNoticeDuration: 4,
     skipNoticeDurationBefore: 3,
@@ -457,7 +460,6 @@ const syncDefaults = {
     skipSoundVolume: 0.1,
     skipSoundFadeStart: 1,
     checkForUnlistedVideos: false,
-    testingServer: false,
     ytInfoPermissionGranted: false,
     allowExperiments: true,
     showDonationLink: true,
@@ -698,6 +700,10 @@ const localDefaults = {
     alreadyInstalled: false,
     unsubmittedSegments: {},
     videoPageCidMap: {},
+    backendConfig: JSON.parse(JSON.stringify(DefaultBackendConfig)) as BackendConfigStorageDocument,
+    backendEnabledMap: {},
+    backendSubscription: { url: CompileConfig.backendSubscriptionUrl, intervalMinutes: 60 * 24 * 2, enabled: true, lastSyncAt: null, lastError: null },
+    lastSubmissionBackendId: null,
     customSkipSound: null,
     sponsorRegexRemoteConfig: null,
     lastSponsorRegexConfigCheck: 0,

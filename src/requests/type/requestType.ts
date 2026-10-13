@@ -1,4 +1,5 @@
 import { BVID, Category, SponsorTime } from "../../types";
+import type { BackendInfoMap } from "../../backends/types";
 
 export interface FetchResponse {
     responseText: string;
@@ -26,6 +27,7 @@ export interface SegmentResponse {
     /** Original candidates retained independently of category, display and action filters. */
     rawSegments?: SponsorTime[];
     status: number;
+    backendInfo?: BackendInfoMap;
 }
 
 export type LabelBlock = Record<BVID, Category>;

@@ -1,0 +1,84 @@
+{
+    "backends": [
+        {
+            "id": "main",
+            "name": "小电视空降助手",
+            "desc": "默认后端 - 提供广告跳过、章节标记、精彩提示等功能",
+            "api_url": "https://www.bsbsb.top",
+            "enabled": true,
+            "capabilities": [
+                "GET /api/skipSegments",
+                "GET /api/skipSegments/:sha256HashPrefix",
+                "POST /api/skipSegments",
+                "POST /api/voteOnSponsorTime",
+                "POST /api/viewedVideoSponsorTime",
+                "GET /api/lockCategories",
+                "GET /api/lockCategories/:sha256HashPrefix",
+                "GET /api/videoLabels",
+                "GET /api/videoLabels/:sha256HashPrefix",
+                "GET /api/portVideo",
+                "GET /api/portVideo/:sha256HashPrefix",
+                "POST /api/portVideo",
+                "POST /api/votePort",
+                "POST /api/updatePortedSegments",
+                "GET /api/chapterNames",
+                "GET /api/userInfo",
+                "POST /api/setUsername",
+                "GET /api/getUsername",
+                "POST /api/warnUser"
+            ],
+            "mirrors": [
+                "https://www.bsbsb.xyz",
+                "http://103.236.70.57:9876"
+            ],
+            "conflicts": [
+                "beta"
+            ]
+        },
+        {
+            "id": "beta",
+            "name": "Beta 测试服务器",
+            "desc": "原 Beta 测试服务器，默认关闭",
+            "api_url": "https://www.bsbsb.top/test",
+            "enabled": false,
+            "capabilities": [
+                "GET /api/skipSegments",
+                "GET /api/skipSegments/:sha256HashPrefix",
+                "POST /api/skipSegments",
+                "POST /api/voteOnSponsorTime",
+                "POST /api/viewedVideoSponsorTime",
+                "GET /api/lockCategories",
+                "GET /api/lockCategories/:sha256HashPrefix",
+                "GET /api/videoLabels",
+                "GET /api/videoLabels/:sha256HashPrefix",
+                "GET /api/portVideo",
+                "GET /api/portVideo/:sha256HashPrefix",
+                "POST /api/portVideo",
+                "POST /api/votePort",
+                "POST /api/updatePortedSegments",
+                "GET /api/chapterNames",
+                "GET /api/userInfo",
+                "POST /api/setUsername",
+                "GET /api/getUsername",
+                "POST /api/warnUser"
+            ],
+            "mirrors": [],
+            "conflicts": [
+                "main"
+            ]
+        },
+        {
+            "id": "fastcap",
+            "name": "FastCap Show",
+            "desc": "提供非官方番剧视频无关片段跳过功能",
+            "api_url": "https://fastcap.rinne.in",
+            "enabled": true,
+            "capabilities": [
+                "GET /api/skipSegments",
+                "GET /api/skipSegments/:sha256HashPrefix"
+            ],
+            "mirrors": [],
+            "conflicts": []
+        }
+    ]
+}

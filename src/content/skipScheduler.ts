@@ -3,7 +3,7 @@ import { upcomingSkipDecision } from "../notices/UpcomingSkipDecision";
 import Config from "../config";
 import { isSkipSeek, seekForSkip } from "./skipSeek";
 import { notifyAutomaticSkip } from "./skipNotification";
-import { asyncRequestToServer } from "../requests/requests";
+import { getBackendIdFromSegment, requestWithBackendId } from "./backendService";
 import {
     ActionType,
     CategorySkipOption,
@@ -1037,9 +1037,9 @@ export function unmarkSponsorCounted(uuid: string): void {
     countedSponsorUuids.delete(uuid);
 }
 
-function reportViewedSponsorTime(uuid: string): void {
+function reportViewedSponsorTime(segment: SponsorTime): void {
     try {
-        asyncRequestToServer("POST", "/api/viewedVideoSponsorTime?UUID=" + uuid).catch((error) =>
+        requestWithBackendId("POST", "/api/viewedVideoSponsorTime?UUID=" + segment.UUID, {}, getBackendIdFromSegment(segment)).catch((error) =>
             logDebug("[SB Telemetry] viewedVideoSponsorTime error: " + String(error))
         );
     } catch (error) {
@@ -1074,7 +1074,7 @@ export function recordSkippedSegments(
             counted = true;
         }
 
-        if (fullSkip) reportViewedSponsorTime(segment.UUID);
+        if (fullSkip) reportViewedSponsorTime(segment);
     }
 }
 

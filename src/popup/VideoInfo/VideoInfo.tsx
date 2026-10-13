@@ -5,6 +5,7 @@ import { RefreshIcon } from "../../components/icon/refresh";
 import Config from "../../config";
 import { Message, RefreshSegmentsResponse } from "../../messageTypes";
 import { SponsorTime } from "../../types";
+import type { BackendInfoMap } from "../../backends/types";
 import { exportTimes } from "../../utils/exporter";
 import PopupSegment from "./PopupSegment";
 
@@ -23,6 +24,7 @@ interface VideoInfoState {
     loadedMessage: string;
     importInputOpen: boolean;
     downloadedTimes: SponsorTime[];
+    backendInfo: BackendInfoMap;
     currentTime: number;
 }
 
@@ -36,6 +38,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
             importInputOpen: false,
 
             downloadedTimes: [],
+            backendInfo: {},
             currentTime: 0,
         };
     }
@@ -66,7 +69,7 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
 
     displayNoVideo() {
         // 无法找到视频，不是播放页面
-        this.setState(prev => ({...prev, videoFound: false}));
+        this.setState(prev => ({...prev, videoFound: false, downloadedTimes: [], backendInfo: {}}));
         this.stopLoading();
     }
 
@@ -130,19 +133,20 @@ class VideoInfo extends React.Component<VideoInfoProps, VideoInfoState> {
     }
 
     //display the video times from the array at the top, in a different section
-    displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number) {
+    displayDownloadedSponsorTimes(sponsorTimes: SponsorTime[], time: number, backendInfo: BackendInfoMap = {}) {
         // Sort list by start time
         const downloadedTimes = sponsorTimes
             .sort((a, b) => a.segment[1] - b.segment[1])
             .sort((a, b) => a.segment[0] - b.segment[0]);
 
-        this.setState(prev => ({...prev, downloadedTimes: downloadedTimes, currentTime: time}));
+        this.setState(prev => ({...prev, downloadedTimes: downloadedTimes, currentTime: time, backendInfo}));
     }
 
     private SegmentList(): React.ReactNode[] {
         return this.state.downloadedTimes.map((seg) => (
             <PopupSegment
                 segment={seg}
+                backendInfo={this.state.backendInfo}
                 time={this.state.currentTime}
                 key={seg.UUID}
                 messageApi={this.props.messageApi}

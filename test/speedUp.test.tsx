@@ -547,7 +547,14 @@ describe("skipToTime 委托", () => {
         expect(startSpeedUpMock).not.toHaveBeenCalled();
         expect(video.currentTime).toBe(20);
         expect(executed).toEqual([{ autoSkip: true }]);
-        expect(asyncRequestToServerMock).toHaveBeenCalledWith("POST", "/api/viewedVideoSponsorTime?UUID=uuid-1");
+        expect(asyncRequestToServerMock).toHaveBeenCalledWith(
+            "POST",
+            "/api/viewedVideoSponsorTime?UUID=uuid-1",
+            {},
+            false,
+            {},
+            undefined
+        );
     });
 
     test("dontShowNotice=true 时倍速委托不再强制弹 notice", async () => {

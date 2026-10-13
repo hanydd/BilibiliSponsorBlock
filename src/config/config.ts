@@ -1,5 +1,4 @@
 import { isFirefox } from "../utils/";
-import { SERVER_ROUTER_STORAGE_KEY } from "./serverConfig";
 import { logLocalStorageError } from "../utils/storage";
 
 export interface SyncStorage {
@@ -82,7 +81,7 @@ export class ProtoConfig<T extends SyncStorage, U extends LocalStorage> {
             } else if (areaName === "local") {
                 for (const key in changes) {
                     // skip bsb_cache
-                    if (key.startsWith("bsb_cache") || key === SERVER_ROUTER_STORAGE_KEY) {
+                    if (key.startsWith("bsb_cache") || key === "bsb_backend_router_state") {
                         continue;
                     }
                     this.cachedLocalStorage![key] = changes[key].newValue;

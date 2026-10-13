@@ -1,0 +1,222 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/hanydd/BilibiliSponsorBlock/backends.schema.json",
+    "title": "BilibiliSponsorBlock backend configuration",
+    "description": "Configuration document for the extension's backend definitions.",
+    "$comment": "This schema covers structural constraints. Cross-backend constraints such as unique IDs, known conflict IDs, self-conflicts, and symmetric conflict normalization remain enforced by the runtime validator and normalizer.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "backends"
+    ],
+    "properties": {
+        "backends": {
+            "type": "array",
+            "description": "Backends are evaluated in array order; earlier entries have higher priority.",
+            "items": {
+                "$ref": "#/$defs/backend"
+            }
+        }
+    },
+    "$defs": {
+        "backendId": {
+            "type": "string",
+            "pattern": "^[a-z_-]+$",
+            "description": "A backend ID contains only lowercase ASCII letters, underscores, and hyphens. Uniqueness is checked at runtime."
+        },
+        "httpUrl": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://",
+            "description": "An HTTP or HTTPS URL."
+        },
+        "capability": {
+            "type": "string",
+            "enum": [
+                "GET /api/skipSegments",
+                "GET /api/skipSegments/:sha256HashPrefix",
+                "POST /api/skipSegments",
+                "POST /api/voteOnSponsorTime",
+                "POST /api/viewedVideoSponsorTime",
+                "GET /api/lockCategories",
+                "GET /api/lockCategories/:sha256HashPrefix",
+                "GET /api/videoLabels",
+                "GET /api/videoLabels/:sha256HashPrefix",
+                "GET /api/portVideo",
+                "GET /api/portVideo/:sha256HashPrefix",
+                "POST /api/portVideo",
+                "POST /api/votePort",
+                "POST /api/updatePortedSegments",
+                "GET /api/chapterNames",
+                "GET /api/userInfo",
+                "POST /api/setUsername",
+                "GET /api/getUsername",
+                "POST /api/warnUser"
+            ]
+        },
+        "matchField": {
+            "type": "string",
+            "enum": [
+                "title",
+                "description",
+                "up_mid",
+                "up_name"
+            ]
+        },
+        "matchExpression": {
+            "oneOf": [
+                {
+                    "$ref": "#/$defs/exactMatch"
+                },
+                {
+                    "$ref": "#/$defs/regexpMatch"
+                },
+                {
+                    "$ref": "#/$defs/andMatch"
+                },
+                {
+                    "$ref": "#/$defs/orMatch"
+                },
+                {
+                    "$ref": "#/$defs/notMatch"
+                }
+            ]
+        },
+        "exactMatch": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "field",
+                "exact"
+            ],
+            "properties": {
+                "field": {
+                    "$ref": "#/$defs/matchField"
+                },
+                "exact": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "regexpMatch": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "field",
+                "regexp"
+            ],
+            "properties": {
+                "field": {
+                    "$ref": "#/$defs/matchField"
+                },
+                "regexp": {
+                    "type": "string",
+                    "description": "A JavaScript regular expression. Syntax is checked by the runtime validator."
+                }
+            }
+        },
+        "andMatch": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "and"
+            ],
+            "properties": {
+                "and": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/matchExpression"
+                    }
+                }
+            }
+        },
+        "orMatch": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "or"
+            ],
+            "properties": {
+                "or": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/matchExpression"
+                    }
+                }
+            }
+        },
+        "notMatch": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "not"
+            ],
+            "properties": {
+                "not": {
+                    "$ref": "#/$defs/matchExpression"
+                }
+            }
+        },
+        "backend": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name",
+                "api_url",
+                "capabilities"
+            ],
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/backendId"
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "api_url": {
+                    "$ref": "#/$defs/httpUrl"
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "capabilities": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                        "$ref": "#/$defs/capability"
+                    }
+                },
+                "match": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/matchExpression"
+                    }
+                },
+                "mirrors": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                        "$ref": "#/$defs/httpUrl"
+                    }
+                },
+                "conflicts": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                        "$ref": "#/$defs/backendId"
+                    },
+                    "description": "Conflict IDs must refer to other backends; existence, self-reference, and symmetric normalization are checked at runtime."
+                }
+            }
+        }
+    }
+}

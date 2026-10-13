@@ -19,7 +19,7 @@ export async function routeMockSponsorSegments(
     bvid: string,
     segments: MockSponsorSegment[]
 ): Promise<void> {
-    await context.route("https://www.bsbsb.top/api/skipSegments/**", async (route) => {
+    await context.route("https://www.bsbsb.top/api/skipSegments**", async (route) => {
         await route.fulfill({
             status: 200,
             contentType: "application/json; charset=utf-8",
@@ -33,7 +33,7 @@ export async function routeMockVideoLabels(
     labels: MockVideoLabel[],
     onRequest?: (url: string) => void
 ): Promise<void> {
-    await context.route("https://www.bsbsb.top/api/videoLabels/**", async (route) => {
+    await context.route("https://www.bsbsb.top/api/videoLabels**", async (route) => {
         onRequest?.(route.request().url());
         await route.fulfill({
             status: 200,

@@ -11,6 +11,7 @@ const CHECK_INTERVAL = 24 * 60 * 60 * 1000;
 const RETRY_INTERVAL = 6 * 60 * 60 * 1000;
 const MANUAL_INTERVAL = 5 * 60 * 1000;
 let inFlight: Promise<SponsorRegexCheckResult> | null = null;
+let lastCheckAt = 0;
 
 async function fetchAndApplyOtaConfig(): Promise<SponsorRegexCheckResult> {
     try {
@@ -48,11 +49,15 @@ export async function checkSponsorRegexConfigUpdate(force = false): Promise<Spon
     if (inFlight) return inFlight;
     const interval = Config.local.lastSponsorRegexConfigCheckFailed ? RETRY_INTERVAL : CHECK_INTERVAL;
     const minimumInterval = force ? MANUAL_INTERVAL : interval;
-    if (Date.now() - Config.local.lastSponsorRegexConfigCheck < minimumInterval) {
+    const storedLastCheck = Config.local.lastSponsorRegexConfigCheck || 0;
+    if (storedLastCheck < lastCheckAt) lastCheckAt = storedLastCheck;
+    const lastCheck = Math.max(lastCheckAt, storedLastCheck);
+    if (Date.now() - lastCheck < minimumInterval) {
         return { status: Config.local.lastSponsorRegexConfigCheckFailed ? "failed" : "up-to-date" };
     }
     // 请求前记录时间和失败状态，后台中断后仍按失败间隔重试，避免频繁拉取。
-    Config.local.lastSponsorRegexConfigCheck = Date.now();
+    lastCheckAt = Date.now();
+    Config.local.lastSponsorRegexConfigCheck = lastCheckAt;
     Config.local.lastSponsorRegexConfigCheckFailed = true;
 
     inFlight = fetchAndApplyOtaConfig();

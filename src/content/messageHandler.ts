@@ -51,6 +51,7 @@ export function handleContentMessage(
                 sponsorTimes: isRuleEngineEnabled() ? contentState.sponsorTimes.map(segment =>
                     getRuleRuntime().isExcluded(segment.UUID) ? { ...segment, hidden: SponsorHideType.Hidden } : segment
                 ) : contentState.sponsorTimes,
+                backendInfo: contentState.backendInfo,
                 portVideo: contentState.portVideo,
                 time: getVideo()?.currentTime ?? 0,
             });

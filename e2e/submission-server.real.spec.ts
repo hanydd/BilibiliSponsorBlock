@@ -1,7 +1,7 @@
 import { randomInt, randomUUID } from "crypto";
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures/extension";
-import { readLocalStorage, readSyncStorage, writeSyncStorage } from "./support/extensionStorage";
+import { readLocalStorage, readSyncStorage, writeLocalStorage, writeSyncStorage } from "./support/extensionStorage";
 import {
     assertLocalSponsorBlockServerReady,
     getLocalServerSegment,
@@ -15,6 +15,37 @@ const submissionCid = "500001630059892";
 const submissionVideoId = `${submissionBvid}+${submissionCid}`;
 const submissionVideoUrl =
     "https://www.bilibili.com/video/BV1hUvpewEYD/?vd_source=ef7071b8c0d57f1fcef22eaecd6156e8";
+const localBackendConfig = {
+    backends: [
+        {
+            id: "testing",
+            name: "Playwright local backend",
+            api_url: localSponsorBlockServerUrl,
+            enabled: true,
+            capabilities: [
+                "GET /api/skipSegments",
+                "GET /api/skipSegments/:sha256HashPrefix",
+                "POST /api/skipSegments",
+                "POST /api/voteOnSponsorTime",
+                "POST /api/viewedVideoSponsorTime",
+                "GET /api/lockCategories",
+                "GET /api/lockCategories/:sha256HashPrefix",
+                "GET /api/videoLabels",
+                "GET /api/videoLabels/:sha256HashPrefix",
+                "GET /api/portVideo",
+                "GET /api/portVideo/:sha256HashPrefix",
+                "POST /api/portVideo",
+                "POST /api/votePort",
+                "POST /api/updatePortedSegments",
+                "GET /api/chapterNames",
+                "GET /api/userInfo",
+                "POST /api/setUsername",
+                "GET /api/getUsername",
+                "POST /api/warnUser",
+            ],
+        },
+    ],
+};
 
 type SegmentInfoResponse = {
     status?: number;
@@ -60,8 +91,11 @@ test("@real @local-server submits a recorded segment to the configured local ser
         defaultCategory: "sponsor",
         showCategoryGuidelines: false,
         sponsorTimesContributed: 0,
-        testingServer: true,
         userID: `playwright-e2e-${randomUUID()}-${randomUUID()}`,
+    });
+    await writeLocalStorage(extensionServiceWorker, {
+        backendConfig: localBackendConfig,
+        backendEnabledMap: { testing: true },
     });
     await openRealBilibiliPage(extensionPage, testInfo, submissionVideoUrl);
 

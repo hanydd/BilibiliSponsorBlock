@@ -25,6 +25,7 @@ import { getCid, getVideo, getVideoID } from "../utils/video";
 import { cancelSpeedUp, clearManuallyCancelled, getActiveSpeedUpInfo, getSpeedUpNoticeEnd, startSpeedUp } from "../content/speedUpManager";
 import { getContentApp } from "../content/app";
 import { CONTENT_EVENTS } from "../content/app/events";
+import { VOTE_ON_SPONSOR_TIME_CAPABILITY } from "../backends";
 
 import { SegmentPlaybackState, initialPlayback, noticePresentation } from "../notices/SkipNoticeModel";
 
@@ -87,6 +88,12 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
 
     get segments(): SponsorTime[] { return this.props.segments; }
     get contentContainer(): ContentContainer { return this.props.contentContainer; }
+    private canVote(): boolean {
+        const segment = this.segments[0];
+        if (segment.source !== SponsorSourceType.Server) return true;
+        const info = segment.backendId && this.contentContainer().backendInfo[segment.backendId];
+        return Boolean(info?.capabilities.includes(VOTE_ON_SPONSOR_TIME_CAPABILITY));
+    }
 
     idSuffix = "";
 
@@ -239,7 +246,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             /* Bottom Row */
             <tr id={"sponsorSkipNoticeSecondRow" + this.idSuffix} key={0}>
                 {/* Vote Button Container */}
-                {!this.state.thanksForVotingText ? (
+                {this.canVote() && !this.state.thanksForVotingText ? (
                     <td
                         id={"sponsorTimesVoteButtonsContainer" + this.idSuffix}
                         className="sponsorTimesVoteButtonsContainer"
@@ -302,7 +309,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                             />
                         </button>
                     </td>
-                ) : (
+                ) : this.canVote() ? (
                     <td
                         id={"sponsorTimesVoteButtonInfoMessage" + this.idSuffix}
                         className="sponsorTimesInfoMessage sponsorTimesVoteButtonMessage"
@@ -326,7 +333,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
                             {chrome.i18n.getMessage("ContinueVoting")}
                         </button>
                     </td>
-                )}
+                ) : null}
 
                 {/* Unskip/Skip Button */}
                 {this.segments[0].actionType === ActionType.Mute ? <td>{this.getSkipButton(1)}</td> : null}
@@ -347,6 +354,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             </tr>,
             /* Edit Segments Row */
             this.state.editing &&
+                this.canVote() &&
                 !this.state.thanksForVotingText &&
                 !(this.state.choosingCategory || this.state.actionState === SkipNoticeAction.CopyDownvote) && (
                     <tr id={"sponsorSkipNoticeEditSegmentsRow" + this.idSuffix} key={2}>
