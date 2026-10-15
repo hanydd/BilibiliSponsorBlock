@@ -263,10 +263,15 @@ test("shows mirror servers as individual rows and removes one", async ({
     await expect(settings.locator(".server-node-row")).toHaveCount(3);
     await expect(settings.locator("#serverNodeCount")).toContainText("3");
     await expect(settings.locator(".server-node-badge.official")).toHaveCount(2);
-    await expect(settings.locator(".server-node-badge.official").filter({ hasText: "官方别名" })).toHaveCount(1);
-    await expect(settings.locator(".server-node-badge.official").filter({ hasText: "官方镜像" })).toHaveCount(1);
+    const labels = await extensionServiceWorker.evaluate(() => ({
+        alias: chrome.i18n.getMessage("officialAliasServer"),
+        mirror: chrome.i18n.getMessage("officialMirrorServer"),
+        custom: chrome.i18n.getMessage("customMirrorServer"),
+    }));
+    await expect(settings.locator("[data-server-kind='alias'] .server-node-badge.official")).toHaveText(labels.alias);
+    await expect(settings.locator("[data-server-kind='mirror'] .server-node-badge.official")).toHaveText(labels.mirror);
     await expect(settings.locator(".server-node-badge.community")).toHaveCount(1);
-    await expect(settings.locator("[data-server-kind='custom'] .server-node-badge.community")).toHaveText("自定义镜像");
+    await expect(settings.locator("[data-server-kind='custom'] .server-node-badge.community")).toHaveText(labels.custom);
     await expect(settings.locator("#primaryServerRow")).toHaveAttribute("data-server-kind", "primary");
     await expect(settings.locator("[data-server-kind='alias'] .server-node-address")).toHaveText("https://bsbsb.cc");
     await expect(settings.locator("[data-server-kind='mirror'] .server-node-address")).toHaveText("http://103.236.70.57:9876");

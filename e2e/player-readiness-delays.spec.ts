@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures/extension";
 import { defaultMockBvid, defaultMockCid, routeMockBilibiliVideoPage } from "./support/bilibiliPage";
 import { writeSyncStorage } from "./support/extensionStorage";
+import * as shippedServers from "../ota/servers.json";
 
 test("restores a late time anchor after replacing its control host, without delaying other UI", async ({
     extensionPage: page, extensionServiceWorker,
@@ -54,12 +55,14 @@ test("mounts controls independently of a slow segment API and renders the late r
 }) => {
     await writeSyncStorage(extensionServiceWorker, { autoHideInfoButton: false });
     await routeMockBilibiliVideoPage(page);
-    let release: () => void, requested: () => void;
+    let release: () => void;
+    let requests = 0;
     const response = new Promise<void>(resolve => { release = resolve; });
-    const request = new Promise<void>(resolve => { requested = resolve; });
     // Include failover servers: the primary hash request times out at six seconds.
-    await extensionContext.route("https://www.bsbsb.*/api/skipSegments/**", async route => {
-        requested(); await response;
+    const officialOrigins = new Set(shippedServers.data.nodes.map(node => new URL(node.address).origin));
+    await extensionContext.route(url => officialOrigins.has(url.origin) && url.pathname.startsWith("/api/skipSegments/"), async route => {
+        requests += 1;
+        await response;
         await route.fulfill({ contentType: "application/json", body: JSON.stringify([{ videoID: defaultMockBvid,
             segments: [{ segment: [30, 30], UUID: "1".repeat(64), category: "poi_highlight", actionType: "poi",
                 cid: defaultMockCid, videoDuration: 120 }],
@@ -67,7 +70,7 @@ test("mounts controls independently of a slow segment API and renders the late r
     });
     try {
         await page.goto(`https://www.bilibili.com/video/${defaultMockBvid}/`);
-        await request;
+        await expect.poll(() => requests).toBeGreaterThan(0);
         await expect(page.locator("#startSegmentButton")).toBeVisible();
         await expect(page.locator("#previewbar > li")).toHaveCount(0);
         await page.waitForTimeout(6000);
