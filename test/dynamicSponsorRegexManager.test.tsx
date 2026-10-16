@@ -30,8 +30,10 @@ describe("DynamicSponsorRegexManagerComponent", () => {
 
         const markup = renderToStaticMarkup(React.createElement(DynamicSponsorRegexManagerComponent));
 
-        expect(markup).toContain("Shopping Sites");
-        expect(markup).toContain("Food Delivery");
+        expect(markup).toContain("购物网站");
+        expect(markup).toContain("外卖");
+        expect(markup).not.toContain("Shopping Sites");
+        expect(markup).not.toContain("Food Delivery");
 
         for (const flag of ["g", "i", "m", "s", "u"]) {
             expect(markup).toContain(`id="sponsorRegexFlag_${flag}"`);

@@ -32,8 +32,8 @@ test("renders one toggleable row per built-in sponsor regex entry", async ({
 
     const rows = extensionPage.locator("#DynamicSponsorRegex tbody tr");
     await expect(rows).toHaveCount(shippedRuleCount);
-    await expect(extensionPage.locator("[data-rule-id='shoppingSite']")).toContainText("Shopping Sites");
-    await expect(extensionPage.locator("[data-rule-id='delivery']")).toContainText("Food Delivery");
+    await expect(extensionPage.locator("[data-rule-id='shoppingSite']")).toContainText("购物网站");
+    await expect(extensionPage.locator("[data-rule-id='delivery']")).toContainText("外卖");
 });
 
 test("persists per-entry enabled state and the keyword threshold", async ({
@@ -311,7 +311,7 @@ test("applies OTA regex config updates without shipping a new version", async ({
         rules: [
             {
                 id: "shoppingSite",
-                locales: { en: "Shopping Sites", zh_CN: "购物网站", zh_TW: "購物網站" },
+                locales: { en: "购物网站", zh_CN: "购物网站", zh_TW: "購物網站" },
                 pattern: "(?:淘宝|京东)搜索",
                 enabled: true,
                 version: 2,
@@ -319,7 +319,7 @@ test("applies OTA regex config updates without shipping a new version", async ({
             },
             {
                 id: "otaDelivery",
-                locales: { en: "OTA Delivery", zh_CN: "在线外卖", zh_TW: "線上外送" },
+                locales: { en: "在线外卖", zh_CN: "在线外卖", zh_TW: "線上外送" },
                 pattern: "某团外卖|某了么",
                 enabled: true,
                 version: 1,
@@ -360,6 +360,7 @@ test("applies OTA regex config updates without shipping a new version", async ({
 
     await expect(extensionPage.locator("#sponsorRegexConfigStatus")).toContainText("已应用在线更新");
     await expect(extensionPage.locator("[data-rule-id='otaDelivery']")).toBeVisible();
+    await expect(extensionPage.locator("[data-rule-id='otaDelivery']")).toContainText("在线外卖");
     await expect(extensionPage.locator("[data-rule-id='otaDelivery']")).toContainText("2026-10-08");
     expect(otaRequestCount).toBe(1);
 
@@ -383,7 +384,7 @@ test("applies OTA regex config updates without shipping a new version", async ({
         rules: [
             {
                 id: "shoppingSite",
-                locales: { en: "Shopping Sites", zh_CN: "购物网站", zh_TW: "購物網站" },
+                locales: { en: "购物网站", zh_CN: "购物网站", zh_TW: "購物網站" },
                 pattern: "在线新模式",
                 enabled: true,
                 version: 3,
@@ -391,7 +392,7 @@ test("applies OTA regex config updates without shipping a new version", async ({
             },
             {
                 id: "otaDelivery",
-                locales: { en: "OTA Delivery", zh_CN: "在线外卖", zh_TW: "線上外送" },
+                locales: { en: "在线外卖", zh_CN: "在线外卖", zh_TW: "線上外送" },
                 pattern: "某团外卖|某了么",
                 enabled: true,
                 version: 1,

@@ -6,7 +6,7 @@
             {
                 "id": "shoppingFestival",
                 "locales": {
-                    "en": "Shopping Festival",
+                    "en": "购物节日",
                     "zh_CN": "购物节日",
                     "zh_TW": "購物節日"
                 },
@@ -22,7 +22,7 @@
             {
                 "id": "adLanguage",
                 "locales": {
-                    "en": "Ad Language",
+                    "en": "恰饭暗示",
                     "zh_CN": "恰饭暗示",
                     "zh_TW": "廣告話術"
                 },
@@ -38,7 +38,7 @@
             {
                 "id": "coupon",
                 "locales": {
-                    "en": "Coupons",
+                    "en": "优惠券",
                     "zh_CN": "优惠券",
                     "zh_TW": "優惠券"
                 },
@@ -54,7 +54,7 @@
             {
                 "id": "shoppingSite",
                 "locales": {
-                    "en": "Shopping Sites",
+                    "en": "购物网站",
                     "zh_CN": "购物网站",
                     "zh_TW": "購物網站"
                 },
@@ -70,7 +70,7 @@
             {
                 "id": "returnPolicy",
                 "locales": {
-                    "en": "Return Policy",
+                    "en": "退换货承诺",
                     "zh_CN": "退换货承诺",
                     "zh_TW": "退換貨承諾"
                 },
@@ -86,7 +86,7 @@
             {
                 "id": "purchaseLink",
                 "locales": {
-                    "en": "Purchase Links",
+                    "en": "购买链接",
                     "zh_CN": "购买链接",
                     "zh_TW": "購買連結"
                 },
@@ -102,7 +102,7 @@
             {
                 "id": "guideScan",
                 "locales": {
-                    "en": "QR Code Guides",
+                    "en": "引导扫码",
                     "zh_CN": "引导扫码",
                     "zh_TW": "引導掃碼"
                 },
@@ -118,7 +118,7 @@
             {
                 "id": "sameProduct",
                 "locales": {
-                    "en": "Same Product",
+                    "en": "同款",
                     "zh_CN": "同款",
                     "zh_TW": "同款"
                 },
@@ -134,7 +134,7 @@
             {
                 "id": "misc",
                 "locales": {
-                    "en": "Misc Keywords",
+                    "en": "杂项关键词",
                     "zh_CN": "杂项关键词",
                     "zh_TW": "雜項關鍵詞"
                 },
@@ -150,7 +150,7 @@
             {
                 "id": "delivery",
                 "locales": {
-                    "en": "Food Delivery",
+                    "en": "外卖",
                     "zh_CN": "外卖",
                     "zh_TW": "外送"
                 },
