@@ -40,7 +40,7 @@ beforeEach(() => {
             </div></div></div><div id="overlay"></div>`;
     const parent = document.querySelector("#bilibili-player .bpx-player-progress");
     Object.defineProperties(parent, { offsetWidth: { value: 800 }, offsetHeight: { value: 4 } });
-    Object.defineProperty(document.querySelector("video"), "duration", { value: 180 });
+    Object.defineProperty(document.querySelector("video"), "duration", { configurable: true, value: 180 });
     Object.defineProperty(document, "elementFromPoint", {
         configurable: true, value: jest.fn(() => document.querySelector("#overlay")),
     });
@@ -96,12 +96,12 @@ test("attaches existing shadow marks when its optional host arrives or is replac
         const old = player.querySelector(".bpx-player-shadow-progress-area");
         if (old) old.replaceWith(shadow); else player.append(shadow);
         await Promise.resolve();
-        expect(shadow.contains(bar.shadowContainer)).toBe(true);
+        expect(shadow.querySelector("#shadowPreviewbar")).not.toBeNull();
         checkPreviewbarState();
         expect(getPreviewBar()).toBe(bar);
         shadow.replaceChildren();
         await Promise.resolve();
-        expect(shadow.contains(bar.shadowContainer)).toBe(true);
+        expect(shadow.querySelector("#shadowPreviewbar")).not.toBeNull();
     }
     expect(draw).not.toHaveBeenCalled();
     draw.mockRestore();
@@ -141,11 +141,10 @@ test("keeps colors when floating player layers obscure the video area", async ()
     checkPreviewbarState();
     await Promise.resolve();
     expect(getPreviewBar()).toBe(original);
-    original.container.remove();
+    document.querySelector("#previewbar").remove();
     checkPreviewbarState();
-    expect(getPreviewBar()).toBeNull();
-    createPreviewBar();
-    expect(getPreviewBar()).not.toBe(original);
+    expect(getPreviewBar()).toBe(original);
+    expect(document.querySelectorAll("#previewbar")).toHaveLength(1);
 });
 
 
@@ -171,7 +170,7 @@ test("initial readiness mounts and draws once, then only timeline changes redraw
         expect(draw).toHaveBeenCalledTimes(1);
         lifecycle.requestCheck(); await jest.advanceTimersByTimeAsync(250);
         expect(draw).toHaveBeenCalledTimes(1);
-        duration = 240; lifecycle.requestCheck(); await jest.advanceTimersByTimeAsync(250);
+        duration = 240; Object.defineProperty(video, "duration", { value: duration }); lifecycle.requestCheck(); await jest.advanceTimersByTimeAsync(250);
         expect(getPreviewBar()).toBe(original);
         expect(draw).toHaveBeenCalledTimes(2);
     } finally {

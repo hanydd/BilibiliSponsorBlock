@@ -76,6 +76,8 @@ test("attaches a late or replaced shadow host while controls stay collapsed", as
     await page.locator(".bpx-player-shadow-progress-area").evaluate(node => node.remove());
     await waitForBilibiliContentScript(page, sendContentMessage);
     await sendContentMessage({ message: "refreshSegments" });
+    // Timeline colors no longer wait for the full control panel to become ready.
+    await expect(page.locator("#bsbPlayerButtonContainer")).toHaveCount(1);
     const point = await page.locator('#previewbar [sponsorblock-category="poi_highlight"]').elementHandle();
     await expect(page.locator("#shadowPreviewbar")).toHaveCount(0);
     await page.locator(".bpx-player-control-bottom-right").evaluate((node: HTMLElement) => { node.style.display = "none"; });
@@ -109,6 +111,7 @@ test("updates shadow marks while controls are hidden, for native labels and medi
     });
     await waitForBilibiliContentScript(page, sendContentMessage);
     await sendContentMessage({ message: "refreshSegments" });
+    await expect(page.locator("#bsbPlayerButtonContainer")).toHaveCount(1);
     const point = page.locator('#shadowPreviewbar [sponsorblock-category="poi_highlight"]');
     const position = () => point.evaluate((mark: HTMLElement) => parseFloat(mark.style.left));
     await expect.poll(position).toBeCloseTo(25, 3);

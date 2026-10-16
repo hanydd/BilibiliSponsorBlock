@@ -42,7 +42,9 @@ test("waits for delayed media metadata and resumes after the response arrives", 
         await page.goto(`https://www.bilibili.com/video/${defaultMockBvid}/`, { waitUntil: "domcontentloaded" });
         await expect(page.locator("#app")).toHaveAttribute("data-e2e-hydrated", "true");
         await page.waitForTimeout(11000);
-        await expect(page.locator("#bsbPlayerButtonContainer, #previewbar")).toHaveCount(0);
+        await expect(page.locator("#bsbPlayerButtonContainer")).toHaveCount(0);
+        // A track can mount before metadata; no marks are drawn on an unknown axis.
+        await expect(page.locator("#previewbar > li")).toHaveCount(0);
         release();
         await expect(page.locator("#startSegmentButton")).toBeVisible();
         await expect(page.locator(".skipButtonControlBarContainer")).toHaveCount(1);

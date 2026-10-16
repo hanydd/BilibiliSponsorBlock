@@ -1,8 +1,11 @@
+import { DocumentPipTimelineAdapter, PageTimelineAdapter, TimelineAdapter } from "./TimelineAdapter";
+
 /** The document hosting playback can change without changing the video element. */
 export interface PlayerSurface {
     readonly kind: "page" | "document-pip";
     readonly document: Document;
     readonly window: Window;
+    readonly timeline: TimelineAdapter;
     findVideo(): HTMLVideoElement | null;
     overlayHost(video: HTMLVideoElement): HTMLElement | null;
     noticeLayout(host: Element): { compact: boolean; bottom: number };
@@ -20,6 +23,7 @@ function documentPip(): DocumentPip | undefined {
 abstract class DomPlayerSurface implements PlayerSurface {
     abstract readonly kind: PlayerSurface["kind"];
     abstract readonly videoSelector: string;
+    abstract readonly timeline: TimelineAdapter;
     constructor(readonly document: Document) {}
 
     get window(): Window { return this.document.defaultView; }
@@ -47,6 +51,7 @@ abstract class DomPlayerSurface implements PlayerSurface {
 class PagePlayerSurface extends DomPlayerSurface {
     readonly kind = "page";
     readonly videoSelector = "#bilibili-player video";
+    readonly timeline = new PageTimelineAdapter(this.document);
 
     protected bottomInset(host: Element, height: number): number {
         if (host.closest('[data-screen="mini"]')) return 12;
@@ -62,6 +67,7 @@ class PagePlayerSurface extends DomPlayerSurface {
 class DocumentPipPlayerSurface extends DomPlayerSurface {
     readonly kind = "document-pip";
     readonly videoSelector = ".bpx-player-video-area video";
+    readonly timeline = new DocumentPipTimelineAdapter(this.document);
 
     protected bottomInset(): number { return 12; }
 
