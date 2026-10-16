@@ -41,6 +41,8 @@
 }
 
 #previewbar {
+    /* Native seeking/preview handlers live under this visual overlay. */
+    pointer-events: none;
 	overflow: hidden;
 	padding: 0;
 	margin: 0;
@@ -54,6 +56,7 @@
 
 #shadowPreviewbar,
 #miniPreviewbar {
+    pointer-events: none;
 	overflow: hidden;
 	padding: 0;
 	margin: 0;
@@ -68,7 +71,6 @@
 /* The mini player's native played/buffered layers must not cover segment colors. */
 #miniPreviewbar {
     inset: 0;
-    pointer-events: none;
 }
 
 .progress-bar-line > #previewbar {

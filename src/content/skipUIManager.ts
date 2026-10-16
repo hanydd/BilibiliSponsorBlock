@@ -3,15 +3,37 @@ import Config from "../config";
 import { isSkipSeek } from "./skipSeek";
 import SkipNotice, { SkipNoticeUpdate } from "../render/SkipNotice";
 import { SponsorTime } from "../types";
-import { waitFor } from "../utils/";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
 import { contentState } from "./state";
 import { getSkipNoticeContentContainer } from "./skipNoticeContentContainer";
 import { noticeSegmentsIntersect } from "../utils/noticeUtils";
+import { SkipButtonControlBar } from "../js-components/skipButtonControlBar";
+import type { PlayerUIReadySnapshot } from "./playerUi";
+import { getVideo } from "../utils/video";
 
 function getSkipButtonControlBar() {
     return getContentApp().ui.getState().skipButtonControlBar;
+}
+
+function setupSkipButtonControlBar(snapshot?: PlayerUIReadySnapshot): void {
+    const { skipButtonControlBar } = getContentApp().ui.getState();
+    if (!skipButtonControlBar) {
+        const nextSkipButtonControlBar = new SkipButtonControlBar({
+            skip: (segment) =>
+                void getContentApp().commands.execute("skip/execute", {
+                    v: getVideo(),
+                    skipTime: segment.segment,
+                    skippingSegments: [segment],
+                    openNotice: true,
+                    forceAutoSkip: true,
+                }),
+            selectSegment: (UUID) => void getContentApp().commands.execute("segments/select", { UUID }),
+        });
+        getContentApp().ui.patchState({ skipButtonControlBar: nextSkipButtonControlBar });
+    }
+
+    if (snapshot) getSkipButtonControlBar()?.attachToPage(snapshot);
 }
 
 function selectNoticeTarget(preferred?: SkipNotice): void {
@@ -90,31 +112,23 @@ function applySkipButtonState(enabled: boolean, segment: SponsorTime | null): vo
         return;
     }
 
-    void waitFor(() => getSkipButtonControlBar(), 5000, 10)
-        .then(async (skipButtonControlBar) => {
-            if (!skipButtonControlBar) {
-                return;
-            }
-
-            await skipButtonControlBar.attachToPage();
-            skipButtonControlBar.enable(segment);
-            if (!skipButtonControlBar.isEnabled()) {
-                if (contentState.activeSkipKeybindElement === skipButtonControlBar) {
-                    selectNoticeTarget();
-                }
-                return;
-            }
-
-            skipButtonControlBar.setShowKeybindHint(Config.config.skipToHighlightKeybind != null);
-
-            contentState.activeSkipKeybindElement?.setShowKeybindHint(false);
-            contentState.activeSkipKeybindElement = skipButtonControlBar;
-        })
-        .catch(() => undefined);
+    // State can arrive before hydration or the control hosts. Keep it on the
+    // detached instance; the shared readiness event handles mounting later.
+    setupSkipButtonControlBar();
+    const skipButtonControlBar = getSkipButtonControlBar();
+    skipButtonControlBar.enable(segment);
+    if (!skipButtonControlBar.isEnabled()) {
+        if (contentState.activeSkipKeybindElement === skipButtonControlBar) selectNoticeTarget();
+        return;
+    }
+    skipButtonControlBar.setShowKeybindHint(Config.config.skipToHighlightKeybind != null);
+    contentState.activeSkipKeybindElement?.setShowKeybindHint(false);
+    contentState.activeSkipKeybindElement = skipButtonControlBar;
 }
 
 export function registerSkipUIManager(): void {
     const app = getContentApp();
+    app.bus.on(CONTENT_EVENTS.PLAYER_UI_READY, ({ snapshot }) => setupSkipButtonControlBar(snapshot));
 
     app.bus.on(CONTENT_EVENTS.PLAYER_SEEKING, ({ video }) => {
         if (isRuleEngineEnabled() || isSkipSeek(video)) return;

@@ -20,6 +20,9 @@ jobs:
       - name: Copy configuration
         run: cp config.json.example config.json
 
+      - name: Validate OTA configuration
+        run: npx ts-node scripts/validate-ota.ts
+
       # Run linter
       - name: Lint
         run: npm run lint

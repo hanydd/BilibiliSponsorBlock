@@ -14,7 +14,7 @@ type ExtensionFixtures = {
 const extensionPath = process.env.BSB_E2E_EXTENSION_PATH || path.resolve(__dirname, "../../dist");
 const contentMessageTimeoutMs = 30_000;
 const contentMessageRetryMs = 100;
-const sponsorBlockApiPattern = "https://www.bsbsb.top/**";
+const sponsorBlockApiPattern = "https://bsbsb.top/**";
 
 type ContentMessageResult<TResponse> = {
     ok: boolean;
@@ -152,7 +152,7 @@ export const test = base.extend<ExtensionFixtures>({
                             const tabs = await new Promise<chrome.tabs.Tab[]>((resolve) =>
                                 chromeApi.tabs.query({}, resolve)
                             );
-                            const tab = tabs.find((candidate) => candidate.url?.startsWith("https://www.bilibili.com/"));
+                            const tab = tabs.find((candidate) => /^https:\/\/(www|t|space|search)\.bilibili\.com\//.test(candidate.url ?? ""));
 
                             if (!tab?.id) {
                                 return { ok: false, error: "No bilibili tab found" };

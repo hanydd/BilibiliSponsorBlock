@@ -4,13 +4,16 @@ import { createRoot } from "react-dom/client";
 import * as CompileConfig from "../config.json";
 import Config from "./config";
 import {
-    addMirrorServerAddress,
-    getMirrorServerAddressesAfterPrimaryChange,
-    isOfficialMirrorServerAddress,
     normalizeServerAddress,
-    removeMirrorServerAddress,
     SERVER_ROUTER_STORAGE_KEY,
 } from "./config/serverConfig";
+
+import {
+    getEffectiveServers, getOfficialServers, setPrimaryServer, addServer as addConfiguredServer,
+    removeServer, resetServerList,
+} from "./config/serverPreferences";
+
+import { getServerKind, SERVER_KIND_MESSAGE } from "./config/officialServers";
 
 // Make the config public for debugging purposes
 window.SB = Config;
@@ -19,6 +22,7 @@ import KeybindComponent from "./components/options/KeybindComponent";
 import { StorageChangesObject } from "./config/config";
 import { showDonationLink } from "./config/configUtils";
 import { CategoryChooser, DynamicSponsorChooser } from "./render/CategoryChooser";
+import DynamicSponsorRegexManager from "./render/DynamicSponsorRegexManager";
 import { setMessageNotice, showMessage } from "./render/MessageNotice";
 import UnsubmittedVideos from "./render/UnsubmittedVideos";
 import WhitelistManager from "./render/WhitelistManager";
@@ -39,6 +43,7 @@ const categoryChoosers: CategoryChooser[] = [];
 const unsubmittedVideos: UnsubmittedVideos[] = [];
 const whitelistManagers: WhitelistManager[] = [];
 const dependentOptionTimers = new WeakMap<Element, ReturnType<typeof setTimeout>>();
+const dynamicSponsorRegexManagers: DynamicSponsorRegexManager[] = [];
 
 if (document.readyState === "complete") {
     init();
@@ -203,7 +208,7 @@ async function init() {
 
                 const textChangeSetButton = <HTMLButtonElement>optionsElements[i].querySelector(".text-change-set");
 
-                textChangeInput.value = Config.config[option];
+                textChangeInput.value = option === "serverAddress" ? getEffectiveServers().primary : Config.config[option];
 
                 textChangeSetButton.addEventListener("click", async () => {
                     // See if anything extra must be done
@@ -219,20 +224,12 @@ async function init() {
 
                             if (!(await requestServerPermissions([textChangeInput.value]))) return;
 
-                            const nextMirrorServerAddresses = getMirrorServerAddressesAfterPrimaryChange(
-                                Config.config.serverAddress,
-                                textChangeInput.value,
-                                Config.config.mirrorServerAddresses
-                            );
-                            if (nextMirrorServerAddresses !== Config.config.mirrorServerAddresses) {
-                                Config.config.mirrorServerAddresses = nextMirrorServerAddresses;
-                            }
-
                             break;
                         }
                     }
 
-                    Config.config[option] = textChangeInput.value;
+                    if (option === "serverAddress") setPrimaryServer(textChangeInput.value);
+                    else Config.config[option] = textChangeInput.value;
                     if (option === "serverAddress") {
                         updatePrimaryServerSaveButton(textChangeInput, textChangeSetButton);
                     }
@@ -243,9 +240,10 @@ async function init() {
                 textChangeResetButton.addEventListener("click", () => {
                     if (!confirm(chrome.i18n.getMessage("areYouSureReset"))) return;
 
-                    Config.config[option] = Config.syncDefaults[option];
+                    if (option === "serverAddress") setPrimaryServer(null);
+                    else Config.config[option] = Config.syncDefaults[option];
 
-                    textChangeInput.value = Config.config[option];
+                    textChangeInput.value = option === "serverAddress" ? getEffectiveServers().primary : Config.config[option];
                     if (option === "serverAddress") {
                         updatePrimaryServerSaveButton(textChangeInput, textChangeSetButton);
                     }
@@ -373,6 +371,9 @@ async function init() {
                 break;
             case "react-WhitelistManagerComponent":
                 whitelistManagers.push(new WhitelistManager(optionsElements[i]));
+                break;
+            case "react-DynamicSponsorRegexManagerComponent":
+                dynamicSponsorRegexManagers.push(new DynamicSponsorRegexManager(optionsElements[i]));
                 break;
             case "cache-stats": {
                 setupCacheManagement(optionsElements[i] as HTMLElement);
@@ -515,19 +516,32 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
         }
     }
 
-    if (changes.serverAddress || changes.mirrorServerAddresses) {
+    if (changes.dynamicAndCommentSponsorRegexUserRules || changes.dynamicAndCommentSponsorRegexFlags) {
+        for (const manager of dynamicSponsorRegexManagers) {
+            manager.update();
+        }
+    }
+
+    if (changes.serverPreferences || changes.serverAddress || changes.mirrorServerAddresses) {
         refreshServerStatus();
     }
 }
 
 function optionsLocalConfigUpdateListener(changes: StorageChangesObject) {
-    if (changes[SERVER_ROUTER_STORAGE_KEY]) {
+    if (changes[SERVER_ROUTER_STORAGE_KEY] || changes.officialServers) {
         refreshServerStatus();
     }
 
     if (changes.unsubmittedSegments) {
         for (const chooser of unsubmittedVideos) {
             chooser.update();
+        }
+    }
+
+    // OTA 默认规则使用 local 存储，需独立于用户规则的 sync 事件刷新设置页。
+    if (changes.sponsorRegexRemoteConfig) {
+        for (const manager of dynamicSponsorRegexManagers) {
+            manager.update();
         }
     }
 }
@@ -735,11 +749,7 @@ function setupServerList(element: HTMLElement): void {
         const address = validateServerAddress(input.value);
         if (!address || !(await requestServerPermissions([address]))) return;
 
-        const addresses = Config.config.mirrorServerAddresses ?? [];
-        const nextAddresses = addMirrorServerAddress(addresses, address);
-        if (nextAddresses !== addresses) {
-            Config.config.mirrorServerAddresses = nextAddresses;
-        }
+        addConfiguredServer(address);
 
         input.value = "";
         addButton.disabled = true;
@@ -753,7 +763,7 @@ function setupServerList(element: HTMLElement): void {
 
     resetButton.addEventListener("click", () => {
         if (!confirm(chrome.i18n.getMessage("areYouSureReset"))) return;
-        Config.config.mirrorServerAddresses = [...Config.syncDefaults.mirrorServerAddresses];
+        resetServerList();
     });
 
     toggleButton.addEventListener("click", () => {
@@ -776,10 +786,7 @@ function setupServerList(element: HTMLElement): void {
         if (button.dataset.serverAction === "check") {
             void probeServerNode(address, button);
         } else if (button.dataset.serverAction === "remove") {
-            Config.config.mirrorServerAddresses = removeMirrorServerAddress(
-                Config.config.mirrorServerAddresses,
-                address
-            );
+            removeServer(address);
         }
     });
 
@@ -795,7 +802,7 @@ function setupServerList(element: HTMLElement): void {
         const saveButton = document.querySelector<HTMLButtonElement>("#primaryServerRow .text-change-set");
         if (saveButton) updatePrimaryServerSaveButton(primaryInput, saveButton);
 
-        if (address === normalizeServerAddress(Config.config.serverAddress)) {
+        if (address === normalizeServerAddress(getEffectiveServers().primary)) {
             probeServerNode(address, button);
         } else {
             checkPrimaryServerAddress(address, primaryInput, button);
@@ -842,7 +849,7 @@ function probeServerNode(address: string, button?: HTMLButtonElement): void {
 }
 
 function setServerNodeChecking(address: string): void {
-    if (address === Config.config.serverAddress) {
+    if (address === getEffectiveServers().primary) {
         const primaryRow = document.getElementById("primaryServerRow");
         setPrimaryServerDisplayState("checking", Boolean(primaryRow?.classList.contains("active")));
     }
@@ -878,8 +885,24 @@ function renderServerStatus(status: ServerRouterStatus): void {
     }
 
     const primaryInput = primaryRow.querySelector<HTMLInputElement>(".server-address-input");
-    const primaryAddress = normalizeServerAddress(Config.config.serverAddress);
+    const primaryAddress = normalizeServerAddress(getEffectiveServers().primary);
+    const primaryRole = primaryRow.querySelector<HTMLElement>(".server-node-role");
+    const primaryKind = getServerKind(primaryAddress, getOfficialServers());
+    primaryRow.dataset.serverKind = primaryKind;
+    if (primaryRole) primaryRole.textContent = chrome.i18n.getMessage(SERVER_KIND_MESSAGE[primaryKind]);
+    const primarySource = document.getElementById("primaryServerSource");
+    if (primarySource) primarySource.textContent = chrome.i18n.getMessage(
+        Config.config.serverPreferences.primary === null ? "serverSourceOfficial" : "serverSourceManual"
+    );
+    if (primaryInput && primaryInput.dataset.resolvedAddress !== primaryAddress &&
+        document.activeElement !== primaryInput &&
+        (!primaryInput.dataset.resolvedAddress || primaryInput.value === primaryInput.dataset.resolvedAddress)) {
+        primaryInput.value = primaryAddress;
+        const save = primaryRow.querySelector<HTMLButtonElement>(".text-change-set");
+        if (save) updatePrimaryServerSaveButton(primaryInput, save);
+    }
     const primary = status.nodes.find((node) => node.address === primaryAddress);
+    if (primaryInput) primaryInput.dataset.resolvedAddress = primaryAddress;
     if (primaryInput && isPrimaryServerAddressChanged(primaryInput)) {
         setPrimaryServerDisplayState(null, false);
     } else if (primary) {
@@ -893,7 +916,7 @@ function renderServerStatus(status: ServerRouterStatus): void {
         primaryRow.classList.remove("active");
     }
 
-    const mirrorAddresses = new Set(Config.config.mirrorServerAddresses.map(normalizeServerAddress));
+    const mirrorAddresses = new Set(getEffectiveServers().mirrors.map(normalizeServerAddress));
     const mirrors = status.nodes.filter((node) => node.address !== primaryAddress && mirrorAddresses.has(node.address));
     count.textContent = chrome.i18n.getMessage("serverNodeCount", [String(mirrors.length)]);
     const mirrorHealth = getMirrorSummaryState(mirrors);
@@ -925,11 +948,17 @@ function renderServerStatus(status: ServerRouterStatus): void {
         const meta = document.createElement("div");
         meta.className = "server-node-meta";
 
-        const official = isOfficialMirrorServerAddress(node.address);
+        const kind = getServerKind(node.address, getOfficialServers());
+        row.dataset.serverKind = kind;
         const badge = document.createElement("span");
-        badge.className = `server-node-badge ${official ? "official" : "community"}`;
-        badge.textContent = chrome.i18n.getMessage(official ? "officialMirrorServer" : "communityMirrorServer");
+        badge.className = `server-node-badge ${kind === "custom" ? "community" : "official"}`;
+        badge.textContent = chrome.i18n.getMessage(SERVER_KIND_MESSAGE[kind]);
         meta.append(badge);
+        const source = document.createElement("span");
+        source.className = "server-node-badge";
+        source.textContent = chrome.i18n.getMessage(Config.config.serverPreferences.added.includes(node.address)
+            ? "serverSourceManual" : "serverSourceOfficial");
+        meta.append(source);
 
         copy.append(address, meta);
 
@@ -982,7 +1011,7 @@ function setServerRowState(element: HTMLElement, state: ServerNodeDisplayState |
 }
 
 function isPrimaryServerAddressChanged(input: HTMLInputElement): boolean {
-    return normalizeServerAddress(input.value) !== normalizeServerAddress(Config.config.serverAddress);
+    return normalizeServerAddress(input.value) !== normalizeServerAddress(getEffectiveServers().primary);
 }
 
 function updatePrimaryServerSaveButton(input: HTMLInputElement, button: HTMLButtonElement): void {
@@ -1041,6 +1070,11 @@ function copyDebugOutputToClipboard() {
             ? "Default server address"
             : "Custom server address";
     output.config.mirrorServerAddresses = output.config.mirrorServerAddresses.length;
+    output.config.serverPreferences = {
+        ...output.config.serverPreferences,
+        primary: output.config.serverPreferences.primary === null ? "Official feed" : "Manual address",
+        added: output.config.serverPreferences.added.length,
+    };
     output.config.invidiousInstances = output.config.invidiousInstances.length;
     output.config.whitelistedChannels = output.config.whitelistedChannels.length;
 

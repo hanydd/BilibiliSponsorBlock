@@ -48,7 +48,7 @@ for (const pageInfo of publicPages) {
         });
 
         const requests: Array<{ prefix: string; returned: number }> = [];
-        await extensionContext.route("https://www.bsbsb.top/api/videoLabels/**", async (route) => {
+        await extensionContext.route("https://bsbsb.top/api/videoLabels/**", async (route) => {
             const prefix = new URL(route.request().url()).pathname.split("/").pop() ?? "";
             const videoIDs = await extensionPage
                 .evaluate(() => [

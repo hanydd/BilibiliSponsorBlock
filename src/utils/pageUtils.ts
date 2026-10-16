@@ -1,21 +1,34 @@
-function getPlayerControls(selector: string): HTMLElement {
-    const controls = Array.from(document.querySelectorAll<HTMLElement>(selector)).filter(
+export function getActivePlayerVideo(): HTMLVideoElement | null {
+    return Array.from(document.querySelectorAll<HTMLVideoElement>(
+        "#bilibili-player video:not(.bpx-player-seamless-replacement)"
+    )).find((element) => !isInPreviewPlayer(element)) ?? null;
+}
+
+export function getPlayerContainer(video = getActivePlayerVideo()): HTMLElement | null {
+    return video?.closest<HTMLElement>(".bpx-player-container") ?? null;
+}
+
+function getPlayerControls(selector: string, root: HTMLElement | null): HTMLElement {
+    if (!root) return null;
+    const controls = Array.from(root.querySelectorAll<HTMLElement>(selector)).filter(
         (element) => !isInPreviewPlayer(element)
     );
 
     return controls[controls.length - 1] ?? null;
 }
 
-export function getControls(): HTMLElement {
-    return getPlayerControls(".bpx-player-control-bottom-right");
+export function getControls(root = getPlayerContainer()): HTMLElement {
+    return getPlayerControls(".bpx-player-control-bottom-right", root);
 }
 
-export function getLeftControls(): HTMLElement {
-    return getPlayerControls(".bpx-player-control-bottom-left");
+export function getLeftControls(root = getPlayerContainer()): HTMLElement {
+    return getPlayerControls(".bpx-player-control-bottom-left", root);
 }
 
-export function getProgressBar(): HTMLElement {
-    return document.querySelector(".bpx-player-progress-schedule");
+export function getProgressBar(root = getPlayerContainer()): HTMLElement {
+    if (!root) return null;
+    return Array.from(root.querySelectorAll<HTMLElement>(".bpx-player-progress-schedule"))
+        .find((element) => !isInPreviewPlayer(element)) ?? null;
 }
 
 export function isInPreviewPlayer(element: Element): boolean {

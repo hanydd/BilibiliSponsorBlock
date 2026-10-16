@@ -1228,6 +1228,23 @@ svg {
 	white-space: nowrap;
 }
 
+.sponsor-regex-rule-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 12px;
+}
+
+.sponsor-regex-rule-status {
+	color: var(--description);
+	font-size: 13px;
+
+	max-width: 260px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .volume-control {
 	display: flex;
 	align-items: center;

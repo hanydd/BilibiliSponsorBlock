@@ -503,7 +503,7 @@ test('preview shortcut selects a recorded draft and allows submission', async ({
     await expect.poll(() => getMockVideoTime(page)).toBeLessThan(10);
     await expect.poll(() => getMockVideoTime(page)).toBeGreaterThanOrEqual(20);
     let submitted: { segments: Array<{ segment: number[] }> } | undefined;
-    await extensionContext.route('https://www.bsbsb.top/api/skipSegments', async route => {
+    await extensionContext.route('https://bsbsb.top/api/skipSegments', async route => {
         submitted = route.request().postDataJSON();
         // Stop at the API boundary; never send a submission to the real server.
         await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });

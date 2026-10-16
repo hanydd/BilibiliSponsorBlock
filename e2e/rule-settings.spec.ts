@@ -62,8 +62,8 @@ test('segment tab reuses category controls including both colors and restores th
     await expect.poll(async () => (await readSyncStorage<Array<{ name: string; option: number }>>(extensionServiceWorker, 'categorySelections'))?.find(s => s.name === 'sponsor')?.option).toBe(1);
     await page.locator('#sponsorColorOption input').fill('#123456');
     await page.locator('#sponsorPreviewColorOption input').fill('#654321');
-    await expect.poll(async () => (await readSyncStorage<Record<string, { color: string }>>(extensionServiceWorker, 'barTypes'))?.sponsor?.color).toBe('#123456');
-    await expect.poll(async () => (await readSyncStorage<Record<string, { color: string }>>(extensionServiceWorker, 'barTypes'))?.['preview-sponsor']?.color).toBe('#654321');
+    await expect.poll(async () => (await readSyncStorage<Record<string, [string, string]>>(extensionServiceWorker, 'barTypes'))?.sponsor?.[0]).toBe('#123456');
+    await expect.poll(async () => (await readSyncStorage<Record<string, [string, string]>>(extensionServiceWorker, 'barTypes'))?.sponsor?.[1]).toBe('#654321');
     await toggleRuleEngine(page);
     await expect(page.locator('#category-home #sponsorSkipOption select')).toHaveValue('manualSkip');
     await expect(page.locator('#category-home #sponsorColorOption input')).toHaveValue('#123456');
@@ -243,12 +243,15 @@ test('settings tabs cover every classic behavior setting and keep native control
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'fullVideoLabelsOnThumbnailsMode')).toBe(1);
     await community.locator('label[for="dynamicAndCommentSponsorBlocker"]').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'dynamicAndCommentSponsorBlocker')).toBe(true);
-    await community.locator('#dynamicAndCommentSponsorRegexPattern').fill('migration-test');
-    await community.locator('[data-sync="dynamicAndCommentSponsorRegexPattern"] .text-change-set').click();
-    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'dynamicAndCommentSponsorRegexPattern')).toBe('migration-test');
+    // The single regex text box became a rule list; toggling one entry proves the moved controls still work.
+    await community.locator("[data-rule-id='delivery'] input[type='checkbox']").uncheck();
+    await expect.poll(async () => {
+        const userRules = (await readSyncStorage<Array<{ id: string; enabled: boolean }>>(extensionServiceWorker, 'dynamicAndCommentSponsorRegexUserRules')) ?? [];
+        return userRules.find(rule => rule.id === 'delivery')?.enabled;
+    }).toBe(false);
     await toggleRuleEngine(page);
     await expect(page.locator('#behavior #audioNotificationOnSkip')).toBeChecked();
-    await expect(page.locator('#behavior #dynamicAndCommentSponsorRegexPattern')).toHaveValue('migration-test');
+    await expect(page.locator("#behavior [data-rule-id='delivery'] input[type='checkbox']")).not.toBeChecked();
     await expect(page.locator('#behavior #fullVideoLabelsOnThumbnailsMode')).toHaveValue('1');
     await toggleRuleEngine(page);
     await page.reload();
