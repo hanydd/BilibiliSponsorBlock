@@ -25,6 +25,7 @@ export function setupRuleRollout(updateMode: () => void, openBehavior: () => voi
     }
     function changeMode(enabled: boolean) {
         if (!enabled) closeWelcome();
+        Config.config.skipRulesRollout = 'existing';
         Config.config.skipEngineMode = enabled ? 'rules' : 'legacy';
         updateMode();
         refresh();
