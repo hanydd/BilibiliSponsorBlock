@@ -2,6 +2,7 @@ export function isVisible(element: HTMLElement | null, ignoreWidth = false): boo
     if (!element) {
         return false;
     }
+    const doc = element.ownerDocument;
 
     // Special case for when a video is first loaded, and the main video element is technically hidden
     if (
@@ -9,7 +10,7 @@ export function isVisible(element: HTMLElement | null, ignoreWidth = false): boo
         (element.classList.contains("html5-main-video") ||
             element.id === "player" ||
             element.id === "player_html5_api") &&
-        [...document.querySelectorAll("video")].filter((v) => v.duration).length === 1 &&
+        [...doc.querySelectorAll("video")].filter((v) => v.duration).length === 1 &&
         (element as HTMLVideoElement).duration
     ) {
         return true;
@@ -21,10 +22,10 @@ export function isVisible(element: HTMLElement | null, ignoreWidth = false): boo
 
     const boundingRect = element?.getBoundingClientRect();
     const elementAtPoint =
-        document.elementFromPoint(
+        doc.elementFromPoint(
             boundingRect.left + boundingRect.width / 2,
             boundingRect.top + boundingRect.height / 2
-        ) || document.elementFromPoint(boundingRect.left, boundingRect.top);
+        ) || doc.elementFromPoint(boundingRect.left, boundingRect.top);
 
     if (!elementAtPoint && element.id === "movie_player" && boundingRect.top < 0) {
         return true;

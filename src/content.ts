@@ -40,7 +40,10 @@ import {
     ChannelIDStatus,
     PageType,
 } from "./types";
-import { cleanPage } from "./utils/cleanup";
+import { addCleanupListener, cleanPage } from "./utils/cleanup";
+import { getPlayerSurfaces, observePlayerSurfaces } from "./player/PlayerSurface";
+import * as contentStyles from "../public/content.css";
+import * as sharedStyles from "../public/shared.css";
 import { GenericUtils } from "./utils/genericUtils";
 import { logDebug, logUiLifecycle } from "./utils/logger";
 import {
@@ -68,6 +71,7 @@ if (getPageType() === PageType.Unsupported || getPageType() === PageType.Live) {
 
 function init(): void {
     cleanPage();
+    addCleanupListener(observePlayerSurfaces(surface => surface.mountStyles(contentStyles + "\n" + sharedStyles)));
     logUiLifecycle("content", "state", {
         action: "init",
         pageType: getPageType(),
@@ -245,15 +249,6 @@ async function channelIDChange(channelIDInfo: ChannelIDInfo) {
 }
 
 function setCategoryColorCSSVariables() {
-    let styleContainer = document.getElementById("sbCategoryColorStyle");
-    if (!styleContainer) {
-        styleContainer = document.createElement("style");
-        styleContainer.id = "sbCategoryColorStyle";
-
-        const head = document.head || document.documentElement;
-        head.appendChild(styleContainer);
-    }
-
     let css = ":root {";
     for (const [category, config] of Object.entries(Config.config.barTypes).concat(Object.entries(Config.config.dynamicSponsorTypes))) {
         css += `--sb-category-${category}: ${config.color};`;
@@ -265,5 +260,14 @@ function setCategoryColorCSSVariables() {
     }
     css += "}";
 
-    styleContainer.innerText = css;
+    for (const surface of getPlayerSurfaces()) {
+        const doc = surface.document;
+        let style = doc.getElementById("sbCategoryColorStyle");
+        if (!style) {
+            style = doc.createElement("style");
+            style.id = "sbCategoryColorStyle";
+            (doc.head || doc.documentElement).appendChild(style);
+        }
+        style.textContent = css;
+    }
 }
