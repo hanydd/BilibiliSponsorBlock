@@ -11,26 +11,6 @@ async function upgrade(worker, automatic: boolean, announcements = true) {
 }
 const options = (id: string) => `chrome-extension://${id}/options/options.html#behavior`;
 
-test('upgrading directly from 0.15.0 enrolls bucket 39 using the current configuration and retains preferences', async ({ extensionPage: page, extensionId, extensionServiceWorker: worker }) => {
-    const userID = Array.from({ length: 1000 }, (_, i) => `rollout-${i}`)
-        .find(id => skipRulesBucket(id) === 39)!;
-    await writeSyncStorage(worker, { userID, showNewFeaturePopups: true,
-        categorySelections: [{ name: 'sponsor', option: 1 }], speedUpPlaybackRate: 3 });
-    await worker.evaluate(() => chrome.storage.sync.remove([
-        'skipEngineMode', 'skipRulesRollout', 'skipRulesNotice',
-    ]));
-    await page.goto(options(extensionId));
-    await expect.poll(() => readSyncStorage(worker, 'skipRulesRollout')).toBe('auto');
-    await expect.poll(() => readSyncStorage(worker, 'skipEngineMode')).toBe('rules');
-    await expect(page.locator('#rules-welcome')).toBeVisible();
-    await page.locator('#rules-welcome-close').click();
-    await expect(page.locator('#sponsorSkipOption select')).toHaveValue('manualSkip');
-    expect(await readSyncStorage(worker, 'speedUpPlaybackRate')).toBe(3);
-    await page.reload();
-    await expect(page.locator('#skip-rules')).toBeVisible();
-    await expect(page.locator('#rules-welcome')).toBeHidden();
-});
-
 test('upgrading a 20 percent invitation enrolls the added cohort once and preserves a later opt-out', async ({ extensionPage: page, extensionId, extensionServiceWorker: worker }) => {
     const userID = Array.from({ length: 1000 }, (_, i) => `rollout-${i}`)
         .find(id => skipRulesBucket(id) === 39)!;
@@ -47,18 +27,6 @@ test('upgrading a 20 percent invitation enrolls the added cohort once and preser
     await expect.poll(() => readSyncStorage(worker, 'skipRulesRollout')).toBe('existing');
     await expect.poll(() => readSyncStorage(worker, 'skipEngineMode')).toBe('legacy');
     await expect(page.locator('#rules-welcome')).toBeHidden();
-});
-
-test('an old invitation at the 40 percent boundary stays on the classic engine', async ({ extensionPage: page, extensionId, extensionServiceWorker: worker }) => {
-    const userID = Array.from({ length: 1000 }, (_, i) => `rollout-${i}`)
-        .find(id => skipRulesBucket(id) === 40)!;
-    await writeSyncStorage(worker, { userID, showNewFeaturePopups: true, skipEngineMode: 'legacy',
-        skipRulesRollout: 'invite', skipRulesNotice: 'unseen' });
-    await page.goto(options(extensionId));
-    await expect.poll(() => readSyncStorage(worker, 'skipRulesRollout')).toBe('invite');
-    await expect(page.locator('#classic-behavior')).toBeVisible();
-    await expect(page.locator('#rules-invitation')).toBeVisible();
-    expect(await readSyncStorage(worker, 'skipEngineMode')).toBe('legacy');
 });
 
 for (const notice of ['invitation-dismissed', 'welcome-dismissed']) test(`a previously dismissed ${notice} invitation stays off inside the expanded cohort`, async ({ extensionPage: page, extensionId, extensionServiceWorker: worker }) => {

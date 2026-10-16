@@ -23,25 +23,16 @@ async function openBehaviorOptions(page: Page, extensionId: string, serviceWorke
 const shippedLegacyDefaultRegex =
     "/(618|11(?!1).11|双(?:11|十一|12|十二)|女神节)|恰(?:个|了|到)?饭|金主|(?:评论区)?(?:领(?:取|张|到)?|抢|有|送|得)(?:我的)?(?:神|优惠|红包|折扣|福利|无门槛|隐藏|秘密|专属|(?:超)?大(?:额)?|额外)*(?:券|卷|劵|q(?:uan)?)?(?:后|到手|价|使用|下单)?|(?:优惠|(?:券|卷|劵)后|到手|促销|活动|神)价|(?:淘宝|tb|京东|jd|狗东|拼多多|pdd|天猫|tmall)搜索|(?:随(便|时)|任意)(?:退|退货|换货)|(?:免费|无偿)(?:换(?:个)?新|替换|更换)(?:商品|物品)?|(?:点(?:击)?|戳|来|我)评论区(?:置顶)?|(?:立即|蓝链|链接|🔗)(?:购买|下单)|(?:vx|wx|微信|软件)扫码(?:领)?(?:优惠|红包|券)?|(?:我的)?同款(?:[的]?(?:推荐|好物|商品|入手|购买|拥有|分享|安利)?)|满\\d+|大促|促销|折扣|特价|秒杀|广告|推广|低至|热卖|抢购|新品|豪礼|赠品/gi";
 
-test("renders one toggleable row per built-in sponsor regex entry", async ({
-    extensionId,
-    extensionPage,
-    extensionServiceWorker,
-}) => {
-    await openBehaviorOptions(extensionPage, extensionId, extensionServiceWorker);
-
-    const rows = extensionPage.locator("#DynamicSponsorRegex tbody tr");
-    await expect(rows).toHaveCount(shippedRuleCount);
-    await expect(extensionPage.locator("[data-rule-id='shoppingSite']")).toContainText("购物网站");
-    await expect(extensionPage.locator("[data-rule-id='delivery']")).toContainText("外卖");
-});
-
 test("persists per-entry enabled state and the keyword threshold", async ({
     extensionId,
     extensionPage,
     extensionServiceWorker,
 }) => {
     await openBehaviorOptions(extensionPage, extensionId, extensionServiceWorker);
+
+    await expect(extensionPage.locator("#DynamicSponsorRegex tbody tr")).toHaveCount(shippedRuleCount);
+    await expect(extensionPage.locator("[data-rule-id='shoppingSite']")).toContainText("购物网站");
+    await expect(extensionPage.locator("[data-rule-id='delivery']")).toContainText("外卖");
 
     const deliveryToggle = extensionPage.locator("[data-rule-id='delivery'] input[type='checkbox']");
     await expect(deliveryToggle).toBeChecked();

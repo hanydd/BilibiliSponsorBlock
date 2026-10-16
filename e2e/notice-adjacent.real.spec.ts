@@ -12,7 +12,9 @@ const segments: MockSponsorSegment[] = [
 ];
 
 for (const speedup of [false, true]) {
-    for (const [intro, outro] of [[2, 2], [1, 1], [2, 1], [1, 2]]) {
+    // Speed-up has no effect when both categories require an explicit manual skip.
+    const policies = speedup ? [[2, 2], [2, 1], [1, 2]] : [[2, 2], [1, 1], [2, 1], [1, 2]];
+    for (const [intro, outro] of policies) {
         test(`@real adjacent opening segments ${intro}-${outro}, speedup=${speedup}`, async ({
             extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage,
         }, testInfo) => {

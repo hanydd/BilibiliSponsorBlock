@@ -417,21 +417,6 @@ test("window blur pauses expiry and returning resumes it without losing manually
     await expect(stopped.locator('[id^="skipNoticeTimerStopped"]')).toBeVisible();
 });
 
-test("feedback controls can be reached and activated using the keyboard", async ({ extensionPage: page }) => {
-    const card = page.locator(cardSelector).first();
-    await card.locator('.sponsorSkipNoticeCloseButton').focus();
-    await page.keyboard.press('Tab');
-    await expect(card.locator('button.voteButton').nth(0)).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(card.locator('button.voteButton').nth(1)).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(card.locator('button.voteButton').nth(2)).toBeFocused();
-    const playbackTime = await page.locator('video').evaluate((video: HTMLVideoElement) => video.currentTime);
-    await page.keyboard.press('Enter');
-    await expect(card.locator('[id^="sponsorSkipNoticeEditSegmentsRow"]')).toBeVisible();
-    expect(await page.locator('video').evaluate((video: HTMLVideoElement) => video.currentTime)).toBe(playbackTime);
-});
-
 test('previously displayed cards do not replay entrance when revealed from the stack', async ({ extensionPage: page }) => {
     await page.evaluate(() => {
         (window as Window & { repeatedEntrances?: number }).repeatedEntrances = 0;

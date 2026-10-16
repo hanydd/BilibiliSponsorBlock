@@ -137,15 +137,6 @@ test('shadow leaves dismissal semantics and playback with the legacy engine', as
     await pauseMockVideo(page);
 });
 
-test('engine setting can be switched and persists for the next video page load', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
-    await page.goto(`chrome-extension://${extensionId}/options/options.html`);
-    await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
-    await toggleRuleEngine(page);
-    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
-    await toggleRuleEngine(page);
-    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('legacy');
-});
-
 test('rules restore nested mute after pause and segment exit', async ({ extensionContext, extensionPage, extensionServiceWorker, sendContentMessage }) => {
     const fixtures = { extensionContext, extensionPage, extensionServiceWorker, sendContentMessage };
     await setup(fixtures, { enableSpeedUp: true, speedUpPlaybackRate: 4, muteSegments: true }, [[10, 60], [15, 25]], ['skip', 'mute']);

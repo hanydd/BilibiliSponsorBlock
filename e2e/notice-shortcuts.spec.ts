@@ -57,8 +57,10 @@ test('card does not swallow or cancel unrelated keydown and keyup events', async
 test('keyboard feedback activation does not also trigger the extension skip binding', async ({ extensionPage: page }) => {
     const card = page.locator('.sponsorSkipStackCard');
     await card.locator('.sponsorSkipNoticeCloseButton').focus();
-    for (let i = 0; i < 3; i++) await page.keyboard.press('Tab');
-    await expect(card.locator('button.voteButton').nth(2)).toBeFocused();
+    for (let i = 0; i < 3; i++) {
+        await page.keyboard.press('Tab');
+        await expect(card.locator('button.voteButton').nth(i)).toBeFocused();
+    }
     const before = await getMockVideoTime(page);
     await page.keyboard.press('Enter');
     await expect(card.locator('[id^="sponsorSkipNoticeEditSegmentsRow"]')).toBeVisible();

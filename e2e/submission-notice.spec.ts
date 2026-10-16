@@ -14,18 +14,13 @@ test.beforeEach(async ({ extensionPage }) => {
     await expect(extensionPage.locator("#bilibili-player video")).toBeVisible();
 });
 
-test("injects the content script and reports the mocked video ID", async ({ extensionPage, sendContentMessage }) => {
-    const response = await waitForBilibiliContentScript(extensionPage, sendContentMessage);
-
-    expect(response.videoID).toBe(`${defaultMockBvid}+${defaultMockCid}`);
-});
-
 test("opens submission notice and switches action types", async ({
     extensionPage,
     extensionServiceWorker,
     sendContentMessage,
 }) => {
-    await waitForBilibiliContentScript(extensionPage, sendContentMessage);
+    const response = await waitForBilibiliContentScript(extensionPage, sendContentMessage);
+    expect(response.videoID).toBe(`${defaultMockBvid}+${defaultMockCid}`);
     await openSubmissionNoticeWithImportedSegment(extensionPage, extensionServiceWorker, sendContentMessage);
     await assertSubmissionNoticeActionTypeSwitching(extensionPage);
     await closeSubmissionNotice(extensionPage);

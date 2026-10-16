@@ -5,7 +5,12 @@ import { routeMockSponsorSegments } from './support/sponsorBlockApi';
 import { waitForBilibiliContentScript } from './support/submissionNotice';
 
 for (const mode of [0, 1, 2, 3, 4]) {
-    for (const trigger of ['automatic', 'keyboard', 'hover-keyboard', 'quick-hover-keyboard', 'click']) {
+    // Check every mode during state changes and interrupted hover expansion.
+    // The remaining input paths share presentation logic; cover them once in collapsed mode.
+    const triggers = mode === 2
+        ? ['automatic', 'keyboard', 'hover-keyboard', 'quick-hover-keyboard', 'click']
+        : ['keyboard', 'quick-hover-keyboard'];
+    for (const trigger of triggers) {
         test(`notice presentation mode=${mode} trigger=${trigger}`, async ({ extensionContext, extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
             await writeSyncStorage(extensionServiceWorker, { skipOnSeekToSegment: true, noticeVisibilityMode: mode,
                 skipNoticeDuration: 60, advanceSkipNotice: false, skipKeybind: { key: 'Enter' },
