@@ -16,7 +16,7 @@
         "music_offtopic": ["skip"],
         "poi_highlight": ["poi"],
         "padding": ["skip"],
-        "jumpscare": ["mute", "skip"]
+        "jumpscare": ["mute"]
     },
     "wikiLinks": {
         "sponsor": "https://github.com/hanydd/BilibiliSponsorBlock/wiki/Sponsor",

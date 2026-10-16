@@ -68,7 +68,7 @@ export const eligibilityRules: readonly PermissionRule[] = [
     { rule: RULES.draft, available: false, automatic: false, matches: (s, _v, i) => !!s.draft && i.previewId !== s.id },
     { rule: RULES.disabled, available: false, automatic: false, matches: (s, _v, i) => ['ignore', 'mark'].includes(policy(s, i)) },
     { rule: RULES.cancelled, available: true, automatic: false, matches: (_s, v) => !!v.excluded },
-    { rule: RULES.visitManual, available: true, automatic: false, matches: (s, v) => !v.auto && !s.protectiveMute },
+    { rule: RULES.visitManual, available: true, automatic: false, matches: (_s, v) => !v.auto },
     { rule: RULES.manual, available: true, automatic: false, matches: (s, v, i) => policy(s, i) === 'manual' && !v.manual },
     { rule: RULES.automatic, available: true, automatic: true, matches: () => true },
 ];

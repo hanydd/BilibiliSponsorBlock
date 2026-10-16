@@ -46,16 +46,3 @@ test('submission category visibility follows account canSubmit permissions and t
     await writeSyncStorage(extensionServiceWorker, { showCategoryWithoutPermission: false });
     await expect(page.locator('#sponsorTimeCategoriesSubmissionNotice0 option[value="selfpromo"]')).toHaveCount(0);
 });
-
-test('jumpscare submission defaults to mute and retains an explicit skip choice', async ({ extensionPage: page, extensionServiceWorker, sendContentMessage }) => {
-    await waitForBilibiliContentScript(page, sendContentMessage);
-    await openSubmissionNoticeWithImportedSegment(page, extensionServiceWorker, sendContentMessage);
-    const category = page.locator('#sponsorTimeCategoriesSubmissionNotice0');
-    await category.selectOption('jumpscare');
-    await expect(page.locator('input[type="radio"][value="mute"]')).toBeChecked();
-    await page.locator('label:has(input[type="radio"][value="skip"])').click();
-    await expect(page.locator('input[type="radio"][value="skip"]')).toBeChecked();
-    await category.selectOption('jumpscare');
-    await expect(page.locator('input[type="radio"][value="skip"]')).toBeChecked();
-    await closeSubmissionNotice(page);
-});

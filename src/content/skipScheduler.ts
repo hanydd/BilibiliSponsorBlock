@@ -1,7 +1,6 @@
 import { getRuleRuntime, isRuleEngineEnabled } from "./skipRules/bridge";
 import { upcomingSkipDecision } from "../notices/UpcomingSkipDecision";
 import Config from "../config";
-import { resolvePlaybackBehavior } from "../config/playbackBehavior";
 import { isSkipSeek, seekForSkip } from "./skipSeek";
 import { notifyAutomaticSkip } from "./skipNotification";
 import { asyncRequestToServer } from "../requests/requests";
@@ -44,12 +43,6 @@ import {
 import { cancelSpeedUp, clearManuallyCancelled, getSpeedUpOriginalRate, isManuallyCancelled, isNearSpeedUpEnd, isRecentProgrammaticRateChange, isSpeedUpActive, shouldUseSpeedUp, startSpeedUp, tryResumeSpeedUpAt } from "./speedUpManager";
 
 const utils = new Utils();
-const soundReleased = new Set<string>();
-function behavior(segment: SponsorTime) {
-    return resolvePlaybackBehavior(segment, utils.getCategorySelection(segment.category)?.option, Config.config.muteSegments);
-}
-function playbackAction(segment: SponsorTime) { return behavior(segment).action; }
-
 
 // --- Module-private state (formerly on contentState) ---
 let currentSkipSchedule: ReturnType<typeof setTimeout> | null = null;
@@ -62,29 +55,6 @@ let lastCheckVideoTime = -1;
 let startedWaiting = false;
 let lastPausedAtZero = true;
 let videoMuted = false;
-let ownedMuteVideo: HTMLVideoElement;
-function releaseOwnedMute(): void {
-    ownedMuteVideo?.removeEventListener("volumechange", observeUserSound);
-    if (videoMuted && ownedMuteVideo?.muted) ownedMuteVideo.muted = false;
-    videoMuted = false;
-    ownedMuteVideo = undefined;
-}
-function observeUserSound(): void {
-    if (!videoMuted || !ownedMuteVideo || ownedMuteVideo.muted) return;
-    for (const segment of contentState.sponsorTimes) {
-        if (segment.category === "jumpscare" && segment.segment[0] <= ownedMuteVideo.currentTime && ownedMuteVideo.currentTime < segment.segment[1]) soundReleased.add(segment.UUID);
-    }
-    videoMuted = false;
-}
-function ownMute(video: HTMLVideoElement): void {
-    if (!video.muted) {
-        ownedMuteVideo?.removeEventListener("volumechange", observeUserSound);
-        ownedMuteVideo = video;
-        videoMuted = true;
-        video.addEventListener("volumechange", observeUserSound);
-        video.muted = true;
-    }
-}
 const lastKnownVideoTime: { videoTime: number; preciseTime: number; fromPause: boolean; approximateDelay: number } = {
     videoTime: null,
     preciseTime: null,
@@ -142,8 +112,7 @@ function isInsideExecutedRange(start: number, end: number): boolean {
 }
 
 export function resetSchedulerState(restoreMute = false): void {
-    if (restoreMute || ownedMuteVideo) releaseOwnedMute();
-    soundReleased.clear();
+    if (restoreMute && videoMuted && getVideo()) getVideo().muted = false;
     scheduleGeneration++;
     if (currentSkipSchedule !== null) {
         clearTimeout(currentSkipSchedule);
@@ -267,32 +236,14 @@ export function registerSkipScheduler(): void {
 
         startSkipScheduleCheckingForStartSponsors();
     });
-    app.bus.on(CONTENT_EVENTS.CHANNEL_WHITELIST_CHANGED, () => {
-        if (isRuleEngineEnabled()) return;
-        if (contentState.channelWhitelisted) releaseOwnedMute();
-        void startSponsorSchedule(true);
-    });
-    app.bus.on(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, () => {
-        if (!isRuleEngineEnabled() && ownedMuteVideo !== getVideo()) {
-            const copiedMute = videoMuted && getVideo()?.muted;
-            releaseOwnedMute();
-            if (copiedMute) getVideo().muted = false;
-            void startSponsorSchedule(true);
-        }
-    });
     app.bus.on(CONTENT_EVENTS.CONFIG_CHANGED, ({ changes }) => {
         if (isRuleEngineEnabled()) return;
-        if ("disableSkipping" in changes || "muteSegments" in changes || "categorySelections" in changes) {
-            if (videoMuted && !inMuteSegment(getVideo()?.currentTime, false)) releaseOwnedMute();
-            void startSponsorSchedule(true);
-        }
         if ("hideSkipButtonPlayerControls" in changes) {
             updatePoiSkipButtonForCurrentTime();
         }
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_TIME_UPDATED, ({ time }) => {
         if (isRuleEngineEnabled()) return;
-        if (videoMuted && !inMuteSegment(time, false)) releaseOwnedMute();
         const skipButtonControlBar = getContentApp().ui.getState().skipButtonControlBar;
         if (skipButtonControlBar?.isEnabled() && skipButtonControlBar.segment?.segment[1] <= time) {
             updatePoiSkipButtonForCurrentTime();
@@ -356,11 +307,6 @@ export function registerSkipScheduler(): void {
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_SEEKING, ({ video }) => {
         if (isRuleEngineEnabled()) return;
-        if (videoMuted && !inMuteSegment(video.currentTime, false)) releaseOwnedMute();
-        for (const id of soundReleased) {
-            const segment = contentState.sponsorTimes.find(s => s.UUID === id);
-            if (!segment || video.currentTime < segment.segment[0] || video.currentTime >= segment.segment[1]) soundReleased.delete(id);
-        }
         // UI suppression belongs to one playback pass. A user seek may replay
         // the same range; UUID-based statistics remain independently deduplicated.
         if (!isSkipSeek(video)) {
@@ -485,21 +431,12 @@ export async function startSponsorSchedule(
     if (stale()) return;
 
     const video = getVideo();
-    if (ownedMuteVideo && ownedMuteVideo !== video) releaseOwnedMute();
-    for (const id of soundReleased) {
-        const segment = contentState.sponsorTimes.find(s => s.UUID === id);
-        if (!segment || !video || video.currentTime < segment.segment[0] || video.currentTime >= segment.segment[1]) soundReleased.delete(id);
-    }
     logDebug(`Considering to start skipping: ${!video}, ${video?.paused}`);
     if (!video) return;
     if (currentTime === undefined || currentTime === null) {
         currentTime = getVirtualTime();
     }
     clearWaitingTime();
-    if (!Config.config.disableSkipping && !contentState.channelWhitelisted &&
-        !(Config.config.forceChannelCheck && getChannelIDInfo().status === ChannelIDStatus.Fetching) &&
-        contentState.sponsorTimes.some(s => behavior(s).protectiveMute && !soundReleased.has(s.UUID) &&
-            s.hidden === SponsorHideType.Visible && s.segment[0] <= currentTime && currentTime < s.segment[1])) ownMute(video);
 
     void getContentApp().commands.execute("ui/updateActiveSegment", { currentTime });
 
@@ -626,7 +563,7 @@ export async function startSponsorSchedule(
 
                 if (
                     utils.getCategorySelection(currentSkip.category)?.option === CategorySkipOption.ManualSkip ||
-                    playbackAction(currentSkip) === ActionType.Mute
+                    currentSkip.actionType === ActionType.Mute
                 ) {
                     forcedSkipTime = skipTime[0] + 0.001;
                 } else {
@@ -720,7 +657,7 @@ export async function startSponsorSchedule(
                 Config.config.skipNoticeDurationBefore > 0 &&
                 getVideo().currentTime < skippingSegments[0].segment[0] &&
                 !contentState.sponsorTimesSubmitting?.some((segment) => segment.segment === currentSkip.segment) &&
-                [ActionType.Skip, ActionType.Mute].includes(playbackAction(skippingSegments[0])) &&
+                [ActionType.Skip, ActionType.Mute].includes(skippingSegments[0].actionType) &&
                 shouldAutoSkip(skippingSegments[0]) &&
                 !getVideo()?.paused
             ) {
@@ -836,11 +773,10 @@ export function clearWaitingTime(): void {
 
 export function inMuteSegment(currentTime: number, includeOverlap: boolean): boolean {
     const checkFunction = (segment) =>
-        playbackAction(segment) === ActionType.Mute &&
-        Config.config.muteSegments && !Config.config.disableSkipping && !contentState.channelWhitelisted && !soundReleased.has(segment.UUID) &&
+        segment.actionType === ActionType.Mute &&
         segment.hidden === SponsorHideType.Visible &&
         segment.segment[0] <= currentTime &&
-        (segment.segment[1] > currentTime || (includeOverlap && segment.category !== "jumpscare" && segment.segment[1] + 0.02 > currentTime));
+        (segment.segment[1] > currentTime || (includeOverlap && segment.segment[1] + 0.02 > currentTime));
     return contentState.sponsorTimes?.some(checkFunction) || contentState.sponsorTimesSubmitting.some(checkFunction);
 }
 
@@ -904,7 +840,7 @@ function getNextSkipIndex(
         const skipOption = utils.getCategorySelection(segment.category)?.option;
         if (
             (skipOption === CategorySkipOption.AutoSkip || shouldAutoSkip(segment)) &&
-            playbackAction(segment) === ActionType.Skip
+            segment.actionType === ActionType.Skip
         ) {
             return 0;
         } else if (skipOption !== CategorySkipOption.ShowOverlay) {
@@ -995,7 +931,7 @@ function getNextSkipIndex(
  * them having different categories.
  */
 function getLatestEndTimeIndex(sponsorTimes: SponsorTime[], index: number, hideHiddenSponsors = true): number {
-    if (index == -1 || !shouldAutoSkip(sponsorTimes[index]) || playbackAction(sponsorTimes[index]) !== ActionType.Skip) {
+    if (index == -1 || !shouldAutoSkip(sponsorTimes[index]) || sponsorTimes[index].actionType !== ActionType.Skip) {
         return index;
     }
 
@@ -1010,7 +946,7 @@ function getLatestEndTimeIndex(sponsorTimes: SponsorTime[], index: number, hideH
             currentSegment[1] > latestEndTime &&
             (!hideHiddenSponsors || sponsorTimes[i].hidden === SponsorHideType.Visible) &&
             shouldAutoSkip(sponsorTimes[i]) &&
-            playbackAction(sponsorTimes[i]) === ActionType.Skip
+            sponsorTimes[i].actionType === ActionType.Skip
         ) {
             latestEndTimeIndex = i;
         }
@@ -1049,8 +985,8 @@ function getStartTimes(
                 shouldSkip(segment))) &&
         (!hideHiddenSponsors || segment.hidden === SponsorHideType.Visible) &&
         segment.segment.length === 2 &&
-        playbackAction(segment) !== ActionType.Poi &&
-        playbackAction(segment) !== ActionType.Full;
+        segment.actionType !== ActionType.Poi &&
+        segment.actionType !== ActionType.Full;
 
     const possibleTimes = sponsorTimes.map((sponsorTime) => ({
         ...sponsorTime,
@@ -1244,7 +1180,6 @@ function updatePoiSkipButtonForCurrentTime(): void {
 }
 
 export function shouldAutoSkip(segment: SponsorTime): boolean {
-    if (segment.category === "jumpscare") return behavior(segment).option === CategorySkipOption.AutoSkip && !soundReleased.has(segment.UUID);
     if (segment.source === SponsorSourceType.Danmaku) {
         return Config.config.enableAutoSkipDanmakuSkip;
     }
@@ -1262,7 +1197,7 @@ export function shouldAutoSkip(segment: SponsorTime): boolean {
     } else if (
         Config.config.autoSkipOnMusicVideos &&
         contentState.sponsorTimes?.some((s) => s.category === "music_offtopic") &&
-        playbackAction(segment) === ActionType.Skip
+        segment.actionType === ActionType.Skip
     ) {
         return true;
     } else if (contentState.sponsorTimesSubmitting.some((s) => s.segment === segment.segment)) {
@@ -1273,17 +1208,13 @@ export function shouldAutoSkip(segment: SponsorTime): boolean {
 }
 
 export function shouldSkip(segment: SponsorTime): boolean {
-    if (segment.category === "jumpscare") {
-        const option = behavior(segment).option;
-        return option !== CategorySkipOption.Disabled && option !== CategorySkipOption.ShowOverlay && segment.source !== SponsorSourceType.YouTube;
-    }
     return (
-        (playbackAction(segment) !== ActionType.Full &&
+        (segment.actionType !== ActionType.Full &&
             segment.source !== SponsorSourceType.YouTube &&
             utils.getCategorySelection(segment.category)?.option !== CategorySkipOption.ShowOverlay) ||
         (Config.config.autoSkipOnMusicVideos &&
             contentState.sponsorTimes?.some((s) => s.category === "music_offtopic") &&
-            playbackAction(segment) === ActionType.Skip)
+            segment.actionType === ActionType.Skip)
     );
 }
 
@@ -1307,7 +1238,7 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
     // Speed-up owns per-segment card transitions while playback spans a merged range.
     const originalAutoSkip = autoSkip;
     let speedUpDelegated = false;
-    if (autoSkip && skippingSegments[0].category !== "jumpscare" && !isSubmittingSegment && playbackAction(skippingSegments[0]) === ActionType.Skip && shouldUseSpeedUp(skippingSegments[0])) {
+    if (autoSkip && !isSubmittingSegment && skippingSegments[0].actionType === ActionType.Skip && shouldUseSpeedUp(skippingSegments[0])) {
         if (!isNearSpeedUpEnd(v.currentTime, skipTime[1])) {
             logDebug(`[SB] skipToTime delegating to SpeedUp ${skipTime[0]} -> ${skipTime[1]}`);
             let capturedOriginalRate: number | undefined;
@@ -1332,7 +1263,7 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
     // 注意 seek/键位/遥测三处必须用改写后的 autoSkip（委托时为 false），
     // 否则委托后会执行瞬时 seek，破坏快进语义
     if ((autoSkip || isSubmittingSegment) && v.currentTime !== skipTime[1]) {
-        switch (forceAutoSkip && skippingSegments[0].category === "jumpscare" ? ActionType.Skip : playbackAction(skippingSegments[0])) {
+        switch (skippingSegments[0].actionType) {
             case ActionType.Poi:
             case ActionType.Skip: {
                 if (v.loop && v.duration > 1 && skipTime[1] >= v.duration - 1) {
@@ -1351,7 +1282,10 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
                 ) {
                     seekForSkip(v, v.duration);
                 } else {
-                    if (inMuteSegment(skipTime[1], true)) ownMute(v);
+                    if (inMuteSegment(skipTime[1], true)) {
+                        v.muted = true;
+                        videoMuted = true;
+                    }
 
                     seekForSkip(v, skipTime[1]);
                 }
@@ -1359,7 +1293,10 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
                 break;
             }
             case ActionType.Mute: {
-                ownMute(v);
+                if (!v.muted) {
+                    v.muted = true;
+                    videoMuted = true;
+                }
                 break;
             }
         }
@@ -1369,7 +1306,7 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
         notifyAutomaticSkip(getVideo());
     }
 
-    if (!originalAutoSkip && skippingSegments.length === 1 && playbackAction(skippingSegments[0]) === ActionType.Poi) {
+    if (!originalAutoSkip && skippingSegments.length === 1 && skippingSegments[0].actionType === ActionType.Poi) {
         emitSkipButtonStateChanged(true, skippingSegments[0], undefined, "skipScheduler.skipToTime.poi");
     } else {
         // 合并重复弹窗：起点落在已执行区间内时抑制重复 notice（第二段及以后不再周期性重弹）
@@ -1393,7 +1330,6 @@ export function skipToTime({ v, skipTime, skippingSegments, openNotice, forceAut
                 contentState.activeSkipKeybindElement = {
                     setShowKeybindHint: () => { },
                     toggleSkip: () => {
-                        if (skippingSegments[0].category === "jumpscare") { reskipSponsorTime(skippingSegments[0], true); return; }
                         emitSkipNoticeRequested(
                             "skip",
                             skippingSegments,
@@ -1427,18 +1363,17 @@ export function unskipSponsorTime(segment: SponsorTime, unskipTime: number = nul
         void cancelSpeedUp(true, true);
     }
 
-    if (playbackAction(segment) === ActionType.Mute) {
-        soundReleased.add(segment.UUID);
-        if (!inMuteSegment(getVideo().currentTime, false)) releaseOwnedMute();
+    if (segment.actionType === ActionType.Mute) {
+        getVideo().muted = false;
+        videoMuted = false;
     }
 
-    if (forceSeek || playbackAction(segment) === ActionType.Skip || (segment.category === "jumpscare" && getVideo().currentTime >= segment.segment[1])) {
+    if (forceSeek || segment.actionType === ActionType.Skip) {
         seekForSkip(getVideo(), unskipTime ?? segment.segment[0] + 0.001);
     }
 }
 
 export function reskipSponsorTime(segment: SponsorTime, forceSeek = false): void {
-    if (!isRuleEngineEnabled() && segment.category === "jumpscare" && segment.hidden !== SponsorHideType.Visible) return;
     if (isRuleEngineEnabled()) { getRuleRuntime().action({ kind: "skip", id: segment.UUID, forceSeek }); return; }
     // If speeding, cancel first (reskip means instant skip, not speedUp)
     // reskip 随后自行调度，取消时不再触发 cancel 内部的重排
@@ -1446,16 +1381,15 @@ export function reskipSponsorTime(segment: SponsorTime, forceSeek = false): void
         void cancelSpeedUp(true, false, false);
     }
 
-    if (playbackAction(segment) === ActionType.Mute && segment.category !== "jumpscare" && !forceSeek) {
-        soundReleased.delete(segment.UUID);
-        ownMute(getVideo());
+    if (segment.actionType === ActionType.Mute && !forceSeek) {
+        getVideo().muted = true;
+        videoMuted = true;
     } else {
         const skippedTime = Math.max(segment.segment[1] - getVideo().currentTime, 0);
         const segmentDuration = segment.segment[1] - segment.segment[0];
         const fullSkip = skippedTime / segmentDuration > manualSkipPercentCount;
 
         seekForSkip(getVideo(), segment.segment[1]);
-        if (segment.category === "jumpscare" && !inMuteSegment(segment.segment[1], false)) releaseOwnedMute();
         recordSkippedSegments([segment], () => skippedTime, fullSkip);
         markRangeExecuted(segment.segment[0], segment.segment[1]);
         void startSponsorSchedule(true, segment.segment[1], false);

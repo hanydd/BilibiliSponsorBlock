@@ -9,7 +9,7 @@ export function projectSegment(plan: RulePlan, segment: RuleSegment, input: Rule
     const deadline = visit.phase === 'completed' ? undefined : visit.phase === 'preview' ? segment.start : segment.end;
     plan.cards[id] = {
         visit: visit.number, phase: visit.phase, automatic: visit.automatic, deadline,
-        show: input.showNotices !== false && !visit.hiddenNotice,
+        show: input.showNotices !== false,
         clock: deadline === undefined ? { kind: 'display' } : { kind: 'media', deadline, boundary: visit.phase === 'preview' ? 'start' : 'end' },
     };
     plan.trace.push({ id, rule: input.showNotices === false ? RULES.hidden : deadline === undefined ? RULES.display : RULES.media,
