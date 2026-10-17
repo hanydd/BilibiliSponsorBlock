@@ -113,3 +113,47 @@ test("falls back to the page when Document PiP is unsupported or closed", () => 
     expect(getPlayerSurfaces().map(s => s.kind)).toEqual(["page"]);
     expect(getActivePlayerVideo()).toBe(video);
 });
+
+test.each([false, true])("overlapping script instances settle on one style node (newest cleanup first=%s)", async newestFirst => {
+    const doc = enter();
+    const stopOld = getPlayerSurface(doc).mountStyles(".notice { color: red; }");
+    const original = doc.head.querySelector("[data-sb-player-surface]");
+    // A reinjected bundle has its own module cache and surface registry.
+    let freshGetSurface: typeof getPlayerSurface;
+    jest.isolateModules(() => { freshGetSurface = require("../src/player/PlayerSurface").getPlayerSurface; });
+    const stopNew = freshGetSurface(doc).mountStyles(".notice { color: blue; }");
+    const changes: MutationRecord[] = [];
+    const mutations = new MutationObserver(records => changes.push(...records));
+    mutations.observe(doc.head, { childList: true });
+    try {
+        // A bounded microtask drain reproduces the loop without starving Jest's timeout.
+        for (let i = 0; i < 12; i++) await Promise.resolve();
+        expect(changes.length).toBeLessThan(6);
+        expect(doc.head.querySelectorAll("[data-sb-player-surface]")).toHaveLength(1);
+        expect(doc.head.lastChild).toBe(original);
+        expect(original.textContent).toContain("blue");
+        if (newestFirst) {
+            stopNew();
+            for (let i = 0; i < 4; i++) await Promise.resolve();
+            // A stale observer must not resurrect styles after the current owner exits.
+            expect(doc.head.querySelector("[data-sb-player-surface]")).toBeNull();
+            stopOld();
+        } else {
+            stopOld();
+            expect(original.isConnected).toBe(true);
+            doc.head.append(doc.createElement("style"));
+            for (let i = 0; i < 4; i++) await Promise.resolve();
+            expect(doc.head.lastChild).toBe(original);
+            // Recover when the site's stylesheet reconciliation removes our node.
+            original.remove();
+            for (let i = 0; i < 4; i++) await Promise.resolve();
+            expect(doc.head.lastChild).toBe(original);
+            stopNew();
+        }
+        for (let i = 0; i < 4; i++) await Promise.resolve();
+        expect(doc.head.querySelector("[data-sb-player-surface]")).toBeNull();
+    } finally {
+        mutations.disconnect();
+        stopOld(); stopNew();
+    }
+});

@@ -72,17 +72,27 @@ class DocumentPipPlayerSurface extends DomPlayerSurface {
     protected bottomInset(): number { return 12; }
 
     mountStyles(css: string): () => void {
-        const style = this.document.createElement("style");
-        style.dataset.sbPlayerSurface = "";
-        style.textContent = css;
         const head = this.document.head;
+        const style = head.querySelector<HTMLStyleElement>("style[data-sb-player-surface]") ??
+            this.document.createElement("style");
+        // Reinjected bundles have independent module state. Transfer ownership in
+        // the DOM so delayed cleanup from an older instance cannot remove this style.
+        const owner = crypto.getRandomValues(new Uint32Array(4)).join("-");
+        style.dataset.sbPlayerSurface = owner;
+        const ownsStyle = () => style.dataset.sbPlayerSurface === owner;
+        style.textContent = css;
         // Install synchronously on entry, before the site adopts any extension UI.
         // Keep it after the site's subsequent stylesheet copies and resets.
         const append = () => { if (head.lastChild !== style) head.appendChild(style); };
         append();
-        const observer = new MutationObserver(append);
+        const observer = new MutationObserver(() => {
+            if (ownsStyle()) append(); else observer.disconnect();
+        });
         observer.observe(head, { childList: true });
-        return () => { observer.disconnect(); style.remove(); };
+        return () => {
+            observer.disconnect();
+            if (ownsStyle()) style.remove();
+        };
     }
 }
 
