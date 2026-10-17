@@ -518,6 +518,7 @@ const syncDefaults = {
     closeSkipNoticeKeybind: { key: "Backspace" },
 
     categorySelections: [
+        { name: "jumpscare" as Category, option: CategorySkipOption.AutoSkip },
         {
             name: "filler" as Category,
             option: CategorySkipOption.Disabled,
@@ -652,6 +653,8 @@ const syncDefaults = {
             color: "#2E0066",
             opacity: "0.7",
         },
+        jumpscare: { color: "#e53935", opacity: "0.7" },
+        "preview-jumpscare": { color: "#8e2424", opacity: "0.7" },
         padding: {
             color: "#222222",
             opacity: "0.7",
