@@ -1,5 +1,6 @@
 import { occupiedViewport, stackOffsets, stackMotion } from "../notices/StackLayout";
 import { addCleanupListener } from "../utils/cleanup";
+import { getPlayerSurface, observePlayerSurfaces } from "../player/PlayerSurface";
 
 /** B1: bottom-to-top cards, downward details and an inline overflow stack. */
 export interface StackCard {
@@ -64,6 +65,7 @@ class SkipNoticeStack {
     private entries: Entry[] = []; // Bottom to top; appending never moves an existing header.
     private observer: ResizeObserver;
     private screenObserver: MutationObserver;
+    private disposeSurfaces: () => void;
     private timers = new Set<ReturnType<typeof setTimeout>>();
     private collapseTimer: ReturnType<typeof setTimeout>;
     private leaveTimer: ReturnType<typeof setTimeout>;
@@ -85,6 +87,7 @@ class SkipNoticeStack {
     private below = 0;
     private visibleLimit = Infinity;
     private disposed = false;
+    private layoutDocument: Document;
 
     constructor(private player: HTMLElement) {
         this.host.className = "sponsorSkipStack";
@@ -110,18 +113,26 @@ class SkipNoticeStack {
         this.host.addEventListener("click", (event) => {
             if ((event.target as Element).closest(".sponsorSkipStackCount")) this.review(event.detail === 0);
         });
-        document.addEventListener("pointerup", this.up);
-        window.addEventListener("blur", this.blur);
-        window.addEventListener("focus", this.windowFocus);
+        this.disposeSurfaces = observePlayerSurfaces(surface => {
+            const doc = surface.document, win = surface.window;
+            const up = () => { if (this.player.ownerDocument === doc) this.up(); };
+            const blur = () => { if (this.player.ownerDocument === doc) this.blur(); };
+            const focus = () => { if (this.player.ownerDocument === doc) this.windowFocus(); };
+            doc.addEventListener("pointerup", up);
+            win.addEventListener("blur", blur);
+            win.addEventListener("focus", focus);
+            return () => {
+                doc.removeEventListener("pointerup", up);
+                win.removeEventListener("blur", blur);
+                win.removeEventListener("focus", focus);
+            };
+        });
         this.observer = new ResizeObserver((changes) => {
             if (changes.some((change) => change.target === player)) this.cancel(this.collapseTimer);
             this.layout();
         });
         this.observer.observe(player);
         this.screenObserver = new MutationObserver(() => this.layout());
-        this.screenObserver.observe(player.closest(".bpx-player-container") || player, {
-            attributes: true, attributeFilter: ["data-screen"],
-        });
     }
 
     private later(callback: () => void, milliseconds: number): ReturnType<typeof setTimeout> {
@@ -139,7 +150,7 @@ class SkipNoticeStack {
     }
 
     private duration(milliseconds: number): number {
-        return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : milliseconds;
+        return getPlayerSurface(this.player).window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : milliseconds;
     }
 
     add(card: StackCard, wrapper: HTMLElement): () => void {
@@ -302,7 +313,7 @@ class SkipNoticeStack {
         if (this.reviewing || this.busy || this.pressed || (!this.pointer && !this.focus)) return;
         this.collapseTimer = this.later(() => {
             const protectedIndex = Math.max(this.entries.indexOf(this.pointer), this.entries.indexOf(this.focus));
-            if (protectedIndex < 0 || this.reviewing || this.busy || this.pressed || !document.hasFocus()) return;
+            if (protectedIndex < 0 || this.reviewing || this.busy || this.pressed || !this.player.ownerDocument.hasFocus()) return;
             this.visibleLimit = this.entries.filter((entry) => entry.visible).length;
             // Only gaps ABOVE the highest protected card may shrink. Lower gaps support its position.
             this.entries.forEach((entry, index) => {
@@ -322,7 +333,8 @@ class SkipNoticeStack {
     /** Hold the actual gaps below cards when a pointer interrupts a transition. */
     private freeze(): void {
         const visible = this.entries.filter((entry) => entry.visible && !entry.closing);
-        const offsets = visible.map((entry) => -new DOMMatrixReadOnly(getComputedStyle(entry.element).transform).m42 + this.bottomInset);
+        const win = getPlayerSurface(this.player).window;
+        const offsets = visible.map((entry) => -new DOMMatrixReadOnly(win.getComputedStyle(entry.element).transform).m42 + this.bottomInset);
         visible.forEach((entry, index) => {
             if (index > 0) {
                 const gap = Math.max(0, offsets[index] - offsets[index - 1] - visible[index - 1].header.offsetHeight - GAP);
@@ -383,11 +395,31 @@ class SkipNoticeStack {
     private layout(): void {
         if (this.disposed) return;
         const rect = this.player.getBoundingClientRect();
-        const compact = rect.width <= 480 || rect.height <= 270;
-        const controls = this.player.querySelector<HTMLElement>(".bpx-player-control-wrap");
-        const controlHeight = controls?.getBoundingClientRect().height || 55;
-        const mini = !!this.player.closest('[data-screen="mini"]');
-        const bottom = mini ? 12 : Math.min(rect.height / 2, controlHeight + 12);
+        if (!this.player.isConnected || rect.width <= 0 || rect.height <= 0) return;
+        const surface = getPlayerSurface(this.player);
+        if (this.layoutDocument !== surface.document) {
+            // Pixel anchors and in-flight transforms belong to the old viewport.
+            // Preserve cards and their editing state, but place them afresh after adoption.
+            this.layoutDocument = surface.document;
+            this.windowFocused = surface.document.hasFocus();
+            this.screenObserver.disconnect();
+            this.screenObserver.observe(this.player.closest(".bpx-player-container") || this.player, {
+                attributes: true, attributeFilter: ["data-screen"],
+            });
+            this.cancel(this.collapseTimer);
+            this.cancel(this.leaveTimer);
+            this.pointer = this.focus = this.stateAnchor = undefined;
+            this.pressed = this.reviewing = this.suppressHover = false;
+            this.visibleLimit = Infinity;
+            this.previousHeight = this.topInset = this.bottomInset = this.bottomReserve = 0;
+            this.host.scrollTop = 0;
+            for (const entry of this.entries) {
+                entry.positioned = entry.visible = false;
+                entry.element.style.transition = "none";
+                entry.element.style.transform = "";
+            }
+        }
+        const { compact, bottom } = surface.noticeLayout(this.player);
         this.available = Math.max(40, rect.height - bottom - 12);
         this.below = Math.max(0, bottom - 12);
         this.host.classList.toggle("sponsorSkipStackCompact", compact);
@@ -395,7 +427,7 @@ class SkipNoticeStack {
         const first = this.entries[0];
         if (!first) return;
         const anchor = !this.busy && (this.pointer || this.focus || this.stateAnchor);
-        const detailStyle = getComputedStyle(first.detail);
+        const detailStyle = surface.window.getComputedStyle(first.detail);
         const feedback = first.detail.querySelector<HTMLElement>("[id^='sponsorSkipNoticeSecondRow']");
         const spacing = parseFloat(detailStyle.borderSpacing.split(" ").pop()) || 0;
         // Reserve the feedback row and one editing row before any interaction.
@@ -414,7 +446,7 @@ class SkipNoticeStack {
         const anchorTop = anchor?.visible ? anchor.header.getBoundingClientRect().top - hostTop : undefined;
         const previousVisible = new Set(this.entries.filter((entry) => entry.visible));
         const transforms = new Map(this.entries.map((entry) => [entry,
-            new DOMMatrixReadOnly(getComputedStyle(entry.element).transform).m42]));
+            new DOMMatrixReadOnly(surface.window.getComputedStyle(entry.element).transform).m42]));
         // Keep the animation's swept area until its transition finishes. Otherwise
         // shrinking the viewport would clip a moving card before it reaches its slot.
         const movingBounds = this.entries.filter(entry => entry.visible && entry.positioned).map(entry => {
@@ -530,9 +562,7 @@ class SkipNoticeStack {
         this.timers.forEach(clearTimeout);
         this.observer.disconnect();
         this.screenObserver.disconnect();
-        document.removeEventListener("pointerup", this.up);
-        window.removeEventListener("blur", this.blur);
-        window.removeEventListener("focus", this.windowFocus);
+        this.disposeSurfaces();
         this.host.remove();
         stacks.delete(this.player);
     }

@@ -12,6 +12,8 @@ import { isSafari } from "./utils/index";
 
 import { findValidElementFromSelector } from "./utils/dom";
 import { getHash, getVideoIDHash, HashedValue } from "./utils/hash";
+import { getActivePlayerVideo } from "./utils/pageUtils";
+import { getPlayerSurface } from "./player/PlayerSurface";
 
 export default class Utils {
     // Contains functions needed from the background script
@@ -202,6 +204,9 @@ export default class Utils {
     }
 
     findReferenceNode(): HTMLElement {
+        const video = getActivePlayerVideo();
+        const host = video && getPlayerSurface(video).overlayHost(video);
+        if (host) return host;
         const selectors = [
             ".bpx-player-video-area", // bilibili video
         ];

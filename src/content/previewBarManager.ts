@@ -4,7 +4,8 @@ import { VoteResponse } from "../messageTypes";
 import { ChapterVote } from "../render/ChapterVote";
 import { ActionType, Category, SegmentUUID, SponsorHideType } from "../types";
 import Utils from "../utils";
-import { getPlayerContainer, isVisible } from "../utils/pageUtils";
+import { getPlayerContainer } from "../utils/pageUtils";
+import { getPlayerSurface, observePlayerSurfaces } from "../player/PlayerSurface";
 import { getFormattedTime } from "../utils/formating";
 import { getPlayerTimelineDuration } from "../utils/playerDuration";
 import { logUiLifecycle } from "../utils/logger";
@@ -12,12 +13,13 @@ import { addCleanupListener } from "../utils/cleanup";
 import { getVideo, getVideoID } from "../utils/video";
 import { getContentApp } from "./app";
 import { CONTENT_EVENTS } from "./app/events";
-import { isPlayerUiReady } from "./playerUi";
 import { contentState } from "./state";
 
 const utils = new Utils();
 let removeDurationWidthListener: (() => void) | null = null;
 let durationObserver: MutationObserver | null = null;
+let durationHost: Element | null = null;
+let stopObservingTimelines: (() => void) | null = null;
 
 function getPreviewBarState() {
     return getContentApp().ui.getState();
@@ -29,6 +31,9 @@ export function getLastPreviewBarUpdate() { return getPreviewBarState().lastPrev
 export function resetPreviewBarState(): void {
     durationObserver?.disconnect();
     durationObserver = null;
+    durationHost = null;
+    stopObservingTimelines?.();
+    stopObservingTimelines = null;
     removeDurationAfterSkip();
     const { previewBar } = getPreviewBarState();
     if (previewBar) {
@@ -47,9 +52,15 @@ function voteAsync(type: number, UUID: SegmentUUID, category?: Category): Promis
     return Promise.resolve(getContentApp().commands.execute("segment/voteAsync", { type, UUID, category }));
 }
 
+function observeTimelines(): void {
+    if (stopObservingTimelines) return;
+    stopObservingTimelines = observePlayerSurfaces(surface => surface.timeline.observe(checkPreviewbarState));
+}
+
 export function registerPreviewBarManager(): void {
     const app = getContentApp();
-    addCleanupListener(() => durationObserver?.disconnect());
+    addCleanupListener(resetPreviewBarState);
+    observeTimelines();
 
     app.commands.register("ui/updatePreviewBar", () => updatePreviewBar());
     app.commands.register("ui/updateActiveSegment", ({ currentTime }) => updateActiveSegment(currentTime));
@@ -58,12 +69,13 @@ export function registerPreviewBarManager(): void {
     app.bus.on(CONTENT_EVENTS.PLAYER_UI_READY, () => {
         checkPreviewbarState();
         observeDurationHost();
-        if (getPreviewBar()) updateDurationAfterSkips(); else createPreviewBar();
+        updateDurationAfterSkips();
     });
     app.bus.on(CONTENT_EVENTS.PLAYER_UI_INVALIDATED, () => checkPreviewbarState());
     app.bus.on(CONTENT_EVENTS.PLAYER_TIMELINE_CHANGED, () => {
-        updatePreviewBar();
+        checkPreviewbarState();
     });
+    app.bus.on(CONTENT_EVENTS.VIDEO_ELEMENT_CHANGED, () => checkPreviewbarState());
     app.bus.on(CONTENT_EVENTS.SEGMENTS_LOADED, ({ videoID }) => {
         if (videoID !== getVideoID()) {
             return;
@@ -88,44 +100,21 @@ export function registerPreviewBarManager(): void {
 }
 
 export function createPreviewBar(): void {
+    observeTimelines();
     const app = getContentApp();
     const { previewBar } = app.ui.getState();
     if (previewBar !== null) return;
-    if (!isPlayerUiReady()) return;
-
-    logUiLifecycle("previewBar", "wait", {
-        target: "progress",
-        progress: document.querySelector(".bpx-player-progress"),
-        progressSchedule: document.querySelector(".bpx-player-progress-schedule"),
-        shadowProgress: document.querySelector(".bpx-player-shadow-progress-area"),
-    });
-
-    const player = getPlayerContainer();
-    if (!player) return;
-    const parent = player.querySelector<HTMLElement>(".bpx-player-progress");
-    const shadowParent = player.querySelector<HTMLElement>(".bpx-player-shadow-progress-area");
-
-    // Overlays and the floating player's controls can cover a healthy bar.
-    // Ownership and layout, rather than hit-testing, determine where to mount.
-    if (parent?.isConnected && isVisible(parent)) {
-        const chapterVote = new ChapterVote(voteAsync);
-        const nextPreviewBar = new PreviewBar(parent, shadowParent, chapterVote);
-        app.ui.patchState({ previewBar: nextPreviewBar });
-        observeDurationHost();
-        logUiLifecycle("previewBar", "attach", {
-            action: "mount",
-            parent,
-            shadowParent,
-        });
-        updatePreviewBar();
-    }
+    if (!getVideo()) return;
+    app.ui.patchState({ previewBar: new PreviewBar(new ChapterVote(voteAsync)) });
+    updatePreviewBar();
 }
 
 export function updatePreviewBar(): void {
     const app = getContentApp();
     const { previewBar, selectedSegment } = app.ui.getState();
-    if (previewBar === null) return;
-    if (getVideo() === null) return;
+    if (previewBar === null) { createPreviewBar(); return; }
+    const video = getVideo();
+    if (!video) { previewBar.syncTargets([]); return; }
 
     const previewBarSegments: PreviewBarSegment[] = [];
     if (contentState.sponsorTimes) {
@@ -155,10 +144,11 @@ export function updatePreviewBar(): void {
         });
     });
 
-    const playerDuration = getPlayerTimelineDuration(getVideo());
+    const snapshot = getPlayerSurface(video).timeline.read(video);
+    previewBar.syncTargets(snapshot.targets);
     previewBar.set(
         previewBarSegments.filter((segment) => segment.actionType !== ActionType.Full),
-        playerDuration
+        snapshot.duration
     );
     logUiLifecycle("previewBar", "state", {
         action: "update",
@@ -170,6 +160,7 @@ export function updatePreviewBar(): void {
 
     app.ui.patchState({ lastPreviewBarUpdate: getVideoID() });
     updateDurationAfterSkips();
+    observeDurationHost();
 }
 
 function updateDurationAfterSkips(): void {
@@ -182,8 +173,10 @@ function updateDurationAfterSkips(): void {
 }
 
 function observeDurationHost(): void {
-    durationObserver?.disconnect();
     const host = getPlayerContainer()?.querySelector(".bpx-player-ctrl-time");
+    if (host === durationHost) return;
+    durationObserver?.disconnect();
+    durationHost = host;
     if (!host) return;
     durationObserver = new MutationObserver(() => {
         // Native label rewrites do not change the ready host or timeline. Restore
@@ -198,18 +191,13 @@ function observeDurationHost(): void {
 }
 
 export function checkPreviewbarState(): void {
-    const app = getContentApp();
-    const { previewBar } = app.ui.getState();
-    if (previewBar && (!previewBar.container.isConnected ||
-        !getPlayerContainer()?.contains(previewBar.container))) {
-        logUiLifecycle("previewBar", "detach", {
-            action: "hostRemoved",
-            container: previewBar.container,
-        });
-        previewBar.remove();
-        app.ui.patchState({ previewBar: null });
-        removeDurationAfterSkip();
-    }
+    const bar = getPreviewBar(), video = getVideo();
+    if (!bar) { createPreviewBar(); return; }
+    if (!video) { bar.syncTargets([]); return; }
+    const snapshot = getPlayerSurface(video).timeline.read(video);
+    bar.syncTargets(snapshot.targets);
+    if (bar.videoDuration !== snapshot.duration) updatePreviewBar();
+    observeDurationHost();
 }
 
 export function selectSegment(UUID: SegmentUUID): void {

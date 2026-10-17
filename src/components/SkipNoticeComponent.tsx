@@ -2,6 +2,7 @@ import type { NoticeClock } from "../notices/NoticeClock";
 import { getRuleRuntime, isRuleEngineEnabled } from "../content/skipRules/bridge";
 import type { RuleCard } from "../content/skipRules/types";
 import * as React from "react";
+import { getPlayerSurface } from "../player/PlayerSurface";
 import * as CompileConfig from "../../config.json";
 import Config from "../config";
 import { ActionType, Category, SegmentUUID, SponsorSourceType, SponsorTime } from "../types";
@@ -204,7 +205,7 @@ class SkipNoticeComponent extends React.Component<SkipNoticeProps, SkipNoticeSta
             const updateLayout = () => {
                 const { width, height } = player.getBoundingClientRect();
                 if (width <= 0 || height <= 0) return;
-                const compact = width <= 480 || height <= 270;
+                const { compact } = getPlayerSurface(player).noticeLayout(player);
                 if (compact !== this.state.compact) this.setState({ compact });
             };
             updateLayout();

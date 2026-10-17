@@ -119,6 +119,10 @@ module.exports = env => {
                 {
                     test: /js(\/|\\)document\.js$/,
                     type: 'asset/source'
+                },
+                {
+                    test: /\.css$/,
+                    type: 'asset/source'
                 }
             ]
         },

@@ -1,250 +1,91 @@
 import Config from "../config";
 import { ChapterVote } from "../render/ChapterVote";
-import { ActionType, Category, SponsorHideType, SponsorSourceType, SponsorTime } from "../types";
+import { SponsorHideType, SponsorSourceType, SponsorTime } from "../types";
 import { DEFAULT_CATEGORY, shortCategoryName } from "../utils/categoryUtils";
+
+import { clipTimelineSegments, SegmentOverlayRenderer, TimelineSegment as PreviewBarSegment } from "../player/SegmentOverlayRenderer";
+import type { TimelineTarget, TimelineTooltip } from "../player/TimelineAdapter";
 
 const TOOLTIP_VISIBLE_CLASS = "sponsorCategoryTooltipVisible";
 
-export interface PreviewBarSegment {
-    segment: [number, number];
-    category: Category;
-    actionType: ActionType;
-    unsubmitted: boolean;
-    showLarger: boolean;
-    source: SponsorSourceType;
-    selectedSegment?: boolean;
-}
+export type { TimelineSegment as PreviewBarSegment } from "../player/SegmentOverlayRenderer";
 
 class PreviewBar {
-    // main progress bar
-    container: HTMLUListElement;
-    // small progress bar on the bottom of <video />, shown only when not hovering the video
-    shadowContainer: HTMLUListElement;
-    // Bilibili creates a separate progress bar when entering its floating mini player.
-    miniContainer: HTMLUListElement;
-    private auxiliaryProgressObserver?: MutationObserver;
+    private renderer = new SegmentOverlayRenderer();
+    private tooltipTarget?: TimelineTooltip;
+    private disposeTooltip?: () => void;
     categoryTooltip?: HTMLDivElement;
     categoryTooltipContainer?: HTMLElement;
-    lastSmallestSegment: Record<
-        string,
-        {
-            index: number;
-            segment: PreviewBarSegment;
-        }
-    > = {};
-
-    parent: HTMLElement;
-    shadowParent: HTMLElement;
-
+    lastSmallestSegment: Record<string, { index: number; segment: PreviewBarSegment }> = {};
     segments: PreviewBarSegment[] = [];
     existingChapters: PreviewBarSegment[] = [];
     videoDuration = 0;
 
-    chapterVote: ChapterVote;
+    constructor(public chapterVote: ChapterVote = null) {}
 
-    constructor(parent: HTMLElement, shadowParent: HTMLElement, chapterVote: ChapterVote, test = false) {
-        if (test) return;
-        this.container = document.createElement("ul");
-        this.container.id = "previewbar";
-        this.shadowContainer = document.createElement("ul");
-        this.shadowContainer.id = "shadowPreviewbar";
-        this.miniContainer = document.createElement("ul");
-        this.miniContainer.id = "miniPreviewbar";
-        this.miniContainer.setAttribute("aria-hidden", "true");
-
-        this.parent = parent;
-        this.shadowParent = shadowParent;
-        this.chapterVote = chapterVote;
-
-        this.createElement();
-        this.observeAuxiliaryProgress();
-        this.setupHoverText();
+    syncTargets(targets: TimelineTarget[]): void {
+        this.renderer.sync(targets);
+        const tooltip = targets.find(target => target.tooltip)?.tooltip;
+        if (tooltip?.seekBar !== this.tooltipTarget?.seekBar || tooltip?.anchor !== this.tooltipTarget?.anchor ||
+            (tooltip && !this.categoryTooltip?.isConnected)) this.setupHoverText(tooltip);
     }
 
-    private observeAuxiliaryProgress(): void {
-        const player = this.parent.closest(".bpx-player-container");
-        if (!player) return;
+    setupHoverText(target?: TimelineTooltip): void {
+        this.disposeTooltip?.();
+        this.disposeTooltip = undefined;
+        this.categoryTooltip?.remove();
+        this.categoryTooltip = undefined;
+        this.categoryTooltipContainer?.classList.remove(TOOLTIP_VISIBLE_CLASS);
+        this.categoryTooltipContainer = undefined;
+        this.tooltipTarget = target;
+        if (!target) return;
 
-        const attach = () => {
-            this.shadowParent = player.querySelector<HTMLElement>(".bpx-player-shadow-progress-area");
-            if (this.shadowParent) {
-                if (this.shadowContainer.parentElement !== this.shadowParent) this.shadowParent.prepend(this.shadowContainer);
-            } else {
-                this.shadowContainer.remove();
-            }
-            const progress = player.querySelector(".bpx-player-mini-progress");
-            if (progress) {
-                if (this.miniContainer.parentElement !== progress) progress.appendChild(this.miniContainer);
-            } else {
-                this.miniContainer.remove();
-            }
-        };
-        attach();
-        this.auxiliaryProgressObserver = new MutationObserver((records) => {
-            // Ignore unrelated player mutations, including danmaku and our own segment nodes.
-            const hostChanged = records.some((record) =>
-                [...record.addedNodes, ...record.removedNodes].some((node) =>
-                    node instanceof Element &&
-                    (node.matches(".bpx-player-mini-progress, .bpx-player-shadow-progress-area") ||
-                        node.querySelector(".bpx-player-mini-progress, .bpx-player-shadow-progress-area"))
-                ) || [...record.removedNodes].some(node => node === this.shadowContainer || node === this.miniContainer)
-            );
-            if (hostChanged) attach();
-        });
-        this.auxiliaryProgressObserver.observe(player, { childList: true, subtree: true });
-    }
-
-    setupHoverText(): void {
-        // delete old ones
-        document.querySelectorAll(`.sponsorCategoryTooltip`).forEach((e) => e.remove());
-
-        // Create label placeholder
-        this.categoryTooltip = document.createElement("div");
-        this.categoryTooltip.id = "sponsorTooltip";
-        this.categoryTooltip.className = "bpx-player-progress-preview-time sponsorCategoryTooltip";
-
-        // global chaper tooltip or duration tooltip
-        this.categoryTooltipContainer = document.querySelector(
-            ".bpx-player-progress-area .bpx-player-progress-wrap .bpx-player-progress-popup"
-        );
-        const tooltipTextWrapper = this.categoryTooltipContainer?.querySelector(".bpx-player-progress-preview");
-        const biliChapterWrapper = this.categoryTooltipContainer?.querySelector(".bpx-player-progress-hotspot");
-        if (!this.categoryTooltipContainer || !tooltipTextWrapper) return;
-
-        if (biliChapterWrapper) {
-            biliChapterWrapper.after(this.categoryTooltip);
-        } else {
-            tooltipTextWrapper.after(this.categoryTooltip);
-        }
-
-        const seekBar = document.querySelector(".bpx-player-progress-wrap");
-        if (!seekBar) return;
-
+        const tooltip = target.container.ownerDocument.createElement("div");
+        tooltip.id = "sponsorTooltip";
+        tooltip.className = `${target.className} sponsorCategoryTooltip`;
+        target.anchor.after(tooltip);
+        this.categoryTooltip = tooltip;
+        this.categoryTooltipContainer = target.container;
         let mouseOnSeekBar = false;
-
-        seekBar.addEventListener("mouseenter", () => {
-            mouseOnSeekBar = true;
-        });
-
-        seekBar.addEventListener("mouseleave", () => {
-            mouseOnSeekBar = false;
-        });
-
-        seekBar.addEventListener("mousemove", (e: MouseEvent) => {
-            if (!mouseOnSeekBar || !this.categoryTooltip || !this.categoryTooltipContainer || !chrome.runtime?.id)
-                return;
-
-            const bounds = seekBar.getBoundingClientRect();
+        const enter = () => { mouseOnSeekBar = true; };
+        const leave = () => { mouseOnSeekBar = false; };
+        const move = (event: MouseEvent) => {
+            if (!mouseOnSeekBar || !chrome.runtime?.id) return;
+            const bounds = target.seekBar.getBoundingClientRect();
             if (bounds.width <= 0) return;
-            const timeInSeconds = this.decimalToTime((e.clientX - bounds.x) / bounds.width);
-
-            // Find the segment at that location, using the shortest if multiple found
-            const mainSegment = this.getSmallestSegment(timeInSeconds, this.segments, "normal");
-            this.setTooltipTitle(mainSegment, this.categoryTooltip);
-        });
+            const time = this.decimalToTime((event.clientX - bounds.x) / bounds.width);
+            this.setTooltipTitle(this.getSmallestSegment(time, this.segments, "normal"), tooltip);
+        };
+        target.seekBar.addEventListener("mouseenter", enter);
+        target.seekBar.addEventListener("mouseleave", leave);
+        target.seekBar.addEventListener("mousemove", move);
+        this.disposeTooltip = () => {
+            target.seekBar.removeEventListener("mouseenter", enter);
+            target.seekBar.removeEventListener("mouseleave", leave);
+            target.seekBar.removeEventListener("mousemove", move);
+        };
     }
 
     private setTooltipTitle(segment: PreviewBarSegment, tooltip: HTMLElement): void {
         if (segment) {
             const name = shortCategoryName(segment.category);
-            if (segment.unsubmitted) {
-                tooltip.textContent = chrome.i18n.getMessage("unsubmitted") + " " + name;
-            } else {
-                tooltip.textContent = name;
-            }
-
+            tooltip.textContent = segment.unsubmitted ? chrome.i18n.getMessage("unsubmitted") + " " + name : name;
             tooltip.style.removeProperty("display");
-        } else {
-            tooltip.style.display = "none";
-        }
-    }
-
-    /**
-     * Insert the container of the preview bar into DOM,
-     * as the first child node of parent
-     */
-    createElement(parent?: HTMLElement, shadowParent?: HTMLElement): void {
-        if (parent) this.parent = parent;
-        this.parent.prepend(this.container);
-        if (shadowParent) this.shadowParent = shadowParent;
-        this.shadowParent?.prepend(this.shadowContainer);
+        } else tooltip.style.display = "none";
     }
 
     clear(): void {
-        while (this.container.firstChild) {
-            this.container.removeChild(this.container.firstChild);
-        }
-        while (this.shadowContainer?.firstChild) {
-            this.shadowContainer.removeChild(this.shadowContainer.firstChild);
-        }
-
-        this.miniContainer?.replaceChildren();
+        this.segments = [];
+        this.lastSmallestSegment = {};
+        this.renderer.render([], this.videoDuration);
         this.chapterVote?.setVisibility(false);
     }
 
     set(segments: PreviewBarSegment[], videoDuration: number): void {
         this.videoDuration = Number.isFinite(videoDuration) && videoDuration > 0 ? videoDuration : 0;
-        // Display only the part belonging to the native axis. Keep the original
-        // business timestamps intact, including segments beyond a truncated tail.
-        this.segments = this.videoDuration === 0 ? [] : (segments ?? []).flatMap((item) => {
-            const [start, end] = item.segment;
-            if (!Number.isFinite(start)) return [];
-            // An in-progress submission contains only its start timestamp.
-            if (end === undefined) return start >= 0 && start <= this.videoDuration ? [item] : [];
-            if (!Number.isFinite(end) || end < start) return [];
-            if (start === end) return start >= 0 && start <= this.videoDuration ? [item] : [];
-            const clipped: [number, number] = [Math.max(0, start), Math.min(this.videoDuration, end)];
-            return clipped[1] > clipped[0] ? [{ ...item, segment: clipped }] : [];
-        });
-
-        this.update();
-    }
-
-    private update(): void {
-        this.clear();
-
-        const sortedSegments = this.segments.sort(({ segment: a }, { segment: b }) => {
-            // Sort longer segments before short segments to make shorter segments render later
-            return b[1] - b[0] - (a[1] - a[0]);
-        });
-        for (const segment of sortedSegments) {
-            const bar = this.createBar(segment);
-            const shadowBar = bar.cloneNode(true) as HTMLLIElement;
-            this.container.appendChild(bar);
-            this.shadowContainer?.appendChild(shadowBar);
-            this.miniContainer?.appendChild(bar.cloneNode(true));
-        }
-    }
-
-    /**
-     * Takes a segment and create a <li></li> as preview bar
-     */
-    createBar(barSegment: PreviewBarSegment): HTMLLIElement {
-        const { category, unsubmitted, segment, showLarger } = barSegment;
-
-        const bar = document.createElement("li");
-        bar.classList.add("previewbar");
-        if (barSegment.selectedSegment) bar.classList.add("selectedSegment");
-        bar.innerHTML = showLarger ? "&nbsp;&nbsp;" : "&nbsp;";
-
-        const fullCategoryName = (unsubmitted ? "preview-" : "") + category;
-        bar.setAttribute("sponsorblock-category", fullCategoryName);
-
-        // Handled by setCategoryColorCSSVariables() of content.ts
-        bar.style.backgroundColor = `var(--sb-category-${fullCategoryName})`;
-        bar.style.opacity = Config.config.barTypes[fullCategoryName]?.opacity;
-
-        bar.style.position = "absolute";
-        const duration = Math.min(segment[1], this.videoDuration) - segment[0];
-        const startTime = segment[1] ? Math.min(this.videoDuration, segment[0]) : segment[0];
-        const endTime = Math.min(this.videoDuration, segment[1]);
-        bar.style.left = this.timeToPercentage(startTime);
-
-        if (duration > 0) {
-            bar.style.right = this.timeToRightPercentage(endTime);
-        }
-
-        return bar;
+        this.segments = clipTimelineSegments(segments, this.videoDuration);
+        this.lastSmallestSegment = {};
+        this.renderer.render(this.segments, this.videoDuration);
     }
 
     updateChapterText(segments: SponsorTime[], submittingSegments: SponsorTime[], currentTime: number): SponsorTime[] {
@@ -354,20 +195,8 @@ class PreviewBar {
     }
 
     remove(): void {
-        this.auxiliaryProgressObserver?.disconnect();
-        this.miniContainer?.remove();
-        this.container.remove();
-        this.shadowContainer.remove();
-
-        if (this.categoryTooltip) {
-            this.categoryTooltip.remove();
-            this.categoryTooltip = undefined;
-        }
-
-        if (this.categoryTooltipContainer) {
-            this.categoryTooltipContainer.classList.remove(TOOLTIP_VISIBLE_CLASS);
-            this.categoryTooltipContainer = undefined;
-        }
+        this.renderer.remove();
+        this.setupHoverText();
     }
 
     intervalToPercentage(startTime: number, endTime: number) {

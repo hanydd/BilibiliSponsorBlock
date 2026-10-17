@@ -1,4 +1,7 @@
 {
+    "submissionUnavailableInPip": {
+        "message": "请返回主播放器编辑和提交片段，草稿已保留。"
+    },
     "officialPrimaryServer": {
         "message": "主站"
     },

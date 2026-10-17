@@ -49,7 +49,7 @@ class SubmissionNotice {
     }
 
     close(callRef = true): void {
-        if (callRef) this.noticeRef.current.cancel();
+        if (callRef) this.noticeRef.current?.cancel();
         this.root.unmount();
 
         this.noticeElement.remove();

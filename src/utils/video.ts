@@ -369,7 +369,7 @@ export function detectPageType(url = document.URL): PageType {
 }
 
 function setupVideoMutationListener(): void {
-    const videoContainer = document.querySelector<HTMLElement>("#bilibili-player .bpx-player-video-wrap");
+    const videoContainer = getActivePlayerVideo()?.closest<HTMLElement>(".bpx-player-video-wrap") ?? null;
     if (videoContainer === videoMutationListenerElement) return;
 
     videoMutationObserver?.disconnect();
