@@ -458,4 +458,34 @@ describe("segment submission business events", () => {
         expect(contentState.sponsorTimesSubmitting.map((segment) => segment.segment)).toEqual([[1, 2], [1, 3]]);
         expect(Config.local.unsubmittedSegments.BV1test.map((segment) => segment.segment)).toEqual([[1, 2], [1, 3]]);
     });
+    test("PiP rejects menu, submit shortcut and direct submission without changing drafts", async () => {
+        const { createContentApp } = await import("../src/content/app");
+        const { contentState } = await import("../src/content/state");
+        const { getVideo } = await import("../src/utils/video");
+        const requests = await import("../src/requests/requests");
+        const { openSubmissionMenu, submitSegments, sendSubmitMessage } = await import("../src/content/segmentSubmission");
+        const app = createContentApp();
+        const frame = document.createElement("iframe");
+        document.body.append(frame);
+        frame.contentDocument.body.innerHTML = '<div class="bpx-player-video-area"><video></video></div>';
+        (getVideo as jest.Mock).mockReturnValue(frame.contentDocument.querySelector("video"));
+        Object.defineProperty(window, "documentPictureInPicture", { configurable: true, value: { window: frame.contentWindow } });
+        const draft = { segment: [10, 20], category: "sponsor" } as SponsorTime;
+        contentState.sponsorTimesSubmitting = [draft];
+        const submit = jest.fn();
+        app.ui.patchState({ submissionNotice: { submit } as never });
+        try {
+            openSubmissionMenu();
+            submitSegments();
+            expect(await sendSubmitMessage()).toBe(false);
+            expect(submit).not.toHaveBeenCalled();
+            expect(requests.asyncRequestToServer).not.toHaveBeenCalled();
+            expect(contentState.sponsorTimesSubmitting).toEqual([draft]);
+            expect(frame.contentDocument.querySelectorAll(".sbPlayerMessage")).toHaveLength(1);
+        } finally {
+            delete window["documentPictureInPicture"];
+            frame.remove();
+        }
+    });
+
 });

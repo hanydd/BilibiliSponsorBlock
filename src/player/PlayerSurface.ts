@@ -6,6 +6,7 @@ export interface PlayerSurface {
     readonly document: Document;
     readonly window: Window;
     readonly timeline: TimelineAdapter;
+    readonly supportsSubmission: boolean;
     findVideo(): HTMLVideoElement | null;
     overlayHost(video: HTMLVideoElement): HTMLElement | null;
     noticeLayout(host: Element): { compact: boolean; bottom: number };
@@ -24,6 +25,7 @@ abstract class DomPlayerSurface implements PlayerSurface {
     abstract readonly kind: PlayerSurface["kind"];
     abstract readonly videoSelector: string;
     abstract readonly timeline: TimelineAdapter;
+    abstract readonly supportsSubmission: boolean;
     constructor(readonly document: Document) {}
 
     get window(): Window { return this.document.defaultView; }
@@ -50,6 +52,7 @@ abstract class DomPlayerSurface implements PlayerSurface {
 /** Normal, wide, fullscreen and scroll-to-float players share their page document. */
 class PagePlayerSurface extends DomPlayerSurface {
     readonly kind = "page";
+    readonly supportsSubmission = true;
     readonly videoSelector = "#bilibili-player video";
     readonly timeline = new PageTimelineAdapter(this.document);
 
@@ -66,6 +69,7 @@ class PagePlayerSurface extends DomPlayerSurface {
 /** Document PiP adopts the video area, leaving the original player controls behind. */
 class DocumentPipPlayerSurface extends DomPlayerSurface {
     readonly kind = "document-pip";
+    readonly supportsSubmission = false;
     readonly videoSelector = ".bpx-player-video-area video";
     readonly timeline = new DocumentPipTimelineAdapter(this.document);
 

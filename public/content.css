@@ -1298,3 +1298,18 @@ input::-webkit-inner-spin-button {
 /* Expanded/hovered cards stay clear across skip/undo state changes. */
 .sponsorSkipStackCard[aria-expanded="true"] > .sponsorSkipNoticeFaded,
 .sponsorSkipStackCard:hover > .sponsorSkipNoticeFaded { opacity: 1; }
+
+.sbPlayerMessage {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 45px;
+    z-index: 6000;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: rgba(28, 28, 28, 0.92);
+    color: white;
+    font: 14px/1.5 sans-serif;
+    text-align: center;
+    pointer-events: none;
+}

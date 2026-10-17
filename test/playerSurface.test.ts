@@ -37,6 +37,7 @@ test("preserves video identity through adoption, excluding previews and prepared
     doc.body.append(host);
     expect(getActivePlayerVideo()).toBe(video);
     expect(getPlayerSurface(video).kind).toBe("document-pip");
+    expect(getPlayerSurface(video).supportsSubmission).toBe(false);
     expect(getPlayerSurface(video).overlayHost(video)).toBe(host);
     // Controls left on the page must not be treated as the floating player's hosts.
     expect(getControls()).toBeNull();
@@ -44,6 +45,7 @@ test("preserves video identity through adoption, excluding previews and prepared
     pip.window = null;
     expect(getActivePlayerVideo()).toBe(video);
     expect(getPlayerSurface(video).kind).toBe("page");
+    expect(getPlayerSurface(video).supportsSubmission).toBe(true);
     expect(getControls()).not.toBeNull();
     video.remove();
     expect(getActivePlayerVideo()).toBeNull();

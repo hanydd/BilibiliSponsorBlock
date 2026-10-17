@@ -8,6 +8,9 @@ import { DescriptionPortPill } from "../render/DescriptionPortPill";
 import { showMessage } from "../render/MessageNotice";
 import { PlayerButton } from "../render/PlayerButton";
 import SubmissionNotice from "../render/SubmissionNotice";
+import { showPlayerMessage } from "../render/playerMessage";
+import { getPlayerSurface, getPlayerSurfaces, observePlayerSurfaces } from "../player/PlayerSurface";
+import { addCleanupListener } from "../utils/cleanup";
 import { getPortVideoByHash, postPortVideo, postPortVideoVote, updatePortedSegments } from "../requests/portVideo";
 import { asyncRequestToServer } from "../requests/requests";
 import { getSegmentsByVideoID } from "../requests/segments";
@@ -293,6 +296,15 @@ export function resetSubmissionState(): void {
 
 export function registerSegmentSubmission(): void {
     const app = getContentApp();
+    addCleanupListener(observePlayerSurfaces(surface => {
+        // Close before the site adopts the video area and its editor into PiP.
+        // Drafts live in content state/storage and are retained when the panel closes.
+        if (!surface.supportsSubmission && getSubmissionNotice()) {
+            closeSubmissionMenu();
+            showSubmissionUnavailableMessage();
+        }
+        return () => undefined;
+    }));
 
     app.commands.register("segment/toggleCapture", () => startOrEndTimingNewSegment());
     app.commands.register("segment/cancelCapture", () => cancelCreatingSegment());
@@ -809,7 +821,20 @@ export function closeSubmissionMenu(): void {
     patchUIState({ submissionNotice: null });
 }
 
+function showSubmissionUnavailableMessage(): void {
+    const video = getVideo();
+    if (video) showPlayerMessage(getPlayerSurface(video).overlayHost(video),
+        chrome.i18n.getMessage("submissionUnavailableInPip"));
+}
+
+function canOpenSubmission(): boolean {
+    if (getPlayerSurfaces().every(surface => surface.supportsSubmission)) return true;
+    showSubmissionUnavailableMessage();
+    return false;
+}
+
 export function openSubmissionMenu(): void {
+    if (!canOpenSubmission()) return;
     const { submissionNotice } = getUIState();
     if (submissionNotice !== null) {
         closeSubmissionMenu();
@@ -842,6 +867,7 @@ export function previewRecentSegment(): void {
 }
 
 export function submitSegments(): void {
+    if (!canOpenSubmission()) return;
     const { submissionNotice } = getUIState();
     if (contentState.sponsorTimesSubmitting !== undefined && contentState.sponsorTimesSubmitting.length > 0 && submissionNotice !== null) {
         submissionNotice.submit();
@@ -849,6 +875,7 @@ export function submitSegments(): void {
 }
 
 export async function sendSubmitMessage(): Promise<boolean> {
+    if (!canOpenSubmission()) return false;
     if (
         !contentState.previewedSegment &&
         !contentState.sponsorTimesSubmitting.every(
