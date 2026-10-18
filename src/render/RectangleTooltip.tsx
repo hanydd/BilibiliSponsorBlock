@@ -63,7 +63,7 @@ export class RectangleTooltip {
                 <div>
                     <img
                         className="sponsorSkipLogo sponsorSkipObject"
-                        src={chrome.runtime.getURL("icons/IconSponsorBlocker256px.png")}
+                        src={chrome.runtime.getURL("icons/IconSponsorBlocker.svg")}
                     ></img>
                     <span className="sponsorSkipObject">
                         {this.text + (props.link ? ". " : "")}

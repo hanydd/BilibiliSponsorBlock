@@ -286,7 +286,7 @@ function app() {
                 {!Config.config.cleanPopup && (
                     <header className={"sbPopupLogo"}>
                         <img
-                            src="icons/IconSponsorBlocker256px.png"
+                            src="icons/IconSponsorBlocker.svg"
                             alt="SponsorBlock"
                             width="40"
                             height="40"

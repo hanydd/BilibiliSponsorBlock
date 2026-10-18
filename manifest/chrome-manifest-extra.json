@@ -88,8 +88,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "icons/LogoSponsorBlocker256px.png",
-        "icons/IconSponsorBlocker256px.png",
+        "icons/LogoSponsorBlocker.svg",
+        "icons/IconSponsorBlocker.svg",
         "icons/PlayerStartIconSponsorBlocker.svg",
         "icons/PlayerStopIconSponsorBlocker.svg",
         "icons/PlayerUploadIconSponsorBlocker.svg",
