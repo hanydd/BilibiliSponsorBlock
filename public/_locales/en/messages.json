@@ -1,4 +1,7 @@
 {
+    "submissionUnavailableInPip": {
+        "message": "Return to the main player to edit and submit segments. Your draft is kept."
+    },
     "officialPrimaryServer": {
         "message": "主站"
     },

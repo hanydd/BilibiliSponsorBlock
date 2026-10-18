@@ -1,4 +1,5 @@
 /** @jest-environment jsdom */
+import { PageTimelineAdapter } from "../src/player/TimelineAdapter";
 import PreviewBar, { PreviewBarSegment } from "../src/js-components/previewBar";
 
 jest.mock("../src/config", () => ({ __esModule: true, default: { config: { barTypes: { sponsor: { opacity: 0.7 } } } } }));
@@ -11,7 +12,7 @@ describe("preview bar in small players", () => {
     });
 
     test("allows players without a hover preview popup", () => {
-        const preview = new PreviewBar(null, null, null, true);
+        const preview = new PreviewBar();
         expect(() => preview.setupHoverText()).not.toThrow();
     });
 
@@ -24,10 +25,11 @@ describe("preview bar in small players", () => {
         const seekBar = document.querySelector(".bpx-player-progress-wrap") as HTMLElement;
         Object.defineProperty(seekBar, "clientWidth", { value: 800 });
         jest.spyOn(seekBar, "getBoundingClientRect").mockReturnValue({ x: 100, width: 320 } as DOMRect);
-        const preview = new PreviewBar(null, null, null, true);
+        const preview = new PreviewBar();
         preview.videoDuration = 120;
         preview.segments = [{ segment: [55, 65], category: "sponsor" } as PreviewBarSegment];
-        preview.setupHoverText();
+        preview.setupHoverText({ seekBar, container: document.querySelector(".bpx-player-progress-popup"),
+            anchor: document.querySelector(".bpx-player-progress-preview"), className: "bpx-player-progress-preview-time" });
         seekBar.dispatchEvent(new MouseEvent("mouseenter"));
         seekBar.dispatchEvent(new MouseEvent("mousemove", { clientX: 260 }));
         expect(preview.categoryTooltip.textContent).toBe("Sponsor");
@@ -41,10 +43,10 @@ test("keeps mini-player colors synchronized and disconnects on removal", async (
         <div class="bpx-player-progress"></div><div class="bpx-player-shadow-progress-area"></div>
         <div class="bpx-player-mini-progress"></div>
     </div>`;
-    const preview = new PreviewBar(
-        document.querySelector(".bpx-player-progress"),
-        document.querySelector(".bpx-player-shadow-progress-area"), null
-    );
+    const preview = new PreviewBar();
+    const video = document.createElement("video");
+    document.querySelector(".bpx-player-container").append(video);
+    preview.syncTargets(new PageTimelineAdapter(document).read(video).targets);
     const segment = { segment: [10, 30], category: "sponsor" } as PreviewBarSegment;
     preview.set([segment], 100);
     const mini = document.querySelector("#miniPreviewbar");
@@ -69,8 +71,10 @@ test("clips truncated tails and excludes out-of-axis intervals and points across
     document.body.innerHTML = `<div class="bpx-player-container">
         <div class="bpx-player-progress"></div><div class="bpx-player-shadow-progress-area"></div>
         <div class="bpx-player-mini-progress"></div></div>`;
-    const preview = new PreviewBar(document.querySelector(".bpx-player-progress"),
-        document.querySelector(".bpx-player-shadow-progress-area"), null);
+    const preview = new PreviewBar();
+    const video = document.createElement("video");
+    document.querySelector(".bpx-player-container").append(video);
+    preview.syncTargets(new PageTimelineAdapter(document).read(video).targets);
     const make = (segment: [number, number]) => ({ segment, category: "sponsor" } as PreviewBarSegment);
     const original = [make([730, 754]), make([745, 754]), make([750, 750]), make([30, 30])];
     preview.set(original, 742.8973333333333);
@@ -92,7 +96,8 @@ test("clips truncated tails and excludes out-of-axis intervals and points across
 
 test("retains the start mark of an unfinished submission on a finite native axis", () => {
     document.body.innerHTML = '<div class="bpx-player-progress"></div>';
-    const preview = new PreviewBar(document.querySelector(".bpx-player-progress"), null, null);
+    const preview = new PreviewBar();
+    preview.syncTargets([{host: document.querySelector(".bpx-player-progress"), id: "previewbar", placement: "prepend"}]);
     preview.set([{ segment: [40], category: "sponsor", unsubmitted: true } as unknown as PreviewBarSegment], 100);
     expect(document.querySelectorAll("#previewbar > li")).toHaveLength(1);
     expect((document.querySelector("#previewbar > li") as HTMLElement).style.left).toBe("40%");

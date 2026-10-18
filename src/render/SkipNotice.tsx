@@ -11,6 +11,7 @@ import { ContentContainer } from "../ContentContainerTypes";
 import { ActionType, SponsorTime } from "../types";
 import { SkipNoticeAction } from "../utils/noticeUtils";
 import { dismissStackCard } from "./SkipNoticeStack";
+import { getPlayerSurface } from "../player/PlayerSurface";
 
 export interface SkipNoticeUpdate {
     segments: SponsorTime[];
@@ -83,7 +84,8 @@ export default class SkipNotice {
         };
         // Scrolling or a player menu can obscure the visibility probe while the
         // current video still plays. Keep its notice attached to its own player.
-        const player = getVideo()?.closest<HTMLElement>(".bpx-player-video-area") ?? new Utils().findReferenceNode();
+        const video = getVideo();
+        const player = (video && getPlayerSurface(video).overlayHost(video)) ?? new Utils().findReferenceNode();
         if (!player) {
             this.closed = true;
             return;
@@ -99,7 +101,7 @@ export default class SkipNotice {
             (this.segments.length > 1 || this.segments[0].actionType !== ActionType.Poi || this.props.unskipTime != null);
     }
 
-    get focused(): boolean { return this.noticeElement.contains(document.activeElement); }
+    get focused(): boolean { return this.noticeElement.contains(this.noticeElement.ownerDocument.activeElement); }
     get hovered(): boolean { return !!this.noticeElement.querySelector(".sponsorSkipStackCard:hover"); }
 
     get upcoming(): boolean { return !!this.props.advanceSkipNotice; }

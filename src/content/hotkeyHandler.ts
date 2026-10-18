@@ -6,6 +6,7 @@ import { getFrameRate, getVideo } from "../utils/video";
 import { getContentApp } from "./app";
 import { getRuleRuntime } from "./skipRules/bridge";
 import { contentState } from "./state";
+import { observePlayerSurfaces } from "../player/PlayerSurface";
 
 const utils = new Utils();
 
@@ -14,31 +15,33 @@ function getSkipButtonControlBar() {
 }
 
 export function addHotkeyListener(): void {
-    document.addEventListener("keydown", hotkeyListener);
-
-    const onLoad = () => {
-        document.removeEventListener("keydown", hotkeyListener);
-        document.body.addEventListener("keydown", hotkeyListener);
-
-        addCleanupListener(() => {
-            document.body.removeEventListener("keydown", hotkeyListener);
-        });
-    };
-
-    if (document.readyState === "complete") {
-        onLoad();
-    } else {
-        document.addEventListener("DOMContentLoaded", onLoad);
-    }
+    addCleanupListener(observePlayerSurfaces(surface => {
+        const doc = surface.document;
+        let target: Document | HTMLElement = doc;
+        const onLoad = () => {
+            target.removeEventListener("keydown", hotkeyListener);
+            target = doc.body;
+            target.addEventListener("keydown", hotkeyListener);
+        };
+        target.addEventListener("keydown", hotkeyListener);
+        if (doc.body) onLoad();
+        else doc.addEventListener("DOMContentLoaded", onLoad, { once: true });
+        return () => {
+            target.removeEventListener("keydown", hotkeyListener);
+            doc.removeEventListener("DOMContentLoaded", onLoad);
+        };
+    }));
 }
 
 function hotkeyListener(e: KeyboardEvent): void {
-    const target = e.target instanceof HTMLElement ? e.target : document.activeElement as HTMLElement;
+    const node = e.target as Node;
+    const doc = node?.nodeType === 9 ? node as Document : node?.ownerDocument ?? document;
+    const target = node?.nodeType === 1 ? node as HTMLElement : doc.activeElement as HTMLElement;
     // Yield our shortcuts to text/form controls without cancelling the page's event.
     if (
         e.defaultPrevented || target?.isContentEditable ||
         target?.closest("input, textarea, select") ||
-        document.activeElement?.id?.toLowerCase()?.includes("editable")
+        doc.activeElement?.id?.toLowerCase()?.includes("editable")
     )
         return;
 
@@ -78,7 +81,7 @@ function hotkeyListener(e: KeyboardEvent): void {
              * 这里阻止了使用`Enter`跳过赞助片段时播放器的默认行为
              */
             if (key.key === 'Enter') {
-                const currentTime: number | null = document.querySelector<HTMLVideoElement>(".bpx-player-video-wrap video")?.currentTime ?? null;
+                const currentTime = getVideo()?.currentTime ?? null;
                 if (currentTime) {
                     const inSponsorRange = contentState.sponsorTimes.some(({ segment: [start, end] }) => start <= currentTime && end >= currentTime);
                     if (inSponsorRange) {

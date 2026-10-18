@@ -1,7 +1,11 @@
+import { getPlayerSurfaces } from "../player/PlayerSurface";
+
 export function getActivePlayerVideo(): HTMLVideoElement | null {
-    return Array.from(document.querySelectorAll<HTMLVideoElement>(
-        "#bilibili-player video:not(.bpx-player-seamless-replacement)"
-    )).find((element) => !isInPreviewPlayer(element)) ?? null;
+    for (const surface of getPlayerSurfaces()) {
+        const video = surface.findVideo();
+        if (video) return video;
+    }
+    return null;
 }
 
 export function getPlayerContainer(video = getActivePlayerVideo()): HTMLElement | null {
