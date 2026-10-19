@@ -42,6 +42,8 @@ export async function sendRealRequestToCustomServer(
         signal,
     });
 
+    const retryAfter = response.headers.get("Retry-After");
+    const retryHeader = retryAfter ? { retryAfter } : {};
     let responseText: string;
     if (clientOptions.maxResponseBytes !== undefined) {
         try {
@@ -49,12 +51,12 @@ export async function sendRealRequestToCustomServer(
         } catch (error) {
             if (signal?.aborted) throw error;
             // 保留已收到的 HTTP 状态；正文读取失败由路由的校验、重试和失败记录策略处理。
-            return { responseText: "", status: response.status, ok: false };
+            return { responseText: "", status: response.status, ok: false, ...retryHeader };
         }
     } else {
         responseText = await response.text();
     }
-    return { responseText, status: response.status, ok: response.ok };
+    return { responseText, status: response.status, ok: response.ok, ...retryHeader };
 }
 
 async function getServerAddresses(): Promise<string[]> {

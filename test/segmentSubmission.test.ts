@@ -458,6 +458,21 @@ describe("segment submission business events", () => {
         expect(contentState.sponsorTimesSubmitting.map((segment) => segment.segment)).toEqual([[1, 2], [1, 3]]);
         expect(Config.local.unsubmittedSegments.BV1test.map((segment) => segment.segment)).toEqual([[1, 2], [1, 3]]);
     });
+    test("same-duration old CID never enters current playback or raw candidates", async () => {
+        const { createContentApp } = await import("../src/content/app");
+        const { contentState } = await import("../src/content/state");
+        const { sponsorsLookup } = await import("../src/content/segmentSubmission");
+        const { getSegmentsByVideoID } = await import("../src/requests/segments");
+        const { SponsorSourceType } = await import("../src/types");
+        createContentApp();
+        const current = { UUID: "current", cid: 1, segment: [10, 20], videoDuration: 100, source: SponsorSourceType.Server };
+        const old = { ...current, UUID: "old", cid: 2 };
+        (getSegmentsByVideoID as jest.Mock).mockResolvedValue({ status: 200, segments: [current, old], rawSegments: [current, old] });
+        await sponsorsLookup(false);
+        expect(contentState.sponsorTimes.map(s => s.UUID)).toEqual(["current"]);
+        expect(contentState.rawSegments.map(s => s.UUID)).toEqual(["current"]);
+    });
+
     test("PiP rejects menu, submit shortcut and direct submission without changing drafts", async () => {
         const { createContentApp } = await import("../src/content/app");
         const { contentState } = await import("../src/content/state");

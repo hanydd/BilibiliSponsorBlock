@@ -1,3 +1,4 @@
+import type { CidReplacementPage } from "./cidReplacement";
 import { AID, BVID, CID } from "../types";
 
 export const sourceId = "biliSponsorBlock";
@@ -106,4 +107,10 @@ export async function getVideoInfoFromWindowOnplayerManifest(): Promise<{ aid: A
         undefined,
         3200
     );
+}
+
+export function getCidReplacementPageFromWindow(bvid: BVID): Promise<CidReplacementPage | null> {
+    return getPropertyFromWindow<CidReplacementPage>({
+        sendType: "getCidReplacementPage", responseType: "returnCidReplacementPage",
+    }, bvid);
 }

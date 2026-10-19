@@ -44,6 +44,23 @@ describe("ServerRouter", () => {
         executeRequest = jest.fn();
     });
 
+    test("CID POST has a 90-second timeout without transport retries", async () => {
+        jest.useFakeTimers();
+        try {
+            executeRequest.mockImplementation((_type, _url, _data, _headers, signal) => new Promise((_resolve, reject) => {
+                signal.addEventListener("abort", () => reject(new Error("aborted")));
+            }));
+            const pending = createRouter().request("POST", "/api/cidReplacement", {}, {}, {
+                timeoutMs: 90000, retry: false, recordFailure: false,
+            });
+            await jest.advanceTimersByTimeAsync(15000);
+            expect(executeRequest.mock.calls[0][4].aborted).toBe(false);
+            await jest.advanceTimersByTimeAsync(75000);
+            expect((await pending).status).toBe(-1);
+            expect(executeRequest).toHaveBeenCalledTimes(1);
+        } finally { jest.useRealTimers(); }
+    });
+
     test("OTA 跳过 HTTP 镜像，主站坏配置时继续尝试 HTTPS 镜像", async () => {
         const valid = response(200, '{"schemaVersion":1}');
         executeRequest.mockResolvedValueOnce(response(200, "not json")).mockResolvedValueOnce(valid);

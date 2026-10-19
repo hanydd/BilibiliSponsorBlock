@@ -32,7 +32,7 @@ import Utils from "../utils";
 import { waitFor } from "../utils/";
 import { AnimationUtils } from "../utils/animationUtils";
 import { defaultPreviewTime } from "../utils/constants";
-import { durationEquals } from "../utils/duraionUtils";
+import { checkCidReplacement } from "./cidReplacement";
 import { removePageCidMap } from "../utils/exporter";
 import { getErrorMessage, getFormattedTime } from "../utils/formating";
 import { getHash, getVideoIDHash, HashedValue } from "../utils/hash";
@@ -459,7 +459,7 @@ export async function updateSegments(UUID: string): Promise<FetchResponse> {
 
 export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCache = false, forceUpdatePreviewBar = false): Promise<void> {
     const videoID = getVideoID();
-    const { bvId, cid } = parseBvidAndCidFromVideoId(videoID);
+    const { cid } = parseBvidAndCidFromVideoId(videoID);
     void forceUpdatePreviewBar;
     if (!videoID) {
         console.error("[SponsorBlock] Attempted to fetch segments with a null/undefined videoID.");
@@ -487,20 +487,7 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
 
     if (segmentResponse.status === 200) {
         let receivedSegments: SponsorTime[] = segmentResponse.segments?.filter(segment => segment.cid === cid);
-        let acceptedCids = new Set([cid]);
-
-        const uniqueCids = new Set(segmentResponse?.segments?.filter((segment) => durationEquals(segment.videoDuration, getVideo()?.duration, 5)).map(s => s.cid));
-        console.log("unique cids from segments", uniqueCids)
-        if (uniqueCids.size > 1) {
-            const cidMap = await getCidMapFromWindow(bvId);
-            console.log("[BSB] Multiple CIDs found, using the one from the window object", cidMap);
-            if (cidMap.size == 1) {
-                receivedSegments = segmentResponse.segments?.filter(segment => uniqueCids.has(segment.cid));
-                acceptedCids = uniqueCids;
-            }
-        }
-
-        const raw = (segmentResponse.rawSegments ?? segmentResponse.segments ?? []).filter(segment => acceptedCids.has(segment.cid));
+        const raw = (segmentResponse.rawSegments ?? segmentResponse.segments ?? []).filter(segment => segment.cid === cid);
 
         if (receivedSegments) {
             const rawById = new Map(raw.map(segment => [segment.UUID, segment]));
@@ -546,6 +533,10 @@ export async function sponsorsLookup(keepOldSubmissions = true, ignoreServerCach
         }
     }
     emitSegmentsLoaded("segmentSubmission.sponsorsLookup");
+    if (segmentResponse.status === 200 && videoID === getVideoID()) {
+        void checkCidReplacement(videoID, segmentResponse.rawSegments ?? segmentResponse.segments ?? [],
+            () => sponsorsLookup(true, true, true)).catch(() => { /* Best effort; retain current playback. */ });
+    }
 }
 
 export async function lockedCategoriesLookup(): Promise<void> {

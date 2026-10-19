@@ -84,3 +84,10 @@ test("GET 查询参数只包含请求数据", async () => {
     expect(fetchMock.mock.calls[0][1].body).toBeNull();
     expect(fetchMock.mock.calls[0][1].headers).toEqual({});
 });
+
+test("Retry-After is returned to CID cooldown handling", async () => {
+    global.fetch = jest.fn().mockResolvedValue(new Response("busy", { status: 429, headers: { "Retry-After": "1200" } }));
+    expect(await sendRealRequestToCustomServer("POST", "https://primary.test/api/cidReplacement")).toEqual({
+        ok: false, status: 429, responseText: "busy", retryAfter: "1200",
+    });
+});

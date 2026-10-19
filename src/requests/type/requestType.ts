@@ -4,11 +4,14 @@ export interface FetchResponse {
     responseText: string;
     status: number;
     ok: boolean;
+    retryAfter?: string;
 }
 
 /** 仅控制本地请求行为，不编码到请求体、查询参数或请求头。 */
 export interface RequestClientOptions {
     httpsOnly?: boolean;
+    /** Per-request transport timeout, in milliseconds. */
+    timeoutMs?: number;
     /** 默认沿用接口的重试策略；true 允许备用重试，false 禁用重试。 */
     retry?: boolean;
     /** 正文读取上限，单位为字节；不设置时沿用普通文本读取。 */

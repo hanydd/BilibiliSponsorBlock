@@ -335,9 +335,9 @@ export class ServerRouter {
         clientOptions: RequestClientOptions = {}
     ): Promise<FetchResponse> {
         const controller = new AbortController();
-        const timeoutMs = hashRequest
+        const timeoutMs = clientOptions.timeoutMs ?? (hashRequest
             ? (this.options.hashRequestTimeoutMs ?? SERVER_ROUTER_CONFIG.hashRequestTimeoutMs)
-            : (this.options.otherRequestTimeoutMs ?? SERVER_ROUTER_CONFIG.otherRequestTimeoutMs);
+            : (this.options.otherRequestTimeoutMs ?? SERVER_ROUTER_CONFIG.otherRequestTimeoutMs));
         const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
         try {

@@ -1,5 +1,6 @@
 import "content-scripts-register-polyfill";
 import Config from "./config";
+import { reportCidReplacement } from "./requests/background/cidReplacement";
 import { checkSponsorRegexConfigUpdate } from "./requests/background/sponsorRegexConfigUpdate";
 import { callAPI, serverRouter } from "./requests/background-request-proxy";
 import { clearAllCacheBackground, segmentsCache, videoLabelCache } from "./requests/background/backgroundCache";
@@ -209,6 +210,10 @@ function setupBackgroundRequestProxy() {
     chrome.runtime.onMessage.addListener((request, sender, callback) => {
         if (request.message === "checkSponsorRegexConfigUpdate") {
             checkSponsorRegexConfigUpdate(true).then(callback).catch(() => callback({ status: "failed" }));
+            return true;
+        }
+        if (request.message === "reportCidReplacement") {
+            reportCidReplacement(request.candidates).then(callback).catch(() => callback({ migrated: false }));
             return true;
         }
         if (request.message === "sendRequest") {

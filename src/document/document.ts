@@ -1,3 +1,4 @@
+import { readCidReplacementPage } from "./cidReplacementPage";
 import { AID, BVID, CID } from "../types";
 import { waitFor } from "../utils/";
 import { InjectedScriptMessageSend, sourceId } from "../utils/injectedScriptMessageUtils";
@@ -92,6 +93,8 @@ async function windowMessageListener(message: MessageEvent) {
             sendMessageToContent(data, await getCidFromBvIdPage(payload.bvid, payload.page));
         } else if (data.type === "getCidMap") {
             sendMessageToContent(data, await getCidMap(data.payload as BVID));
+        } else if (data.type === "getCidReplacementPage") {
+            sendMessageToContent(data, readCidReplacementPage(data.payload as string));
         } else if (data.type === "getVideoInfoOnplayer") {
             sendMessageToContent(data, await getPlayerManifest());
         }
