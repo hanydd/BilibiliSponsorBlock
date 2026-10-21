@@ -2788,6 +2788,21 @@
     "rules_declineWelcome": {
         "message": "使用经典模式"
     },
+    "category_jumpscare": {
+        "message": "惊吓片段"
+    },
+    "category_jumpscare_short": {
+        "message": "惊吓"
+    },
+    "category_jumpscare_description": {
+        "message": "突发大音量、跳脸、恐怖音效及意外惊吓。"
+    },
+    "category_jumpscare_guideline1": {
+        "message": "仅标注实际发生惊吓的区间，准确设置起止时间。"
+    },
+    "category_jumpscare_guideline2": {
+        "message": "不要将整段恐怖题材视频笼统标记为惊吓片段。"
+    },
     "dynamicSponsorRegexRuleReset": {
         "message": "重置"
     }
