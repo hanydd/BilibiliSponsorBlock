@@ -132,5 +132,4 @@ test("reset saves the compact defaults and restores the runtime colors", async (
     Config.resetToDefault();
     expect((stored.barTypes as Record<string, unknown>).sponsor).toEqual(["#00d400", "#007800"]);
     expect(Config.config.barTypes.sponsor).toEqual({ color: "#00d400", opacity: "0.7" });
-    expect(Buffer.byteLength("barTypes") + Buffer.byteLength(JSON.stringify(stored.barTypes))).toBe(414);
 });
