@@ -62,6 +62,36 @@ async function route(page: Page, id: string, delay = 0, replace = false) {
     }, { id, delay, replace });
 }
 
+test("full-video label loads its SVG logo and previous-version PNG URLs", async ({
+    extensionPage: page, extensionContext, extensionId,
+}) => {
+    await api(extensionContext);
+    await open(page, sponsor);
+    await expectLabel(page, "sponsor");
+
+    const logo = visiblePill(page).locator("img.sponsorSkipLogo");
+    await expect.poll(() => logo.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+
+    // An already-open tab can retain PNG URLs after the extension updates to SVG.
+    const previousLogos = await page.evaluate(async (extensionId) => {
+        const results = await Promise.all(["IconSponsorBlocker256px.png", "LogoSponsorBlocker256px.png"].map(async (name) => {
+            const image = new Image();
+            image.src = `chrome-extension://${extensionId}/icons/${name}`;
+            try {
+                await image.decode();
+                return { name, loaded: image.naturalWidth > 0 };
+            } catch {
+                return { name, loaded: false };
+            }
+        }));
+        return results;
+    }, extensionId);
+    expect(previousLogos).toEqual([
+        { name: "IconSponsorBlocker256px.png", loaded: true },
+        { name: "LogoSponsorBlocker256px.png", loaded: true },
+    ]);
+});
+
 for (const mode of ["legacy", "rules"] as const) {
     test(`${mode}: SPA transitions, title rewrites/replacement, back and forward`, async ({ extensionPage: page, extensionContext, extensionServiceWorker }) => {
         await writeSyncStorage(extensionServiceWorker, { skipEngineMode: mode });

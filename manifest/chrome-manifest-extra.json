@@ -90,6 +90,8 @@
       "resources": [
         "icons/LogoSponsorBlocker.svg",
         "icons/IconSponsorBlocker.svg",
+        "icons/LogoSponsorBlocker256px.png",
+        "icons/IconSponsorBlocker256px.png",
         "icons/PlayerStartIconSponsorBlocker.svg",
         "icons/PlayerStopIconSponsorBlocker.svg",
         "icons/PlayerUploadIconSponsorBlocker.svg",
