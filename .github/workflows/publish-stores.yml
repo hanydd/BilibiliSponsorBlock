@@ -146,6 +146,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: browser-stores
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Download packages
@@ -154,17 +157,16 @@ jobs:
           name: extension-store-packages-${{ needs.build.outputs.version }}
           path: artifacts
 
-      - name: Check Chrome credentials
+      - name: Check Chrome configuration
         shell: bash
         env:
-          WEPUB_CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
-          WEPUB_CHROME_ITEM_ID: ${{ vars.CHROME_ITEM_ID || 'eaoelafamejbnggahofapllmfhlhajdd' }}
-          WEPUB_CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          WEPUB_CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          WEPUB_CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
+          CHROME_ITEM_ID: ${{ vars.CHROME_ITEM_ID || 'eaoelafamejbnggahofapllmfhlhajdd' }}
+          CWS_WIF_PROVIDER: ${{ vars.CWS_WIF_PROVIDER }}
+          CWS_SERVICE_ACCOUNT: ${{ vars.CWS_SERVICE_ACCOUNT }}
         run: |
           missing=0
-          for name in WEPUB_CHROME_PUBLISHER_ID WEPUB_CHROME_ITEM_ID WEPUB_CHROME_CLIENT_ID WEPUB_CHROME_CLIENT_SECRET WEPUB_CHROME_REFRESH_TOKEN; do
+          for name in CHROME_PUBLISHER_ID CHROME_ITEM_ID CWS_WIF_PROVIDER CWS_SERVICE_ACCOUNT; do
             if [[ -z "${!name:-}" ]]; then
               echo "::error::$name is not configured"
               missing=1
@@ -172,17 +174,24 @@ jobs:
           done
           exit "$missing"
 
-      - name: Install wepub
-        uses: iorate/wepub/setup@d1065b044ceec042925bddc1c8b7db6884b80c26 # v1.0.3
+      - id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.CWS_WIF_PROVIDER }}
+          service_account: ${{ vars.CWS_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
+          access_token_lifetime: 1800s
+          create_credentials_file: false
+          export_environment_variables: false
 
       - name: Publish to Chrome Web Store
-        env:
-          WEPUB_CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
-          WEPUB_CHROME_ITEM_ID: ${{ vars.CHROME_ITEM_ID || 'eaoelafamejbnggahofapllmfhlhajdd' }}
-          WEPUB_CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          WEPUB_CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          WEPUB_CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-        run: wepub chrome artifacts/chrome-extension.zip --publish-type default
+        uses: hamzahamidi/publish-to-chrome-web-store@c8919147f8de0d6f1129bec36345e4a9aa638af9 # v1
+        with:
+          access-token: ${{ steps.auth.outputs.access_token }}
+          publisher-id: ${{ vars.CHROME_PUBLISHER_ID }}
+          item-id: ${{ vars.CHROME_ITEM_ID || 'eaoelafamejbnggahofapllmfhlhajdd' }}
+          zip: artifacts/chrome-extension.zip
 
   firefox:
     name: Publish Firefox ${{ needs.build.outputs.version }}
