@@ -22,6 +22,7 @@ export const nativeSettings = {
     playback: ['muteSegments', 'minDuration', 'manualSkipOnFullVideo', 'forceChannelCheck']
         .map(key => `[data-sync="${key}"]`),
     appearance: ['[data-sync="noticeVisibilityMode"]'],
+    guidelines: ['[data-sync="showCategoryGuidelines"]'],
     sound: ['[data-sync="audioNotificationOnSkip"]'],
     categories: ['[data-sync="showCategoryWithoutPermission"]'],
     labels: ['[data-sync="fullVideoSegments"]'],

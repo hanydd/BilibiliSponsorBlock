@@ -213,7 +213,7 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
     const activeHistory = history[historyIndex];
     const exampleControls = <>{modeButtons}<p className="small-description">{t('exampleDescription')}</p></>;
     return <div className="rule-page">
-        <header><h2>{t('title')}</h2><span className="rules-engine-status" role="status">{t(Config.config.skipEngineMode === 'rules' ? 'active' : Config.config.skipEngineMode === 'shadow' ? 'shadow' : 'inactive')}</span></header>
+        <header><h2>{t('title')}</h2></header>
         <div className="rules-tabs" role="tablist" aria-label={t('title')} onKeyDown={event => {
             const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
             const index = buttons.indexOf(document.activeElement as HTMLButtonElement); if (index < 0) return;
@@ -254,7 +254,10 @@ function RulesPage({ container, category }: { container: HTMLElement; category: 
             </section>
         </section>
         <section role="tabpanel" id="rules-panel-cards" aria-labelledby="rules-tab-cards" hidden={tab !== 'cards'}>
-            <SettingsPanel group="cards" update={update}><NativeOptions selectors={nativeSettings.appearance} active={active} /></SettingsPanel>
+            <SettingsPanel group="cards" update={update}>
+                <NativeOptions selectors={nativeSettings.appearance} active={active} />
+                <NativeOptions selectors={nativeSettings.guidelines} active={active} />
+            </SettingsPanel>
             <section className="rules-settings rules-sound-settings"><NativeOptions selectors={nativeSettings.sound} active={active} /></section>
             <section className="rules-example-section" aria-labelledby="rules-card-example-title">
                 <h3 id="rules-card-example-title">{t('cardExamples')}</h3><p>{t('cardExamplesNote')}</p>

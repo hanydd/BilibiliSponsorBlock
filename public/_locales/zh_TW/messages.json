@@ -1789,13 +1789,13 @@
         "message": "編輯預覽時包含其他片段"
     },
     "rules_title": {
-        "message": "新版片段規則引擎（測試版）"
+        "message": "片段規則引擎"
     },
-    "rules_enable": {
-        "message": "啟用新版片段規則引擎（測試版）"
+    "rules_enableLegacy": {
+        "message": "啟用老版片段規則引擎"
     },
-    "rules_enableDescription": {
-        "message": "啟用後將使用新的片段處理邏輯和設定頁面。既有設定會保留，可隨時切回經典模式。"
+    "rules_enableLegacyDescription": {
+        "message": "開啟後使用老版片段處理邏輯和設定頁面，關閉則使用新版。既有設定會保留。"
     },
     "rules_inactive": {
         "message": "規則引擎未啟用。以下設定仍會保存，對照與測試展示規則引擎啟用後的行為。"
@@ -2658,9 +2658,6 @@
     "rules_settingsGuide": {
         "message": "這裡設定片段的預設處理方式。拖動、暫停恢復等選項在「播放行為」，提醒開關和計時在「卡片提醒」。修改後自動儲存。"
     },
-    "rules_countdownHelp": {
-        "message": "預告按影片進度倒數，暫停影片時也會暫停；跳過後的提醒按實際顯示時間計時，滑鼠停留時暫停。"
-    },
     "rules_speedHelp": {
         "message": "開啟快進後，設為自動跳過的片段將按所選倍速播放，結束後恢復原倍速。僅修改倍速不會開啟快進；手動跳過仍立即跳至片段結尾。"
     },
@@ -2730,35 +2727,26 @@
     "rules_relation_overlap": {
         "message": "重疊片段"
     },
-    "rules_rolloutActive": {
-        "message": "正在使用新版片段規則引擎（測試版）"
-    },
-    "rules_useClassic": {
-        "message": "使用經典模式"
-    },
     "rules_invitationTitle": {
-        "message": "試用新版片段規則引擎（測試版）"
+        "message": "使用新版片段規則引擎"
     },
     "rules_invitationDescription": {
         "message": "在同一頁面調整跳過、快進和卡片提醒，並用範例查看拖曳、暫停和撤銷後的處理方式。"
     },
     "rules_invitationLocation": {
-        "message": "既有設定會保留。選擇「不再提示」後，仍可在「實驗功能」中啟用。"
+        "message": "既有設定會保留。選擇「不再提示」後，仍可在「實驗功能」中關閉「啟用老版片段規則引擎」，切換至新版。"
     },
     "rules_tryEngine": {
         "message": "啟用"
     },
-    "rules_rolloutBadge": {
-        "message": "測試版"
-    },
     "rules_welcomeTitle": {
-        "message": "新版片段規則引擎（測試版）已啟用"
+        "message": "新版片段規則引擎已啟用"
     },
     "rules_welcomeDescription": {
         "message": "統一管理跳過、快進和靜音，並可查看各類操作對應的處理規則。"
     },
     "rules_welcomeAuto": {
-        "message": "已為你自動啟用本功能。若暫不使用，可選擇「使用經典模式」。"
+        "message": "已為你自動啟用本功能。若暫不使用，可選擇「使用老版」。"
     },
     "rules_welcomePlayback": {
         "message": "改進連續片段、暫停恢復和撤銷後的處理，減少重複跳過。"
@@ -2767,7 +2755,7 @@
         "message": "原有分類、倍速、白名單和提醒設定繼續生效。在「行為」頁面可以調整規則並查看操作範例。"
     },
     "rules_welcomeRestore": {
-        "message": "可在設定頁上方點擊「使用經典模式」退出。退出後不會再次自動啟用，既有設定也會保留。"
+        "message": "可在「實驗功能」中開啟「啟用老版片段規則引擎」切回老版。切換後不會再次自動啟用新版，既有設定也會保留。"
     },
     "rules_startUsing": {
         "message": "查看規則設定"
@@ -2776,7 +2764,7 @@
         "message": "不再提示"
     },
     "rules_declineWelcome": {
-        "message": "使用經典模式"
+        "message": "使用老版"
     },
     "category_jumpscare": {
         "message": "驚嚇片段"

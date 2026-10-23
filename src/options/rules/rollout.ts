@@ -2,7 +2,7 @@ import Config from '../../config';
 
 /** Onboarding only changes the existing engine preference; allocation belongs to config migration. */
 export function setupRuleRollout(updateMode: () => void, openBehavior: () => void, embedded: boolean): void {
-    const toggle = document.getElementById('rule-engine-enabled') as HTMLInputElement;
+    const toggle = document.getElementById('legacy-engine-enabled') as HTMLInputElement;
     const invitation = document.getElementById('rules-invitation');
     const dialog = document.getElementById('rules-welcome') as HTMLDialogElement;
     const closeWelcome = () => {
@@ -15,7 +15,7 @@ export function setupRuleRollout(updateMode: () => void, openBehavior: () => voi
     function refresh() {
         const enabled = Config.config.skipEngineMode === 'rules';
         const pending = !Config.config.userID || Config.config.skipRulesRollout === 'pending';
-        toggle.checked = enabled;
+        toggle.checked = !enabled;
         document.getElementById('rule-engine-entry').hidden = pending;
         invitation.hidden = pending || embedded || enabled || !Config.config.showNewFeaturePopups ||
             Config.config.skipRulesNotice !== 'unseen';
@@ -31,8 +31,7 @@ export function setupRuleRollout(updateMode: () => void, openBehavior: () => voi
         refresh();
         if (enabled) showWelcome();
     }
-    toggle.addEventListener('change', () => changeMode(toggle.checked));
-    document.getElementById('rule-engine-disable').addEventListener('click', () => changeMode(false));
+    toggle.addEventListener('change', () => changeMode(!toggle.checked));
     document.getElementById('rules-invitation-enable').addEventListener('click', () => {
         changeMode(true);
         openBehavior();

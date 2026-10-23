@@ -60,9 +60,12 @@ export function SettingsPanel({ group, update, children }: { group: SettingsGrou
     return <section className="rules-settings" data-settings-group={group} aria-label={t('settings_' + group)}>
         <div className="rules-settings-heading"><h3>{t('settings_' + group)}</h3><button type="button" className="rules-link" onClick={() => {
             for (const key of settingGroups[group]) update(key, Config.syncDefaults[key]);
-            if (group === 'cards') update('noticeVisibilityMode', Config.syncDefaults.noticeVisibilityMode);
+            if (group === 'cards') {
+                update('noticeVisibilityMode', Config.syncDefaults.noticeVisibilityMode);
+                update('showCategoryGuidelines', Config.syncDefaults.showCategoryGuidelines);
+            }
         }}>{t('resetSection')}</button></div>
         <div className="rules-setting-grid">{settingGroups[group].map(setting => <RuleSetting key={setting} setting={setting} update={update} />)}{children}</div>
-        <p className="small-description">{t(group === 'segments' ? 'speedHelp' : group === 'matrix' ? 'resumeNote' : 'countdownHelp')} {t('saved')}</p>
+        {group !== 'cards' && <p className="small-description">{t(group === 'segments' ? 'speedHelp' : 'resumeNote')} {t('saved')}</p>}
     </section>;
 }

@@ -9,15 +9,15 @@ const userInBucket = (bucket: number) => Array.from({ length: 10000 }, (_, i) =>
     .find(id => skipRulesBucket(id) === bucket)!;
 const invited = (bucket = 20) => ({ ...fresh(userInBucket(bucket)), skipRulesRollout: 'invite' as SkipRulesRollout });
 
-test('stable allocation uses the 40 percent boundary and keeps opt-outs on reload', () => {
+test('stable allocation uses the 60 percent boundary and keeps opt-outs on reload', () => {
     const buckets = new Set<number>();
     for (let i = 0; i < 2000; i++) {
         const config = fresh(`user-${i}`);
         const bucket = skipRulesBucket(config.userID);
         buckets.add(bucket);
         migrateSkipRulesRollout(config, keys);
-        expect(config.skipEngineMode).toBe(bucket < 40 ? 'rules' : 'legacy');
-        expect(config.skipRulesRollout).toBe(bucket < 40 ? 'auto' : 'invite');
+        expect(config.skipEngineMode).toBe(bucket < 60 ? 'rules' : 'legacy');
+        expect(config.skipRulesRollout).toBe(bucket < 60 ? 'auto' : 'invite');
         const allocated = config.skipRulesRollout;
         migrateSkipRulesRollout(config, savedKeys);
         expect(config.skipRulesRollout).toBe(allocated);
@@ -31,12 +31,12 @@ test('stable allocation uses the 40 percent boundary and keeps opt-outs on reloa
 });
 
 test.each(['pending', 'invite'] as const)('upgrades from an older release use the current target for %s users', state => {
-    for (const bucket of [0, 19, 20, 39, 40, 99]) {
+    for (const bucket of [0, 19, 20, 39, 40, 59, 60, 99]) {
         const config = { ...fresh(userInBucket(bucket)), skipRulesRollout: state };
         // Before 0.16.0 neither the engine preference nor allocation was stored.
         migrateSkipRulesRollout(config, state === 'pending' ? new Set(['userID', 'showNewFeaturePopups']) : savedKeys);
-        expect(config).toMatchObject({ skipEngineMode: bucket < 40 ? 'rules' : 'legacy',
-            skipRulesRollout: bucket < 40 ? 'auto' : 'invite' });
+        expect(config).toMatchObject({ skipEngineMode: bucket < 60 ? 'rules' : 'legacy',
+            skipRulesRollout: bucket < 60 ? 'auto' : 'invite' });
     }
 });
 

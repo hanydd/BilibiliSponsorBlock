@@ -16,13 +16,12 @@
 .rule-page button:where(:not(.rules-categories *, .rules-native *)):focus-visible,.rule-page select:where(:not(.rules-categories *, .rules-native *)):focus-visible,.rule-page input:where(:not(.rules-categories *, .rules-native *)):focus-visible,.rule-page summary:focus-visible{outline:2px solid var(--server-node-active);outline-offset:2px}
 .rule-page input:where(:not(.rules-categories *, .rules-native *)),.rule-page select:where(:not(.rules-categories *, .rules-native *)){color:var(--white);background:var(--rules-control-background);border:1px solid var(--border-color);border-radius:4px;padding:6px 8px;max-width:100%;min-width:0}
 .rule-page label:where(:not(.rules-categories *, .rules-native *)){font-size:var(--rules-font-body);display:flex;flex-direction:column;gap:8px}
-.rules-engine-status{font-size:var(--rules-font-note);line-height:1.6;max-width:430px}
 .rules-tabs{display:flex;flex-wrap:wrap;gap:22px;border-bottom:1px solid var(--border-color);margin:16px 0}
 .rules-tabs button{background:none;border:0;border-bottom:2px solid transparent;border-radius:0;padding:9px 1px;font-size:var(--rules-font-subheading)}
 .rules-tabs button[aria-selected=true]{border-bottom-color:var(--server-node-active);color:var(--server-node-active)}
 .rules-settings{padding:0 0 20px;background:transparent;border:0;border-bottom:1px solid var(--border-color);border-radius:0;margin:var(--rules-space-group) 0}
 .rules-settings h3{margin:0 0 12px;font-size:var(--rules-font-section)}
-.rules-setting-grid{display:flex;flex-wrap:wrap;align-items:center;gap:12px 32px}
+.rules-setting-grid{display:flex;flex-wrap:wrap;align-items:center;gap:4px 24px}
 .rules-settings p{margin:var(--rules-space-note) 0 0}
 .rules-modes,.rules-groups{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .rules-modes button,.rules-groups button{background:transparent;font-size:var(--rules-font-body)}
@@ -52,7 +51,7 @@
 .rule-page .rules-link{background:none;border:0;padding:0;text-align:left;color:var(--server-node-active);font-size:var(--rules-font-body);line-height:1.6}
 .rules-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .rules-toolbar p{margin-bottom:8px}
-.rules-sim-controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin:var(--rules-space-note) 0 var(--rules-space-heading)}
+.rules-sim-controls{display:flex;flex-wrap:wrap;align-items:center;gap:4px 24px;margin:var(--rules-space-note) 0 var(--rules-space-heading)}
 .rules-sim-controls label{font-size:var(--rules-font-body)}
 .rules-sim-controls button{font-size:var(--rules-font-body)}
 .rules-check{flex-direction:row!important;align-items:center;padding-bottom:6px}
@@ -103,7 +102,6 @@
 @media(max-width:1350px){.rules-workspace{grid-template-columns:minmax(0,1fr) 260px}
 .rules-sim-layout{grid-template-columns:minmax(0,1fr) 260px}
 .rules-tabs{gap:16px}
-.rules-engine-status{max-width:300px}
 }
 
 @media(max-width:900px){.rules-workspace,.rules-sim-layout{display:block}
@@ -112,7 +110,6 @@
 }
 
 @media(max-width:600px){.rule-page header{display:block}
-.rules-engine-status{display:block;margin-top:8px}
 .rules-tabs{gap:10px;overflow:auto}
 .rules-tabs button{white-space:nowrap;font-size:var(--rules-font-subheading)}
 .rules-browser{display:block}
@@ -182,7 +179,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: 12px 18px;
+    gap: 4px 24px;
     margin-top: var(--rules-space-group);
 }
 
@@ -363,6 +360,8 @@
     max-width: 100%;
 }
 :is(.rule-page, #rule-engine-entry) .switch-container .switch-label { padding: 0; min-width: 0; }
+.rule-page .switch-container { min-height: 32px; }
+.rule-page .switch-container .switch-label { line-height: 1.6; }
 .rule-page .rules-toggle {
     flex-direction: row;
     align-items: center;
@@ -385,10 +384,28 @@
 .rules-setting-grid > label > span,
 .rules-sim-controls > label > span { min-width: 0; line-height: 1.6; }
 .rules-setting-grid > label > select { width: 160px; flex-shrink: 0; }
-.rule-page .rules-setting-grid > label > input[type=number] { width: 80px; flex-shrink: 0; }
+.rule-page .rules-setting-grid > label > input[type=number] { width: 80px; height: 32px; flex-shrink: 0; }
 .rules-settings[data-settings-group="segments"] select { width: 96px; }
 .rules-context-settings .rules-setting-grid > label > span { flex: 1; }
 .rules-context-settings .rules-setting-grid > label > select { width: 55%; }
+
+.rules-settings[data-settings-group="cards"] {
+    container: reminder-settings / inline-size;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+.rules-settings[data-settings-group="cards"] > .rules-setting-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.rules-settings[data-settings-group="cards"] .rules-setting-grid > * { min-width: 0; }
+.rules-settings[data-settings-group="cards"] [data-sync="noticeVisibilityMode"] { flex-wrap: wrap; }
+@container reminder-settings (max-width: 860px) {
+    .rules-settings[data-settings-group="cards"] > .rules-setting-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container reminder-settings (max-width: 480px) {
+    .rules-settings[data-settings-group="cards"] > .rules-setting-grid { grid-template-columns: minmax(0, 1fr); }
+}
 
 .rules-sim-controls .rules-check { padding-bottom: 0; }
 
@@ -402,7 +419,8 @@
     background: var(--rules-control-background);
 }
 .rule-page select.optionsSelector {
-    min-height: 30px;
+    height: 32px;
+    min-height: 32px;
     max-width: 100%;
     border: 1px solid var(--border-color);
     border-radius: 4px;
@@ -527,18 +545,7 @@
 #rule-engine-entry .switch-container { font-size: var(--rules-font-body); }
 #rule-engine-entry .small-description { font-size: var(--rules-font-note); }
 
-/* Rollout controls and onboarding share the options page's light/dark palette. */
-#rule-engine-controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    padding: 0 0 16px;
-    border: 0;
-    font-size: 13px;
-}
-#rule-engine-controls .option-button { margin: 0; padding: 7px 12px; font-size: 13px; }
+/* Onboarding shares the options page's light/dark palette. */
 .rules-onboarding {
     box-sizing: border-box;
     padding: 24px;
@@ -570,7 +577,6 @@
     font-size: 22px;
     cursor: pointer;
 }
-.rules-onboarding-badge { font-size: 12px; color: var(--server-node-active); }
 .rules-onboarding-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
 .rules-onboarding .rules-onboarding-secondary { background: var(--background); color: var(--description); border: 1px solid var(--border-color); }
 #rules-welcome { width: 520px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; }

@@ -357,16 +357,12 @@
 				</div>
                 </div>
                 <div id="skip-rules" class="hidden">
-                    <div id="rule-engine-controls">
-                        <span>__MSG_rules_rolloutActive__</span>
-                        <button id="rule-engine-disable" class="option-button" type="button">__MSG_rules_useClassic__</button>
-                    </div>
                     <div id="skip-rules-root"></div>
                 </div>
 			</div>
 
 			<div id="interface" class="option-group hidden">
-				<div class="section">
+				<div id="legacy-notice-settings" class="section">
 					<h3>__MSG_optionSectionSkipNotice__</h3>
 
 					<div data-type="number-change" data-sync="skipNoticeDuration">
@@ -904,10 +900,10 @@
 			<div id="experiment" class="option-group hidden">
 				<div id="rule-engine-entry">
                     <div class="switch-container">
-                        <label class="switch"><input id="rule-engine-enabled" type="checkbox" /><span class="slider round"></span></label>
-                        <label class="switch-label" for="rule-engine-enabled">__MSG_rules_enable__</label>
+                        <label class="switch"><input id="legacy-engine-enabled" type="checkbox" /><span class="slider round"></span></label>
+                        <label class="switch-label" for="legacy-engine-enabled">__MSG_rules_enableLegacy__</label>
                     </div>
-                    <div class="small-description">__MSG_rules_enableDescription__</div>
+                    <div class="small-description">__MSG_rules_enableLegacyDescription__</div>
                 </div>
 
 				<div data-type="toggle" data-toggle-type="reverse" data-sync="showNewFeaturePopups">
@@ -1059,7 +1055,6 @@
     </aside>
     <dialog id="rules-welcome" class="rules-onboarding" aria-labelledby="rules-welcome-title" aria-describedby="rules-welcome-description">
         <button id="rules-welcome-close" class="rules-onboarding-close" type="button" aria-label="__MSG_close__">×</button>
-        <span class="rules-onboarding-badge">__MSG_rules_rolloutBadge__</span>
         <h2 id="rules-welcome-title">__MSG_rules_welcomeTitle__</h2>
         <p id="rules-welcome-description">__MSG_rules_welcomeDescription__</p>
         <p id="rules-welcome-auto" class="rules-onboarding-note" hidden>__MSG_rules_welcomeAuto__</p>

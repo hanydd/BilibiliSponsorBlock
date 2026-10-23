@@ -1,3 +1,4 @@
+import { toggleRuleEngine } from './support/ruleEngine';
 import { writeFile } from 'fs/promises';
 import { test, expect } from './fixtures/extension';
 import { DEFAULT_ROLLOUT_PERCENT, skipRulesBucket } from '../src/config/skipRulesRollout';
@@ -11,9 +12,9 @@ async function upgrade(worker, automatic: boolean, announcements = true) {
 }
 const options = (id: string) => `chrome-extension://${id}/options/options.html#behavior`;
 
-test('upgrading a 20 percent invitation enrolls the added cohort once and preserves a later opt-out', async ({ extensionPage: page, extensionId, extensionServiceWorker: worker }) => {
+test('upgrading a 40 percent invitation enrolls the added cohort once and preserves a later opt-out', async ({ extensionPage: page, extensionId, extensionServiceWorker: worker }) => {
     const userID = Array.from({ length: 1000 }, (_, i) => `rollout-${i}`)
-        .find(id => skipRulesBucket(id) === 39)!;
+        .find(id => skipRulesBucket(id) === 59)!;
     await writeSyncStorage(worker, { userID, showNewFeaturePopups: true, skipEngineMode: 'legacy',
         skipRulesRollout: 'invite', skipRulesNotice: 'unseen' });
     await page.goto(options(extensionId));
@@ -31,7 +32,7 @@ test('upgrading a 20 percent invitation enrolls the added cohort once and preser
 
 for (const notice of ['invitation-dismissed', 'welcome-dismissed']) test(`a previously dismissed ${notice} invitation stays off inside the expanded cohort`, async ({ extensionPage: page, extensionId, extensionServiceWorker: worker }) => {
     const userID = Array.from({ length: 1000 }, (_, i) => `rollout-${i}`)
-        .find(id => skipRulesBucket(id) === 39)!;
+        .find(id => skipRulesBucket(id) === 59)!;
     await writeSyncStorage(worker, { userID, showNewFeaturePopups: true, skipEngineMode: 'legacy',
         skipRulesRollout: 'invite', skipRulesNotice: notice });
     await page.goto(options(extensionId));
@@ -68,8 +69,8 @@ test('automatic cohort gets a welcome once and can opt out without losing prefer
     await page.goto(options(extensionId));
     const dialog = page.locator('#rules-welcome');
     await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText('新版片段规则引擎（测试版）已启用');
-    await expect(dialog).not.toContainText('20%');
+    await expect(dialog).toContainText('新版片段规则引擎已启用');
+    await expect(dialog).not.toContainText('测试版');
     await expect.poll(() => readSyncStorage(worker, 'skipRulesRollout')).toBe('auto');
     await expect.poll(() => readSyncStorage(worker, 'skipEngineMode')).toBe('rules');
     await expect(page.locator('#rules-invitation')).toBeHidden();
@@ -78,9 +79,10 @@ test('automatic cohort gets a welcome once and can opt out without losing prefer
     await expect.poll(() => readSyncStorage(worker, 'skipRulesNotice')).toBe('welcome-dismissed');
     await page.reload();
     await expect(dialog).toBeHidden();
-    await page.locator('#rule-engine-disable').click();
+    await expect(page.locator('#rule-engine-controls, #rule-engine-disable')).toHaveCount(0);
+    await toggleRuleEngine(page);
     await expect(page.locator('#classic-behavior')).toBeVisible();
-    await expect(page.locator('#behavior #rule-engine-enabled')).toHaveCount(0);
+    await expect(page.locator('#behavior #legacy-engine-enabled')).toHaveCount(0);
     await expect.poll(() => readSyncStorage(worker, 'skipEngineMode')).toBe('legacy');
     await page.reload();
     await expect(page.locator('#classic-behavior')).toBeVisible();
@@ -117,14 +119,14 @@ test('dismissed invitation stays dismissed but manual opt-in remains in experime
     await expect(page.locator('#rules-invitation')).toBeHidden();
     await page.locator('[data-for="experiment"]').click();
     await expect(page.locator('#rule-engine-entry')).toBeVisible();
-    await page.locator('label[for="rule-engine-enabled"]').click();
+    await page.locator('label[for="legacy-engine-enabled"]').click();
     await expect(page.locator('#rules-welcome')).toBeVisible();
     const other = await extensionContext.newPage();
     await other.goto(options(extensionId));
-    await expect(other.locator('#rule-engine-disable')).toBeVisible();
-    await other.locator('#rule-engine-disable').click();
+    await expect(other.locator('#legacy-engine-enabled')).not.toBeChecked();
+    await toggleRuleEngine(other);
     await expect(page.locator('#rules-welcome')).toBeHidden();
-    await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
+    await expect(page.locator('#legacy-engine-enabled')).toBeChecked();
     await other.close();
 });
 
@@ -136,7 +138,7 @@ test('disabled announcements prevent enrollment and prompts but allow intentiona
     await expect(page.locator('#rules-invitation')).toBeHidden();
     await expect(page.locator('#rules-welcome')).toBeHidden();
     await page.locator('[data-for="experiment"]').click();
-    await page.locator('label[for="rule-engine-enabled"]').click();
+    await page.locator('label[for="legacy-engine-enabled"]').click();
     await expect.poll(() => readSyncStorage(worker, 'skipEngineMode')).toBe('rules');
     await expect(page.locator('#rules-welcome')).toBeHidden();
     await page.locator('[data-for="behavior"]').click();
@@ -177,7 +179,7 @@ test('not interested suppresses all onboarding after reload and a later intentio
     await page.reload();
     await expect(page.locator('#rules-invitation')).toBeHidden();
     await page.locator('[data-for="experiment"]').click();
-    await page.locator('label[for="rule-engine-enabled"]').click();
+    await page.locator('label[for="legacy-engine-enabled"]').click();
     await expect.poll(() => readSyncStorage(worker, 'skipEngineMode')).toBe('rules');
     await expect(page.locator('#rules-welcome')).toBeHidden();
     const other = await extensionContext.newPage();

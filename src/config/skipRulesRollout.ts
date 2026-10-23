@@ -1,4 +1,4 @@
-export const DEFAULT_ROLLOUT_PERCENT = 40;
+export const DEFAULT_ROLLOUT_PERCENT = 60;
 
 export type SkipRulesRollout = 'pending' | 'auto' | 'invite' | 'excluded' | 'existing';
 export type SkipRulesNotice = 'unseen' | 'invitation-dismissed' | 'welcome-dismissed';

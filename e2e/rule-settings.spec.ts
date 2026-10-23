@@ -8,31 +8,33 @@ const rules = '#skip-rules';
 const settingTabs: Record<string, string> = {
     skipOnSeekToSegment: 'matrix', skipResumeAction: 'matrix', speedUpResumeAction: 'matrix', previewIncludeOtherSegments: 'matrix',
     advanceSkipNotice: 'cards', skipNoticeDurationBefore: 'cards', skipNoticeDuration: 'cards', dontShowNotice: 'cards',
-    audioNotificationOnSkip: 'cards', noticeVisibilityMode: 'cards', skipSoundVolume: 'cards', skipSoundFadeStart: 'cards',
+    audioNotificationOnSkip: 'cards', noticeVisibilityMode: 'cards', showCategoryGuidelines: 'cards', skipSoundVolume: 'cards', skipSoundFadeStart: 'cards',
 };
 async function open(page, extensionId: string, tab = 'segments') {
     await page.goto(`chrome-extension://${extensionId}/options/options.html?rulesTab=${tab}#skip-rules`);
-    if (!await page.locator('#rule-engine-enabled').isChecked()) await toggleRuleEngine(page);
+    if (await page.locator('#legacy-engine-enabled').isChecked()) await toggleRuleEngine(page);
     await expect(page.locator('#skip-rules')).toBeVisible();
     await expect(page.locator('#rules-tab-' + tab)).toHaveAttribute('aria-selected', 'true');
 }
 
 test('one rollout switch controls both views and engines across reloads and settings windows', async ({ extensionContext, extensionPage: page, extensionId, extensionServiceWorker }) => {
     await page.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
-    await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
+    await expect(page.locator('#legacy-engine-enabled')).toBeChecked();
     await expect(page.locator('#classic-behavior')).toBeVisible();
     await expect(page.locator(rules)).toBeHidden();
-    await expect(page.locator('#rule-engine-enabled')).toHaveCount(1);
+    await expect(page.locator('#legacy-engine-enabled')).toHaveCount(1);
+    await expect(page.locator('label[for="legacy-engine-enabled"]')).toHaveText('启用老版片段规则引擎');
     await expect(page.locator('#skipEngineMode, .options-view-switch, [data-for="skip-rules"]')).toHaveCount(0);
     await toggleRuleEngine(page);
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
     await expect(page.locator(rules)).toBeVisible();
+    await expect(page.locator(rules)).not.toContainText('测试版');
     await expect(page.locator('#classic-behavior')).toBeHidden();
     await expect(page.locator('.rules-tabs [role="tab"]')).toHaveCount(6);
     await page.locator('#rules-tab-matrix').click();
-    await expect(page.locator('#rule-engine-disable')).toBeVisible();
+    await expect(page.locator('#rule-engine-controls, #rule-engine-disable')).toHaveCount(0);
     await page.reload();
-    await expect(page.locator('#rule-engine-enabled')).toBeChecked();
+    await expect(page.locator('#legacy-engine-enabled')).not.toBeChecked();
     await expect(page.locator('#rules-tab-matrix')).toHaveAttribute('aria-selected', 'true');
     await page.locator('[data-for="interface"]').click();
     await page.locator('[data-for="behavior"]').click();
@@ -40,16 +42,16 @@ test('one rollout switch controls both views and engines across reloads and sett
     expect(await readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('rules');
     const other = await extensionContext.newPage();
     await other.goto(`chrome-extension://${extensionId}/options/options.html#behavior`);
-    await expect(other.locator('#rule-engine-enabled')).toBeChecked();
+    await expect(other.locator('#legacy-engine-enabled')).not.toBeChecked();
     await toggleRuleEngine(other);
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('legacy');
-    await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
+    await expect(page.locator('#legacy-engine-enabled')).toBeChecked();
     await expect(page.locator('#classic-behavior')).toBeVisible();
     await expect(page.locator(rules)).toBeHidden();
     await page.goto(`chrome-extension://${extensionId}/options/options.html#skip-rules`);
     await expect(page).toHaveURL(/#behavior$/);
     await expect(page.locator('#classic-behavior')).toBeVisible();
-    await expect(page.locator('#rule-engine-enabled')).not.toBeChecked();
+    await expect(page.locator('#legacy-engine-enabled')).toBeChecked();
     expect(await readSyncStorage(extensionServiceWorker, 'skipEngineMode')).toBe('legacy');
     await other.close();
 });
@@ -122,8 +124,9 @@ test('matrix uses real saved settings and supports rule detail navigation', asyn
     await page.locator('#rules-tab-cards').click();
     await page.locator('[data-rule-setting="advanceSkipNotice"]').check();
     await page.locator('[data-for="interface"]').click();
-    await expect(page.locator('[data-sync="skipNoticeDurationBefore"]')).toBeVisible();
+    await expect(page.locator('[data-sync="skipNoticeDurationBefore"]')).toBeHidden();
     await page.locator('[data-for="behavior"]').click();
+    await expect(page.locator('[data-rule-setting="skipNoticeDurationBefore"]')).toBeEnabled();
     await expect(page.locator('[data-rule-setting="skipResumeAction"]')).toHaveValue('manual');
     await expect(page.locator('#skipOnSeekToSegment')).not.toBeChecked();
 });
@@ -219,7 +222,7 @@ test('settings tabs cover every classic behavior setting and keep native control
         }, null, 2), contentType: 'application/json',
     });
     await expect(page.locator('.rules-settings[data-settings-group]')).toHaveCount(3);
-    await expect(page.locator('#rule-engine-disable')).toBeVisible();
+    await expect(page.locator('#rule-engine-controls, #rule-engine-disable')).toHaveCount(0);
     await panel.locator('label[for="forceChannelCheck"]').click();
     await expect.poll(() => readSyncStorage(extensionServiceWorker, 'forceChannelCheck')).toBe(true);
     await page.locator('#rules-tab-cards').click();
@@ -259,7 +262,7 @@ test('settings tabs cover every classic behavior setting and keep native control
     for (const tab of ['community', 'matrix', 'cards', 'simulator', 'rules']) {
         await page.locator('#rules-tab-' + tab).click();
         await expect(page.locator('.rules-settings[data-settings-group]:visible')).toHaveCount(['matrix', 'cards'].includes(tab) ? 1 : 0);
-        await expect(page.locator('#rule-engine-disable')).toBeVisible();
+        await expect(page.locator('#rule-engine-controls, #rule-engine-disable')).toHaveCount(0);
     }
 });
 
@@ -448,10 +451,37 @@ test('users can replace countdown values and configure fast-forward beside its s
 });
 
 test('notice appearance is in the settings grid and previews every visibility mode with hover expansion', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
     await open(page, extensionId, 'cards');
     const panel = page.locator('#rules-panel-cards');
     const appearance = panel.locator('.rules-setting-grid #noticeVisibilityMode');
     await expect(appearance).toBeVisible();
+    const guidelines = panel.locator('#showCategoryGuidelines');
+    await expect(guidelines).toBeVisible();
+    await panel.locator('label[for="showCategoryGuidelines"]').click();
+    await expect.poll(() => readSyncStorage(extensionServiceWorker, 'showCategoryGuidelines')).toBe(false);
+    await page.locator('[data-for="interface"]').click();
+    await expect(page.locator('#legacy-notice-settings')).toBeHidden();
+    await expect(page.locator('#interface label[for="showNewIcon"]')).toBeVisible();
+    await page.reload();
+    await expect(page.locator('#legacy-notice-settings')).toBeHidden();
+    await page.locator('[data-for="behavior"]').click();
+    await expect(guidelines).not.toBeChecked();
+    const grid = panel.locator('.rules-setting-grid').first();
+    const rows = await grid.locator(':scope > *').evaluateAll(elements => elements.map(element => {
+        const bounds = element.getBoundingClientRect();
+        return Math.round(bounds.top + bounds.height / 2);
+    }));
+    expect(rows).toHaveLength(6);
+    expect(rows.slice(0, 3)).toEqual([rows[0], rows[0], rows[0]]);
+    expect(rows.slice(3)).toEqual([rows[3], rows[3], rows[3]]);
+    expect(rows[3]).toBeGreaterThan(rows[0]);
+    await panel.locator('[data-settings-group="cards"]').screenshot({ path: test.info().outputPath('reminder-settings.png') });
+    for (const width of [720, 1080]) {
+        await page.setViewportSize({ width, height: 800 });
+        expect(await grid.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+    }
+    await page.setViewportSize({ width: 1920, height: 1080 });
     await panel.locator('[data-rule-setting="advanceSkipNotice"]').check();
     const card = panel.locator('[data-card="A"]');
     for (const mode of [0, 1, 2, 3, 4]) {
@@ -474,10 +504,16 @@ test('notice appearance is in the settings grid and previews every visibility mo
     await expect(card).toHaveCSS('opacity', '0.5');
     await panel.getByRole('button', { name: '恢复本组默认值' }).click();
     await expect(appearance).toHaveValue('3');
+    await expect(guidelines).toBeChecked();
+    await panel.locator('label[for="showCategoryGuidelines"]').click();
     await toggleRuleEngine(page);
     await page.locator('[data-for="interface"]').click();
+    await expect(page.locator('#legacy-notice-settings')).toBeVisible();
     await expect(page.locator('#interface #noticeVisibilityMode')).toBeVisible();
     await expect(page.locator('#noticeVisibilityMode')).toHaveCount(1);
+    await expect(page.locator('#interface label[for="showCategoryGuidelines"]')).toBeVisible();
+    await expect(page.locator('#showCategoryGuidelines')).toHaveCount(1);
+    await expect(page.locator('#showCategoryGuidelines')).not.toBeChecked();
 });
 
 test('card settings update state examples and reset only the reminder group', async ({ extensionPage: page, extensionId, extensionServiceWorker }) => {

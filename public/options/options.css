@@ -174,6 +174,10 @@ body {
 	margin-top: 40px;
 }
 
+#legacy-notice-settings.hidden + div.section {
+	margin-top: 13px;
+}
+
 .option-group > div.section > h3 {
 	margin: -13px 0 -10px -2em;
 	padding: 0 15px 10px 0;

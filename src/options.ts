@@ -417,6 +417,7 @@ async function init() {
 function updateBehaviorMode(): void {
     const enabled = Config.config.skipEngineMode === "rules";
     document.getElementById("classic-behavior").classList.toggle("hidden", enabled);
+    document.getElementById("legacy-notice-settings").classList.toggle("hidden", enabled);
     document.getElementById("skip-rules").classList.toggle("hidden", !enabled);
     document.getElementById("behavior").classList.toggle("rules-enabled", enabled);
 }
