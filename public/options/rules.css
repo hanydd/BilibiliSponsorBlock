@@ -452,6 +452,46 @@
 .rules-description > h3:first-child { margin: 0 0 var(--rules-space-heading); }
 #rules-panel-community > .rules-native > div:first-child { padding-top: 0; }
 
+/* Replace the classic form's line breaks with spacing between actual fields. */
+#rules-panel-community [data-sync="dynamicAndCommentSponsorBlocker"] br { display: none; }
+#rules-panel-community [data-sync="dynamicAndCommentSponsorBlocker"] .small-description { margin-top: 4px; }
+#rules-panel-community [data-sync="dynamicAndCommentSponsorBlocker"] [data-dependent-on],
+#rules-panel-community [data-dependent-on="dynamicAndCommentSponsorBlocker"] > [data-sync] { margin-top: 12px; }
+#rules-panel-community [data-dependent-on="dynamicAndCommentSponsorBlocker"] > [data-sync]:first-child,
+#rules-panel-community [data-dependent-on] > [data-sync]:first-child { margin-top: 0; }
+#rules-panel-community [data-dependent-on="dynamicSponsorBlock"] > [data-sync] + [data-sync] { margin-top: 12px; }
+#rules-panel-community #DynamicSponsor { margin-top: 16px; container: community-categories / inline-size; }
+#rules-panel-community #DynamicSponsorRegex { margin-top: 24px; }
+#rules-panel-community #DynamicSponsor table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+#rules-panel-community #DynamicSponsor .categoryTableElement > :is(th,td) { padding: 10px 12px 10px 0; text-align: left; vertical-align: middle; }
+#rules-panel-community #DynamicSponsor .categoryTableElement > :last-child { padding-right: 0; }
+#rules-panel-community #DynamicSponsor .categoryTableHeader th:first-child { width: 160px; }
+#rules-panel-community #DynamicSponsor .HideOption { width: 170px; }
+#rules-panel-community #DynamicSponsor .ColorOption { width: 90px; min-width: 0; }
+#rules-panel-community #DynamicSponsor .categoryInlineDescription { display: table-cell; font-size: var(--rules-font-note); line-height: 1.6; color: var(--description); }
+#rules-panel-community #DynamicSponsor .categoryTableDescription { display: none; }
+#rules-panel-community #DynamicSponsor .optionsSelector { width: 100%; max-width: 158px; }
+@container community-categories (max-width: 760px) {
+    #rules-panel-community #DynamicSponsor :is(table,tbody,tr,td) { display: block; }
+    #rules-panel-community #DynamicSponsor .categoryTableElement.categoryTableHeader,
+    #rules-panel-community #DynamicSponsor .categoryTableDescription { display: none; }
+    #rules-panel-community #DynamicSponsor .categoryTableElement {
+        display: grid;
+        grid-template-columns: minmax(0,1fr) 160px 70px;
+        align-items: center;
+        gap: 4px 12px;
+        padding: 10px 0;
+        border-top: 1px solid var(--border-color);
+    }
+    #rules-panel-community #DynamicSponsor .categoryTableElement > td { padding: 0; border: 0; min-width: 0; }
+    #rules-panel-community #DynamicSponsor .categoryInlineDescription { grid-column: 1 / -1; grid-row: 2; }
+}
+@container community-categories (max-width: 420px) {
+    #rules-panel-community #DynamicSponsor .categoryTableElement { grid-template-columns: minmax(0,1fr) 70px; }
+    #rules-panel-community #DynamicSponsor .categoryTableLabel { grid-column: 1 / -1; }
+    #rules-panel-community #DynamicSponsor .categoryInlineDescription { grid-row: 3; }
+}
+
 .rule-page .rules-native .small-description { margin: var(--rules-space-note) 0 0; padding: 0; }
 
 /* Shared type roles include controls reused from the classic settings. */

@@ -78,6 +78,8 @@ class DynamicSponsorChooserComponent extends React.Component<CategoryChooserProp
                             {chrome.i18n.getMessage("category")}
                         </th>
 
+                        <th className="categoryInlineDescription">{chrome.i18n.getMessage("rules_categoryDescription")}</th>
+
                         <th id={"CategoryHideOption"} className="HideOption">
                             {chrome.i18n.getMessage("skipOptionDynamicSponsor")}
                         </th>

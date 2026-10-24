@@ -269,6 +269,10 @@ class DynamicSponsorHideOptionsComponent extends React.Component<CategorySkipOpt
                         {chrome.i18n.getMessage("category_" + this.props.category)}
                     </td>
 
+                    <td className="categoryInlineDescription">
+                        {chrome.i18n.getMessage("category_" + this.props.category + "_description")}
+                    </td>
+
                     <td id={this.props.category + "SkipOption"} className="skipOption">
                         <select
                             className="optionsSelector"
