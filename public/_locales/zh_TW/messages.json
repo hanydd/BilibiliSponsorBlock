@@ -1349,6 +1349,24 @@
     "optionsTabExperiment": {
         "message": "實驗功能"
     },
+    "noticeCollapseLabel": {
+        "message": "摺疊提醒"
+    },
+    "noticeCollapseNever": {
+        "message": "不摺疊"
+    },
+    "noticeFadeLabel": {
+        "message": "半透明提醒"
+    },
+    "noticeFadeNever": {
+        "message": "不透明"
+    },
+    "noticeAppearanceHandled": {
+        "message": "僅跳過或靜音後"
+    },
+    "noticeAppearanceAll": {
+        "message": "所有提醒"
+    },
     "noticeVisibilityLabel": {
         "message": "跳過提醒外觀",
         "description": "Option label"

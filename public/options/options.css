@@ -178,6 +178,9 @@ body {
 	margin-top: 13px;
 }
 
+[data-type="notice-appearance"] { display: flex; flex-wrap: wrap; gap: 4px 24px; margin-top: 12px; }
+.notice-appearance-option { display: flex; align-items: center; gap: 8px; min-width: 0; }
+
 .option-group > div.section > h3 {
 	margin: -13px 0 -10px -2em;
 	padding: 0 15px 10px 0;

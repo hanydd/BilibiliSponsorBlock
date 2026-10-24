@@ -175,13 +175,15 @@ test("persists common interface toggles, numeric values, and selectors", async (
     await durationInput.fill("8");
     await expectSyncStorage(extensionServiceWorker, "skipNoticeDuration", "8");
 
-    await extensionPage.locator("#noticeVisibilityMode").selectOption("4");
+    await extensionPage.locator("#noticeCollapse").selectOption("all");
+    await extensionPage.locator("#noticeFade").selectOption("all");
     await expectSyncStorage(extensionServiceWorker, "noticeVisibilityMode", 4);
 
     await extensionPage.reload();
     await expect(extensionPage.locator("#darkMode")).not.toBeChecked();
     await expect(durationInput).toHaveValue("8");
-    await expect(extensionPage.locator("#noticeVisibilityMode")).toHaveValue("4");
+    await expect(extensionPage.locator("#noticeCollapse")).toHaveValue("all");
+    await expect(extensionPage.locator("#noticeFade")).toHaveValue("all");
 });
 
 test("changes and persists a category skip policy", async ({

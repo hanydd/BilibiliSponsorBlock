@@ -1,4 +1,5 @@
 import { ActionType, NoticeVisibilityMode } from "../types";
+import { getNoticeAppearance, NoticeAppearanceScope } from './noticeAppearance';
 
 export enum SegmentPlaybackState {
     Skipped,
@@ -14,8 +15,10 @@ export function initialPlayback(autoSkip: boolean, startReskip: boolean, action:
 
 export function noticePresentation(mode: NoticeVisibilityMode, upcoming: boolean, playback: SegmentPlaybackState): { small: boolean; faded: boolean } {
     const skipped = !upcoming && playback === SegmentPlaybackState.Skipped;
+    const appearance = getNoticeAppearance(mode);
+    const applies = (scope: NoticeAppearanceScope) => scope === 'all' || scope === 'handled' && skipped;
     return {
-        small: mode >= NoticeVisibilityMode.MiniForAll || (mode >= NoticeVisibilityMode.MiniForAutoSkip && skipped),
-        faded: mode >= NoticeVisibilityMode.FadedForAll || (mode >= NoticeVisibilityMode.FadedForAutoSkip && skipped),
+        small: applies(appearance.collapse),
+        faded: applies(appearance.fade),
     };
 }

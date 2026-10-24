@@ -475,6 +475,7 @@ class SkipNoticeStack {
             else folded = true;
             entry.element.style.setProperty("--sb-detail-height", `${entry.expanded ? this.detailHeight(entry) : 0}px`);
             entry.element.setAttribute("aria-expanded", String(entry.expanded));
+            entry.element.setAttribute("data-default-expanded", String(entry.defaultExpanded));
             entry.element.classList.toggle("sponsorSkipStackFolded", !entry.visible);
             entry.element.toggleAttribute("inert", entry.closing);
             entry.element.firstElementChild.toggleAttribute("inert", !entry.visible || entry.closing);

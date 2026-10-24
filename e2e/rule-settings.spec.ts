@@ -454,7 +454,8 @@ test('notice appearance is in the settings grid and previews every visibility mo
     await page.setViewportSize({ width: 1920, height: 1080 });
     await open(page, extensionId, 'cards');
     const panel = page.locator('#rules-panel-cards');
-    const appearance = panel.locator('.rules-setting-grid #noticeVisibilityMode');
+    const appearance = panel.locator('#noticeCollapse');
+    const fade = panel.locator('#noticeFade');
     await expect(appearance).toBeVisible();
     const guidelines = panel.locator('#showCategoryGuidelines');
     await expect(guidelines).toBeVisible();
@@ -468,14 +469,14 @@ test('notice appearance is in the settings grid and previews every visibility mo
     await page.locator('[data-for="behavior"]').click();
     await expect(guidelines).not.toBeChecked();
     const grid = panel.locator('.rules-setting-grid').first();
-    const rows = await grid.locator(':scope > *').evaluateAll(elements => elements.map(element => {
+    const rows = await grid.locator(':scope > label, .notice-appearance-option, [data-sync="showCategoryGuidelines"]').evaluateAll(elements => elements.map(element => {
         const bounds = element.getBoundingClientRect();
         return Math.round(bounds.top + bounds.height / 2);
     }));
-    expect(rows).toHaveLength(6);
-    expect(rows.slice(0, 3)).toEqual([rows[0], rows[0], rows[0]]);
-    expect(rows.slice(3)).toEqual([rows[3], rows[3], rows[3]]);
-    expect(rows[3]).toBeGreaterThan(rows[0]);
+    expect(rows).toHaveLength(7);
+    expect(rows.slice(0, 4)).toEqual([rows[0], rows[0], rows[0], rows[0]]);
+    expect(rows.slice(4)).toEqual([rows[4], rows[4], rows[4]]);
+    expect(rows[4]).toBeGreaterThan(rows[0]);
     await panel.locator('[data-settings-group="cards"]').screenshot({ path: test.info().outputPath('reminder-settings.png') });
     for (const width of [720, 1080]) {
         await page.setViewportSize({ width, height: 800 });
@@ -484,14 +485,19 @@ test('notice appearance is in the settings grid and previews every visibility mo
     await page.setViewportSize({ width: 1920, height: 1080 });
     await panel.locator('[data-rule-setting="advanceSkipNotice"]').check();
     const card = panel.locator('[data-card="A"]');
-    for (const mode of [0, 1, 2, 3, 4]) {
-        await appearance.selectOption(String(mode));
+    for (const [mode, collapse, transparency] of [
+        [0, 'never', 'never'], [1, 'handled', 'never'], [2, 'all', 'never'],
+        [3, 'all', 'handled'], [5, 'never', 'handled'], [6, 'never', 'all'],
+        [7, 'handled', 'handled'], [8, 'handled', 'all'], [4, 'all', 'all'],
+    ] as const) {
+        await appearance.selectOption(collapse);
+        await fade.selectOption(transparency);
         await expect.poll(() => readSyncStorage(extensionServiceWorker, 'noticeVisibilityMode')).toBe(mode);
         for (const phase of ['preview', 'pending', 'speeding', 'completed']) {
             await panel.locator(`[data-card-preview="${phase}"]`).click();
             await page.mouse.move(0, 0);
-            const small = mode >= 2 || mode === 1 && phase === 'completed';
-            const faded = mode === 4 || mode === 3 && phase === 'completed';
+            const small = collapse === 'all' || collapse === 'handled' && phase === 'completed';
+            const faded = transparency === 'all' || transparency === 'handled' && phase === 'completed';
             await expect(card).toHaveAttribute('data-small', String(small));
             await expect(card).toHaveCSS('opacity', faded ? '0.5' : '1');
             await expect(card.locator('.rules-card-detail')).toHaveCSS('max-height', small ? '0px' : '120px');
@@ -503,14 +509,15 @@ test('notice appearance is in the settings grid and previews every visibility mo
     await page.mouse.move(0, 0);
     await expect(card).toHaveCSS('opacity', '0.5');
     await panel.getByRole('button', { name: '恢复本组默认值' }).click();
-    await expect(appearance).toHaveValue('3');
+    await expect(appearance).toHaveValue('all');
+    await expect(fade).toHaveValue('handled');
     await expect(guidelines).toBeChecked();
     await panel.locator('label[for="showCategoryGuidelines"]').click();
     await toggleRuleEngine(page);
     await page.locator('[data-for="interface"]').click();
     await expect(page.locator('#legacy-notice-settings')).toBeVisible();
-    await expect(page.locator('#interface #noticeVisibilityMode')).toBeVisible();
-    await expect(page.locator('#noticeVisibilityMode')).toHaveCount(1);
+    await expect(page.locator('#interface #noticeCollapse')).toBeVisible();
+    await expect(page.locator('#noticeCollapse')).toHaveCount(1);
     await expect(page.locator('#interface label[for="showCategoryGuidelines"]')).toBeVisible();
     await expect(page.locator('#showCategoryGuidelines')).toHaveCount(1);
     await expect(page.locator('#showCategoryGuidelines')).not.toBeChecked();

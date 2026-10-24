@@ -406,19 +406,24 @@
 							<label class="switch-label" for="dontShowNotice"> __MSG_showSkipNotice__ </label>
 						</div>
 
-						<div data-type="selector" data-sync="noticeVisibilityMode" data-dependent-on="dontShowNotice">
-							<br />
-
-							<label class="optionLabel" for="noticeVisibilityMode">__MSG_noticeVisibilityLabel__:</label>
-
-							<select id="noticeVisibilityMode" class="selector-element optionsSelector">
-								<option value="0">__MSG_noticeVisibilityMode0__</option>
-								<option value="1">__MSG_noticeVisibilityMode1__</option>
-								<option value="2">__MSG_noticeVisibilityMode2__</option>
-								<option value="3">__MSG_noticeVisibilityMode3__</option>
-								<option value="4">__MSG_noticeVisibilityMode4__</option>
-							</select>
-						</div>
+                        <div data-type="notice-appearance" data-sync="noticeVisibilityMode" data-dependent-on="dontShowNotice">
+                            <label class="notice-appearance-option" for="noticeCollapse">
+                                <span class="optionLabel">__MSG_noticeCollapseLabel__</span>
+                                <select id="noticeCollapse" data-notice-appearance="collapse" class="optionsSelector">
+                                    <option value="never">__MSG_noticeCollapseNever__</option>
+                                    <option value="handled">__MSG_noticeAppearanceHandled__</option>
+                                    <option value="all">__MSG_noticeAppearanceAll__</option>
+                                </select>
+                            </label>
+                            <label class="notice-appearance-option" for="noticeFade">
+                                <span class="optionLabel">__MSG_noticeFadeLabel__</span>
+                                <select id="noticeFade" data-notice-appearance="fade" class="optionsSelector">
+                                    <option value="never">__MSG_noticeFadeNever__</option>
+                                    <option value="handled">__MSG_noticeAppearanceHandled__</option>
+                                    <option value="all">__MSG_noticeAppearanceAll__</option>
+                                </select>
+                            </label>
+                        </div>
 					</div>
 
 					<div data-type="toggle" data-sync="showCategoryGuidelines">

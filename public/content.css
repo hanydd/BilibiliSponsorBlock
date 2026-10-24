@@ -1296,7 +1296,8 @@ input::-webkit-inner-spin-button {
 }
 
 /* Expanded/hovered cards stay clear across skip/undo state changes. */
-.sponsorSkipStackCard[aria-expanded="true"] > .sponsorSkipNoticeFaded,
+.sponsorSkipStackCard[aria-expanded="true"][data-default-expanded="false"] > .sponsorSkipNoticeFaded,
+.sponsorSkipStackCard:focus-within > .sponsorSkipNoticeFaded,
 .sponsorSkipStackCard:hover > .sponsorSkipNoticeFaded { opacity: 1; }
 
 .sbPlayerMessage {

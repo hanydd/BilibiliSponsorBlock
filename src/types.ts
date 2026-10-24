@@ -242,6 +242,10 @@ export enum NoticeVisibilityMode {
     MiniForAll = 2,
     FadedForAutoSkip = 3,
     FadedForAll = 4,
+    FullSizeFadedForHandled = 5,
+    FullSizeFadedForAll = 6,
+    MiniForHandledFadedForHandled = 7,
+    MiniForHandledFadedForAll = 8,
 }
 
 export enum HideFullVideoLabels {

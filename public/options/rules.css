@@ -284,7 +284,7 @@
 
 .rules-setting-grid > .rules-native { overflow: visible; font-size:var(--rules-font-note); max-width: 100%; }
 .rules-setting-grid > .rules-native > div { padding: 0; border: 0; }
-.rules-setting-grid [data-sync="noticeVisibilityMode"] { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+.rules-setting-grid .notice-appearance-option { min-height: 32px; }
 .rules-setting-grid .rules-native br { display: none; }
 .rules-setting-grid .rules-native .optionLabel { font-size:var(--rules-font-note); min-width: 0; margin: 0; }
 .rules-setting-grid .rules-native select {
@@ -396,11 +396,13 @@
 }
 .rules-settings[data-settings-group="cards"] > .rules-setting-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .rules-settings[data-settings-group="cards"] .rules-setting-grid > * { min-width: 0; }
-.rules-settings[data-settings-group="cards"] [data-sync="noticeVisibilityMode"] { flex-wrap: wrap; }
-@container reminder-settings (max-width: 860px) {
+.rules-setting-grid > .rules-native:has(> [data-type="notice-appearance"]),
+.rules-setting-grid [data-type="notice-appearance"] { display: contents; }
+.rules-setting-grid .notice-appearance-option select { width: 170px; max-width: 100%; }
+@container reminder-settings (max-width: 1100px) {
     .rules-settings[data-settings-group="cards"] > .rules-setting-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @container reminder-settings (max-width: 480px) {

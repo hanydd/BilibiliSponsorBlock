@@ -35,6 +35,7 @@ import { localizeHtmlPage } from "./utils/setup";
 import { applyFadeOut, clamp01 } from "./utils/soundFade";
 
 import { setupRuleRollout } from "./options/rules/rollout";
+import { refreshNoticeAppearance, setupNoticeAppearance } from "./options/noticeAppearance";
 import { mountRulesPage } from "./options/rules/RulesPage";
 
 let embed = false;
@@ -360,6 +361,9 @@ async function init() {
                 });
                 break;
             }
+            case "notice-appearance":
+                setupNoticeAppearance(optionsElements[i]);
+                break;
             case "react-CategoryChooserComponent":
                 categoryChoosers.push(new CategoryChooser(optionsElements[i]));
                 break;
@@ -486,6 +490,8 @@ function optionsConfigUpdateListener(changes: StorageChangesObject) {
             } else if (type === "selector") {
                 const select = element.querySelector("select") as HTMLSelectElement;
                 if (select) select.value = String(Config.config[key]);
+            } else if (type === "notice-appearance") {
+                refreshNoticeAppearance(element);
             } else if (type === "number-change") {
                 const input = element.querySelector("input") as HTMLInputElement;
                 if (input && document.activeElement !== input) input.value = String(Config.config[key]);

@@ -4,7 +4,7 @@ import { writeSyncStorage } from './support/extensionStorage';
 import { routeMockSponsorSegments } from './support/sponsorBlockApi';
 import { waitForBilibiliContentScript } from './support/submissionNotice';
 
-for (const mode of [0, 1, 2, 3, 4]) {
+for (const mode of [0, 1, 2, 3, 4, 5, 6, 7, 8]) {
     // Check every mode during state changes and interrupted hover expansion.
     // The remaining input paths share presentation logic; cover them once in collapsed mode.
     const triggers = mode === 2
@@ -71,17 +71,17 @@ for (const mode of [0, 1, 2, 3, 4]) {
                 await page.mouse.move(1200, 700);
             }
             const panel = card.locator('.sponsorSkipNoticeTableContainer');
-            await expect(card).toHaveAttribute('aria-expanded', String(mode === 0));
+            await expect(card).toHaveAttribute('aria-expanded', String([0, 5, 6].includes(mode)));
             await expect(panel).toHaveCSS('opacity', mode >= 3 ? '0.5' : '1');
             // Undo/redo through the global shortcut, with no lingering pointer focus.
             await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
             await page.keyboard.press('Enter');
             await expect.poll(() => page.locator('video').evaluate((v: HTMLVideoElement) => v.currentTime)).toBeCloseTo(5.001, 3);
-            await expect(card).toHaveAttribute('aria-expanded', String(mode < 2));
-            await expect(panel).toHaveCSS('opacity', mode === 4 ? '0.5' : '1');
+            await expect(card).toHaveAttribute('aria-expanded', String(![2, 3, 4].includes(mode)));
+            await expect(panel).toHaveCSS('opacity', [4, 6, 8].includes(mode) ? '0.5' : '1');
             await page.keyboard.press('Enter');
             await expect.poll(() => page.locator('video').evaluate((v: HTMLVideoElement) => v.currentTime)).toBe(20);
-            await expect(card).toHaveAttribute('aria-expanded', String(mode === 0));
+            await expect(card).toHaveAttribute('aria-expanded', String([0, 5, 6].includes(mode)));
             await expect(panel).toHaveCSS('opacity', mode >= 3 ? '0.5' : '1');
             expect(await page.evaluate(() => (window as Window & { repeatedEntrances: number }).repeatedEntrances)).toBe(0);
         });

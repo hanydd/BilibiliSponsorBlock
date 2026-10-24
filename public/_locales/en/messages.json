@@ -1350,6 +1350,24 @@
     "optionsTabExperiment": {
         "message": "实验功能"
     },
+    "noticeCollapseLabel": {
+        "message": "折叠提醒"
+    },
+    "noticeCollapseNever": {
+        "message": "不折叠"
+    },
+    "noticeFadeLabel": {
+        "message": "半透明提醒"
+    },
+    "noticeFadeNever": {
+        "message": "不透明"
+    },
+    "noticeAppearanceHandled": {
+        "message": "仅跳过或静音后"
+    },
+    "noticeAppearanceAll": {
+        "message": "所有提醒"
+    },
     "noticeVisibilityLabel": {
         "message": "空降提醒外观",
         "description": "Option label"
