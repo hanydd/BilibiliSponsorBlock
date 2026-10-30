@@ -10,6 +10,17 @@ export interface TopSegment {
     skips: number;
     savedMs: number;
 }
+export function isTopSegment(value: unknown): value is TopSegment {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+    const s = value as Record<string, unknown>;
+    const text = (value: unknown, max: number) => typeof value === "string" && value.length <= max;
+    const count = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+    return text(s.uuid,128) && text(s.videoID,128) && text(s.cid,100)
+        && (s.part === null || (count(s.part) && s.part > 0)) && (s.title === null || text(s.title,300))
+        && typeof s.startTime === "number" && Number.isFinite(s.startTime) && s.startTime >= 0
+        && typeof s.endTime === "number" && Number.isFinite(s.endTime) && s.endTime >= s.startTime
+        && text(s.category,100) && count(s.skips) && count(s.savedMs);
+}
 export function segmentTime(seconds: number): string {
     const value = Math.max(0, Math.floor(Number.isFinite(seconds) ? seconds : 0));
     return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, "0")}`;
@@ -56,6 +67,26 @@ export function calendarDates(year: number): string[] {
         days.push(new Date(t).toISOString().slice(0, 10));
     return days;
 }
+/** Current year opens a trailing 365-day view; history uses calendar years. */
+export function contributionCalendarDates(year: number, today: string): string[] {
+    if (year < 2024) return [];
+    const currentYear = Number(today.slice(0, 4));
+    if (year !== currentYear) return year < currentYear ? calendarDates(year) : [];
+    const end = Date.parse(`${today}T00:00:00Z`);
+    const start = Math.max(Date.UTC(2024, 0, 1), end - 364 * 86400000);
+    const dates: string[] = [];
+    for (let time = start; time <= end; time += 86400000) dates.push(new Date(time).toISOString().slice(0, 10));
+    return dates;
+}
+
+export function calendarRangeLabel(dates: string[]): string {
+    const first = dates[0];
+    const last = dates[dates.length - 1];
+    if (!first || !last) return "";
+    const year = first.slice(0, 4);
+    return first === `${year}-01-01` && last === `${year}-12-31` ? `${year}年` : `${first} 至 ${last}`;
+}
+
 export function intensity(count: number): number {
     return count === 0 ? 0 : count <= 2 ? 1 : count <= 5 ? 2 : count <= 9 ? 3 : 4;
 }
@@ -136,24 +167,7 @@ export function isContributionStats(value: unknown, user: string, year: number):
         return (
             Array.isArray(list) &&
             list.length <= 10 &&
-            list.every(
-                (s) =>
-                    object(s) &&
-                    text(s.uuid, 128) &&
-                    text(s.videoID, 128) &&
-                    text(s.cid, 100) &&
-                    (s.part === null || (count(s.part) && s.part > 0)) &&
-                    (s.title === null || text(s.title, 300)) &&
-                    typeof s.startTime === "number" &&
-                    Number.isFinite(s.startTime) &&
-                    s.startTime >= 0 &&
-                    typeof s.endTime === "number" &&
-                    Number.isFinite(s.endTime) &&
-                    s.endTime >= s.startTime &&
-                    text(s.category, 100) &&
-                    count(s.skips) &&
-                    count(s.savedMs),
-            )
+            list.every(isTopSegment)
         );
     });
 }

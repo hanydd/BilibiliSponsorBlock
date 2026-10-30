@@ -197,6 +197,7 @@ interface SBConfig {
 export type VideoDownvotes = { segments: { uuid: HashedValue; hidden: SponsorHideType }[]; lastAccess: number };
 
 interface SBStorage {
+    contributionCalendarNewDismissed: boolean;
     officialServers: OfficialServers | null;
     /* VideoID prefixes to UUID prefixes */
     downvotedSegments: Record<BVID & HashedValue, VideoDownvotes>;
@@ -697,6 +698,7 @@ const syncDefaults = {
 };
 
 const localDefaults = {
+    contributionCalendarNewDismissed: false,
     officialServers: null,
     downvotedSegments: {},
     navigationApiAvailable: null,

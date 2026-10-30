@@ -1,5 +1,7 @@
 import {
     calendarDates,
+    calendarRangeLabel,
+    contributionCalendarDates,
     duration,
     intensity,
     segmentTime,
@@ -68,4 +70,29 @@ test.each([
     { apiVersion: 2 },
 ])("rejects malformed remote data without rendering it: %p", (change) => {
     expect(isContributionStats({ ...response(), ...change }, "a".repeat(64), 2026)).toBe(false);
+});
+
+
+test("current calendar is a full trailing year ending today", () => {
+    const dates = contributionCalendarDates(2026, "2026-10-30");
+    expect(dates).toHaveLength(365);
+    expect(dates[0]).toBe("2025-10-31");
+    expect(dates[364]).toBe("2026-10-30");
+    expect(dates.every((date) => date <= "2026-10-30")).toBe(true);
+});
+test("calendar starts in 2024 and retains leap day and historical years", () => {
+    expect(contributionCalendarDates(2023, "2026-10-30")).toEqual([]);
+    expect(contributionCalendarDates(2027, "2026-10-30")).toEqual([]);
+    expect(contributionCalendarDates(2024, "2024-01-01")).toEqual(["2024-01-01"]);
+    expect(contributionCalendarDates(2024, "2024-03-01")).toContain("2024-02-29");
+    expect(contributionCalendarDates(2024, "2026-10-30")).toHaveLength(366);
+    expect(contributionCalendarDates(2025, "2025-01-01")[364]).toBe("2025-01-01");
+});
+
+test("calendar labels collapse only complete calendar years", () => {
+    expect(calendarRangeLabel(calendarDates(2025))).toBe("2025年");
+    expect(calendarRangeLabel(calendarDates(2024))).toBe("2024年");
+    expect(calendarRangeLabel(contributionCalendarDates(2026, "2026-11-01"))).toBe("2025-11-02 至 2026-11-01");
+    expect(calendarRangeLabel(["2026-01-01"])).toBe("2026-01-01 至 2026-01-01");
+    expect(calendarRangeLabel([])).toBe("");
 });

@@ -21,6 +21,7 @@ interface UserWorkState {
 
     editingUsername: boolean;
     usernameLoading: boolean;
+    contributionCalendarNewDismissed: boolean;
 }
 
 class UserWork extends React.Component<UserWorkProps, UserWorkState> {
@@ -35,6 +36,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
             segmentCount: Config.config.sponsorTimesContributed,
             editingUsername: false,
             usernameLoading: true,
+            contributionCalendarNewDismissed: Config.local.contributionCalendarNewDismissed,
         };
 
         this.userNameInputRef = React.createRef<HTMLInputElement>();
@@ -95,7 +97,6 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
     render(): React.ReactNode {
         return (
             <div className={"sbYourWorkBox"}>
-                <button className="sbFooterButton" style={{ float: "right", margin: "12px" }} onClick={() => chrome.runtime.sendMessage({ message: "openPage", url: "contributions/index.html" })}>贡献日历 ↗</button>
                 <h1 className="sbHeader" style={{ padding: "8px 15px" }}>
                     {chrome.i18n.getMessage("yourWork")}
                 </h1>
@@ -159,7 +160,27 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                     {/* <!-- Submissions --> */}
                     {!this.state.editingUsername && (
                         <div id="sponsorTimesContributionsContainer">
-                            <p className="u-mZ grey-text">{chrome.i18n.getMessage("Submissions")}</p>
+                            <div className="sbContributionHeading">
+                                <p className="u-mZ grey-text">{chrome.i18n.getMessage("Submissions")}</p>
+                                <span className="sbContributionEntry">
+                                <button className="sbContributionCalendar" aria-label="贡献日历" title="查看贡献日历和每日收获"
+                                    onClick={() => chrome.runtime.sendMessage({ message: "openPage", url: "contributions/index.html" })}>
+                                    <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                                        <rect x="3" y="4.5" width="14" height="13" rx="2" />
+                                        <path d="M6.5 2.5v4M13.5 2.5v4M3 8.5h14M6 12h2M10 12h2M6 15h2" />
+                                    </svg>
+                                </button>
+                                {!this.state.contributionCalendarNewDismissed && (
+                                    <span className="sbContributionNew">
+                                        <button aria-label="不再显示贡献日历的新功能提示" title="不再提示"
+                                            onClick={() => {
+                                                Config.local.contributionCalendarNewDismissed = true;
+                                                this.setState({ contributionCalendarNewDismissed: true });
+                                            }}><em>新！</em><span aria-hidden="true">×</span></button>
+                                    </span>
+                                )}
+                                </span>
+                            </div>
                             <p id="sponsorTimesContributionsDisplay" className="u-mZ">
                                 {this.state.segmentCount.toLocaleString()}
                             </p>

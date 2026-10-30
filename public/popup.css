@@ -485,16 +485,19 @@ select {
  */
 #usernameElement {
 	padding: 8px 14px;
-	min-width: 50%;
-	width: 100%;
+	min-width: 0;
+	flex: 1;
 }
 #setUsernameContainer {
 	display: flex;
 	align-items: center;
 	width: fit-content;
+	max-width: 100%;
+	text-align: left;
 }
 #setUsernameContainer > button {
 	display: flex;
+	flex: 0 0 auto;
 }
 #setUsernameButton {
 	margin-right: 5px;
@@ -504,13 +507,16 @@ select {
 	padding-left: 16px;
 }
 #copyUserID {
-	width: 100%;
-	flex: 0 1;
+	width: auto;
+	flex: 0 0 auto;
 }
 /*
  * Truncate username display
  */
 #usernameValue {
+	flex: 0 1 auto;
+	min-width: 0;
+	text-align: left;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
@@ -540,7 +546,8 @@ select {
  * Submissions
 */
 #sponsorTimesContributionsContainer {
-	min-width: 44px;
+	flex: 0 0 auto;
+	min-width: max-content;
 	padding: 8px;
 	border-left: 2px solid var(--sb-grey-bg-color);
 }
@@ -598,3 +605,60 @@ select {
 	margin-bottom: 20px;
 	padding: 5px;
 }
+
+
+/* Inline contribution entry: never float across the information card columns. */
+.sbContributionHeading {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	white-space: nowrap;
+}
+.sbContributionCalendar,
+.sbContributionNew button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	width: 20px;
+	height: 24px;
+	border: 0;
+	border-radius: 3px;
+	background: transparent;
+	color: var(--sb-grey-fg-color);
+	cursor: pointer;
+}
+.sbContributionCalendar:hover,
+.sbContributionNew button:hover {
+	color: var(--sb-main-fg-color);
+	background: var(--sb-grey-bg-color);
+}
+.sbContributionCalendar:focus-visible,
+.sbContributionNew button:focus-visible {
+	outline: 2px solid var(--sb-red-bg-color);
+	outline-offset: 1px;
+}
+.sbContributionEntry {
+	position: relative;
+	display: inline-flex;
+	width: 20px;
+	height: 24px;
+	flex: 0 0 auto;
+}
+.sbContributionNew {
+	position: absolute;
+	right: -3px;
+	top: -8px;
+	transform: rotate(-18deg);
+	transform-origin: right bottom;
+	line-height: 1;
+}
+.sbContributionNew button {
+	width: auto;
+	height: 17px;
+	gap: 1px;
+	color: #fb7299;
+	text-shadow: 0 1px var(--sb-main-bg-color), 1px 0 var(--sb-main-bg-color);
+}
+.sbContributionNew em { font-size: 11px; font-weight: 800; font-style: italic; }
+.sbContributionNew button > span { font-size: 10px; }

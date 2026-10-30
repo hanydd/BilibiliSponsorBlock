@@ -1,3 +1,4 @@
+import { isCommunityStats } from "./contributions/communityModel";
 import { isContributionStats } from "./contributions/model";
 import "content-scripts-register-polyfill";
 import Config from "./config";
@@ -218,14 +219,14 @@ function setupBackgroundRequestProxy() {
             return true;
         }
         if (request.message === "sendRequest") {
-            const contributionRequest = request.type === "GET" && request.endpoint === "/api/contributionStats";
+            const contributionRequest = request.type === "GET" && ["/api/contributionStats", "/api/communityStats"].includes(request.endpoint);
             const apiRequest = contributionRequest
                 ? callAPI(request.type, request.endpoint, request.data, false, request.headers, {
                     retry: true, recordFailure: false, switchOnRetrySuccess: false,
                     timeoutMs: 5000, maxResponseBytes: 128 * 1024,
                     validateResponse: response => {
                         if (response.status !== 200) return true;
-                        try { return isContributionStats(JSON.parse(response.responseText), request.data?.publicUserID, Number(request.data?.year)); }
+                        try { const data = JSON.parse(response.responseText); return request.endpoint === "/api/communityStats" ? isCommunityStats(data) : isContributionStats(data, request.data?.publicUserID, Number(request.data?.year)); }
                         catch { return false; }
                     },
                 })
