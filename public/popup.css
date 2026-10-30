@@ -485,16 +485,19 @@ select {
  */
 #usernameElement {
 	padding: 8px 14px;
-	min-width: 50%;
-	width: 100%;
+	min-width: 0;
+	flex: 1;
 }
 #setUsernameContainer {
 	display: flex;
 	align-items: center;
 	width: fit-content;
+	max-width: 100%;
+	text-align: left;
 }
 #setUsernameContainer > button {
 	display: flex;
+	flex: 0 0 auto;
 }
 #setUsernameButton {
 	margin-right: 5px;
@@ -504,13 +507,16 @@ select {
 	padding-left: 16px;
 }
 #copyUserID {
-	width: 100%;
-	flex: 0 1;
+	width: auto;
+	flex: 0 0 auto;
 }
 /*
  * Truncate username display
  */
 #usernameValue {
+	flex: 0 1 auto;
+	min-width: 0;
+	text-align: left;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
@@ -540,7 +546,8 @@ select {
  * Submissions
 */
 #sponsorTimesContributionsContainer {
-	min-width: 44px;
+	flex: 0 0 auto;
+	min-width: max-content;
 	padding: 8px;
 	border-left: 2px solid var(--sb-grey-bg-color);
 }
@@ -598,3 +605,84 @@ select {
 	margin-bottom: 20px;
 	padding: 5px;
 }
+
+
+/* Inline contribution entry: never float across the information card columns. */
+.sbContributionHeading {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	white-space: nowrap;
+}
+.sbContributionCalendar {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	width: 20px;
+	height: 24px;
+	border: 0;
+	border-radius: 3px;
+	background: transparent;
+	color: var(--sb-grey-fg-color);
+	cursor: pointer;
+}
+.sbContributionCalendar:hover {
+	color: var(--sb-main-fg-color);
+	background: var(--sb-grey-bg-color);
+}
+.sbContributionCalendar:focus-visible,
+.sbContributionDismiss:focus-visible {
+	outline: 2px solid var(--sb-red-bg-color);
+	outline-offset: 1px;
+}
+.sbContributionEntry {
+	position: relative;
+	display: inline-flex;
+	width: 20px;
+	height: 24px;
+	flex: 0 0 auto;
+}
+/* A quiet discovery dot; dismissal stays in the popover, outside the icon. */
+.sbContributionCalendar[data-new] {
+	color: #00a1d6;
+}
+.sbContributionNew {
+	position: absolute;
+	right: 0;
+	top: 1px;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: #00a1d6;
+	box-shadow: 0 0 0 2px var(--sb-main-bg-color);
+	pointer-events: none;
+}
+.sbContributionHint {
+	position: absolute;
+	z-index: 2;
+	right: 0;
+	bottom: 100%;
+	width: max-content;
+	padding: 8px 12px;
+	border-radius: 6px;
+	background: var(--sb-grey-bg-color);
+	color: var(--sb-main-fg-color);
+	box-shadow: 0 2px 8px #0004;
+	font-size: 12px;
+	line-height: 1.5;
+}
+.sbContributionHint strong { font-size: 13px; }
+.sbContributionHint > span { display: block; margin-top: 3px; }
+.sbContributionHint .sbContributionDismiss {
+	display: block;
+	margin-top: 8px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: #00a1d6;
+	font: inherit;
+	cursor: pointer;
+}
+.sbContributionHint .sbContributionDismiss:hover { text-decoration: underline; }

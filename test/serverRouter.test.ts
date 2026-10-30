@@ -1,3 +1,4 @@
+import { contributionValidator } from "../src/contributions/model";
 import { ServerRouter, ServerRouterState } from "../src/requests/serverRouter";
 import { FetchResponse } from "../src/requests/type/requestType";
 
@@ -42,6 +43,29 @@ describe("ServerRouter", () => {
         now = 0;
         savedState = null;
         executeRequest = jest.fn();
+    });
+
+    test.each([
+        ["valid calendar", {}, 1],
+        ["wrong user", { publicUserID: "b".repeat(64) }, 2],
+        ["wrong year", { year: 2024 }, 2],
+        ["invalid date", { submissions: [{ date: "2025-02-30", count: 1 }] }, 2],
+    ] as const)("calendar routing: %s", async (_label, override, calls) => {
+        const publicUserID = "a".repeat(64);
+        const query = { publicUserID, year: 2025, fields: "calendar" };
+        const calendar = { apiVersion: 1, publicUserID, year: 2025, today: "2026-11-22",
+            submissions: [{ date: "2025-03-01", count: 2 }] };
+        const valid = response(200, JSON.stringify(calendar));
+        executeRequest.mockResolvedValueOnce(response(200, JSON.stringify({ ...calendar, ...override })))
+            .mockResolvedValueOnce(valid);
+        const validate = contributionValidator(query.fields);
+        const result = await createRouter().request("GET", "/api/contributionStats", query, {}, {
+            retry: true, recordFailure: false, switchOnRetrySuccess: false,
+            validateResponse: reply => validate(JSON.parse(reply.responseText), publicUserID, query.year),
+        });
+        expect(result).toEqual(valid);
+        expect(executeRequest).toHaveBeenCalledTimes(calls);
+        expect(contributionValidator(undefined)(calendar, publicUserID, query.year)).toBe(false);
     });
 
     test("CID POST has a 90-second timeout without transport retries", async () => {

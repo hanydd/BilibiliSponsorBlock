@@ -1,3 +1,4 @@
+import ContributionEntry from "./ContributionEntry";
 import { LoadingOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import { MessageInstance } from "antd/es/message/interface";
@@ -21,6 +22,7 @@ interface UserWorkState {
 
     editingUsername: boolean;
     usernameLoading: boolean;
+    contributionCalendarNewDismissed: boolean;
 }
 
 class UserWork extends React.Component<UserWorkProps, UserWorkState> {
@@ -35,6 +37,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
             segmentCount: Config.config.sponsorTimesContributed,
             editingUsername: false,
             usernameLoading: true,
+            contributionCalendarNewDismissed: Config.local.contributionCalendarNewDismissed,
         };
 
         this.userNameInputRef = React.createRef<HTMLInputElement>();
@@ -158,7 +161,14 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
                     {/* <!-- Submissions --> */}
                     {!this.state.editingUsername && (
                         <div id="sponsorTimesContributionsContainer">
-                            <p className="u-mZ grey-text">{chrome.i18n.getMessage("Submissions")}</p>
+                            <div className="sbContributionHeading">
+                                <p className="u-mZ grey-text">{chrome.i18n.getMessage("Submissions")}</p>
+                                <ContributionEntry dismissed={this.state.contributionCalendarNewDismissed}
+                                    onDismiss={() => {
+                                        Config.local.contributionCalendarNewDismissed = true;
+                                        this.setState({ contributionCalendarNewDismissed: true });
+                                    }} />
+                            </div>
                             <p id="sponsorTimesContributionsDisplay" className="u-mZ">
                                 {this.state.segmentCount.toLocaleString()}
                             </p>

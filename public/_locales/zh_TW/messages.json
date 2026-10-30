@@ -227,6 +227,12 @@
     "hideThis": {
         "message": "隱藏"
     },
+    "myContributions": {
+        "message": "我的貢獻"
+    },
+    "pageNavigation": {
+        "message": "頁面導覽"
+    },
     "Options": {
         "message": "選項"
     },

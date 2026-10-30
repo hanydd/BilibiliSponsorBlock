@@ -11,7 +11,10 @@ function asyncRequestToCustomServer(type: string, endpoint: string, data = {}, h
     return new Promise((resolve, reject) => {
         // Ask the background script to do the work
         chrome.runtime.sendMessage({ message: "sendRequest", type, endpoint, data, headers }, (response) => {
-            if (response.status !== -1) {
+            const runtimeError = chrome.runtime.lastError;
+            if (runtimeError || !response) {
+                reject(new Error(runtimeError?.message || "后台请求未返回响应，请重新打开页面。"));
+            } else if (response.status !== -1) {
                 resolve(response);
             } else {
                 reject(response);

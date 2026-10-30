@@ -930,7 +930,6 @@ input:checked + .slider:before {
 #createdBy {
 	text-align: center;
 	margin: auto 0 10px 0;
-	height: 50px;
 }
 
 #createdBy > * {
@@ -943,6 +942,25 @@ input:checked + .slider:before {
 	font-size: 40px;
 	padding: 40px 20px;
 	text-decoration: none;
+}
+
+#createdBy .page-links {
+	display: flex;
+	justify-content: center;
+	gap: 16px;
+	width: 100%;
+	margin-bottom: 8px;
+	font-size: 14px;
+}
+
+#createdBy .page-links a {
+	color: inherit;
+	text-decoration: none;
+}
+
+#createdBy .page-links a:hover,
+#createdBy .page-links a:focus-visible {
+	text-decoration: underline;
 }
 
 .subtitle {

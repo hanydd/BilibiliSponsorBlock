@@ -1,3 +1,5 @@
+import { isCommunityStats } from "./contributions/communityModel";
+import { contributionValidator } from "./contributions/model";
 import "content-scripts-register-polyfill";
 import Config from "./config";
 import { reportCidReplacement } from "./requests/background/cidReplacement";
@@ -217,8 +219,25 @@ function setupBackgroundRequestProxy() {
             return true;
         }
         if (request.message === "sendRequest") {
-            callAPI(request.type, request.endpoint, request.data, false, request.headers)
-                .then(callback)
+            const contributionRequest = request.type === "GET" && ["/api/contributionStats", "/api/communityStats"].includes(request.endpoint);
+            const apiRequest = contributionRequest
+                ? callAPI(request.type, request.endpoint, request.data, false, request.headers, {
+                    retry: true, recordFailure: false, switchOnRetrySuccess: false,
+                    timeoutMs: 5000, maxResponseBytes: 128 * 1024,
+                    validateResponse: response => {
+                        if (response.status !== 200) return true;
+                        try {
+                            const data: unknown = JSON.parse(response.responseText);
+                            if (request.endpoint === "/api/communityStats") return isCommunityStats(data);
+                            const validate = contributionValidator(request.data?.fields);
+                            return validate(data, request.data?.publicUserID, Number(request.data?.year));
+                        } catch {
+                            return false;
+                        }
+                    },
+                })
+                : callAPI(request.type, request.endpoint, request.data, false, request.headers);
+            apiRequest.then(callback)
                 .catch(() => {
                     callback({ responseText: "", status: -1, ok: false });
                 });
