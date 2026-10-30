@@ -95,6 +95,7 @@ class UserWork extends React.Component<UserWorkProps, UserWorkState> {
     render(): React.ReactNode {
         return (
             <div className={"sbYourWorkBox"}>
+                <button className="sbFooterButton" style={{ float: "right", margin: "12px" }} onClick={() => chrome.runtime.sendMessage({ message: "openPage", url: "contributions/index.html" })}>贡献日历 ↗</button>
                 <h1 className="sbHeader" style={{ padding: "8px 15px" }}>
                     {chrome.i18n.getMessage("yourWork")}
                 </h1>

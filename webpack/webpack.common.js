@@ -93,6 +93,7 @@ module.exports = env => {
 
     return {
         entry: {
+            contributions: path.join(__dirname, srcDir + "contributions/index.tsx"),
             popup: path.join(__dirname, srcDir + 'popup/popupRender.tsx'),
             background: path.join(__dirname, srcDir + 'background.ts'),
             content: path.join(__dirname, srcDir + 'content.ts'),

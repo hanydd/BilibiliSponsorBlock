@@ -1,3 +1,4 @@
+import { isContributionStats } from "./contributions/model";
 import "content-scripts-register-polyfill";
 import Config from "./config";
 import { reportCidReplacement } from "./requests/background/cidReplacement";
@@ -217,8 +218,19 @@ function setupBackgroundRequestProxy() {
             return true;
         }
         if (request.message === "sendRequest") {
-            callAPI(request.type, request.endpoint, request.data, false, request.headers)
-                .then(callback)
+            const contributionRequest = request.type === "GET" && request.endpoint === "/api/contributionStats";
+            const apiRequest = contributionRequest
+                ? callAPI(request.type, request.endpoint, request.data, false, request.headers, {
+                    retry: true, recordFailure: false, switchOnRetrySuccess: false,
+                    timeoutMs: 5000, maxResponseBytes: 128 * 1024,
+                    validateResponse: response => {
+                        if (response.status !== 200) return true;
+                        try { return isContributionStats(JSON.parse(response.responseText), request.data?.publicUserID, Number(request.data?.year)); }
+                        catch { return false; }
+                    },
+                })
+                : callAPI(request.type, request.endpoint, request.data, false, request.headers);
+            apiRequest.then(callback)
                 .catch(() => {
                     callback({ responseText: "", status: -1, ok: false });
                 });
