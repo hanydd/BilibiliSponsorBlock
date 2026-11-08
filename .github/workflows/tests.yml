@@ -5,7 +5,8 @@ on: [push, pull_request]
 jobs:
   test:
     name: Run tests
-    runs-on: ubuntu-latest
+    # Playwright 1.60 does not support Ubuntu 26.04.
+    runs-on: ubuntu-24.04
 
     steps:
       # Initialization
