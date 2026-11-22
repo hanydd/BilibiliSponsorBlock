@@ -40,7 +40,9 @@ export interface SponsorTimeEditState {
 }
 
 class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, SponsorTimeEditState> {
-    idSuffix: string;
+    get idSuffix(): string {
+        return this.props.idSuffix;
+    }
 
     categoryOptionRef: React.RefObject<HTMLSelectElement>;
     actionTypeOptionRef: React.RefObject<HTMLSelectElement>;
@@ -64,7 +66,6 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         this.actionTypeOptionRef = React.createRef();
         this.descriptionOptionRef = React.createRef();
 
-        this.idSuffix = this.props.idSuffix;
         this.previousSkipType = ActionType.Skip;
 
         const sponsorTime = this.props.contentContainer().sponsorTimesSubmitting[this.props.index];

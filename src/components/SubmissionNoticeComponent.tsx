@@ -8,9 +8,11 @@ import { Category } from "../types";
 import { ConfigProvider, Popover, theme } from "antd";
 import { keybindToString } from "../config/config";
 import { ContentContainer } from "../ContentContainerTypes";
+import { BiliVideoChapter } from "../requests/type/BilibiliRequestType";
 import { showMessage } from "../render/MessageNotice";
 import { getGuidelineInfo } from "../utils/constants";
 import { exportTimes } from "../utils/exporter";
+import { getFormattedTime } from "../utils/formating";
 import { getVideo } from "../utils/video";
 import NoticeComponent from "./NoticeComponent";
 import NoticeTextSelectionComponent from "./NoticeTextSectionComponent";
@@ -21,6 +23,9 @@ export interface SubmissionNoticeProps {
     contentContainer: ContentContainer;
 
     callback: () => Promise<boolean>;
+
+    getChapters: () => BiliVideoChapter[];
+    addChapter: (chapter: BiliVideoChapter) => void;
 
     closeListener: () => void;
 }
@@ -101,10 +106,9 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
     componentDidUpdate() {
         const currentSegmentCount = this.props.contentContainer().sponsorTimesSubmitting.length;
         if (currentSegmentCount > this.lastSegmentCount) {
-            this.lastSegmentCount = currentSegmentCount;
-
             this.scrollToBottom();
         }
+        this.lastSegmentCount = currentSegmentCount;
     }
 
     scrollToBottom() {
@@ -117,6 +121,8 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
     }
 
     render(): React.ReactElement {
+        const chapters = this.props.getChapters();
+        const hasDrafts = this.contentContainer().sponsorTimesSubmitting.length > 0;
         const sortButton = (
             <img
                 id={"sponsorSkipSortButton" + this.state.idSuffix}
@@ -151,7 +157,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                         ref={this.noticeRef}
                         closeListener={this.cancel.bind(this)}
                         zIndex={5000}
-                        firstColumn={[sortButton, exportButton]}
+                        firstColumn={hasDrafts ? [sortButton, exportButton] : []}
                     >
                         {/* Text Boxes */}
                         {this.getMessageBoxes()}
@@ -167,6 +173,29 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                                     }} />
                                 {chrome.i18n.getMessage("previewIncludeOtherSegments")}
                             </label>
+                        </td></tr>}
+
+                        {chapters.length > 0 && <tr onMouseDown={(event) => event.stopPropagation()}><td>
+                            <select
+                                id="sponsorChapterPicker"
+                                className="sponsorTimeEditSelector"
+                                style={{
+                                    maxWidth: "min(260px, 40vw)",
+                                    colorScheme: "dark",
+                                    color: "inherit",
+                                    backgroundColor: "inherit",
+                                }}
+                                aria-label={chrome.i18n.getMessage("addSegmentFromChapter")}
+                                value=""
+                                onChange={(event) => this.props.addChapter(chapters[Number(event.target.value)])}
+                            >
+                                <option value="" disabled>{chrome.i18n.getMessage("addSegmentFromChapter")}</option>
+                                {chapters.map((chapter, index) => (
+                                    <option key={index} value={index}>
+                                        {`${getFormattedTime(chapter.from)} – ${getFormattedTime(chapter.to)} ${chapter.content}`}
+                                    </option>
+                                ))}
+                            </select>
                         </td></tr>}
 
                         {/* Sponsor Time List */}
@@ -197,6 +226,7 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
                                 {/* Submit Button */}
                                 <button
                                     className="sponsorSkipObject sponsorSkipNoticeButton sponsorSkipNoticeRightButton"
+                                    disabled={!hasDrafts}
                                     {...(Config.config.actuallySubmitKeybind && {
                                         title: `${chrome.i18n.getMessage("submit")} (${keybindToString(
                                             Config.config.actuallySubmitKeybind
@@ -267,6 +297,8 @@ class SubmissionNoticeComponent extends React.Component<SubmissionNoticeProps, S
     }
 
     submit(): void {
+        if (this.props.contentContainer().sponsorTimesSubmitting.length === 0) return;
+
         // save all items
         for (const ref of this.timeEditRefs) {
             ref.current.saveEditTimes();

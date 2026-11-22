@@ -56,7 +56,7 @@ test("ready snapshots mount without another readiness wait; concurrent calls sha
     expect(await pending).toBe(await first);
 });
 
-test("waits once for late readiness, then tolerates a slow commit and keeps the latest draft", async () => {
+test("waits once for late readiness, then a slow commit keeps the latest draft and chapter availability", async () => {
     const player = buttons(), snapshot = host();
     let ready: (snapshot: PlayerUIReadySnapshot) => void;
     jest.mocked(waitForPlayerUiReady).mockReturnValue(new Promise(resolve => { ready = resolve; }));
@@ -66,14 +66,14 @@ test("waits once for late readiness, then tolerates a slow commit and keeps the 
     await jest.advanceTimersByTimeAsync(40000);
     expect(mockRoots).toHaveLength(0);
     ready(snapshot); await Promise.resolve();
-    player.updateSegmentSubmitting([{ segment: [5] }] as SponsorTime[]);
+    player.updateSegmentSubmitting([{ segment: [5] }] as SponsorTime[], true);
     const latest = [{ segment: [5, 15] }] as SponsorTime[];
     player.updateSegmentSubmitting(latest);
     await jest.advanceTimersByTimeAsync(40000);
     expect(complete).not.toHaveBeenCalled();
     const group = commit(); await Promise.all([waiting, concurrent]);
     expect(waitForPlayerUiReady).toHaveBeenCalledTimes(1);
-    expect(group.setSetgments).toHaveBeenCalledWith(latest);
+    expect(group.setSetgments).toHaveBeenCalledWith(latest, true);
 });
 
 test("moves a pending React root to a replaced host and never moves it back on commit", async () => {

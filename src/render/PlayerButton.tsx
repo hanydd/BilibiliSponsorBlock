@@ -20,6 +20,7 @@ export class PlayerButton {
     creationPromise: Promise<PlayerButtons>;
     private readiness: Promise<PlayerUIReadySnapshot> | null = null;
     private segments: SponsorTime[] = [];
+    private hasChapters = false;
 
     buttonRef: React.MutableRefObject<PlayerButtonGroupHandle> = { current: null };
 
@@ -70,7 +71,7 @@ export class PlayerButton {
                                 button: this.container.querySelector<HTMLButtonElement>(`#${id}Button`),
                                 image: this.container.querySelector<HTMLImageElement>(`#${id}Image`),
                             }]));
-                            component.setSetgments(this.segments);
+                            component.setSetgments(this.segments, this.hasChapters);
                             if (Config.config.autoHideInfoButton) {
                                 AnimationUtils.setupAutoHideAnimation(this.playerButtons.info.button, this.container);
                             }
@@ -99,8 +100,9 @@ export class PlayerButton {
         return this.creationPromise;
     }
 
-    public updateSegmentSubmitting(segments: SponsorTime[]): void {
+    public updateSegmentSubmitting(segments: SponsorTime[], hasChapters = this.hasChapters): void {
         this.segments = segments;
-        this.buttonRef.current?.setSetgments(segments);
+        this.hasChapters = hasChapters;
+        this.buttonRef.current?.setSetgments(segments, hasChapters);
     }
 }

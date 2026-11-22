@@ -178,6 +178,9 @@
     "sortSegments": {
         "message": "排序片段"
     },
+    "addSegmentFromChapter": {
+        "message": "Add segment from chapter"
+    },
     "submitCheck": {
         "message": "您确定要提交吗？"
     },
