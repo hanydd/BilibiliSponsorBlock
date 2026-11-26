@@ -40,36 +40,46 @@ async function requestJson(fetchImpl, stage, url, options) {
 }
 
 export async function checkCredentials(env = process.env, fetchImpl = fetch) {
-    const required = ['CHROME_PUBLISHER_ID', 'CHROME_ITEM_ID', 'CHROME_CLIENT_ID',
-        'CHROME_CLIENT_SECRET', 'CHROME_REFRESH_TOKEN'];
+    const required = ['CHROME_PUBLISHER_ID', 'CHROME_ITEM_ID'];
     const missing = required.filter(name => !env[name]?.trim());
     if (missing.length) {
         throw new CheckError(`Missing browser-stores configuration: ${missing.join(', ')}.`);
     }
 
-    const token = await requestJson(fetchImpl, 'OAuth refresh', 'https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        body: new URLSearchParams({
-            client_id: env.CHROME_CLIENT_ID,
-            client_secret: env.CHROME_CLIENT_SECRET,
-            refresh_token: env.CHROME_REFRESH_TOKEN,
-            grant_type: 'refresh_token'
-        })
-    });
-    if (typeof token?.access_token !== 'string' || !token.access_token.trim()) {
-        throw new CheckError('OAuth refresh: response did not contain an access token.');
+    let accessToken = env.CWS_ACCESS_TOKEN?.trim();
+    if (!accessToken) {
+        const oauthRequired = ['CHROME_CLIENT_ID', 'CHROME_CLIENT_SECRET', 'CHROME_REFRESH_TOKEN'];
+        const missingOauth = oauthRequired.filter(name => !env[name]?.trim());
+        if (missingOauth.length) {
+            throw new CheckError(`Missing browser-stores configuration: ${missingOauth.join(', ')}.`);
+        }
+
+        const token = await requestJson(fetchImpl, 'OAuth refresh', 'https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            body: new URLSearchParams({
+                client_id: env.CHROME_CLIENT_ID,
+                client_secret: env.CHROME_CLIENT_SECRET,
+                refresh_token: env.CHROME_REFRESH_TOKEN,
+                grant_type: 'refresh_token'
+            })
+        });
+        if (typeof token?.access_token !== 'string' || !token.access_token.trim()) {
+            throw new CheckError('OAuth refresh: response did not contain an access token.');
+        }
+        accessToken = token.access_token;
     }
 
     const name = `publishers/${encodeURIComponent(env.CHROME_PUBLISHER_ID)}/items/${encodeURIComponent(env.CHROME_ITEM_ID)}`;
     const status = await requestJson(fetchImpl, 'Chrome store query',
         `https://chromewebstore.googleapis.com/v2/${name}:fetchStatus`, {
             method: 'GET',
-            headers: { Authorization: `Bearer ${token.access_token}` }
+            headers: { Authorization: `Bearer ${accessToken}` }
         });
     if (status?.itemId !== env.CHROME_ITEM_ID) {
         throw new CheckError('Chrome store query: response did not identify the configured extension.');
     }
-    return 'Chrome credentials are valid: OAuth refresh and read-only store status query succeeded.';
+    const authMethod = env.CWS_ACCESS_TOKEN?.trim() ? 'short-lived access token' : 'OAuth refresh';
+    return `Chrome credentials are valid: ${authMethod} and read-only store status query succeeded.`;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
