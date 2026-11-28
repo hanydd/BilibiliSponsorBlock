@@ -178,6 +178,9 @@
     "sortSegments": {
         "message": "排序片段"
     },
+    "addSegmentFromChapter": {
+        "message": "從影片章節新增片段"
+    },
     "submitCheck": {
         "message": "您確定要提交嗎？"
     },

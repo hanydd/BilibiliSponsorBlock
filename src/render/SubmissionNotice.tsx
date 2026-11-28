@@ -4,27 +4,18 @@ import { createRoot, Root } from "react-dom/client";
 import Utils from "../utils";
 const utils = new Utils();
 
-import SubmissionNoticeComponent from "../components/SubmissionNoticeComponent";
-import { ContentContainer } from "../ContentContainerTypes";
+import SubmissionNoticeComponent, { SubmissionNoticeProps } from "../components/SubmissionNoticeComponent";
 import { seekFrameByKeyPressListener } from "../content/hotkeyHandler";
 
 class SubmissionNotice {
-    // Contains functions and variables from the content script needed by the skip notice
-    contentContainer: () => unknown;
-
-    callback: () => Promise<boolean>;
-
     noticeRef: React.MutableRefObject<SubmissionNoticeComponent>;
 
     noticeElement: HTMLDivElement;
 
     root: Root;
 
-    constructor(contentContainer: ContentContainer, callback: () => Promise<boolean>) {
+    constructor(props: Omit<SubmissionNoticeProps, "closeListener">) {
         this.noticeRef = React.createRef();
-
-        this.contentContainer = contentContainer;
-        this.callback = callback;
 
         const referenceNode = utils.findReferenceNode();
 
@@ -36,8 +27,7 @@ class SubmissionNotice {
         this.root = createRoot(this.noticeElement);
         this.root.render(
             <SubmissionNoticeComponent
-                contentContainer={contentContainer}
-                callback={callback}
+                {...props}
                 ref={this.noticeRef}
                 closeListener={() => this.close(false)}
             />
@@ -45,7 +35,7 @@ class SubmissionNotice {
     }
 
     update(): void {
-        this.noticeRef.current.forceUpdate();
+        this.noticeRef.current?.forceUpdate();
     }
 
     close(callRef = true): void {

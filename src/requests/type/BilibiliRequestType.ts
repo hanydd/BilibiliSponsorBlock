@@ -93,3 +93,9 @@ export interface BiliPlayInfo {
         }[];
     };
 }
+
+export interface BiliVideoChapter {
+    from: number;
+    to: number;
+    content: string;
+}

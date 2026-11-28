@@ -14,7 +14,9 @@ import { addCleanupListener } from "../utils/cleanup";
 import { getPortVideoByHash, postPortVideo, postPortVideoVote, updatePortedSegments } from "../requests/portVideo";
 import { asyncRequestToServer } from "../requests/requests";
 import { getSegmentsByVideoID } from "../requests/segments";
+import { BiliVideoChapter } from "../requests/type/BilibiliRequestType";
 import { FetchResponse } from "../requests/type/requestType";
+import { getVideoChapters } from "../requests/videoChapters";
 import { getVideoLabel } from "../requests/videoLabels";
 import {
     ActionType,
@@ -55,6 +57,7 @@ const utils = new Utils();
 
 let lookupWaiting = false;
 let loadedPreloadedSegment = false;
+let chapterSource: { videoID: NewVideoID; chapters: BiliVideoChapter[] } | null = null;
 function getUIState() {
     return getContentApp().ui.getState();
 }
@@ -279,6 +282,7 @@ export function getSubmissionNotice() { return getUIState().submissionNotice; }
 export function resetSubmissionState(): void {
     loadedPreloadedSegment = false;
     lookupWaiting = false;
+    chapterSource = null;
     const { submissionNotice, descriptionPill } = getUIState();
     descriptionPill?.close();
     if (submissionNotice) {
@@ -558,7 +562,20 @@ export async function lockedCategoriesLookup(): Promise<void> {
 
 /** Creates any missing buttons on the player and updates their visiblity. */
 export async function updateVisibilityOfPlayerControlsButton(snapshot?: PlayerUIReadySnapshot): Promise<void> {
-    if (!getVideoID()) return;
+    const videoID = getVideoID();
+    if (!videoID) return;
+
+    if (chapterSource?.videoID !== videoID) {
+        chapterSource = { videoID, chapters: [] };
+        const source = chapterSource;
+        void getVideoChapters(videoID).then((chapters) => {
+            if (source !== chapterSource || videoID !== getVideoID() || chapters.length === 0) return;
+
+            source.chapters = chapters;
+            updateSegmentSubmitting();
+            getUIState().submissionNotice?.update();
+        });
+    }
 
     const playerButtons = await getPlayerButton().createButtons(snapshot);
     patchUIState({ playerButtons: playerButtons ?? {} });
@@ -574,7 +591,24 @@ export async function updateVisibilityOfPlayerControlsButton(snapshot?: PlayerUI
 /** Updates the visibility of buttons on the player related to creating segments. */
 export function updateSegmentSubmitting(): void {
     if (!getVideoID()) return;
-    getPlayerButton().updateSegmentSubmitting(contentState.sponsorTimesSubmitting);
+    getPlayerButton().updateSegmentSubmitting(contentState.sponsorTimesSubmitting, getSubmittingVideoChapters().length > 0);
+}
+
+function getSubmittingVideoChapters(): BiliVideoChapter[] {
+    return chapterSource && chapterSource.videoID === getVideoID() ? chapterSource.chapters : [];
+}
+
+function addVideoChapter(chapter: BiliVideoChapter): void {
+    if (!getSubmittingVideoChapters().includes(chapter)) return;
+
+    importSegments([{
+        cid: getCid(),
+        segment: [chapter.from, chapter.to],
+        UUID: generateUserID() as SegmentUUID,
+        category: Config.config.defaultCategory,
+        actionType: ActionType.Skip,
+        source: SponsorSourceType.Local,
+    }]);
 }
 
 /**
@@ -677,6 +711,7 @@ export function clearSponsorTimes(): void {
 export function importSegments(importedSegments: SponsorTime[]): void {
     let addedSegments = false;
     const nextSegments = contentState.sponsorTimesSubmitting.map(cloneSubmittingSegment);
+    const incompleteSegment = isSegmentCreationInProgress() ? nextSegments.pop() : null;
 
     for (const segment of importedSegments) {
         if (
@@ -695,8 +730,10 @@ export function importSegments(importedSegments: SponsorTime[]): void {
         return;
     }
 
+    // The capture button completes the final draft when it is still being timed.
+    if (incompleteSegment) nextSegments.push(incompleteSegment);
     replaceSubmittingSegments(nextSegments, "segmentSubmission.importSegments");
-    openSubmissionMenu();
+    if (!getUIState().submissionNotice) openSubmissionMenu();
 }
 
 export async function vote(
@@ -832,10 +869,15 @@ export function openSubmissionMenu(): void {
         return;
     }
 
-    if (contentState.sponsorTimesSubmitting !== undefined && contentState.sponsorTimesSubmitting.length > 0) {
+    if (contentState.sponsorTimesSubmitting.length > 0 || getSubmittingVideoChapters().length > 0) {
         void getContentApp().commands.execute("popup/closeInfoMenu", { onlyOverlay: true });
         patchUIState({
-            submissionNotice: new SubmissionNotice(getSkipNoticeContentContainer, sendSubmitMessage),
+            submissionNotice: new SubmissionNotice({
+                contentContainer: getSkipNoticeContentContainer,
+                callback: sendSubmitMessage,
+                getChapters: getSubmittingVideoChapters,
+                addChapter: addVideoChapter,
+            }),
         });
         document.addEventListener("keydown", seekFrameByKeyPressListener);
     }

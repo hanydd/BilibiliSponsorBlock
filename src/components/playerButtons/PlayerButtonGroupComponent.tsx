@@ -14,7 +14,7 @@ interface PlayerButtonGroupProps {
 }
 
 export interface PlayerButtonGroupHandle {
-    setSetgments(segments: SponsorTime[]): void;
+    setSetgments(segments: SponsorTime[], hasChapters: boolean): void;
 }
 
 const PlayerButtonGroupComponent = React.forwardRef<PlayerButtonGroupHandle, PlayerButtonGroupProps>(function (
@@ -30,11 +30,13 @@ const PlayerButtonGroupComponent = React.forwardRef<PlayerButtonGroupHandle, Pla
     const divRef = React.useRef(null);
 
     const [sponsorTimesSubmitting, setSponsorTimesSubmitting] = React.useState<SponsorTime[]>([]);
+    const [hasChapters, setHasChapters] = React.useState(false);
 
     React.useImperativeHandle(ref, () => {
         return {
-            setSetgments(segments: SponsorTime[]) {
+            setSetgments(segments: SponsorTime[], hasChapters: boolean) {
                 setSponsorTimesSubmitting([...segments]);
+                setHasChapters(hasChapters);
             },
         };
     });
@@ -45,7 +47,7 @@ const PlayerButtonGroupComponent = React.forwardRef<PlayerButtonGroupHandle, Pla
     }
 
     function showSubmitButton() {
-        return sponsorTimesSubmitting.length > 0 && !Config.config.hideUploadButtonPlayerControls;
+        return (sponsorTimesSubmitting.length > 0 || hasChapters) && !Config.config.hideUploadButtonPlayerControls;
     }
 
     function showdeleteButton() {

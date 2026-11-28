@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import type { BiliVideoChapter } from "../../src/requests/type/BilibiliRequestType";
 
 export type MockBilibiliPageOptions = {
     bvid?: string;
@@ -11,6 +12,7 @@ export type MockBilibiliPageOptions = {
     vueHydrationDelayMs?: number;
     replacePlayerControlsOnHydration?: boolean;
     extraCss?: string;
+    chapters?: BiliVideoChapter[];
 };
 
 export const defaultMockBvid = "BV1JfLg6qEtf";
@@ -210,6 +212,16 @@ export async function routeMockBilibiliVideoPage(
     page: Page,
     options: MockBilibiliPageOptions = {}
 ): Promise<void> {
+    await page.route("https://api.bilibili.com/x/player/v2?**", async (route) => {
+        await route.fulfill({
+            headers: { "access-control-allow-origin": "https://www.bilibili.com" },
+            json: {
+                code: 0,
+                data: { cid: Number(options.cid ?? defaultMockCid), view_points: options.chapters ?? [] },
+            },
+        });
+    });
+
     await page.route(mockVideoUrl, async (route) => {
         await route.fulfill({
             status: 200,
