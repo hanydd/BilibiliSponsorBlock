@@ -1,4 +1,4 @@
-export const DEFAULT_ROLLOUT_PERCENT = 60;
+export const DEFAULT_ROLLOUT_PERCENT = 100;
 
 export type SkipRulesRollout = 'pending' | 'auto' | 'invite' | 'excluded' | 'existing';
 export type SkipRulesNotice = 'unseen' | 'invitation-dismissed' | 'welcome-dismissed';
@@ -26,19 +26,22 @@ export function migrateSkipRulesRollout(
     if (!Number.isInteger(rolloutPercent) || rolloutPercent < 0 || rolloutPercent > 100) {
         throw new Error('Invalid skip rules rollout percentage');
     }
-    if (config.skipRulesRollout !== 'pending' && config.skipRulesRollout !== 'invite') return;
+    const fullRelease = rolloutPercent === 100;
+    // Older versions also excluded users who only hid feature announcements.
+    const excludedByAnnouncements = config.skipRulesRollout === 'excluded' && config.skipRulesNotice === 'unseen';
+    if (config.skipRulesRollout !== 'pending' && config.skipRulesRollout !== 'invite'
+        && !(fullRelease && excludedByAnnouncements)) return;
     if (config.skipRulesRollout === 'pending' && initialSyncKeys.has('skipEngineMode')) {
         config.skipRulesRollout = 'existing';
         return;
     }
     if (config.skipEngineMode !== 'legacy') return;
-    if (!config.showNewFeaturePopups || config.skipRulesNotice !== 'unseen') {
+    if (config.skipRulesNotice !== 'unseen' || (!fullRelease && !config.showNewFeaturePopups)) {
         config.skipRulesRollout = 'excluded';
         return;
     }
-    // A fresh install may not have its user ID yet. Defer to the next configuration load.
-    if (!config.userID) return;
-    if (skipRulesBucket(config.userID) < rolloutPercent) {
+    if (!fullRelease && !config.userID) return;
+    if (fullRelease || skipRulesBucket(config.userID) < rolloutPercent) {
         config.skipEngineMode = 'rules';
         config.skipRulesRollout = 'auto';
     } else if (config.skipRulesRollout === 'pending') {

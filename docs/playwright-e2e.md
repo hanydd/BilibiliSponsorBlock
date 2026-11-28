@@ -53,7 +53,7 @@ npx playwright test --list --grep-invert '@real|@local-server'
 
 - `notice-presentation.spec.ts` 对全部样式验证键盘状态切换和悬停展开中断，其他触发方式在折叠样式中各验证一次。`segment-skipping.spec.ts` 另行覆盖运行时修改样式和播放器尺寸，避免扩展成所有参数的全组合。
 - 引擎开关的存储、重载和跨窗口同步由 `rule-settings.spec.ts` 覆盖；实际执行器的重载切换和播放中切换由 `skip-rules.spec.ts` 覆盖。
-- 灰度分桶边界由 `test/skipRulesRollout.test.ts` 覆盖。E2E 保留旧邀请升级、欢迎弹窗、拒绝邀请和偏好保存等浏览器流程。
+- `test/skipRulesRollout.test.ts` 覆盖历史分桶和全量迁移。E2E 验证静默迁移、手动切换和老版偏好保留。
 - 正则迁移仍需覆盖历史默认值、用户扩展词和 flags，不能因版本较旧就删除。普通渲染断言并入规则编辑和保存用例。
 - 真实页面相邻片段测试中，两段都手动跳过时，开启倍速不会改变执行路径，只保留一个组合。自动与手动混合的组合继续分别验证。
 

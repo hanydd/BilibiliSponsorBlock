@@ -72,6 +72,11 @@ export const test = base.extend<ExtensionFixtures>({
             const serviceWorker =
                 context.serviceWorkers()[0] ?? (await context.waitForEvent("serviceworker"));
             await expect.poll(() => serviceWorker.evaluate(() => Boolean(globalThis.chrome?.storage?.local))).toBe(true);
+            // Wait for the fresh profile's migration before seeding a saved engine choice.
+            await expect.poll(() => serviceWorker.evaluate(async () => {
+                const { skipEngineMode, skipRulesRollout } = await chrome.storage.sync.get(["skipEngineMode", "skipRulesRollout"]);
+                return Boolean(skipEngineMode && skipRulesRollout);
+            })).toBe(true);
             await serviceWorker.evaluate(async () => {
                 const chromeApi = (globalThis as { chrome: typeof chrome }).chrome;
                 await Promise.all([

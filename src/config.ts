@@ -243,13 +243,16 @@ class ConfigClass extends ProtoConfig<SBConfig, SBStorage> {
     }
 
     resetToDefault() {
-        chrome.storage.sync.set(this.syncStorageValues({
+        const defaults = {
             ...this.syncDefaults,
             userID: this.config.userID,
             minutesSaved: this.config.minutesSaved,
             skipCount: this.config.skipCount,
             sponsorTimesContributed: this.config.sponsorTimesContributed,
-        }));
+        };
+        // Resolve the engine default before persisting it as part of the reset.
+        migrateSkipRulesRollout(defaults, new Set());
+        chrome.storage.sync.set(this.syncStorageValues(defaults));
 
         chrome.storage.local.set({
             ...this.localDefaults,

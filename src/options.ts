@@ -34,7 +34,6 @@ import { getHash } from "./utils/hash";
 import { localizeHtmlPage } from "./utils/setup";
 import { applyFadeOut, clamp01 } from "./utils/soundFade";
 
-import { setupRuleRollout } from "./options/rules/rollout";
 import { refreshNoticeAppearance, setupNoticeAppearance } from "./options/noticeAppearance";
 import { mountRulesPage } from "./options/rules/RulesPage";
 
@@ -414,12 +413,18 @@ async function init() {
     window.addEventListener("scroll", () => createStickyHeader());
 
     optionsContainer.classList.add("animated");
-    setupRuleRollout(updateBehaviorMode, () => document.querySelector<HTMLElement>('[data-for="behavior"]').click(), embed);
+    const legacyEngineToggle = document.querySelector<HTMLInputElement>("#legacy-engine-enabled");
+    legacyEngineToggle.addEventListener("change", () => {
+        Config.config.skipRulesRollout = "existing";
+        Config.config.skipEngineMode = legacyEngineToggle.checked ? "legacy" : "rules";
+        updateBehaviorMode();
+    });
 }
 
 /** The saved engine choice is also the only source of truth for the behavior page. */
 function updateBehaviorMode(): void {
     const enabled = Config.config.skipEngineMode === "rules";
+    document.querySelector<HTMLInputElement>("#legacy-engine-enabled").checked = !enabled;
     document.getElementById("classic-behavior").classList.toggle("hidden", enabled);
     document.getElementById("legacy-notice-settings").classList.toggle("hidden", enabled);
     document.getElementById("skip-rules").classList.toggle("hidden", !enabled);

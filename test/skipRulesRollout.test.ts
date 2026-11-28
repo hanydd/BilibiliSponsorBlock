@@ -9,23 +9,17 @@ const userInBucket = (bucket: number) => Array.from({ length: 10000 }, (_, i) =>
     .find(id => skipRulesBucket(id) === bucket)!;
 const invited = (bucket = 20) => ({ ...fresh(userInBucket(bucket)), skipRulesRollout: 'invite' as SkipRulesRollout });
 
-test('stable allocation uses the 60 percent boundary and keeps opt-outs on reload', () => {
+test('the release default enables every bucket and keeps later opt-outs on reload', () => {
     const buckets = new Set<number>();
     for (let i = 0; i < 2000; i++) {
         const config = fresh(`user-${i}`);
         const bucket = skipRulesBucket(config.userID);
         buckets.add(bucket);
         migrateSkipRulesRollout(config, keys);
-        expect(config.skipEngineMode).toBe(bucket < 60 ? 'rules' : 'legacy');
-        expect(config.skipRulesRollout).toBe(bucket < 60 ? 'auto' : 'invite');
-        const allocated = config.skipRulesRollout;
+        expect(config).toMatchObject({ skipEngineMode: 'rules', skipRulesRollout: 'auto' });
+        config.skipEngineMode = 'legacy';
         migrateSkipRulesRollout(config, savedKeys);
-        expect(config.skipRulesRollout).toBe(allocated);
-        if (allocated === 'auto') {
-            config.skipEngineMode = 'legacy';
-            migrateSkipRulesRollout(config, savedKeys);
-            expect(config.skipEngineMode).toBe('legacy');
-        }
+        expect(config).toMatchObject({ skipEngineMode: 'legacy', skipRulesRollout: 'auto' });
     }
     expect(buckets.size).toBe(100);
 });
@@ -35,8 +29,7 @@ test.each(['pending', 'invite'] as const)('upgrades from an older release use th
         const config = { ...fresh(userInBucket(bucket)), skipRulesRollout: state };
         // Before 0.16.0 neither the engine preference nor allocation was stored.
         migrateSkipRulesRollout(config, state === 'pending' ? new Set(['userID', 'showNewFeaturePopups']) : savedKeys);
-        expect(config).toMatchObject({ skipEngineMode: bucket < 60 ? 'rules' : 'legacy',
-            skipRulesRollout: bucket < 60 ? 'auto' : 'invite' });
+        expect(config).toMatchObject({ skipEngineMode: 'rules', skipRulesRollout: 'auto' });
     }
 });
 
@@ -60,27 +53,26 @@ test.each([[40, 60], [40, 80], [20, 100], [0, 40]])('increasing the target from 
     }
 });
 
-test.each(['auto', 'existing', 'excluded'] as const)('future increases preserve %s opt-outs and manual selections', allocation => {
+test.each(['auto', 'existing'] as const)('the release preserves %s opt-outs and manual selections', allocation => {
     const config = { ...invited(59), skipRulesRollout: allocation };
     migrateSkipRulesRollout(config, savedKeys, 60);
     migrateSkipRulesRollout(config, savedKeys, 100);
     expect(config).toMatchObject({ skipEngineMode: 'legacy', skipRulesRollout: allocation });
 });
 
-test.each(['pending', 'invite'] as const)('refused %s users stay excluded if announcements are later enabled', state => {
-    const config = { ...invited(), skipRulesRollout: state, showNewFeaturePopups: false };
+test.each(['pending', 'invite', 'excluded'] as const)('the release enables %s users who only hid announcements, even without a user ID', state => {
+    const config = { ...fresh(null), skipRulesRollout: state, showNewFeaturePopups: false };
     migrateSkipRulesRollout(config, state === 'pending' ? keys : savedKeys);
-    expect(config.skipRulesRollout).toBe('excluded');
-    config.showNewFeaturePopups = true;
-    migrateSkipRulesRollout(config, savedKeys, 100);
-    expect(config.skipEngineMode).toBe('legacy');
+    expect(config).toMatchObject({ skipEngineMode: 'rules', skipRulesRollout: 'auto',
+        skipRulesNotice: 'unseen', showNewFeaturePopups: false });
 });
 
-test.each(['invitation-dismissed', 'welcome-dismissed'] as const)('preserves a previous %s refusal during future increases', notice => {
-    const config = { ...invited(), skipRulesNotice: notice };
-    migrateSkipRulesRollout(config, savedKeys);
-    migrateSkipRulesRollout(config, savedKeys, 100);
-    expect(config).toMatchObject({ skipEngineMode: 'legacy', skipRulesRollout: 'excluded', skipRulesNotice: notice });
+describe.each(['invite', 'excluded'] as const)('previous %s users', allocation => {
+    test.each(['invitation-dismissed', 'welcome-dismissed'] as const)('keep the old engine after %s', notice => {
+        const config = { ...invited(), skipRulesRollout: allocation, skipRulesNotice: notice, showNewFeaturePopups: false };
+        migrateSkipRulesRollout(config, savedKeys);
+        expect(config).toMatchObject({ skipEngineMode: 'legacy', skipRulesRollout: 'excluded', skipRulesNotice: notice });
+    });
 });
 
 test.each(['rules', 'shadow'] as const)('leaves an invited manual %s selection untouched', mode => {
@@ -102,13 +94,13 @@ test('reducing the target does not disable previously enabled users', () => {
     expect(config).toMatchObject({ skipEngineMode: 'rules', skipRulesRollout: 'auto' });
 });
 
-test.each(['pending', 'invite'] as const)('waits for a user ID before evaluating %s users', state => {
+test.each(['pending', 'invite'] as const)('a partial rollout waits for a user ID before evaluating %s users', state => {
     const config = { ...fresh(null), skipRulesRollout: state };
     const initialKeys = state === 'pending' ? keys : savedKeys;
-    migrateSkipRulesRollout(config, initialKeys);
+    migrateSkipRulesRollout(config, initialKeys, 60);
     expect(config).toMatchObject({ skipEngineMode: 'legacy', skipRulesRollout: state });
     config.userID = userInBucket(39);
-    migrateSkipRulesRollout(config, initialKeys);
+    migrateSkipRulesRollout(config, initialKeys, 60);
     expect(config).toMatchObject({ skipEngineMode: 'rules', skipRulesRollout: 'auto' });
 });
 
